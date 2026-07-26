@@ -1,0 +1,153 @@
+id,name_vi,aliases,category,kcal_100g,protein_g,carb_g,fat_g,fiber_g,na_mg,k_mg,p_mg,purine_mg,gi_index,contains_allergens,source,source_ref,is_estimated,assigned_to,priority_note
+1,Gạo tẻ (sống),gạo trắng,ngũ cốc,,,,,,,,,,,,,,FALSE,R1,
+2,Cơm tẻ,cơm trắng,ngũ cốc,,,,,,,,,,,,,,FALSE,R2,khẩu phần nền
+3,Gạo lứt,gạo nâu,ngũ cốc,,,,,,,,,,,,,,FALSE,R3,
+4,Bún tươi,,ngũ cốc,,,,,,,,,,,,,,FALSE,R4,
+5,Bánh phở tươi,,ngũ cốc,,,,,,,,,,,,,,FALSE,R1,gluten? kiểm tra
+6,Miến dong,,ngũ cốc,,,,,,,,,,,,,,FALSE,R2,
+7,Bánh mì,,ngũ cốc,,,,,,,,,,,gluten,,,FALSE,R3,
+8,Mì ăn liền,mì tôm,ngũ cốc,,,,,,,,,,,gluten,,,FALSE,R4,Na rất cao - ưu tiên
+9,Bánh cuốn,,ngũ cốc,,,,,,,,,,,,,,FALSE,R1,
+10,Xôi trắng,,ngũ cốc,,,,,,,,,,,,,,FALSE,R2,
+11,Khoai lang,,ngũ cốc,,,,,,,,,,,,,,FALSE,R3,
+12,Khoai tây,,ngũ cốc,,,,,,,,,,,,,,FALSE,R4,
+13,Khoai môn,,ngũ cốc,,,,,,,,,,,,,,FALSE,R1,
+14,Sắn luộc,khoai mì,ngũ cốc,,,,,,,,,,,,,,FALSE,R2,
+15,Ngô luộc,bắp,ngũ cốc,,,,,,,,,,,,,,FALSE,R3,
+16,Bột mì,,ngũ cốc,,,,,,,,,,,gluten,,,FALSE,R4,
+17,Yến mạch,,ngũ cốc,,,,,,,,,,,gluten,,,FALSE,R1,
+18,Cháo trắng,,ngũ cốc,,,,,,,,,,,,,,FALSE,R2,
+19,Thịt lợn nạc,thịt heo nạc,thịt,,,,,,,,,,,,,,FALSE,R3,
+20,Thịt lợn ba chỉ,thịt heo ba rọi,thịt,,,,,,,,,,,,,,FALSE,R4,
+21,Thịt bò thăn,,thịt,,,,,,,,,,,,,,FALSE,R1,
+22,Thịt bò bắp,,thịt,,,,,,,,,,,,,,FALSE,R2,
+23,"Thịt gà (ức, bỏ da)",,thịt,,,,,,,,,,,,,,FALSE,R3,
+24,"Thịt gà (đùi, có da)",,thịt,,,,,,,,,,,,,,FALSE,R4,
+25,Thịt vịt,,thịt,,,,,,,,,,,,,,FALSE,R1,
+26,Gan lợn,gan heo,thịt,,,,,,,,,,,,,,FALSE,R2,purin cao - ưu tiên
+27,Lòng lợn,,thịt,,,,,,,,,,,,,,FALSE,R3,purin cao
+28,Tim lợn,,thịt,,,,,,,,,,,,,,FALSE,R4,purin cao
+29,Giò lụa,chả lụa,thịt,,,,,,,,,,,,,,FALSE,R1,
+30,Chả quế,,thịt,,,,,,,,,,,,,,FALSE,R2,
+31,Nem chua,,thịt,,,,,,,,,,,,,,FALSE,R3,
+32,Xúc xích,,thịt,,,,,,,,,,,,,,FALSE,R4,Na cao
+33,Trứng gà,,trứng,,,,,,,,,,,trứng,,,FALSE,R1,
+34,Trứng vịt,,trứng,,,,,,,,,,,trứng,,,FALSE,R2,
+35,Trứng vịt lộn,,trứng,,,,,,,,,,,trứng,,,FALSE,R3,
+36,Trứng cút,,trứng,,,,,,,,,,,trứng,,,FALSE,R4,
+37,Cá lóc,cá quả|cá chuối,thủy sản,,,,,,,,,,,cá,,,FALSE,R1,
+38,Cá rô phi,,thủy sản,,,,,,,,,,,cá,,,FALSE,R2,
+39,Cá chép,,thủy sản,,,,,,,,,,,cá,,,FALSE,R3,
+40,Cá basa,cá tra,thủy sản,,,,,,,,,,,cá,,,FALSE,R4,
+41,Cá thu,,thủy sản,,,,,,,,,,,cá,,,FALSE,R1,purin cao
+42,Cá ngừ,,thủy sản,,,,,,,,,,,cá,,,FALSE,R2,purin cao
+43,Cá nục,,thủy sản,,,,,,,,,,,cá,,,FALSE,R3,
+44,Cá trích,,thủy sản,,,,,,,,,,,cá,,,FALSE,R4,purin rất cao
+45,Cá hồi,,thủy sản,,,,,,,,,,,cá,,,FALSE,R1,
+46,Cá bống,,thủy sản,,,,,,,,,,,cá,,,FALSE,R2,
+47,Tôm biển,,thủy sản,,,,,,,,,,,hải sản,,,FALSE,R3,purin cao
+48,Tôm sú,,thủy sản,,,,,,,,,,,hải sản,,,FALSE,R4,
+49,Cua đồng,,thủy sản,,,,,,,,,,,hải sản,,,FALSE,R1,
+50,Ghẹ,,thủy sản,,,,,,,,,,,hải sản,,,FALSE,R2,purin cao
+51,Mực tươi,,thủy sản,,,,,,,,,,,hải sản,,,FALSE,R3,purin cao
+52,Ngao,nghêu,thủy sản,,,,,,,,,,,hải sản,,,FALSE,R4,
+53,Hến,,thủy sản,,,,,,,,,,,hải sản,,,FALSE,R1,
+54,Cá khô,,thủy sản,,,,,,,,,,,cá,,,FALSE,R2,Na rất cao
+55,Đậu phụ,đậu hũ|tàu hũ,đậu,,,,,,,,,,,đậu nành,,,FALSE,R3,
+56,Đậu phụ chiên,,đậu,,,,,,,,,,,đậu nành,,,FALSE,R4,
+57,Sữa đậu nành,,đậu,,,,,,,,,,,đậu nành,,,FALSE,R1,
+58,Đậu xanh,,đậu,,,,,,,,,,,,,,FALSE,R2,
+59,Đậu đen,,đậu,,,,,,,,,,,,,,FALSE,R3,
+60,Đậu đỏ,,đậu,,,,,,,,,,,,,,FALSE,R4,
+61,Đậu tương hạt,đậu nành hạt,đậu,,,,,,,,,,,đậu nành,,,FALSE,R1,
+62,Giá đỗ,giá,đậu,,,,,,,,,,,,,,FALSE,R2,
+63,Chao,,đậu,,,,,,,,,,,đậu nành,,,FALSE,R3,Na cao
+64,Tương hột,,đậu,,,,,,,,,,,đậu nành,,,FALSE,R4,Na cao
+65,Rau muống,,rau lá,,,,,,,,,,,,,,FALSE,R1,
+66,Rau ngót,bồ ngót,rau lá,,,,,,,,,,,,,,FALSE,R2,vitamin K cao - warfarin
+67,Rau dền,,rau lá,,,,,,,,,,,,,,FALSE,R3,
+68,Rau cải ngọt,,rau lá,,,,,,,,,,,,,,FALSE,R4,
+69,Cải xanh,cải bẹ xanh,rau lá,,,,,,,,,,,,,,FALSE,R1,
+70,Cải thảo,,rau lá,,,,,,,,,,,,,,FALSE,R2,
+71,Cải bắp,bắp cải,rau lá,,,,,,,,,,,,,,FALSE,R3,vitamin K - warfarin
+72,Cải cúc,tần ô,rau lá,,,,,,,,,,,,,,FALSE,R4,
+73,Rau mồng tơi,,rau lá,,,,,,,,,,,,,,FALSE,R1,
+74,Rau đay,,rau lá,,,,,,,,,,,,,,FALSE,R2,
+75,Rau lang,đọt lang,rau lá,,,,,,,,,,,,,,FALSE,R3,
+76,Xà lách,,rau lá,,,,,,,,,,,,,,FALSE,R4,
+77,Rau má,,rau lá,,,,,,,,,,,,,,FALSE,R1,
+78,Rau mùi,ngò rí|ngò,rau lá,,,,,,,,,,,,,,FALSE,R2,
+79,Hành lá,hành hoa,rau lá,,,,,,,,,,,,,,FALSE,R3,
+80,Tía tô,,rau lá,,,,,,,,,,,,,,FALSE,R4,
+81,Kinh giới,,rau lá,,,,,,,,,,,,,,FALSE,R1,
+82,Thì là,thìa là,rau lá,,,,,,,,,,,,,,FALSE,R2,
+83,Rau răm,,rau lá,,,,,,,,,,,,,,FALSE,R3,
+84,Súp lơ xanh,bông cải xanh,rau lá,,,,,,,,,,,,,,FALSE,R4,vitamin K - warfarin
+85,Cà chua,,rau củ,,,,,,,,,,,,,,FALSE,R1,
+86,Cà rốt,,rau củ,,,,,,,,,,,,,,FALSE,R2,
+87,Củ cải trắng,,rau củ,,,,,,,,,,,,,,FALSE,R3,
+88,Su hào,,rau củ,,,,,,,,,,,,,,FALSE,R4,
+89,Su su,,rau củ,,,,,,,,,,,,,,FALSE,R1,
+90,Bí đao,bí xanh,rau củ,,,,,,,,,,,,,,FALSE,R2,
+91,Bí đỏ,bí ngô,rau củ,,,,,,,,,,,,,,FALSE,R3,
+92,Bầu,,rau củ,,,,,,,,,,,,,,FALSE,R4,
+93,Mướp,,rau củ,,,,,,,,,,,,,,FALSE,R1,
+94,Mướp đắng,khổ qua,rau củ,,,,,,,,,,,,,,FALSE,R2,
+95,Dưa chuột,dưa leo,rau củ,,,,,,,,,,,,,,FALSE,R3,
+96,Đậu cove,đậu que,rau củ,,,,,,,,,,,,,,FALSE,R4,
+97,Đậu bắp,,rau củ,,,,,,,,,,,,,,FALSE,R1,
+98,Cà tím,,rau củ,,,,,,,,,,,,,,FALSE,R2,
+99,Măng tươi,,rau củ,,,,,,,,,,,,,,FALSE,R3,purin trung bình
+100,Nấm rơm,,rau củ,,,,,,,,,,,,,,FALSE,R4,purin cao
+101,Nấm hương,nấm đông cô,rau củ,,,,,,,,,,,,,,FALSE,R1,purin cao
+102,Hành tây,,rau củ,,,,,,,,,,,,,,FALSE,R2,
+103,Chuối tiêu,chuối già,trái cây,,,,,,,,,,,,,,FALSE,R3,kali cao - CKD
+104,Cam sành,,trái cây,,,,,,,,,,,,,,FALSE,R4,
+105,Quýt,,trái cây,,,,,,,,,,,,,,FALSE,R1,
+106,Bưởi,,trái cây,,,,,,,,,,,,,,FALSE,R2,tương tác statin
+107,Táo,bom,trái cây,,,,,,,,,,,,,,FALSE,R3,
+108,Lê,,trái cây,,,,,,,,,,,,,,FALSE,R4,
+109,Xoài chín,,trái cây,,,,,,,,,,,,,,FALSE,R1,
+110,Đu đủ chín,,trái cây,,,,,,,,,,,,,,FALSE,R2,
+111,Dứa,thơm|khóm,trái cây,,,,,,,,,,,,,,FALSE,R3,
+112,Dưa hấu,,trái cây,,,,,,,,,,,,,,FALSE,R4,
+113,Nhãn,,trái cây,,,,,,,,,,,,,,FALSE,R1,
+114,Vải,,trái cây,,,,,,,,,,,,,,FALSE,R2,
+115,Ổi,,trái cây,,,,,,,,,,,,,,FALSE,R3,
+116,Thanh long,,trái cây,,,,,,,,,,,,,,FALSE,R4,
+117,Na,mãng cầu ta,trái cây,,,,,,,,,,,,,,FALSE,R1,
+118,Sầu riêng,,trái cây,,,,,,,,,,,,,,FALSE,R2,năng lượng cao
+119,Bơ,trái bơ,trái cây,,,,,,,,,,,,,,FALSE,R3,kali cao - CKD
+120,Nho,,trái cây,,,,,,,,,,,,,,FALSE,R4,
+121,Chanh,,trái cây,,,,,,,,,,,,,,FALSE,R1,
+122,Dừa (nước),nước dừa,trái cây,,,,,,,,,,,,,,FALSE,R2,kali cao - CKD
+123,Sữa tươi không đường,,sữa,,,,,,,,,,,sữa,,,FALSE,R3,
+124,Sữa tươi có đường,,sữa,,,,,,,,,,,sữa,,,FALSE,R4,
+125,Sữa đặc có đường,,sữa,,,,,,,,,,,sữa,,,FALSE,R1,
+126,Sữa chua,yaourt|da ua,sữa,,,,,,,,,,,sữa,,,FALSE,R2,
+127,Phô mai,pho mát,sữa,,,,,,,,,,,sữa,,,FALSE,R3,Na + phospho cao
+128,Sữa bột nguyên kem,,sữa,,,,,,,,,,,sữa,,,FALSE,R4,
+129,Dầu ăn thực vật,,dầu mỡ,,,,,,,,,,,,,,FALSE,R1,
+130,Mỡ lợn,mỡ heo,dầu mỡ,,,,,,,,,,,,,,FALSE,R2,
+131,Bơ động vật,,dầu mỡ,,,,,,,,,,,sữa,,,FALSE,R3,
+132,Lạc rang,đậu phộng rang,hạt,,,,,,,,,,,lạc,,,FALSE,R4,
+133,Vừng,mè,hạt,,,,,,,,,,,vừng,,,FALSE,R1,
+134,Hạt điều,,hạt,,,,,,,,,,,hạt cây,,,FALSE,R2,
+135,Hạt sen,,hạt,,,,,,,,,,,,,,FALSE,R3,
+136,Nước cốt dừa,,dầu mỡ,,,,,,,,,,,,,,FALSE,R4,béo bão hoà cao - miền Nam
+137,Nước mắm,,gia vị,,,,,,,,,,,cá,,,FALSE,R1,Na RẤT CAO - ưu tiên số 1
+138,Nước mắm giảm mặn,,gia vị,,,,,,,,,,,cá,,,FALSE,R2,
+139,Muối ăn,,gia vị,,,,,,,,,,,,,,FALSE,R3,Na rất cao
+140,Bột canh,,gia vị,,,,,,,,,,,,,,FALSE,R4,Na rất cao - ưu tiên
+141,Hạt nêm,,gia vị,,,,,,,,,,,,,,FALSE,R1,Na rất cao - ưu tiên
+142,Mì chính,bột ngọt,gia vị,,,,,,,,,,,,,,FALSE,R2,Na cao
+143,Nước tương,xì dầu,gia vị,,,,,,,,,,,đậu nành|gluten,,,FALSE,R3,Na rất cao
+144,Mắm tôm,,gia vị,,,,,,,,,,,hải sản,,,FALSE,R4,Na rất cao
+145,Mắm nêm,,gia vị,,,,,,,,,,,cá,,,FALSE,R1,Na rất cao - miền Trung
+146,Mắm ruốc,,gia vị,,,,,,,,,,,hải sản,,,FALSE,R2,Na rất cao - miền Trung
+147,Tương ớt,,gia vị,,,,,,,,,,,,,,FALSE,R3,Na cao
+148,Dầu hào,,gia vị,,,,,,,,,,,hải sản,,,FALSE,R4,Na cao
+149,Đường trắng,,gia vị,,,,,,,,,,,,,,FALSE,R1,
+150,Đường thốt nốt,,gia vị,,,,,,,,,,,,,,FALSE,R2,
+151,Tỏi,,gia vị,,,,,,,,,,,,,,FALSE,R3,
+152,Gừng,,gia vị,,,,,,,,,,,,,,FALSE,R4,

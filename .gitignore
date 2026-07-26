@@ -1,0 +1,71 @@
+# Python
+__pycache__/
+*.py[cod]
+*.so
+*.egg-info/
+dist/
+build/
+.eggs/
+
+# Virtual environments
+venv/
+.venv/
+env/
+
+# Environment variables & secrets
+.env
+.env.local
+.env.production
+*.pem
+*.key
+
+# IDE & Local Agent Runtime
+.vscode/
+.idea/
+.cursor/
+.codex/
+.gemini/
+.agents/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Data (ignore raw/large data files, but commit seeds)
+data/*
+!data/seeds/
+!data/README.md
+*.db
+*.sqlite3
+
+# Logs & Caches
+logs/
+*.log
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+
+# Test coverage
+htmlcov/
+.coverage
+coverage.xml
+
+# Docker
+docker-compose.override.yml
+
+# Node (frontend)
+node_modules/
+.next/
+out/
+.nuxt/
+
+# Build
+*.pyc
+*.pyo
+
+# AI logs — tracked structure, ignored content
+.ai-log/*.jsonl
+.ai-log/archive/

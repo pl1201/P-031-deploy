@@ -1,0 +1,249 @@
+"""Test tầng lâm sàng: năng lượng, định mức, tính dinh dưỡng, validator."""
+
+from __future__ import annotations
+
+import pytest
+
+from src.clinical.energy import (
+    adjusted_body_weight_kg,
+    bmr_mifflin_st_jeor,
+    compute_energy_target_kcal,
+    ideal_body_weight_kg,
+    kcal_per_kg,
+)
+from src.clinical.models import (
+    ActivityLevel,
+    Condition,
+    ConditionCode,
+    MealSlot,
+    MenuDraft,
+    MenuItem,
+    PatientProfile,
+    Severity,
+    Sex,
+    WeightGoal,
+)
+from src.clinical.nutrition import UnknownFoodError, check_allergies, compute_nutrition
+from src.clinical.rules import compute_targets, load_rules
+from src.clinical.validator import build_feedback, has_blocking, validate_menu
+
+
+# ---------------------------------------------------------------- năng lượng
+class TestEnergy:
+    def test_bmr_nam_khop_cong_thuc_mifflin(self):
+        # 10*65 + 6.25*165 - 5*58 + 5 = 650 + 1031.25 - 290 + 5
+        assert bmr_mifflin_st_jeor(65, 165, 58, Sex.MALE) == pytest.approx(1396.25)
+
+    def test_bmr_nu_thap_hon_nam_cung_thong_so(self):
+        nam = bmr_mifflin_st_jeor(60, 160, 40, Sex.MALE)
+        nu = bmr_mifflin_st_jeor(60, 160, 40, Sex.FEMALE)
+        assert nu < nam
+        assert nam - nu == pytest.approx(166.0)
+
+    def test_ibw_theo_bmi_22(self):
+        assert ideal_body_weight_kg(165) == pytest.approx(59.895, abs=0.01)
+
+    def test_can_nang_hieu_chinh_chi_ap_dung_khi_beo_phi(self):
+        assert adjusted_body_weight_kg(65, 165) == 65  # BMI ~23.9
+        # BMI ~36.7 → phải hiệu chỉnh xuống
+        adj = adjusted_body_weight_kg(100, 165)
+        assert adj < 100
+        assert adj > ideal_body_weight_kg(165)
+
+    @pytest.mark.parametrize("sex,floor", [(Sex.FEMALE, 1200.0), (Sex.MALE, 1500.0)])
+    def test_khong_bao_gio_xuong_duoi_san_an_toan(self, sex, floor):
+        """Sàn năng lượng là ràng buộc an toàn, không phải tuỳ chọn."""
+        p = PatientProfile(
+            patient_id="X",
+            age=80,
+            sex=sex,
+            height_cm=145,
+            weight_kg=38,
+            activity_level=ActivityLevel.SEDENTARY,
+            weight_goal=WeightGoal.LOSE,
+        )
+        assert compute_energy_target_kcal(p) >= floor
+
+    def test_kcal_tren_kg_nam_trong_khoang_lam_sang(self, profile_t2dm_ckd):
+        """Kiểm tra chéo: bệnh nhân mãn tính ổn định thường 30–35 kcal/kg/ngày."""
+        assert 25 <= kcal_per_kg(profile_t2dm_ckd) <= 40
+
+
+# ----------------------------------------------------------------- định mức
+class TestTargets:
+    def test_ap_dung_dung_rule_theo_benh_ly(self, profile_htn):
+        t = compute_targets(profile_htn, load_rules())
+        assert t.max_of("na_mg") == 2000
+        assert "HTN-NA-01" in t.applied_rule_ids
+
+    def test_da_benh_ly_lay_nguong_nghiem_ngat_hon(self, profile_t2dm_ckd):
+        """ĐTĐ2 + CKD G3b: protein phải theo CKD (chặt hơn), kali theo G3b."""
+        t = compute_targets(profile_t2dm_ckd, load_rules())
+        weight = 65
+        # KDIGO thắng ADA về protein khi có CKD (rule precedence, xem _select_rules)
+        assert t.max_of("protein_g") == pytest.approx(0.8 * weight)
+        assert t.min_of("protein_g") == pytest.approx(0.6 * weight)
+        assert t.needs_expert_review is False, "Ca ĐTĐ+CKD phổ biến, không được đẩy sang chuyên gia"
+        assert t.max_of("k_mg") == 3000
+        assert t.max_of("p_mg") == 1000
+
+    def test_rule_bi_vo_hieu_khi_khong_co_benh_ghi_de(self):
+        """Không có CKD thì rule protein của ADA vẫn áp dụng bình thường."""
+        p = PatientProfile(
+            patient_id="X",
+            age=58,
+            sex=Sex.MALE,
+            height_cm=165,
+            weight_kg=65,
+            conditions=[Condition(code=ConditionCode.T2DM)],
+        )
+        t = compute_targets(p, load_rules())
+        assert "T2DM-PRO-01" in t.applied_rule_ids
+        assert t.min_of("protein_g") is not None
+
+    def test_ckd_giai_doan_nang_hon_thi_nguong_kali_chat_hon(self):
+        base = dict(patient_id="X", age=60, sex=Sex.MALE, height_cm=170, weight_kg=70)
+        g3 = compute_targets(
+            PatientProfile(**base, conditions=[Condition(code=ConditionCode.CKD, stage="G3a")]),
+            load_rules(),
+        )
+        g5 = compute_targets(
+            PatientProfile(**base, conditions=[Condition(code=ConditionCode.CKD, stage="G5")]),
+            load_rules(),
+        )
+        assert g5.max_of("k_mg") < g3.max_of("k_mg")
+
+    def test_luon_tra_ve_rule_ids_de_giai_trinh(self, profile_t2dm_ckd):
+        t = compute_targets(profile_t2dm_ckd, load_rules())
+        assert t.applied_rule_ids
+        assert t.targets["na_mg"].guideline_refs, "Ngưỡng nào cũng phải dẫn được guideline"
+
+    def test_gout_gioi_han_purin(self):
+        p = PatientProfile(
+            patient_id="X",
+            age=50,
+            sex=Sex.MALE,
+            height_cm=170,
+            weight_kg=80,
+            conditions=[Condition(code=ConditionCode.GOUT)],
+        )
+        assert compute_targets(p, load_rules()).max_of("purine_mg") == 150
+
+    def test_xung_dot_nguong_thi_chuyen_chuyen_gia_khong_tu_quyet(self, monkeypatch):
+        """min > max sau hợp nhất → gắn cờ, không tự chọn bên nào."""
+        rules = load_rules()
+        conflicting = [r for r in rules if r.rule_id == "CKD-PRO-01"]
+        assert conflicting, "fixture cần rule CKD-PRO-01"
+        # Tạo xung đột nhân tạo: ép ngưỡng dưới cao hơn ngưỡng trên
+        from dataclasses import replace
+
+        bad = replace(conflicting[0], rule_id="TEST-CONFLICT", bound="min", value=2.0)
+        t = compute_targets(
+            PatientProfile(
+                patient_id="X",
+                age=60,
+                sex=Sex.MALE,
+                height_cm=170,
+                weight_kg=70,
+                conditions=[Condition(code=ConditionCode.CKD, stage="G4")],
+            ),
+            rules + [bad],
+        )
+        assert t.needs_expert_review is True
+        assert t.conflict_notes
+
+
+# ------------------------------------------------- tính dinh dưỡng (RULE-1)
+class TestNutrition:
+    def test_moi_con_so_deu_co_nguon(self, foods, modest_menu):
+        """RULE-2: sources rỗng là bug, không phải trường hợp hợp lệ."""
+        s = compute_nutrition(modest_menu, foods)
+        assert s.sources
+        assert len(s.sources) == len(modest_menu.all_items())
+        assert all(x.source_ref for x in s.sources)
+
+    def test_cong_dung_theo_khoi_luong(self, foods):
+        menu = MenuDraft(items={MealSlot.LUNCH: [MenuItem(food_id=1, grams=200)]})
+        s = compute_nutrition(menu, foods)
+        assert s.kcal == pytest.approx(260.0)  # 130 kcal/100g * 2
+        assert s.protein_g == pytest.approx(5.4)
+
+    def test_food_id_khong_ton_tai_thi_bao_loi_khong_doan_bua(self, foods):
+        menu = MenuDraft(items={MealSlot.LUNCH: [MenuItem(food_id=9999, grams=100)]})
+        with pytest.raises(UnknownFoodError):
+            compute_nutrition(menu, foods)
+
+    def test_thuc_don_rong_tra_ve_0_khong_loi(self, foods):
+        s = compute_nutrition(MenuDraft(), foods)
+        assert s.kcal == 0 and s.sources == []
+
+
+# ------------------------------------------------------------------ dị ứng
+class TestAllergy:
+    def test_di_ung_luon_la_vi_pham_cung(self, foods, profile_allergy_seafood):
+        menu = MenuDraft(items={MealSlot.LUNCH: [MenuItem(food_id=9, grams=100)]})  # tôm
+        v = check_allergies(menu, profile_allergy_seafood, foods)
+        assert len(v) == 1
+        assert v[0].severity is Severity.HARD
+        assert v[0].blocking is True
+        assert "hải sản" in v[0].message_vi
+
+    def test_khong_di_ung_thi_khong_canh_bao(self, foods, profile_htn):
+        menu = MenuDraft(items={MealSlot.LUNCH: [MenuItem(food_id=9, grams=100)]})
+        assert check_allergies(menu, profile_htn, foods) == []
+
+
+# --------------------------------------------------------------- validator
+class TestValidator:
+    def test_chan_thuc_don_thua_muoi_cho_benh_nhan_tang_huyet_ap(self, foods, profile_htn, salty_menu):
+        rules = load_rules()
+        targets = compute_targets(profile_htn, rules)
+        nutrition = compute_nutrition(salty_menu, foods)
+        violations = validate_menu(nutrition, targets, rules)
+
+        na = [v for v in violations if v.nutrient == "na_mg"]
+        assert na, "Phải phát hiện vượt natri"
+        assert na[0].severity is Severity.HARD
+        assert has_blocking(violations) is True
+        assert na[0].suggestion and "nước chấm" in na[0].suggestion
+
+    def test_feedback_neu_ro_chat_nao_vuot_bao_nhieu(self, foods, profile_htn, salty_menu):
+        rules = load_rules()
+        targets = compute_targets(profile_htn, rules)
+        nutrition = compute_nutrition(salty_menu, foods)
+        fb = build_feedback(validate_menu(nutrition, targets, rules), nutrition)
+
+        assert "Natri" in fb
+        assert "[CHẶN]" in fb
+        assert "Hướng xử lý" in fb
+        # Feedback phải cụ thể, không được là câu chung chung
+        assert "hãy thử lại" not in fb.lower()
+
+    @pytest.mark.parametrize(
+        "ratio,expected",
+        [
+            (1.15, Severity.SOFT),  # vượt 15% so với định mức → cảnh báo
+            (1.40, Severity.HARD),  # vượt 40% → chặn
+            (0.85, Severity.SOFT),  # thiếu 15% → cảnh báo
+            (0.60, Severity.HARD),  # thiếu 40% → chặn
+        ],
+    )
+    def test_muc_do_vi_pham_nang_luong_theo_do_lech(self, foods, profile_htn, ratio, expected):
+        """±10% là bình thường, ±25% trở lên là chặn (RULE: fail closed)."""
+        rules = load_rules()
+        targets = compute_targets(profile_htn, rules)
+        base_kcal = targets.max_of("kcal") / 1.10  # suy ngược định mức gốc
+
+        # Cơm tẻ 1.3 kcal/g — dùng để đạt chính xác mức năng lượng cần test
+        grams = base_kcal * ratio / 1.30
+        nutrition = compute_nutrition(MenuDraft(items={MealSlot.LUNCH: [MenuItem(food_id=1, grams=grams)]}), foods)
+        kcal_violations = [v for v in validate_menu(nutrition, targets, rules) if v.nutrient == "kcal"]
+        assert len(kcal_violations) == 1
+        assert kcal_violations[0].severity is expected
+
+    def test_thuc_don_hop_le_khong_sinh_vi_pham_cung(self, foods, profile_htn, modest_menu):
+        rules = load_rules()
+        targets = compute_targets(profile_htn, rules)
+        nutrition = compute_nutrition(modest_menu, foods)
+        violations = validate_menu(nutrition, targets, rules)
+        assert not has_blocking(violations)

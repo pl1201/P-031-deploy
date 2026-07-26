@@ -1,0 +1,31 @@
+id,drug_name,drug_class,food_or_nutrient,severity,mechanism_vi,recommendation_vi,source_ref,verify_status
+1,Warfarin,chống đông kháng vitamin K,vitamin K (rau lá xanh đậm),high,"Vitamin K đối kháng tác dụng chống đông, làm giảm hiệu quả thuốc và thay đổi INR","Không kiêng tuyệt đối. Giữ lượng rau lá xanh ỔN ĐỊNH mỗi ngày, tránh tăng giảm đột ngột. Báo bác sĩ nếu thay đổi chế độ ăn",,to_verify
+2,Warfarin,chống đông kháng vitamin K,rau ngót,high,"Rau ngót giàu vitamin K","Giữ lượng ổn định, không ăn tăng vọt trong tuần",,to_verify
+3,Warfarin,chống đông kháng vitamin K,cải bắp,high,"Giàu vitamin K","Giữ lượng ổn định",,to_verify
+4,Warfarin,chống đông kháng vitamin K,súp lơ xanh,high,"Giàu vitamin K","Giữ lượng ổn định",,to_verify
+5,Warfarin,chống đông kháng vitamin K,rượu bia,high,"Rượu ảnh hưởng chuyển hoá warfarin ở gan, tăng nguy cơ chảy máu","Tránh rượu bia",,to_verify
+6,Enalapril,ức chế men chuyển (ACEi),thực phẩm giàu kali,high,"ACEi làm giảm bài tiết kali, kết hợp thực phẩm giàu kali gây tăng kali máu","Hạn chế chuối, bơ, nước dừa, nước ép cà chua. Theo dõi kali máu",,to_verify
+7,Enalapril,ức chế men chuyển (ACEi),muối thay thế chứa kali,high,"Muối thay thế thường là kali clorid, cộng dồn gây tăng kali máu nguy hiểm","Không dùng muối thay thế nếu chưa hỏi bác sĩ",,to_verify
+8,Losartan,chẹn thụ thể angiotensin (ARB),thực phẩm giàu kali,high,"Cơ chế tương tự ACEi","Hạn chế thực phẩm giàu kali, theo dõi điện giải",,to_verify
+9,Atorvastatin,statin,bưởi,high,"Furanocoumarin trong bưởi ức chế CYP3A4 làm tăng nồng độ statin, tăng nguy cơ tiêu cơ vân","Tránh bưởi và nước ép bưởi trong thời gian dùng thuốc. Có thể thay bằng cam",,to_verify
+10,Simvastatin,statin,bưởi,high,"Ức chế CYP3A4 - simvastatin nhạy cảm nhất trong nhóm statin","Tránh hoàn toàn bưởi và nước ép bưởi",,to_verify
+11,Metformin,biguanide,rượu bia,high,"Tăng nguy cơ nhiễm toan lactic và hạ đường huyết","Tránh rượu bia, đặc biệt khi bụng đói",,to_verify
+12,Metformin,biguanide,vitamin B12,moderate,"Dùng dài ngày làm giảm hấp thu vitamin B12","Tăng thực phẩm giàu B12 (thịt, cá, trứng), kiểm tra B12 định kỳ",,to_verify
+13,Levothyroxine,hormone tuyến giáp,canxi (sữa và chế phẩm),moderate,"Canxi tạo phức làm giảm hấp thu thuốc","Uống thuốc lúc đói, cách sữa/canxi ít nhất 4 giờ",,to_verify
+14,Levothyroxine,hormone tuyến giáp,đậu nành,moderate,"Isoflavone làm giảm hấp thu","Cách xa thời điểm uống thuốc ít nhất 4 giờ",,to_verify
+15,Levothyroxine,hormone tuyến giáp,cà phê,moderate,"Giảm hấp thu thuốc","Uống thuốc trước ăn sáng 30-60 phút, không uống cùng cà phê",,to_verify
+16,Allopurinol,ức chế xanthine oxidase,rượu bia,high,"Rượu làm tăng acid uric, đối kháng tác dụng thuốc","Kiêng rượu bia",,to_verify
+17,Colchicine,điều trị gout cấp,bưởi,moderate,"Ức chế CYP3A4 làm tăng độc tính colchicine","Tránh bưởi",,to_verify
+18,Hydrochlorothiazide,lợi tiểu thiazide,kali,moderate,"Thuốc làm mất kali qua nước tiểu","Có thể cần tăng thực phẩm giàu kali - theo chỉ định bác sĩ, không tự bổ sung",,to_verify
+19,Furosemide,lợi tiểu quai,kali,moderate,"Mất kali và magie qua nước tiểu","Theo dõi điện giải, bổ sung theo chỉ định",,to_verify
+20,Spironolactone,lợi tiểu giữ kali,thực phẩm giàu kali,high,"Thuốc giữ kali, cộng dồn gây tăng kali máu","Hạn chế chuối, nước dừa, muối thay thế",,to_verify
+21,Digoxin,glycoside tim,chất xơ liều cao,moderate,"Chất xơ làm giảm hấp thu digoxin","Uống thuốc cách bữa nhiều chất xơ ít nhất 2 giờ",,to_verify
+22,Digoxin,glycoside tim,cam thảo,high,"Cam thảo gây hạ kali máu, làm tăng độc tính digoxin","Tránh cam thảo và trà thảo mộc chứa cam thảo",,to_verify
+23,Amlodipine,chẹn kênh canxi,bưởi,moderate,"Ức chế CYP3A4 làm tăng nồng độ thuốc, tăng nguy cơ tụt huyết áp","Hạn chế bưởi",,to_verify
+24,Ciprofloxacin,kháng sinh quinolone,canxi (sữa),moderate,"Tạo phức chelate làm giảm hấp thu kháng sinh","Uống cách sữa và chế phẩm sữa ít nhất 2 giờ",,to_verify
+25,Tetracycline,kháng sinh tetracycline,canxi (sữa),moderate,"Tạo phức chelate","Uống cách sữa ít nhất 2 giờ",,to_verify
+26,Phenelzine,ức chế MAO (MAOI),tyramine (phô mai lâu năm; đồ lên men),high,"Tyramine không bị chuyển hoá gây cơn tăng huyết áp kịch phát","Kiêng phô mai lâu năm, mắm, tương lên men, bia thùng",,to_verify
+27,Insulin,insulin,rượu bia,high,"Rượu ức chế tân tạo glucose ở gan, gây hạ đường huyết muộn","Tránh rượu, đặc biệt khi bụng đói",,to_verify
+28,Sulfonylurea (Gliclazide),sulfonylurea,rượu bia,high,"Tăng nguy cơ hạ đường huyết","Tránh rượu bia",,to_verify
+29,Sắt (viên bổ sung),khoáng chất bổ sung,trà và cà phê,moderate,"Tannin và polyphenol ức chế hấp thu sắt","Uống cách trà/cà phê ít nhất 1 giờ; uống cùng vitamin C để tăng hấp thu",,to_verify
+30,Canxi (viên bổ sung),khoáng chất bổ sung,rau chân vịt (oxalat cao),low,"Oxalat làm giảm hấp thu canxi","Không uống cùng bữa nhiều oxalat",,to_verify
