@@ -41,10 +41,10 @@ class WeightGoal(str, Enum):
 class ConditionCode(str, Enum):
     """Mã bệnh lý hệ thống hỗ trợ ở v1."""
 
-    T2DM = "T2DM"        # Đái tháo đường týp 2
-    HTN = "HTN"          # Tăng huyết áp / tim mạch
-    CKD = "CKD"          # Bệnh thận mạn
-    GOUT = "GOUT"        # Gout / tăng acid uric
+    T2DM = "T2DM"  # Đái tháo đường týp 2
+    HTN = "HTN"  # Tăng huyết áp / tim mạch
+    CKD = "CKD"  # Bệnh thận mạn
+    GOUT = "GOUT"  # Gout / tăng acid uric
 
 
 class Condition(BaseModel):
@@ -84,16 +84,12 @@ class PatientProfile(BaseModel):
     metabolically_unstable: bool = Field(
         default=False,
         description=(
-            "Chuyển hoá không ổn định. KDIGO 2024 PP 3.3.1.3: KHÔNG kê chế độ "
-            "thấp/rất thấp protein cho nhóm này."
+            "Chuyển hoá không ổn định. KDIGO 2024 PP 3.3.1.3: KHÔNG kê chế độ thấp/rất thấp protein cho nhóm này."
         ),
     )
     sodium_wasting: bool = Field(
         default=False,
-        description=(
-            "Bệnh thận mất muối. KDIGO 2024 PP 3.3.2.1: hạn chế natri thường "
-            "KHÔNG phù hợp với nhóm này."
-        ),
+        description=("Bệnh thận mất muối. KDIGO 2024 PP 3.3.2.1: hạn chế natri thường KHÔNG phù hợp với nhóm này."),
     )
 
     ELDERLY_AGE_THRESHOLD: ClassVar[int] = 65

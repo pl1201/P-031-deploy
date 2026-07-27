@@ -50,14 +50,17 @@ class TestEnergy:
         assert adj < 100
         assert adj > ideal_body_weight_kg(165)
 
-    @pytest.mark.parametrize(
-        "sex,floor", [(Sex.FEMALE, 1200.0), (Sex.MALE, 1500.0)]
-    )
+    @pytest.mark.parametrize("sex,floor", [(Sex.FEMALE, 1200.0), (Sex.MALE, 1500.0)])
     def test_khong_bao_gio_xuong_duoi_san_an_toan(self, sex, floor):
         """Sàn năng lượng là ràng buộc an toàn, không phải tuỳ chọn."""
         p = PatientProfile(
-            patient_id="X", age=80, sex=sex, height_cm=145, weight_kg=38,
-            activity_level=ActivityLevel.SEDENTARY, weight_goal=WeightGoal.LOSE,
+            patient_id="X",
+            age=80,
+            sex=sex,
+            height_cm=145,
+            weight_kg=38,
+            activity_level=ActivityLevel.SEDENTARY,
+            weight_goal=WeightGoal.LOSE,
         )
         assert compute_energy_target_kcal(p) >= floor
 
@@ -87,7 +90,11 @@ class TestTargets:
     def test_rule_bi_vo_hieu_khi_khong_co_benh_ghi_de(self):
         """Không có CKD thì rule protein của ADA vẫn áp dụng bình thường."""
         p = PatientProfile(
-            patient_id="X", age=58, sex=Sex.MALE, height_cm=165, weight_kg=65,
+            patient_id="X",
+            age=58,
+            sex=Sex.MALE,
+            height_cm=165,
+            weight_kg=65,
             conditions=[Condition(code=ConditionCode.T2DM)],
         )
         t = compute_targets(p, load_rules())
@@ -113,7 +120,11 @@ class TestTargets:
 
     def test_gout_gioi_han_purin(self):
         p = PatientProfile(
-            patient_id="X", age=50, sex=Sex.MALE, height_cm=170, weight_kg=80,
+            patient_id="X",
+            age=50,
+            sex=Sex.MALE,
+            height_cm=170,
+            weight_kg=80,
             conditions=[Condition(code=ConditionCode.GOUT)],
         )
         assert compute_targets(p, load_rules()).max_of("purine_mg") == 150
@@ -129,7 +140,11 @@ class TestTargets:
         bad = replace(conflicting[0], rule_id="TEST-CONFLICT", bound="min", value=2.0)
         t = compute_targets(
             PatientProfile(
-                patient_id="X", age=60, sex=Sex.MALE, height_cm=170, weight_kg=70,
+                patient_id="X",
+                age=60,
+                sex=Sex.MALE,
+                height_cm=170,
+                weight_kg=70,
                 conditions=[Condition(code=ConditionCode.CKD, stage="G4")],
             ),
             rules + [bad],
@@ -180,9 +195,7 @@ class TestAllergy:
 
 # --------------------------------------------------------------- validator
 class TestValidator:
-    def test_chan_thuc_don_thua_muoi_cho_benh_nhan_tang_huyet_ap(
-        self, foods, profile_htn, salty_menu
-    ):
+    def test_chan_thuc_don_thua_muoi_cho_benh_nhan_tang_huyet_ap(self, foods, profile_htn, salty_menu):
         rules = load_rules()
         targets = compute_targets(profile_htn, rules)
         nutrition = compute_nutrition(salty_menu, foods)
@@ -209,15 +222,13 @@ class TestValidator:
     @pytest.mark.parametrize(
         "ratio,expected",
         [
-            (1.15, Severity.SOFT),   # vượt 15% so với định mức → cảnh báo
-            (1.40, Severity.HARD),   # vượt 40% → chặn
-            (0.85, Severity.SOFT),   # thiếu 15% → cảnh báo
-            (0.60, Severity.HARD),   # thiếu 40% → chặn
+            (1.15, Severity.SOFT),  # vượt 15% so với định mức → cảnh báo
+            (1.40, Severity.HARD),  # vượt 40% → chặn
+            (0.85, Severity.SOFT),  # thiếu 15% → cảnh báo
+            (0.60, Severity.HARD),  # thiếu 40% → chặn
         ],
     )
-    def test_muc_do_vi_pham_nang_luong_theo_do_lech(
-        self, foods, profile_htn, ratio, expected
-    ):
+    def test_muc_do_vi_pham_nang_luong_theo_do_lech(self, foods, profile_htn, ratio, expected):
         """±10% là bình thường, ±25% trở lên là chặn (RULE: fail closed)."""
         rules = load_rules()
         targets = compute_targets(profile_htn, rules)
@@ -225,12 +236,8 @@ class TestValidator:
 
         # Cơm tẻ 1.3 kcal/g — dùng để đạt chính xác mức năng lượng cần test
         grams = base_kcal * ratio / 1.30
-        nutrition = compute_nutrition(
-            MenuDraft(items={MealSlot.LUNCH: [MenuItem(food_id=1, grams=grams)]}), foods
-        )
-        kcal_violations = [
-            v for v in validate_menu(nutrition, targets, rules) if v.nutrient == "kcal"
-        ]
+        nutrition = compute_nutrition(MenuDraft(items={MealSlot.LUNCH: [MenuItem(food_id=1, grams=grams)]}), foods)
+        kcal_violations = [v for v in validate_menu(nutrition, targets, rules) if v.nutrient == "kcal"]
         assert len(kcal_violations) == 1
         assert kcal_violations[0].severity is expected
 
@@ -263,9 +270,7 @@ class TestKdigo2024SafetyFlags:
 
     def test_suy_yeu_thieu_co_thi_go_tran_protein_thap(self):
         """PP 3.3.1.5: người cao tuổi có frailty/sarcopenia cần protein CAO HƠN."""
-        p = PatientProfile(
-            **self.BASE, age=72, conditions=self.CKD_G4, frailty_sarcopenia=True
-        )
+        p = PatientProfile(**self.BASE, age=72, conditions=self.CKD_G4, frailty_sarcopenia=True)
         t = compute_targets(p, load_rules())
 
         assert "CKD-PRO-01" not in t.targets["protein_g"].rule_ids
@@ -276,9 +281,7 @@ class TestKdigo2024SafetyFlags:
 
     def test_chuyen_hoa_khong_on_dinh_thi_khong_han_che_protein(self):
         """PP 3.3.1.3: không kê chế độ thấp protein cho người chuyển hoá không ổn định."""
-        p = PatientProfile(
-            **self.BASE, age=58, conditions=self.CKD_G4, metabolically_unstable=True
-        )
+        p = PatientProfile(**self.BASE, age=58, conditions=self.CKD_G4, metabolically_unstable=True)
         t = compute_targets(p, load_rules())
 
         ids = t.targets["protein_g"].rule_ids
@@ -321,9 +324,7 @@ class TestKdigo2024SafetyFlags:
 
     def test_rule_theo_tuoi_khong_ap_cho_nguoi_tre(self):
         """T2DM-PRO-02 chỉ áp cho người cao tuổi (requires_flag=elderly)."""
-        young = PatientProfile(
-            **self.BASE, age=45, conditions=[Condition(code=ConditionCode.T2DM)]
-        )
+        young = PatientProfile(**self.BASE, age=45, conditions=[Condition(code=ConditionCode.T2DM)])
         t = compute_targets(young, load_rules())
         assert "T2DM-PRO-02" not in t.applied_rule_ids
 
@@ -336,6 +337,4 @@ class TestKdigo2024SafetyFlags:
         """Mức bằng chứng phải khớp severity: khuyến nghị yếu không nên chặn cứng."""
         for rule in load_rules():
             if rule.guideline_grade == "2C" and rule.rule_id.endswith("PRO-01"):
-                assert rule.severity == "soft", (
-                    f"{rule.rule_id} là khuyến nghị 2C (yếu) nhưng đang đặt severity=hard"
-                )
+                assert rule.severity == "soft", f"{rule.rule_id} là khuyến nghị 2C (yếu) nhưng đang đặt severity=hard"

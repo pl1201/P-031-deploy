@@ -69,7 +69,10 @@ def tracked_files() -> list[str]:
         # để chạy được như một bước kiểm tra trước khi commit.
         out = subprocess.run(
             ["git", "ls-files", "--cached", "--others", "--exclude-standard"],
-            cwd=ROOT, capture_output=True, text=True, check=True,
+            cwd=ROOT,
+            capture_output=True,
+            text=True,
+            check=True,
         )
         return out.stdout.strip().split("\n") if out.stdout.strip() else []
     except (subprocess.CalledProcessError, FileNotFoundError):
