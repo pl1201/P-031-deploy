@@ -23,7 +23,23 @@ try:
     from dotenv import load_dotenv
     load_dotenv()
 except ImportError:
-    pass
+    # Keep the hook dependency-free on fresh Windows setups. The project
+    # already has a .env file, so load the small KEY=VALUE subset we need
+    # when python-dotenv is not installed.
+    env_file = Path(__file__).resolve().parents[1] / ".env"
+    if env_file.exists():
+        for raw_line in env_file.read_text(encoding="utf-8-sig").splitlines():
+            line = raw_line.strip()
+            if not line or line.startswith("#") or "=" not in line:
+                continue
+            key, value = line.split("=", 1)
+            key = key.strip()
+            value = value.strip()
+            if not key or key in os.environ:
+                continue
+            if len(value) >= 2 and value[0] == value[-1] and value[0] in "\"'":
+                value = value[1:-1]
+            os.environ[key] = value
 
 SERVER_URL = os.environ.get("AI_LOG_SERVER", "")
 API_KEY = os.environ.get("AI_LOG_API_KEY", "")
