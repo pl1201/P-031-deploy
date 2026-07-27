@@ -332,7 +332,7 @@ class TestKdigo2024SafetyFlags:
             assert rule.guideline_ref, f"{rule.rule_id} thiếu guideline_ref"
             assert rule.guideline_grade, f"{rule.rule_id} thiếu guideline_grade"
 
-    def test_khuyen_nghi_yeu_2C_khong_duoc_la_rang_buoc_cung(self):
+    def test_khuyen_nghi_yeu_2c_khong_duoc_la_rang_buoc_cung(self):
         """Mức bằng chứng phải khớp severity: khuyến nghị yếu không nên chặn cứng."""
         for rule in load_rules():
             if rule.guideline_grade == "2C" and rule.rule_id.endswith("PRO-01"):
