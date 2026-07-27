@@ -1,0 +1,12 @@
+[project]
+name = "nutricare-agent"
+version = "0.1.0"
+description = "NutriCare Agent — AI Agent dinh dưỡng lâm sàng cho bệnh nhân mãn tính Việt Nam (VMEC-10, AI20K Build Phase Cohort 3, đội P-031)"
+readme = "README.md"
+requires-python = ">=3.11"
+
+[project.urls]
+repository = "https://github.com/AI20K-Build-Phase-Cohort-3/P-031"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
