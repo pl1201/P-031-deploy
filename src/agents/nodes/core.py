@@ -141,16 +141,21 @@ def make_compute_nutrition(foods: FoodRepository):
     """Node: compute_nutrition — LLM: NO. Nơi RULE-1 được thực thi."""
 
     def compute_nutrition_node(state: NutriState) -> dict:
+        draft = state["draft_menu"]
+        if draft is None:
+            return {
+                "computed_nutrition": None,
+                "violations": [],
+                "feedback": "Chưa có thực đơn nháp để tính dinh dưỡng.",
+            }
         try:
-            summary = compute_nutrition(state["draft_menu"], foods)
+            summary = compute_nutrition(draft, foods)
         except UnknownFoodError as exc:
             # LLM bịa food_id → không đoán thay thế, ép sinh lại
             return {
                 "computed_nutrition": None,
                 "violations": [],
-                "feedback": (
-                    f"{exc} Chỉ được chọn food_id có trong danh sách ứng viên được cung cấp."
-                ),
+                "feedback": (f"{exc} Chỉ được chọn food_id có trong danh sách ứng viên được cung cấp."),
             }
         return {"computed_nutrition": summary}
 
@@ -163,10 +168,11 @@ def make_validate(foods: FoodRepository, rules: list[ClinicalRule] | None = None
 
     def validate_node(state: NutriState) -> dict:
         nutrition = state.get("computed_nutrition")
-        if nutrition is None:
+        draft = state["draft_menu"]
+        if nutrition is None or draft is None:
             return {"violations": []}
         violations = validate_menu(nutrition, state["targets"], rules)
-        violations += check_allergies(state["draft_menu"], state["profile"], foods)
+        violations += check_allergies(draft, state["profile"], foods)
         return {"violations": violations}
 
     return validate_node

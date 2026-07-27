@@ -4,16 +4,19 @@ FROM python:3.11-slim AS builder
 WORKDIR /app
 
 COPY requirements.txt .
-RUN pip install --no-cache-dir --user -r requirements.txt
+RUN pip install --no-cache-dir -r requirements.txt
 
 # ---- Stage 2: Production ----
 FROM python:3.11-slim
 
 WORKDIR /app
 
-# Copy installed packages from builder
-COPY --from=builder /root/.local /root/.local
-ENV PATH=/root/.local/bin:$PATH
+# Copy installed packages from builder. Installed system-wide (not --user) so
+# the non-root appuser below can traverse and execute them — pip --user puts
+# things under /root/.local, and /root itself is 0700 and blocks traversal
+# for any non-root user regardless of the target files' own ownership.
+COPY --from=builder /usr/local/lib/python3.11/site-packages /usr/local/lib/python3.11/site-packages
+COPY --from=builder /usr/local/bin /usr/local/bin
 
 # Security: run as non-root user
 RUN useradd -m appuser
