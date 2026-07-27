@@ -19,9 +19,6 @@ import csv
 import sys
 from pathlib import Path
 
-if sys.stdout.encoding is None or sys.stdout.encoding.lower() != "utf-8":
-    sys.stdout.reconfigure(encoding="utf-8")
-
 SEEDS = Path(__file__).resolve().parents[1] / "data" / "seeds"
 
 # RULE R40.3 — khoảng hợp lý cho 100 g thực phẩm.
@@ -142,6 +139,14 @@ def check_clinical_rules(path: Path) -> None:
         loc = f"{path.name}:{i} [{row.get('rule_id')}]"
         if not (row.get("guideline_ref") or "").strip():
             err(f"{loc} thiếu guideline_ref — mọi ngưỡng phải dẫn được nguồn (RULE R10.4)")
+        if not (row.get("guideline_grade") or "").strip():
+            err(f"{loc} thiếu guideline_grade — cần mức bằng chứng để chọn severity")
+        # Khuyến nghị yếu (2C/2D) không nên là ràng buộc chặn cứng
+        if (row.get("guideline_grade") or "").strip() in {"2C", "2D"} and row.get("severity") == "hard":
+            warn(
+                f"{loc} mức bằng chứng {row.get('guideline_grade')} (yếu) nhưng severity=hard "
+                "— cân nhắc hạ xuống soft"
+            )
         if row.get("bound") not in {"max", "min"}:
             err(f"{loc} bound phải là max hoặc min")
         if row.get("severity") not in {"hard", "soft"}:

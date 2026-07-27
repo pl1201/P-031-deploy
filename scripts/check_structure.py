@@ -14,10 +14,7 @@ from __future__ import annotations
 
 import subprocess
 import sys
-from pathlib import Path, PurePosixPath
-
-if sys.stdout.encoding is None or sys.stdout.encoding.lower() != "utf-8":
-    sys.stdout.reconfigure(encoding="utf-8")
+from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -50,19 +47,15 @@ DELIVERABLES = [
 ]
 
 # --- File/thư mục KHÔNG được có trong repo -------------------------------
-# So khớp theo segment đường dẫn (posix), không phải substring thô,
-# để không bắt nhầm ".env.example" khi tìm ".env".
-FORBIDDEN_DIR_SEGMENTS = [
-    ("mnt", "Đường dẫn sandbox của AI agent lọt vào repo"),
-    ("home", "Đường dẫn sandbox của AI agent lọt vào repo"),
-    ("Users", "Đường dẫn máy cá nhân lọt vào repo"),
-    ("__pycache__", "Cache Python"),
-    ("node_modules", "Dependencies không được commit"),
-    (".venv", "Virtual environment không được commit"),
-]
-FORBIDDEN_FILENAMES = [
+FORBIDDEN_PATTERNS = [
+    ("mnt/", "Đường dẫn sandbox của AI agent lọt vào repo"),
+    ("home/claude/", "Đường dẫn sandbox của AI agent lọt vào repo"),
+    ("Users/", "Đường dẫn máy cá nhân lọt vào repo"),
     (".env", "File .env chứa secret — chỉ commit .env.example"),
+    ("__pycache__", "Cache Python"),
     (".DS_Store", "Rác macOS"),
+    ("node_modules/", "Dependencies không được commit"),
+    (".venv/", "Virtual environment không được commit"),
 ]
 
 errors: list[str] = []
@@ -78,33 +71,25 @@ def tracked_files() -> list[str]:
             ["git", "ls-files", "--cached", "--others", "--exclude-standard"],
             cwd=ROOT, capture_output=True, text=True, check=True,
         )
-        raw = out.stdout.strip().split("\n") if out.stdout.strip() else []
-        # git luôn trả về đường dẫn dùng "/", giữ nguyên định dạng posix
-        # để so khớp nhất quán trên mọi hệ điều hành (kể cả Windows).
-        return raw
+        return out.stdout.strip().split("\n") if out.stdout.strip() else []
     except (subprocess.CalledProcessError, FileNotFoundError):
         warns.append("Không chạy được `git ls-files` — kiểm tra trên filesystem thay thế")
-        return [p.relative_to(ROOT).as_posix() for p in ROOT.rglob("*") if p.is_file()]
+        return [str(p.relative_to(ROOT)) for p in ROOT.rglob("*") if p.is_file()]
 
 
 def check_forbidden(files: list[str]) -> None:
     for f in files:
-        segments = PurePosixPath(f).parts
-        filename = PurePosixPath(f).name
-        for seg, reason in FORBIDDEN_DIR_SEGMENTS:
-            if seg in segments:
+        for pattern, reason in FORBIDDEN_PATTERNS:
+            if pattern == ".env" and (f.endswith(".env.example") or f.endswith(".env.template")):
+                continue
+            if pattern in f:
                 errors.append(f"{f} — {reason}")
                 break
-        else:
-            for name, reason in FORBIDDEN_FILENAMES:
-                if filename == name:
-                    errors.append(f"{f} — {reason}")
-                    break
 
 
 def check_dirs(files: list[str]) -> None:
-    present = {str(PurePosixPath(f).parent) for f in files}
-    present |= {str(p) for f in files for p in PurePosixPath(f).parents}
+    present = {str(Path(f).parent) for f in files}
+    present |= {str(p) for f in files for p in Path(f).parents}
     for d, purpose in REQUIRED_DIRS:
         if d not in present:
             missing.append(f"Thiếu thư mục `{d}/` ({purpose})")
@@ -112,7 +97,7 @@ def check_dirs(files: list[str]) -> None:
 
 def check_deliverables(files: list[str]) -> None:
     fileset = set(files)
-    dirs = {str(p) for f in files for p in PurePosixPath(f).parents}
+    dirs = {str(p) for f in files for p in Path(f).parents}
 
     for num, name, path, required_now in DELIVERABLES:
         if path is None:
@@ -127,7 +112,7 @@ def check_duplicates(files: list[str]) -> None:
     """Cùng một file nằm ở hai nơi là dấu hiệu copy nhầm."""
     by_name: dict[str, list[str]] = {}
     for f in files:
-        by_name.setdefault(PurePosixPath(f).name, []).append(f)
+        by_name.setdefault(Path(f).name, []).append(f)
 
     ignore = {"__init__.py", "README.md", "index.md", ".gitkeep"}
     for name, paths in by_name.items():

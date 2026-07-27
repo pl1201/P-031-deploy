@@ -50,17 +50,14 @@ class TestEnergy:
         assert adj < 100
         assert adj > ideal_body_weight_kg(165)
 
-    @pytest.mark.parametrize("sex,floor", [(Sex.FEMALE, 1200.0), (Sex.MALE, 1500.0)])
+    @pytest.mark.parametrize(
+        "sex,floor", [(Sex.FEMALE, 1200.0), (Sex.MALE, 1500.0)]
+    )
     def test_khong_bao_gio_xuong_duoi_san_an_toan(self, sex, floor):
         """Sàn năng lượng là ràng buộc an toàn, không phải tuỳ chọn."""
         p = PatientProfile(
-            patient_id="X",
-            age=80,
-            sex=sex,
-            height_cm=145,
-            weight_kg=38,
-            activity_level=ActivityLevel.SEDENTARY,
-            weight_goal=WeightGoal.LOSE,
+            patient_id="X", age=80, sex=sex, height_cm=145, weight_kg=38,
+            activity_level=ActivityLevel.SEDENTARY, weight_goal=WeightGoal.LOSE,
         )
         assert compute_energy_target_kcal(p) >= floor
 
@@ -90,11 +87,7 @@ class TestTargets:
     def test_rule_bi_vo_hieu_khi_khong_co_benh_ghi_de(self):
         """Không có CKD thì rule protein của ADA vẫn áp dụng bình thường."""
         p = PatientProfile(
-            patient_id="X",
-            age=58,
-            sex=Sex.MALE,
-            height_cm=165,
-            weight_kg=65,
+            patient_id="X", age=58, sex=Sex.MALE, height_cm=165, weight_kg=65,
             conditions=[Condition(code=ConditionCode.T2DM)],
         )
         t = compute_targets(p, load_rules())
@@ -120,11 +113,7 @@ class TestTargets:
 
     def test_gout_gioi_han_purin(self):
         p = PatientProfile(
-            patient_id="X",
-            age=50,
-            sex=Sex.MALE,
-            height_cm=170,
-            weight_kg=80,
+            patient_id="X", age=50, sex=Sex.MALE, height_cm=170, weight_kg=80,
             conditions=[Condition(code=ConditionCode.GOUT)],
         )
         assert compute_targets(p, load_rules()).max_of("purine_mg") == 150
@@ -140,11 +129,7 @@ class TestTargets:
         bad = replace(conflicting[0], rule_id="TEST-CONFLICT", bound="min", value=2.0)
         t = compute_targets(
             PatientProfile(
-                patient_id="X",
-                age=60,
-                sex=Sex.MALE,
-                height_cm=170,
-                weight_kg=70,
+                patient_id="X", age=60, sex=Sex.MALE, height_cm=170, weight_kg=70,
                 conditions=[Condition(code=ConditionCode.CKD, stage="G4")],
             ),
             rules + [bad],
@@ -195,7 +180,9 @@ class TestAllergy:
 
 # --------------------------------------------------------------- validator
 class TestValidator:
-    def test_chan_thuc_don_thua_muoi_cho_benh_nhan_tang_huyet_ap(self, foods, profile_htn, salty_menu):
+    def test_chan_thuc_don_thua_muoi_cho_benh_nhan_tang_huyet_ap(
+        self, foods, profile_htn, salty_menu
+    ):
         rules = load_rules()
         targets = compute_targets(profile_htn, rules)
         nutrition = compute_nutrition(salty_menu, foods)
@@ -222,13 +209,15 @@ class TestValidator:
     @pytest.mark.parametrize(
         "ratio,expected",
         [
-            (1.15, Severity.SOFT),  # vượt 15% so với định mức → cảnh báo
-            (1.40, Severity.HARD),  # vượt 40% → chặn
-            (0.85, Severity.SOFT),  # thiếu 15% → cảnh báo
-            (0.60, Severity.HARD),  # thiếu 40% → chặn
+            (1.15, Severity.SOFT),   # vượt 15% so với định mức → cảnh báo
+            (1.40, Severity.HARD),   # vượt 40% → chặn
+            (0.85, Severity.SOFT),   # thiếu 15% → cảnh báo
+            (0.60, Severity.HARD),   # thiếu 40% → chặn
         ],
     )
-    def test_muc_do_vi_pham_nang_luong_theo_do_lech(self, foods, profile_htn, ratio, expected):
+    def test_muc_do_vi_pham_nang_luong_theo_do_lech(
+        self, foods, profile_htn, ratio, expected
+    ):
         """±10% là bình thường, ±25% trở lên là chặn (RULE: fail closed)."""
         rules = load_rules()
         targets = compute_targets(profile_htn, rules)
@@ -236,8 +225,12 @@ class TestValidator:
 
         # Cơm tẻ 1.3 kcal/g — dùng để đạt chính xác mức năng lượng cần test
         grams = base_kcal * ratio / 1.30
-        nutrition = compute_nutrition(MenuDraft(items={MealSlot.LUNCH: [MenuItem(food_id=1, grams=grams)]}), foods)
-        kcal_violations = [v for v in validate_menu(nutrition, targets, rules) if v.nutrient == "kcal"]
+        nutrition = compute_nutrition(
+            MenuDraft(items={MealSlot.LUNCH: [MenuItem(food_id=1, grams=grams)]}), foods
+        )
+        kcal_violations = [
+            v for v in validate_menu(nutrition, targets, rules) if v.nutrient == "kcal"
+        ]
         assert len(kcal_violations) == 1
         assert kcal_violations[0].severity is expected
 
@@ -247,3 +240,102 @@ class TestValidator:
         nutrition = compute_nutrition(modest_menu, foods)
         violations = validate_menu(nutrition, targets, rules)
         assert not has_blocking(violations)
+
+
+# ------------------------------------------- KDIGO 2024 / ADA 2026 safety flags
+class TestKdigo2024SafetyFlags:
+    """Các chốt an toàn theo KDIGO 2024 Practice Point 3.3.1.3 và 3.3.1.5.
+
+    Bối cảnh: KDIGO 2024 thay thế bản 2012. Khuyến nghị 3.3.1.1 là *duy trì*
+    0,8 g/kg (mức 2C - yếu), không phải khoảng 0,6-0,8. Quan trọng hơn, có hai
+    tình huống mà việc hạn chế protein là CHỐNG CHỈ ĐỊNH.
+    """
+
+    BASE = dict(patient_id="X", sex=Sex.MALE, height_cm=165, weight_kg=65)
+    CKD_G4 = [Condition(code=ConditionCode.CKD, stage="G4")]
+
+    def test_ca_on_dinh_van_ap_tran_protein_binh_thuong(self):
+        p = PatientProfile(**self.BASE, age=58, conditions=self.CKD_G4)
+        t = compute_targets(p, load_rules())
+        assert t.max_of("protein_g") == pytest.approx(0.8 * 65)
+        assert t.min_of("protein_g") == pytest.approx(0.6 * 65)
+        assert t.needs_expert_review is False
+
+    def test_suy_yeu_thieu_co_thi_go_tran_protein_thap(self):
+        """PP 3.3.1.5: người cao tuổi có frailty/sarcopenia cần protein CAO HƠN."""
+        p = PatientProfile(
+            **self.BASE, age=72, conditions=self.CKD_G4, frailty_sarcopenia=True
+        )
+        t = compute_targets(p, load_rules())
+
+        assert "CKD-PRO-01" not in t.targets["protein_g"].rule_ids
+        # Trần an toàn tuyệt đối 1.3 g/kg vẫn còn hiệu lực
+        assert t.max_of("protein_g") == pytest.approx(1.3 * 65)
+        assert t.needs_expert_review is True
+        assert any("CKD-PRO-01" in c for c in t.conflict_notes)
+
+    def test_chuyen_hoa_khong_on_dinh_thi_khong_han_che_protein(self):
+        """PP 3.3.1.3: không kê chế độ thấp protein cho người chuyển hoá không ổn định."""
+        p = PatientProfile(
+            **self.BASE, age=58, conditions=self.CKD_G4, metabolically_unstable=True
+        )
+        t = compute_targets(p, load_rules())
+
+        ids = t.targets["protein_g"].rule_ids
+        assert "CKD-PRO-01" not in ids and "CKD-PRO-02" not in ids
+        assert t.needs_expert_review is True
+
+    def test_tran_an_toan_1_3_khong_bao_gio_bi_vo_hieu(self):
+        """CKD-PRO-05 là trần tuyệt đối, mọi cờ đều không gỡ được."""
+        p = PatientProfile(
+            **self.BASE,
+            age=80,
+            conditions=self.CKD_G4,
+            frailty_sarcopenia=True,
+            metabolically_unstable=True,
+        )
+        t = compute_targets(p, load_rules())
+        assert "CKD-PRO-05" in t.targets["protein_g"].rule_ids
+        assert t.max_of("protein_g") == pytest.approx(1.3 * 65)
+
+    def test_nguoi_cao_tuoi_dtd_ckd_thi_hai_guideline_gap_nhau_mot_diem(self):
+        """ADA 2026 đặt sàn 0,8 g/kg cho người cao tuổi ĐTĐ; KDIGO 2024 đặt trần 0,8.
+
+        Dải rộng bằng 0 -> không thực đơn nào thoả. Hệ thống phải phát hiện và
+        chuyển chuyên gia, KHÔNG tự chọn bên nào.
+        """
+        p = PatientProfile(
+            **self.BASE,
+            age=72,
+            conditions=[
+                Condition(code=ConditionCode.T2DM),
+                Condition(code=ConditionCode.CKD, stage="G4"),
+            ],
+        )
+        t = compute_targets(p, load_rules())
+
+        assert "T2DM-PRO-02" in t.targets["protein_g"].rule_ids
+        assert t.min_of("protein_g") == pytest.approx(t.max_of("protein_g"))
+        assert t.needs_expert_review is True
+        assert any("quá hẹp" in c for c in t.conflict_notes)
+
+    def test_rule_theo_tuoi_khong_ap_cho_nguoi_tre(self):
+        """T2DM-PRO-02 chỉ áp cho người cao tuổi (requires_flag=elderly)."""
+        young = PatientProfile(
+            **self.BASE, age=45, conditions=[Condition(code=ConditionCode.T2DM)]
+        )
+        t = compute_targets(young, load_rules())
+        assert "T2DM-PRO-02" not in t.applied_rule_ids
+
+    def test_moi_rule_deu_dan_duoc_guideline_va_muc_bang_chung(self):
+        for rule in load_rules():
+            assert rule.guideline_ref, f"{rule.rule_id} thiếu guideline_ref"
+            assert rule.guideline_grade, f"{rule.rule_id} thiếu guideline_grade"
+
+    def test_khuyen_nghi_yeu_2C_khong_duoc_la_rang_buoc_cung(self):
+        """Mức bằng chứng phải khớp severity: khuyến nghị yếu không nên chặn cứng."""
+        for rule in load_rules():
+            if rule.guideline_grade == "2C" and rule.rule_id.endswith("PRO-01"):
+                assert rule.severity == "soft", (
+                    f"{rule.rule_id} là khuyến nghị 2C (yếu) nhưng đang đặt severity=hard"
+                )

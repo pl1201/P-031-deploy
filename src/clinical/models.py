@@ -6,18 +6,18 @@ Ticket: CLN-01..CLN-05
 
 from __future__ import annotations
 
-from enum import StrEnum
-from typing import Literal
+from enum import Enum
+from typing import ClassVar, Literal
 
 from pydantic import BaseModel, Field, field_validator
 
 
-class Sex(StrEnum):
+class Sex(str, Enum):
     MALE = "male"
     FEMALE = "female"
 
 
-class ActivityLevel(StrEnum):
+class ActivityLevel(str, Enum):
     SEDENTARY = "sedentary"
     LIGHT = "light"
     MODERATE = "moderate"
@@ -32,19 +32,19 @@ ACTIVITY_FACTOR: dict[ActivityLevel, float] = {
 }
 
 
-class WeightGoal(StrEnum):
+class WeightGoal(str, Enum):
     LOSE = "lose"
     MAINTAIN = "maintain"
     GAIN = "gain"
 
 
-class ConditionCode(StrEnum):
+class ConditionCode(str, Enum):
     """Mã bệnh lý hệ thống hỗ trợ ở v1."""
 
-    T2DM = "T2DM"  # Đái tháo đường týp 2
-    HTN = "HTN"  # Tăng huyết áp / tim mạch
-    CKD = "CKD"  # Bệnh thận mạn
-    GOUT = "GOUT"  # Gout / tăng acid uric
+    T2DM = "T2DM"        # Đái tháo đường týp 2
+    HTN = "HTN"          # Tăng huyết áp / tim mạch
+    CKD = "CKD"          # Bệnh thận mạn
+    GOUT = "GOUT"        # Gout / tăng acid uric
 
 
 class Condition(BaseModel):
@@ -71,9 +71,54 @@ class PatientProfile(BaseModel):
     region: Literal["north", "central", "south"] | None = None
     dislikes: list[str] = Field(default_factory=list)
 
+    # --- Cờ lâm sàng ảnh hưởng tới việc áp dụng ngưỡng ---
+    # Nguồn: KDIGO 2024 Practice Point 3.3.1.3 và 3.3.1.5
+    frailty_sarcopenia: bool = Field(
+        default=False,
+        description=(
+            "Suy yếu và/hoặc thiểu cơ. KDIGO 2024 PP 3.3.1.5: người cao tuổi có "
+            "frailty/sarcopenia cần cân nhắc mục tiêu protein và năng lượng CAO HƠN, "
+            "nên KHÔNG áp trần protein thấp."
+        ),
+    )
+    metabolically_unstable: bool = Field(
+        default=False,
+        description=(
+            "Chuyển hoá không ổn định. KDIGO 2024 PP 3.3.1.3: KHÔNG kê chế độ "
+            "thấp/rất thấp protein cho nhóm này."
+        ),
+    )
+    sodium_wasting: bool = Field(
+        default=False,
+        description=(
+            "Bệnh thận mất muối. KDIGO 2024 PP 3.3.2.1: hạn chế natri thường "
+            "KHÔNG phù hợp với nhóm này."
+        ),
+    )
+
+    ELDERLY_AGE_THRESHOLD: ClassVar[int] = 65
+
     @property
     def bmi(self) -> float:
         return self.weight_kg / (self.height_cm / 100) ** 2
+
+    @property
+    def clinical_flags(self) -> set[str]:
+        """Tập cờ dùng để bật/tắt rule lâm sàng.
+
+        `elderly` được suy ra từ tuổi thay vì nhập tay, để không phụ thuộc
+        người nhập nhớ tích ô.
+        """
+        flags: set[str] = set()
+        if self.age >= self.ELDERLY_AGE_THRESHOLD:
+            flags.add("elderly")
+        if self.frailty_sarcopenia:
+            flags.add("frailty_sarcopenia")
+        if self.metabolically_unstable:
+            flags.add("metabolically_unstable")
+        if self.sodium_wasting:
+            flags.add("sodium_wasting")
+        return flags
 
     @field_validator("allergies", "medications", "dislikes", mode="after")
     @classmethod
@@ -152,7 +197,7 @@ class MenuItem(BaseModel):
     grams: float = Field(gt=0, le=2000)
 
 
-class MealSlot(StrEnum):
+class MealSlot(str, Enum):
     BREAKFAST = "breakfast"
     LUNCH = "lunch"
     DINNER = "dinner"
@@ -196,7 +241,7 @@ class NutritionSummary(BaseModel):
         return float(getattr(self, nutrient))
 
 
-class Severity(StrEnum):
+class Severity(str, Enum):
     HARD = "hard"
     SOFT = "soft"
 

@@ -14,8 +14,6 @@ duyệt — đây là chỗ RULE-3 được thực thi ở tầng orchestration.
 
 from __future__ import annotations
 
-from typing import TypedDict
-
 from langgraph.checkpoint.memory import MemorySaver
 from langgraph.graph import END, START, StateGraph
 
@@ -106,42 +104,3 @@ def build_graph_with_memory(**kwargs):
     Production dùng PostgresSaver — xem ADR-004 trong ARCHITECTURE.md.
     """
     return build_graph(checkpointer=MemorySaver(), **kwargs)
-
-
-# --- Backward compatibility wrapper for skeleton API routing and tests ---
-
-
-class AgentState(TypedDict, total=False):
-    query: str
-    context: str
-    analysis: str
-    response: str
-    error: str
-    metadata: dict
-
-
-def _analyze_node(state: AgentState) -> dict:
-    query = state.get("query", "")
-    if not query:
-        return {"error": "Empty query"}
-    return {"analysis": f"Analyzing query: {query}"}
-
-
-def _respond_node(state: AgentState) -> dict:
-    analysis = state.get("analysis", "")
-    return {"response": f"Response based on analysis: {analysis}"}
-
-
-def _should_continue(state: AgentState) -> str:
-    if state.get("error"):
-        return END
-    return "respond"
-
-
-_builder = StateGraph(AgentState)
-_builder.add_node("analyze", _analyze_node)
-_builder.add_node("respond", _respond_node)
-_builder.set_entry_point("analyze")
-_builder.add_conditional_edges("analyze", _should_continue)
-_builder.add_edge("respond", END)
-agent = _builder.compile()

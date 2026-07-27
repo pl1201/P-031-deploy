@@ -47,7 +47,9 @@ def adjusted_body_weight_kg(weight_kg: float, height_cm: float) -> float:
     return ibw + 0.25 * (weight_kg - ibw)
 
 
-def bmr_mifflin_st_jeor(weight_kg: float, height_cm: float, age: int, sex: Sex) -> float:
+def bmr_mifflin_st_jeor(
+    weight_kg: float, height_cm: float, age: int, sex: Sex
+) -> float:
     base = 10.0 * weight_kg + 6.25 * height_cm - 5.0 * age
     return base + 5.0 if sex is Sex.MALE else base - 161.0
 

@@ -19,7 +19,9 @@ from src.clinical.models import (
     Violation,
 )
 
-PlanStatus = Literal["drafting", "pending_review", "approved", "rejected", "published", "failed"]
+PlanStatus = Literal[
+    "drafting", "pending_review", "approved", "rejected", "published", "failed"
+]
 
 MAX_RETRIES = 3
 
