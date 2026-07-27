@@ -30,3 +30,22 @@ jobs:
         env:
           APP_ENV: test
           OPENAI_API_KEY: test-key
+
+  structure:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Kiểm tra cấu trúc repo theo template AI20K
+        run: python scripts/check_structure.py
+
+      - name: Kiểm tra dữ liệu seed có nguồn đầy đủ
+        run: python scripts/validate_data.py

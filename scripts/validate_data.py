@@ -19,6 +19,9 @@ import csv
 import sys
 from pathlib import Path
 
+if sys.stdout.encoding is None or sys.stdout.encoding.lower() != "utf-8":
+    sys.stdout.reconfigure(encoding="utf-8")
+
 SEEDS = Path(__file__).resolve().parents[1] / "data" / "seeds"
 
 # RULE R40.3 — khoảng hợp lý cho 100 g thực phẩm.
