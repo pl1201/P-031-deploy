@@ -1,6 +1,15 @@
 from fastapi import APIRouter, HTTPException
 
+from src.config import get_settings
+
 router = APIRouter()
+
+
+@router.get("/health")
+async def health() -> dict[str, str]:
+    """Health check dưới prefix /api/v1 (AC của ticket SET-05)."""
+    settings = get_settings()
+    return {"status": "ok", "env": settings.app_env}
 
 
 @router.post("/chat")
