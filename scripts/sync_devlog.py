@@ -15,12 +15,8 @@ from __future__ import annotations
 
 import re
 import subprocess
-import sys
 from datetime import datetime
 from pathlib import Path
-
-if sys.stdout.encoding is None or sys.stdout.encoding.lower() != "utf-8":
-    sys.stdout.reconfigure(encoding="utf-8")
 
 ROOT = Path(__file__).resolve().parents[1]
 DEVLOG = ROOT / "DEVLOG.md"

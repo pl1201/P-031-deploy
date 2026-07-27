@@ -1,27 +1,8 @@
-.PHONY: run test lint format typecheck check clean validate-data
-
-run:
-	uvicorn src.main:app --reload --host 0.0.0.0 --port 8000
-
+.PHONY: test lint validate-data graph check
 test:
-	pytest tests/ -v
-
+	python3 -m pytest -q
 validate-data:
-	python scripts/validate_data.py
-
-lint:
-	ruff check src/ tests/
-
-format:
-	ruff format src/ tests/
-
-typecheck:
-	mypy src/
-
-check: validate-data lint format test
-
-clean:
-	find . -type d -name __pycache__ -exec rm -rf {} +
-	find . -type d -name .pytest_cache -exec rm -rf {} +
-	find . -type d -name .ruff_cache -exec rm -rf {} +
-
+	python3 scripts/validate_data.py
+graph:
+	python3 -c "import sys;sys.path.insert(0,'.');from scripts.render_graph import main;main()"
+check: validate-data test

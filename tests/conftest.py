@@ -1,10 +1,13 @@
+"""Fixtures dùng chung cho test.
+
+⚠️ TOÀN BỘ số liệu dinh dưỡng trong file này là DỮ LIỆU GIẢ dùng để test logic.
+KHÔNG dùng cho mục đích lâm sàng và KHÔNG được copy sang data/seeds/.
+Dữ liệu thật phải đến từ NIN hoặc USDA kèm source_ref có thật (ticket DAT-02).
+"""
+
 from __future__ import annotations
 
-from unittest.mock import AsyncMock
-
 import pytest
-import pytest_asyncio
-from httpx import ASGITransport, AsyncClient
 
 from src.clinical.models import (
     ActivityLevel,
@@ -18,31 +21,8 @@ from src.clinical.models import (
     Sex,
 )
 from src.clinical.nutrition import InMemoryFoodRepository
-from src.main import app
 
 FIXTURE_REF = "TEST-FIXTURE (dữ liệu giả, không dùng lâm sàng)"
-
-
-@pytest_asyncio.fixture
-async def client():
-    """Async HTTP client for testing API endpoints."""
-    transport = ASGITransport(app=app)
-    async with AsyncClient(transport=transport, base_url="http://test") as ac:
-        yield ac
-
-
-@pytest.fixture
-def mock_llm():
-    """Mock LLM to avoid calling OpenAI during tests.
-
-    Usage in test:
-        def test_something(mock_llm):
-            # LLM calls will return mock response instead of hitting OpenAI
-            ...
-    """
-    mock = AsyncMock()
-    mock.ainvoke.return_value = AsyncMock(content="Mocked LLM response")
-    return mock
 
 
 def _food(fid, name, kcal, pro, carb, fat, fib, na, k, p, purine, allergens=(), aliases=()):

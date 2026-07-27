@@ -3,7 +3,7 @@
 > ⚙️ File này được sinh tự động từ `DEVLOG.md` bằng `scripts/sync_devlog.py`.
 > Đừng sửa trực tiếp — hãy sửa `DEVLOG.md` rồi chạy lại script.
 
-> Cập nhật lần cuối: 27/07/2026 07:00 · 1 commit
+> Cập nhật lần cuối: 27/07/2026 15:02 · 2 commit
 
 ---
 
@@ -11,7 +11,7 @@
 
 | Thành viên | Số commit |
 |---|---|
-| Kim Máº¡nh HÆ°ng | 1 |
+| Kim Máº¡nh HÆ°ng | 3 |
 
 ---
 
@@ -42,4 +42,5 @@
 
 | Ngày | Người | Nội dung |
 |---|---|---|
+| 2026-07-27 | Kim Máº¡nh HÆ°ng | chore(ops): sap xep lai repo theo template AI20K |
 | 2026-07-27 | Kim Máº¡nh HÆ°ng | feat(ops): initial setup for NutriCare Agent workspace |

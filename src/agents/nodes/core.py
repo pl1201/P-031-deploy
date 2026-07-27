@@ -148,7 +148,9 @@ def make_compute_nutrition(foods: FoodRepository):
             return {
                 "computed_nutrition": None,
                 "violations": [],
-                "feedback": (f"{exc} Chỉ được chọn food_id có trong danh sách ứng viên được cung cấp."),
+                "feedback": (
+                    f"{exc} Chỉ được chọn food_id có trong danh sách ứng viên được cung cấp."
+                ),
             }
         return {"computed_nutrition": summary}
 

@@ -1,201 +1,153 @@
-# 🤖 AI20K Agent Template
+# CODE KHUNG — Clinical Engine + LangGraph Agent
 
-Template chính thức cho học viên **VinUni AI20K Build Phase** — cung cấp sẵn cấu trúc dự án, code mẫu, và hướng dẫn kỹ thuật chi tiết để xây dựng AI Agent đạt điểm cao (35+/50).
+> Ticket bao phủ: CLN-01 → CLN-05, AGT-01 → AGT-06, một phần HIT-01, EVL-03
+> Trạng thái: **43 test xanh**, chạy được ngay, không cần API key và không cần database.
 
-> 📖 **Technical Guidebook:** [phoenix.note.transformerlabs.ai/technical-book](https://phoenix.note.transformerlabs.ai/technical-book)
+---
 
-## 🎯 Template này dùng để làm gì?
-
-Khi tham gia AI20K Build Phase, mỗi đội cần xây dựng một AI Agent hoàn chỉnh — từ kiến trúc, code, test, đến deploy. Thay vì bắt đầu từ con số không, template này cung cấp:
-
-- **Cấu trúc thư mục chuẩn** — đã được thiết kế theo best practices (separation of concerns)
-- **Code mẫu** cho các phần cốt lõi: LangGraph agent, FastAPI API, config, schemas
-- **Docker + CI/CD sẵn** — Dockerfile multi-stage, GitHub Actions workflow
-- **Hướng dẫn kỹ thuật 10 chương** — từ clone template đến nộp bài Demo Day
-- **Checklist 10 deliverables** — đảm bảo không bỏ sót yêu cầu BTC
-- **AI Usage Logging tự động** — Pre-configured hooks cho Claude Code, Cursor, Codex, Gemini CLI, Antigravity, và GitHub Copilot
-
-## ⚡ Quick Start
-
-### Bước 1: Fork hoặc Clone
+## Chạy thử trong 30 giây
 
 ```bash
-# Clone template
-git clone https://github.com/AI20K-Build-Cohort-2/starter-code-template.git team-YOUR_TEAM_NAME
-cd team-YOUR_TEAM_NAME
-
-# Xóa git history cũ và khởi tạo lại
-rm -rf .git
-git init
-git add .
-git commit -m "feat: khởi tạo dự án từ template"
+pip install pydantic langgraph pytest
+python -m pytest -q            # 43 passed
+python scripts/validate_data.py
 ```
 
-### Bước 2: Setup môi trường
+Không cần `OPENAI_API_KEY`: LLM được ẩn sau interface `MenuGenerator`, test dùng bản giả. Đây là chủ ý — toàn bộ logic lâm sàng phải kiểm chứng được mà không cần gọi mô hình.
 
-```bash
-# Tạo virtual environment
-python3.11 -m venv .venv
-source .venv/bin/activate
+---
 
-# Cài dependencies
-pip install -e ".[dev]"
-
-# Cấu hình API keys
-cp .env.example .env
-# Mở .env và thêm OPENAI_API_KEY của bạn
-# Đồng thời cập nhật AI_LOG_API_KEY bằng key riêng từ link mời của BTC
-# (giá trị trong .env.example chỉ là placeholder)
-```
-
-### Bước 3: Cài AI Logging Hooks
-
-```bash
-# Linux / macOS / Git Bash
-bash scripts/setup_hooks.sh
-
-# Windows PowerShell
-# powershell -ExecutionPolicy Bypass -File scripts\setup_hooks.ps1
-```
-
-Hooks tự động log mọi AI prompt khi dùng Claude Code, Cursor, Codex, Gemini CLI, Antigravity, hoặc GitHub Copilot. Không cần thao tác thủ công.
-
-### Bước 4: Chạy server
-
-```bash
-# Chạy FastAPI backend
-uvicorn src.main:app --reload --port 8000
-
-# Mở Swagger UI
-# http://localhost:8000/docs
-```
-
-### Bước 5: Đọc hướng dẫn
-
-📖 Mở **[Technical Guidebook](https://phoenix.note.transformerlabs.ai/technical-book)** và làm theo từng chương.
-
-## 📁 Cấu trúc dự án
+## Cấu trúc
 
 ```
-├── src/
-│   ├── agents/           # 🧠 LangGraph Agent
-│   │   ├── graph.py      #    State graph (nodes + edges)
-│   │   ├── state.py      #    State schema (TypedDict)
-│   │   ├── nodes/        #    Node functions
-│   │   └── tools/        #    Agent tools (@tool)
-│   ├── api/              # 🌐 FastAPI Backend
-│   │   └── routes.py     #    API endpoints
-│   ├── models/           # 📋 Pydantic schemas
-│   ├── services/         # 🔧 Business logic (LLM, etc.)
-│   ├── config.py         # ⚙️ Pydantic Settings
-│   └── main.py           # 🚀 App entry point
-├── tests/                # 🧪 pytest suite
-│   ├── test_agents/      #    Agent/graph tests
-│   └── test_api/         #    API endpoint tests
-├── scripts/              # 🔌 AI Logging Hooks
-│   ├── log_hook.py       #    Auto-log cho Claude/Cursor/Codex/Gemini/Copilot
-│   ├── log_antigravity.py#    Antigravity IDE prompt scanner
-│   ├── log_manual.py     #    Manual log cho ChatGPT / web tools
-│   ├── submit_log.py     #    Submit logs on git push
-│   └── setup_hooks.sh    #    One-time hook installer
-├── .claude/ .codex/ .cursor/ .gemini/  # Per-tool hook configs
-├── .agents/              # Antigravity rules + workflows
-├── .ai-log/              # 📊 AI usage logs (auto-generated)
-├── docs/
-│   ├── guide/            # 📖 Technical Guidebook (10 chapters)
-│   └── architecture_diagram.md
-├── eval/                 # 📊 Evaluation results
-├── presentation/         # 🎤 Demo Day slides
-├── .github/workflows/    # ⚡ CI/CD (GitHub Actions)
-├── .github/hooks/        # 🪝 Copilot hook config
-├── Dockerfile            # 🐳 Multi-stage build
-├── docker-compose.yml    # 🐙 Full stack orchestration
-└── README_boilerplate.md # 📝 README template cho đội của bạn
+src/
+├── clinical/                 ⭐ Tầng deterministic — KHÔNG import LLM
+│   ├── models.py             Pydantic: hồ sơ, định mức, thực đơn, vi phạm
+│   ├── energy.py             BMR (Mifflin-St Jeor), TDEE, cân nặng hiệu chỉnh
+│   ├── rules.py              Nạp clinical_rules.csv, hợp nhất đa bệnh lý
+│   ├── nutrition.py          compute_nutrition() — nơi RULE-1 được thực thi
+│   └── validator.py          Bounds checker + sinh feedback cho retry
+├── agents/
+│   ├── state.py              NutriState (TypedDict)
+│   ├── nodes/core.py         8 node + router, mỗi node khai báo LLM: YES/NO
+│   └── graph.py              StateGraph + interrupt cho HITL
+data/seeds/
+├── clinical_rules.csv        18 rule, mỗi rule có guideline_ref
+├── drug_food_interactions.csv 30 cặp tương tác
+└── food_items.template.csv   152 thực phẩm — phần số liệu chờ nhập (xem data/README.md)
+scripts/validate_data.py      Chặn merge nếu dữ liệu thiếu nguồn hoặc phi lý
 ```
 
-## 📚 Technical Guidebook — 10 Chương
+---
 
-| Chương | Nội dung | Thời gian |
-|---------|----------|-----------|
-| 1 | Lời mở đầu — Mục tiêu, cách sử dụng | 15 phút |
-| 2 | Khởi tạo dự án — Clone, setup, git workflow | 4 giờ |
-| 3 | Thiết kế kiến trúc — 3-tier, diagrams, ADR | 6 giờ |
-| 4 | **LangGraph Agent** — State, nodes, edges, tools, RAG | 8 giờ |
-| 5 | FastAPI — Routes, validation, error handling, streaming | 6 giờ |
-| 6 | Giao diện — Next.js + Streamlit quickstart | 6 giờ |
-| 7 | DevOps — Docker, CI/CD, deploy, logging | 6 giờ |
-| 8 | Kiểm thử — Unit test, integration test, RAGAS | 4 giờ |
-| 9 | Demo Day — 10 deliverables, checklist, tips | 2 giờ |
-| 10 | Tài nguyên — Khóa học, docs, BMAD method | tham khảo |
+## Ba nguyên tắc được thực thi bằng code, không phải bằng lời dặn
 
-📖 **Đọc online:** [phoenix.note.transformerlabs.ai/technical-book](https://phoenix.note.transformerlabs.ai/technical-book)
+### RULE-1 — LLM chọn món, Python tính số
 
-## 📋 10 Deliverables cho Demo Day
+`MenuItem` chỉ có đúng hai field:
 
-| # | Deliverable | File vị trí | Template có sẵn |
-|---|-------------|-------------|:---:|
-| 1 | Source Code | `src/` | ✅ |
-| 2 | README.md | `README_boilerplate.md` → copy thành `README.md` | ✅ |
-| 3 | Architecture Diagram | `docs/architecture_diagram.md` | ✅ |
-| 4 | AI Logs | LangSmith (3 env vars) + Auto AI Usage Logging | ✅ |
-| 5 | Live URL | Deploy lên Render/Vercel | ⚡ CI/CD sẵn |
-| 6 | Video Demo | `presentation/` | 📝 |
-| 7 | Pitch Deck | `presentation/` | 📝 |
-| 8 | Development Journal | `JOURNAL.md` | ✅ |
-| 9 | Worklog | `WORKLOG.md` | ✅ |
-| 10 | Evaluation Evidence | `eval/` | 📝 |
-
-## 🛠 Tech Stack
-
-| Layer | Technology | Version |
-|-------|-----------|---------|
-| AI Agent | LangGraph + LangChain | Latest |
-| Backend | FastAPI + Uvicorn | 0.100+ |
-| LLM | OpenAI GPT-4o-mini | API |
-| Frontend | Next.js / Streamlit | 14+ / 1.30+ |
-| Database | SQLite (dev) / PostgreSQL (prod) | — |
-| DevOps | Docker + GitHub Actions | — |
-| Testing | pytest + pytest-asyncio | 8+ |
-
-## 📊 AI Usage Logging
-
-Template đã tích hợp sẵn auto-logging hooks cho 6 AI tools:
-
-| Tool | Cơ chế | Config |
-|------|--------|--------|
-| Claude Code | `.claude/settings.json` hooks | Tự động |
-| Cursor | `.cursor/hooks.json` | Tự động |
-| OpenAI Codex CLI | `.codex/hooks.json` | Tự động |
-| Gemini CLI | `.gemini/settings.json` | Tự động |
-| GitHub Copilot | `.github/hooks/hooks.json` | Tự động |
-| Antigravity IDE | Pre-push scan transcript | Tự động trên `git push` |
-
-Tất cả prompts và tool calls được log vào `.ai-log/session.jsonl` và tự động submit lên grading server mỗi khi `git push`.
-
-**ChatGPT / web tools khác** — log thủ công:
-```bash
-bash scripts/_pyrun.sh scripts/log_manual.py --tool chatgpt --prompt "What you asked"
+```python
+class MenuItem(BaseModel):
+    food_id: int
+    grams: float
 ```
 
-> ⚠️ Chạy `bash scripts/setup_hooks.sh` một lần sau khi clone để cài pre-push hook.
+Không có chỗ nào để LLM ghi kcal hay natri. Con số duy nhất đến từ `compute_nutrition()`, vốn tra `FoodRepository`. Có test kiểm tra bằng AST rằng `src/clinical/*` không import `openai`, `anthropic`, `langchain_openai`…
 
-## 📖 Đọc Technical Guidebook
+```
+test_tang_deterministic_khong_duoc_import_llm[clinical/nutrition.py] PASSED
+test_schema_llm_khong_co_field_dinh_duong PASSED
+```
 
-**Online (khuyến nghị):** [phoenix.note.transformerlabs.ai/technical-book](https://phoenix.note.transformerlabs.ai/technical-book)
+### RULE-2 — Không con số nào không có nguồn
 
-Đăng nhập bằng GitHub (cùng account đã được BTC mời vào org `AI20K-Build-Cohort-2`)
-→ chọn tab **Technical Book** ở sidebar trái → đọc 10 chương + topic sections,
-có table of contents bên phải, hỗ trợ light/dark/cyberpunk theme.
+`FoodItem.source_ref` là field bắt buộc, và validator từ chối `TODO`/`N/A`. Mỗi lần tính đều sinh `sources[]`. `scripts/validate_data.py` chặn CI nếu seed thiếu nguồn.
 
-**Offline:** mọi chương đều ở thư mục `docs/guide/` trong template này — mở bằng
-bất kỳ markdown viewer/editor nào (VS Code, Obsidian, GitHub UI, …).
+### RULE-3 — Không có đường tắt tới bệnh nhân
 
-## 🔗 Liên kết
+Graph `interrupt_before=["to_review"]`. Test xác nhận sau khi chạy xong, `state.next == ("to_review",)` và `status != "approved"`. Không có nhánh nào trong graph đặt trạng thái `approved` — việc đó chỉ xảy ra khi chuyên gia thao tác qua API.
 
-- 📖 **Technical Guidebook:** [phoenix.note.transformerlabs.ai/technical-book](https://phoenix.note.transformerlabs.ai/technical-book)
-- 🏫 **AI20K Program:** VinUni AI20K Build Phase
-- 👨‍🏫 **Mentor:** Đặng Hải Lộc
+---
 
-## 📄 License
+## Luồng agent
 
-MIT — Sử dụng tự do cho mục đích giáo dục.
+```mermaid
+graph TD;
+	__start__([start]):::first
+	load_profile(load_profile)
+	compute_targets(compute_targets)
+	retrieve_context(retrieve_context)
+	generate_menu(generate_menu)
+	compute_nutrition(compute_nutrition)
+	validate(validate)
+	build_feedback(build_feedback)
+	fallback(fallback)
+	to_review(to_review)
+	__end__([end]):::last
+	__start__ --> load_profile;
+	load_profile -. end .-> __end__;
+	load_profile -. continue .-> compute_targets;
+	compute_targets --> retrieve_context;
+	retrieve_context --> generate_menu;
+	generate_menu --> compute_nutrition;
+	compute_nutrition --> validate;
+	validate -.-> to_review;
+	validate -.-> build_feedback;
+	validate -.-> fallback;
+	build_feedback --> generate_menu;
+	fallback --> __end__;
+	to_review --> __end__;
+	classDef first fill-opacity:0
+	classDef last fill:#bfb6fc
+```
+
+Sơ đồ này xuất trực tiếp từ code bằng `graph.get_graph().draw_mermaid()` — nghĩa là nó **không thể lệch với thực tế**. Dùng cho Deliverable #3.
+
+| Node | LLM | Vai trò |
+|---|:-:|---|
+| `load_profile` | ❌ | Nạp hồ sơ, thoát sớm nếu không có |
+| `compute_targets` | ❌ | BMR → TDEE → định mức theo bệnh lý |
+| `retrieve_context` | ❌ | Lọc sẵn thực phẩm cấm/dị ứng **trước khi** LLM nhìn thấy |
+| `generate_menu` | ✅ | Node duy nhất gọi LLM trong luồng sinh thực đơn |
+| `compute_nutrition` | ❌ | Cộng bằng dữ liệu tra được, sinh `sources[]` |
+| `validate` | ❌ | Bounds checker + dị ứng, fail closed |
+| `build_feedback` | ❌ | Sinh feedback cụ thể cho lần retry |
+| `fallback` | ❌ | Thực đơn mẫu khi hết 3 lượt, gắn `needs_attention` |
+
+---
+
+## Một phát hiện đáng chú ý từ test
+
+Test `test_da_benh_ly_lay_nguong_nghiem_ngat_hon` ban đầu **fail**, và nó fail vì một xung đột y khoa có thật:
+
+- ADA khuyến nghị bệnh nhân ĐTĐ ăn protein 15–20% năng lượng → **72 g/ngày**
+- KDIGO giới hạn bệnh nhân CKD ở 0,6–0,8 g/kg → **52 g/ngày**
+
+Bệnh nhân ĐTĐ + CKD (rất phổ biến) rơi vào mâu thuẫn: ngưỡng tối thiểu cao hơn ngưỡng tối đa. Hệ thống đã hành xử đúng — gắn cờ `needs_expert_review` thay vì tự chọn. Nhưng nếu để vậy thì **mọi ca ĐTĐ+CKD đều bị đẩy sang chuyên gia**, làm hỏng trải nghiệm.
+
+Giải pháp: thêm cột `overridden_by` vào `clinical_rules.csv`. Rule protein của ADA bị vô hiệu khi bệnh nhân có CKD — đúng với thực hành lâm sàng (KDIGO thắng ADA ở nhóm bệnh nhân này). Cơ chế xung đột vẫn giữ nguyên làm lưới an toàn cho các trường hợp chưa lường trước.
+
+> Đây là loại chi tiết nên đưa vào slide "Challenges & Learnings". Nó cho thấy đội hiểu domain chứ không chỉ ghép thư viện.
+
+---
+
+## Những gì còn thiếu (không nằm trong khung này)
+
+| Việc | Ticket | Ai |
+|---|---|---|
+| Bản cài đặt `MenuGenerator` thật (structured output) | AGT-04 | R1 |
+| `FoodRepository` dùng SQL thay vì in-memory | BE-01 | R3 |
+| PostgresSaver thay MemorySaver | HIT-01 | R1 |
+| Guardrail chặn chỉ định y khoa | AGT-07 | R1 |
+| RAG guideline + citation | AGT-03, DAT-06 | R1, R2 |
+| Kiểm tra tương tác thuốc trong validator | CLN-06 | R2 |
+| OOV Estimator | CLN-07 | R2 |
+| Toàn bộ API và frontend | EPIC 4, 6 | R3, R4 |
+
+Khi cắm `MenuGenerator` thật vào, **không được sửa gì trong `src/clinical/`**. Nếu thấy mình đang phải sửa tầng deterministic để LLM chạy được, đó là dấu hiệu đang vi phạm RULE-1.
+
+---
+
+## Ghi chú về dữ liệu trong test
+
+Toàn bộ số liệu dinh dưỡng trong `tests/conftest.py` là **dữ liệu giả** dùng để kiểm tra logic, đánh dấu `source_ref = "TEST-FIXTURE"`. Không copy sang `data/seeds/`. Dữ liệu thật phải đến từ NIN hoặc USDA (ticket DAT-02).

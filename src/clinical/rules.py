@@ -31,6 +31,9 @@ KCAL_PER_GRAM: dict[str, float] = {"protein_g": 4.0, "carb_g": 4.0, "fat_g": 9.0
 ENERGY_SOFT_TOLERANCE = 0.10
 ENERGY_HARD_TOLERANCE = 0.25
 
+# Dải [min, max] hẹp hơn tỉ lệ này so với max thì coi là không lập được thực đơn
+NARROW_BAND_RATIO = 0.05
+
 Bound = Literal["max", "min"]
 Basis = Literal["absolute", "per_kg", "pct_energy", "per_1000kcal"]
 
@@ -47,7 +50,10 @@ class ClinicalRule:
     basis: Basis
     severity: str
     guideline_ref: str
+    guideline_grade: str = ""
     overridden_by: tuple[str, ...] = ()
+    disabled_by_flag: tuple[str, ...] = ()
+    requires_flag: tuple[str, ...] = ()
 
     def applies_to(self, condition_code: str, stage: str | None) -> bool:
         if self.condition_code != condition_code:
@@ -73,9 +79,15 @@ class ClinicalRule:
         if self.basis == "pct_energy":
             kcal_g = KCAL_PER_GRAM.get(self.nutrient)
             if kcal_g is None:
-                raise ValueError(f"Rule {self.rule_id}: basis=pct_energy không áp dụng cho {self.nutrient}")
+                raise ValueError(
+                    f"Rule {self.rule_id}: basis=pct_energy không áp dụng cho {self.nutrient}"
+                )
             return energy_kcal * (self.value / 100.0) / kcal_g
         raise ValueError(f"Rule {self.rule_id}: basis không hợp lệ: {self.basis}")
+
+
+def _split(raw: str | None) -> tuple[str, ...]:
+    return tuple(c.strip() for c in (raw or "").split(",") if c.strip())
 
 
 def load_rules(path: Path | None = None) -> list[ClinicalRule]:
@@ -98,7 +110,10 @@ def load_rules(path: Path | None = None) -> list[ClinicalRule]:
                     basis=row["basis"].strip(),  # type: ignore[arg-type]
                     severity=row["severity"].strip(),
                     guideline_ref=row["guideline_ref"].strip(),
-                    overridden_by=tuple(c.strip() for c in (row.get("overridden_by") or "").split(",") if c.strip()),
+                    guideline_grade=(row.get("guideline_grade") or "").strip(),
+                    overridden_by=_split(row.get("overridden_by")),
+                    disabled_by_flag=_split(row.get("disabled_by_flag")),
+                    requires_flag=_split(row.get("requires_flag")),
                 )
             )
     if not rules:
@@ -106,27 +121,59 @@ def load_rules(path: Path | None = None) -> list[ClinicalRule]:
     return rules
 
 
-def _select_rules(profile: PatientProfile, rules: list[ClinicalRule]) -> list[ClinicalRule]:
-    """Chọn rule áp dụng cho bệnh nhân, có xét quyền ưu tiên giữa các guideline.
+def _select_rules(
+    profile: PatientProfile, rules: list[ClinicalRule]
+) -> tuple[list[ClinicalRule], list[ClinicalRule]]:
+    """Chọn rule áp dụng cho bệnh nhân.
 
-    Một số rule bị vô hiệu khi bệnh nhân mắc kèm bệnh khác. Ví dụ thực tế:
-    ADA khuyến nghị protein 15-20% năng lượng cho bệnh nhân ĐTĐ, nhưng khi có
-    kèm CKD thì KDIGO thắng — protein bị hạn chế 0.6-0.8 g/kg. Nếu không xử lý
-    precedence, hai rule sẽ mâu thuẫn và toàn bộ ca ĐTĐ+CKD (rất phổ biến) sẽ
-    bị đẩy sang chuyên gia một cách không cần thiết.
+    Ba cơ chế lọc, theo thứ tự:
+
+    1. **Quyền ưu tiên giữa guideline** (`overridden_by`): ADA khuyến nghị protein
+       15-20% năng lượng cho bệnh nhân ĐTĐ, nhưng khi có kèm CKD thì KDIGO thắng.
+       Nếu không xử lý, toàn bộ ca ĐTĐ+CKD (rất phổ biến) bị đẩy sang chuyên gia
+       một cách không cần thiết.
+
+    2. **Cờ an toàn vô hiệu hoá rule** (`disabled_by_flag`): KDIGO 2024 PP 3.3.1.3
+       và PP 3.3.1.5 — không áp trần protein thấp cho người chuyển hoá không ổn
+       định hoặc có suy yếu/thiểu cơ. Rule bị vô hiệu theo cơ chế này LUÔN kéo
+       theo cờ needs_expert_review, vì đây là tình huống ngoài phác đồ chuẩn.
+
+    3. **Cờ điều kiện bật rule** (`requires_flag`): ADA 2026 đặt ngưỡng protein
+       tối thiểu riêng cho người cao tuổi mắc ĐTĐ.
+
+    Trả về: (rule được áp dụng, rule bị vô hiệu bởi cờ an toàn).
     """
     patient_conditions = {c.code.value for c in profile.conditions}
+    flags = profile.clinical_flags
 
     def not_overridden(rule: ClinicalRule) -> bool:
         return not (set(rule.overridden_by) & patient_conditions)
 
-    selected = [r for r in rules if r.condition_code == "BASE" and not_overridden(r)]
+    def flag_disabled(rule: ClinicalRule) -> bool:
+        return bool(set(rule.disabled_by_flag) & flags)
+
+    def flag_required_met(rule: ClinicalRule) -> bool:
+        return not rule.requires_flag or bool(set(rule.requires_flag) & flags)
+
+    candidates = [r for r in rules if r.condition_code == "BASE"]
     for cond in profile.conditions:
-        selected += [r for r in rules if r.applies_to(cond.code.value, cond.stage) and not_overridden(r)]
-    return selected
+        candidates += [r for r in rules if r.applies_to(cond.code.value, cond.stage)]
+
+    selected: list[ClinicalRule] = []
+    disabled: list[ClinicalRule] = []
+    for rule in candidates:
+        if not not_overridden(rule) or not flag_required_met(rule):
+            continue
+        if flag_disabled(rule):
+            disabled.append(rule)
+            continue
+        selected.append(rule)
+    return selected, disabled
 
 
-def compute_targets(profile: PatientProfile, rules: list[ClinicalRule] | None = None) -> ClinicalTargets:
+def compute_targets(
+    profile: PatientProfile, rules: list[ClinicalRule] | None = None
+) -> ClinicalTargets:
     """Tính định mức cá thể hoá. Luôn trả về kèm applied_rule_ids để UI giải trình."""
     rules = rules if rules is not None else load_rules()
     energy = compute_energy_target_kcal(profile)
@@ -146,7 +193,9 @@ def compute_targets(profile: PatientProfile, rules: list[ClinicalRule] | None = 
     applied: list[str] = ["ENERGY-MSJ"]
     conflicts: list[str] = []
 
-    for rule in _select_rules(profile, rules):
+    selected, disabled_by_safety_flag = _select_rules(profile, rules)
+
+    for rule in selected:
         value = rule.resolve(weight_kg=weight, energy_kcal=energy)
         t = targets.get(rule.nutrient)
         if t is None:
@@ -165,12 +214,32 @@ def compute_targets(profile: PatientProfile, rules: list[ClinicalRule] | None = 
             t.guideline_refs.append(rule.guideline_ref)
         applied.append(rule.rule_id)
 
-    # Phát hiện xung đột không giải được — KHÔNG tự chọn, chuyển chuyên gia
+    # Rule bị vô hiệu bởi cờ an toàn -> luôn chuyển chuyên gia (KDIGO 2024 PP 3.3.1.3/3.3.1.5)
+    for rule in disabled_by_safety_flag:
+        conflicts.append(
+            f"{rule.nutrient}: đã VÔ HIỆU rule {rule.rule_id} "
+            f"(ngưỡng {rule.bound} {rule.value} {rule.unit}) do bệnh nhân có cờ "
+            f"{'/'.join(rule.disabled_by_flag)}. Căn cứ: {rule.guideline_ref}. "
+            "Định mức chất này cần chuyên gia quyết định."
+        )
+
+    # Phát hiện xung đột và dải quá hẹp — KHÔNG tự chọn, chuyển chuyên gia
     for name, t in targets.items():
-        if t.min_value is not None and t.max_value is not None and t.min_value > t.max_value:
+        if t.min_value is None or t.max_value is None:
+            continue
+        if t.min_value > t.max_value:
             conflicts.append(
                 f"{name}: ngưỡng tối thiểu {t.min_value:.1f} lớn hơn tối đa {t.max_value:.1f} "
                 f"(rules: {', '.join(t.rule_ids)})"
+            )
+        elif t.max_value - t.min_value < NARROW_BAND_RATIO * t.max_value:
+            # Ví dụ thực tế: người cao tuổi mắc ĐTĐ + CKD -> ADA 2026 đặt sàn
+            # protein 0.8 g/kg, KDIGO 2024 đặt trần 0.8 g/kg. Hai hướng dẫn gặp
+            # nhau tại đúng một điểm; không thực đơn nào thoả được dải rộng 0.
+            conflicts.append(
+                f"{name}: dải cho phép quá hẹp ({t.min_value:.1f}-{t.max_value:.1f} {t.unit}) "
+                f"— hai hướng dẫn gặp nhau tại gần như một điểm (rules: {', '.join(t.rule_ids)}). "
+                "Không thể lập thực đơn thoả mãn; cần chuyên gia cân nhắc ưu tiên."
             )
 
     return ClinicalTargets(

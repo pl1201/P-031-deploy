@@ -71,3 +71,5 @@ out/
 .ai-log/archive/
 mnt/
 home/
+files.zip
+.temp_extracted/
