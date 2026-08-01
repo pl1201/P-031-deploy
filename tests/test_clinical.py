@@ -352,15 +352,30 @@ class TestFreeSugarRule:
 
     def _t2dm(self) -> PatientProfile:
         return PatientProfile(
-            patient_id="BN-SUG", age=50, sex=Sex.MALE, height_cm=165, weight_kg=65,
+            patient_id="BN-SUG",
+            age=50,
+            sex=Sex.MALE,
+            height_cm=165,
+            weight_kg=65,
             conditions=[Condition(code=ConditionCode.T2DM)],
         )
 
     def _food(self, fid, name, kcal, carb, sugar):
         return FoodItem(
-            id=fid, name_vi=name, kcal_100g=kcal, protein_g=1.0, carb_g=carb,
-            fat_g=0.5, fiber_g=0.5, sugar_g=sugar, na_mg=1, k_mg=50, p_mg=30,
-            purine_mg=10, source="curated", source_ref=self.FIXTURE_REF,
+            id=fid,
+            name_vi=name,
+            kcal_100g=kcal,
+            protein_g=1.0,
+            carb_g=carb,
+            fat_g=0.5,
+            fiber_g=0.5,
+            sugar_g=sugar,
+            na_mg=1,
+            k_mg=50,
+            p_mg=30,
+            purine_mg=10,
+            source="curated",
+            source_ref=self.FIXTURE_REF,
         )
 
     def test_t2dm_co_nguong_duong_tu_do(self):
@@ -391,15 +406,23 @@ class TestFreeSugarRule:
             [
                 self._food(1, "Có đường", 100, 20.0, 5.0),
                 FoodItem(  # sugar_g=None
-                    id=2, name_vi="Chưa rõ đường", kcal_100g=130, protein_g=2.7,
-                    carb_g=28.0, fat_g=0.3, fiber_g=0.4, na_mg=1, k_mg=35, p_mg=43,
-                    purine_mg=15, source="curated", source_ref=self.FIXTURE_REF,
+                    id=2,
+                    name_vi="Chưa rõ đường",
+                    kcal_100g=130,
+                    protein_g=2.7,
+                    carb_g=28.0,
+                    fat_g=0.3,
+                    fiber_g=0.4,
+                    na_mg=1,
+                    k_mg=35,
+                    p_mg=43,
+                    purine_mg=15,
+                    source="curated",
+                    source_ref=self.FIXTURE_REF,
                 ),
             ]
         )
-        menu = MenuDraft(
-            items={MealSlot.LUNCH: [MenuItem(food_id=1, grams=100), MenuItem(food_id=2, grams=200)]}
-        )
+        menu = MenuDraft(items={MealSlot.LUNCH: [MenuItem(food_id=1, grams=100), MenuItem(food_id=2, grams=200)]})
         nutrition = compute_nutrition(menu, repo)
         assert nutrition.sugar_is_complete is False
         v = validate_menu(nutrition, compute_targets(self._t2dm(), rules), rules)

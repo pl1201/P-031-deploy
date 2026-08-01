@@ -128,9 +128,7 @@ class TestSugarAggregation:
         )
 
     def _menu(self):
-        return MenuDraft(
-            items={MealSlot.BREAKFAST: [MenuItem(food_id=1, grams=100), MenuItem(food_id=2, grams=100)]}
-        )
+        return MenuDraft(items={MealSlot.BREAKFAST: [MenuItem(food_id=1, grams=100), MenuItem(food_id=2, grams=100)]})
 
     def test_summary_co_field_sugar_g(self):
         """RULE-2 hồi quy: value_of('sugar_g') phải hoạt động, không AttributeError."""
@@ -145,9 +143,7 @@ class TestSugarAggregation:
                 _rice(id=2, name_vi="Cơm không rõ đường", carb_g=28.0),  # sugar_g=None
             ]
         )
-        menu = MenuDraft(
-            items={MealSlot.LUNCH: [MenuItem(food_id=1, grams=100), MenuItem(food_id=2, grams=100)]}
-        )
+        menu = MenuDraft(items={MealSlot.LUNCH: [MenuItem(food_id=1, grams=100), MenuItem(food_id=2, grams=100)]})
         summary = compute_nutrition(menu, repo)
         assert summary.sugar_g == pytest.approx(0.2)  # chỉ cộng món có số liệu
         assert summary.sugar_is_complete is False  # tổng bị thiếu hụt → rule phải biết

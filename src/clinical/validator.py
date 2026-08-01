@@ -44,8 +44,7 @@ SUGGESTIONS_VI: dict[tuple[str, str], str] = {
     ("fiber_g", "under"): "Thêm rau xanh, đậu đỗ và ngũ cốc nguyên hạt vào bữa chính.",
     ("carb_g", "over"): "Giảm khoảng nửa bát cơm ở bữa tối, thay bằng rau.",
     ("sugar_g", "over"): (
-        "Giảm đồ ngọt, nước ngọt, sữa đặc và chè; ưu tiên trái cây tươi ít ngọt "
-        "thay cho đường tự do."
+        "Giảm đồ ngọt, nước ngọt, sữa đặc và chè; ưu tiên trái cây tươi ít ngọt thay cho đường tự do."
     ),
     ("kcal", "over"): "Giảm dầu mỡ khi chế biến và giảm khẩu phần tinh bột.",
     ("kcal", "under"): "Tăng khẩu phần tinh bột phức hợp hoặc thêm một bữa phụ.",

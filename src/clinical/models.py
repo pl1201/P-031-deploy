@@ -211,8 +211,7 @@ class FoodItem(BaseModel):
         # Đường là tập con của carbohydrate → không thể lớn hơn carb tổng.
         if self.sugar_g is not None and self.sugar_g > self.carb_g:
             raise ValueError(
-                f"[{self.name_vi}] sugar_g={self.sugar_g} > carb_g={self.carb_g} — "
-                "đường phải là tập con của carb tổng"
+                f"[{self.name_vi}] sugar_g={self.sugar_g} > carb_g={self.carb_g} — đường phải là tập con của carb tổng"
             )
         return self
 
