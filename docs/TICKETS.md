@@ -101,6 +101,14 @@ Thu thập ~15 tài liệu (BYT, ADA, KDIGO, AHA/DASH, ACR, tài liệu Viện D
 
 ---
 
+### `DAT-07` Mở rộng schema `food_items`: đường tự do + nguồn GI riêng (anchor ĐTĐ2)
+**Owner:** R2 · **P1** · 3h · **Deps:** DAT-02
+Bổ sung `sugar_g` (cho ngưỡng đường tự do WHO) và cặp `gi_source`/`gi_source_ref` để GI có nguồn riêng, tách khỏi `source_ref` của NIN (RULE-2). Thêm helper `available_carb_g` (carb − xơ) và `glycemic_load(grams)` (None-safe). GI lấy từ **Atkinson 2021** (ISO, >4000 món) + **Mai 2001** (GI món Việt: gạo/bún/phở).
+**AC:** Tạo `FoodItem` có `gi_index` mà thiếu nguồn GI → bị chặn (RULE-2) · `glycemic_load` trả `None` khi thiếu GI (không phải 0) · `sugar_g > carb_g` bị chặn · `validate_data.py` áp cùng ràng buộc trên CSV · Có unit test cho cả 4 nhánh.
+> Đây là thay đổi schema tối thiểu để chốt ĐTĐ2 làm bệnh chính. GI phủ thưa nên menu engine phải suy giảm mềm khi thiếu GI.
+
+---
+
 ## EPIC 2 — CLINICAL ENGINE (S2–S3) — *Owner chính: R2, review R1*
 
 ### `CLN-01` Module tính năng lượng
@@ -138,6 +146,14 @@ Khớp thuốc bệnh nhân đang dùng với thực phẩm/vi chất trong th�
 **Owner:** R2 · **P2** · 10h · **Deps:** DAT-04
 Món không có trong DB: (1) tra `aliases` → (2) tìm mờ tên món → (3) LLM phân rã thành nguyên liệu + gram ước tính → tra SQL từng nguyên liệu → cộng lại.
 **AC:** Kết quả **luôn** gắn `is_estimated=true` + `confidence` (0–1) · UI hiển thị nhãn "ước tính" rõ ràng · Không bao giờ để LLM trả thẳng con số kcal · 10 case món địa phương cho sai lệch < 30%.
+
+---
+
+### `CLN-08` Rule đường tự do WHO cho ĐTĐ2
+**Owner:** R2 · **P1** · 2h · **Deps:** CLN-02, DAT-07
+Thêm rule `T2DM-SUG-01` (đường tự do < 10% năng lượng, WHO 2015) dùng cột `sugar_g` (DAT-07). Bổ sung `sugar_g` vào `KCAL_PER_GRAM` cho basis `pct_energy`. Validator: nhãn "Đường" + gợi ý, và **cảnh báo `incomplete_data`** khi có món thiếu `sugar_g` (tổng đường thấp hơn thực tế → không được coi là đạt ngưỡng).
+**AC:** compute_targets ĐTĐ2 sinh trần `sugar_g = E×10%/4` · thực đơn thừa đường → soft violation · thực đơn thiếu số liệu đường → cảnh báo `incomplete_data` (không im lặng) · rule scope T2DM để không đụng test HTN hiện có.
+> Đặt `severity=soft` dù WHO là khuyến nghị mạnh: dữ liệu đường thường thiếu (`sugar_is_complete=False`), chặn cứng trên tổng thiếu hụt sẽ sai. Broaden sang BASE khi phủ đủ `sugar_g`.
 
 ---
 

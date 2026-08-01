@@ -24,8 +24,13 @@ from .models import ClinicalTargets, NutrientTarget, PatientProfile
 
 DEFAULT_RULES_PATH = Path(__file__).resolve().parents[2] / "data" / "seeds" / "clinical_rules.csv"
 
-# Hệ số quy đổi năng lượng cho basis = pct_energy
-KCAL_PER_GRAM: dict[str, float] = {"protein_g": 4.0, "carb_g": 4.0, "fat_g": 9.0}
+# Hệ số quy đổi năng lượng cho basis = pct_energy. Đường là carbohydrate → 4 kcal/g.
+KCAL_PER_GRAM: dict[str, float] = {
+    "protein_g": 4.0,
+    "carb_g": 4.0,
+    "fat_g": 9.0,
+    "sugar_g": 4.0,
+}
 
 # Dung sai năng lượng so với định mức
 ENERGY_SOFT_TOLERANCE = 0.10
