@@ -79,6 +79,11 @@ def compute_nutrition(menu: MenuDraft, repo: FoodRepository) -> NutritionSummary
     totals = dict.fromkeys(NUTRIENT_FIELDS, 0.0)
     sources: list[SourceRef] = []
     has_estimated = False
+    # Đường xử lý riêng vì sugar_g là Optional: chỉ cộng món có số liệu, và
+    # đánh dấu không đầy đủ nếu có món thiếu — để rule đường tự do không bị
+    # đánh lừa bởi một tổng bị thiếu hụt.
+    sugar_total = 0.0
+    sugar_is_complete = True
 
     for item in menu.all_items():
         food = repo.get(item.food_id)
@@ -97,6 +102,11 @@ def compute_nutrition(menu: MenuDraft, repo: FoodRepository) -> NutritionSummary
         totals["p_mg"] += food.p_mg * factor
         totals["purine_mg"] += food.purine_mg * factor
 
+        if food.sugar_g is None:
+            sugar_is_complete = False
+        else:
+            sugar_total += food.sugar_g * factor
+
         has_estimated = has_estimated or food.is_estimated
         sources.append(
             SourceRef(
@@ -111,6 +121,8 @@ def compute_nutrition(menu: MenuDraft, repo: FoodRepository) -> NutritionSummary
 
     return NutritionSummary(
         **{k: round(v, 2) for k, v in totals.items()},
+        sugar_g=round(sugar_total, 2),
+        sugar_is_complete=sugar_is_complete,
         sources=sources,
         has_estimated=has_estimated,
     )

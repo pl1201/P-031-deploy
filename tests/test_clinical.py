@@ -15,6 +15,7 @@ from src.clinical.models import (
     ActivityLevel,
     Condition,
     ConditionCode,
+    FoodItem,
     MealSlot,
     MenuDraft,
     MenuItem,
@@ -23,7 +24,12 @@ from src.clinical.models import (
     Sex,
     WeightGoal,
 )
-from src.clinical.nutrition import UnknownFoodError, check_allergies, compute_nutrition
+from src.clinical.nutrition import (
+    InMemoryFoodRepository,
+    UnknownFoodError,
+    check_allergies,
+    compute_nutrition,
+)
 from src.clinical.rules import compute_targets, load_rules
 from src.clinical.validator import build_feedback, has_blocking, validate_menu
 
@@ -338,3 +344,88 @@ class TestKdigo2024SafetyFlags:
         for rule in load_rules():
             if rule.guideline_grade == "2C" and rule.rule_id.endswith("PRO-01"):
                 assert rule.severity == "soft", f"{rule.rule_id} là khuyến nghị 2C (yếu) nhưng đang đặt severity=hard"
+
+
+# ---------------------------------------------- đường tự do WHO (CLN-08)
+class TestFreeSugarRule:
+    FIXTURE_REF = "TEST-FIXTURE (dữ liệu giả)"
+
+    def _t2dm(self) -> PatientProfile:
+        return PatientProfile(
+            patient_id="BN-SUG",
+            age=50,
+            sex=Sex.MALE,
+            height_cm=165,
+            weight_kg=65,
+            conditions=[Condition(code=ConditionCode.T2DM)],
+        )
+
+    def _food(self, fid, name, kcal, carb, sugar):
+        return FoodItem(
+            id=fid,
+            name_vi=name,
+            kcal_100g=kcal,
+            protein_g=1.0,
+            carb_g=carb,
+            fat_g=0.5,
+            fiber_g=0.5,
+            sugar_g=sugar,
+            na_mg=1,
+            k_mg=50,
+            p_mg=30,
+            purine_mg=10,
+            source="curated",
+            source_ref=self.FIXTURE_REF,
+        )
+
+    def test_t2dm_co_nguong_duong_tu_do(self):
+        """WHO: đường tự do < 10% năng lượng → trần sugar_g = E * 0.10 / 4."""
+        t = compute_targets(self._t2dm(), load_rules())
+        assert "T2DM-SUG-01" in t.applied_rule_ids
+        # kcal target = E*(1±10%) → suy ngược định mức năng lượng E rồi tính trần đường
+        energy = t.targets["kcal"].max_value / 1.10
+        assert t.max_of("sugar_g") == pytest.approx(energy * 0.10 / 4.0)
+
+    def test_thua_duong_sinh_canh_bao_mem(self):
+        rules = load_rules()
+        repo = InMemoryFoodRepository(
+            [self._food(1, "Chè đặc", 300, 60.0, 55.0)]  # 200 g → 110 g đường
+        )
+        menu = MenuDraft(items={MealSlot.SNACK: [MenuItem(food_id=1, grams=200)]})
+        nutrition = compute_nutrition(menu, repo)
+        assert nutrition.sugar_is_complete is True
+        v = validate_menu(nutrition, compute_targets(self._t2dm(), rules), rules)
+        sugar_over = [x for x in v if x.nutrient == "sugar_g" and x.kind == "over"]
+        assert len(sugar_over) == 1
+        assert sugar_over[0].severity is Severity.SOFT  # WHO strong nhưng đặt soft
+
+    def test_thieu_so_lieu_duong_thi_canh_bao_incomplete(self):
+        """Món thiếu sugar_g → không được coi là đạt ngưỡng đường."""
+        rules = load_rules()
+        repo = InMemoryFoodRepository(
+            [
+                self._food(1, "Có đường", 100, 20.0, 5.0),
+                FoodItem(  # sugar_g=None
+                    id=2,
+                    name_vi="Chưa rõ đường",
+                    kcal_100g=130,
+                    protein_g=2.7,
+                    carb_g=28.0,
+                    fat_g=0.3,
+                    fiber_g=0.4,
+                    na_mg=1,
+                    k_mg=35,
+                    p_mg=43,
+                    purine_mg=15,
+                    source="curated",
+                    source_ref=self.FIXTURE_REF,
+                ),
+            ]
+        )
+        menu = MenuDraft(items={MealSlot.LUNCH: [MenuItem(food_id=1, grams=100), MenuItem(food_id=2, grams=200)]})
+        nutrition = compute_nutrition(menu, repo)
+        assert nutrition.sugar_is_complete is False
+        v = validate_menu(nutrition, compute_targets(self._t2dm(), rules), rules)
+        incomplete = [x for x in v if x.kind == "incomplete_data"]
+        assert len(incomplete) == 1
+        assert incomplete[0].severity is Severity.SOFT

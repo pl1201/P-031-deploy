@@ -29,6 +29,7 @@ RANGES: dict[str, tuple[float, float]] = {
     "carb_g": (0, 100),
     "fat_g": (0, 100),
     "fiber_g": (0, 80),
+    "sugar_g": (0, 100),
     "na_mg": (0, 25000),
     "k_mg": (0, 5000),
     "p_mg": (0, 2000),
@@ -36,7 +37,12 @@ RANGES: dict[str, tuple[float, float]] = {
     "gi_index": (0, 110),
 }
 
+# Cột số liệu được phép để trống (không phải mọi nguồn đều có).
+# gi_index: GI phủ thưa. sugar_g: nhiều nguồn không tách đường khỏi carb tổng.
+OPTIONAL_NUMERIC_COLS = {"gi_index", "sugar_g"}
+
 VALID_SOURCES = {"NIN", "USDA", "curated", "estimated"}
+VALID_GI_SOURCES = {"Atkinson2021", "Chan2001_VN", "estimated"}
 PLACEHOLDER = {"", "todo", "tbd", "n/a", "-", "?", "x"}
 
 errors: list[str] = []
@@ -97,7 +103,7 @@ def check_food_items(path: Path) -> None:
         for col, (lo, hi) in RANGES.items():
             raw = (row.get(col) or "").strip()
             if not raw:
-                if col != "gi_index":
+                if col not in OPTIONAL_NUMERIC_COLS:
                     err(f"{loc} thiếu giá trị cột {col}")
                 continue
             try:
@@ -115,6 +121,29 @@ def check_food_items(path: Path) -> None:
                 err(f"{loc} tổng đa chất {macro:.1f} g/100 g — bất khả thi")
         except ValueError:
             pass
+
+        # RULE-2 cho cột GI: có trị GI thì phải dẫn nguồn GI riêng (DAT-07).
+        gi_raw = (row.get("gi_index") or "").strip()
+        if gi_raw:
+            gi_source = (row.get("gi_source") or "").strip()
+            gi_ref = (row.get("gi_source_ref") or "").strip()
+            if gi_source not in VALID_GI_SOURCES:
+                err(
+                    f"{loc} gi_index có trị nhưng gi_source='{gi_source}' không hợp lệ "
+                    f"(phải là {sorted(VALID_GI_SOURCES)}) — RULE-2"
+                )
+            if gi_ref.lower() in PLACEHOLDER:
+                err(f"{loc} gi_index có trị nhưng thiếu gi_source_ref — RULE-2")
+
+        # Đường là tập con của carb tổng.
+        sugar_raw = (row.get("sugar_g") or "").strip()
+        carb_raw = (row.get("carb_g") or "").strip()
+        if sugar_raw and carb_raw:
+            try:
+                if float(sugar_raw) > float(carb_raw):
+                    err(f"{loc} sugar_g={sugar_raw} > carb_g={carb_raw} — đường phải ≤ carb tổng")
+            except ValueError:
+                pass
 
     print(f"  {path.name}: {len(rows)} dòng, {filled} dòng đã nhập số liệu")
     if filled < len(rows):
@@ -181,12 +210,48 @@ def check_drug_food(path: Path) -> None:
         warn(f"{path.name}: {missing_ref} cặp chưa có source_ref — phải điền trước khi lên slide")
 
 
+def check_gi_values(path: Path) -> None:
+    """Bảng GI tách riêng (DAT-07). GI có nguồn riêng, merge vào food_items khi nạp."""
+    if not path.exists():
+        warn(f"{path.name}: chưa có file")
+        return
+
+    with open(path, newline="", encoding="utf-8") as f:
+        rows = list(csv.DictReader(f))
+
+    seen: set[str] = set()
+    for i, row in enumerate(rows, start=2):
+        loc = f"{path.name}:{i} [{row.get('name_vi') or '?'}]"
+        fid = (row.get("food_id") or "").strip()
+        if not fid.isdigit():
+            err(f"{loc} food_id='{fid}' phải là số nguyên")
+        if fid in seen:
+            err(f"{loc} trùng food_id={fid} — mỗi thực phẩm chỉ một trị GI")
+        seen.add(fid)
+
+        gi_raw = (row.get("gi_index") or "").strip()
+        try:
+            gi = float(gi_raw)
+            if not (0 <= gi <= 110):
+                err(f"{loc} gi_index={gi} ngoài khoảng [0, 110]")
+        except ValueError:
+            err(f"{loc} gi_index không phải số: '{gi_raw}'")
+
+        if (row.get("gi_source") or "").strip() not in VALID_GI_SOURCES:
+            err(f"{loc} gi_source không hợp lệ (phải là {sorted(VALID_GI_SOURCES)}) — RULE-2")
+        if (row.get("gi_source_ref") or "").strip().lower() in PLACEHOLDER:
+            err(f"{loc} thiếu gi_source_ref — mỗi trị GI phải dẫn được nguồn (RULE-2)")
+
+    print(f"  {path.name}: {len(rows)} trị GI")
+
+
 def main() -> int:
     print("Kiểm tra dữ liệu seed...")
     check_food_items(SEEDS / "food_items.csv")
     check_food_items(SEEDS / "food_items.template.csv")
     check_clinical_rules(SEEDS / "clinical_rules.csv")
     check_drug_food(SEEDS / "drug_food_interactions.csv")
+    check_gi_values(SEEDS / "gi_values.csv")
 
     print()
     for w in warnings:

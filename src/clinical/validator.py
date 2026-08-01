@@ -25,6 +25,7 @@ NUTRIENT_LABELS_VI: dict[str, str] = {
     "k_mg": "Kali",
     "p_mg": "Phospho",
     "purine_mg": "Purin",
+    "sugar_g": "Đường",
 }
 
 SUGGESTIONS_VI: dict[tuple[str, str], str] = {
@@ -42,6 +43,9 @@ SUGGESTIONS_VI: dict[tuple[str, str], str] = {
     ("purine_mg", "over"): "Bỏ nội tạng, hải sản vỏ cứng và nước dùng hầm xương.",
     ("fiber_g", "under"): "Thêm rau xanh, đậu đỗ và ngũ cốc nguyên hạt vào bữa chính.",
     ("carb_g", "over"): "Giảm khoảng nửa bát cơm ở bữa tối, thay bằng rau.",
+    ("sugar_g", "over"): (
+        "Giảm đồ ngọt, nước ngọt, sữa đặc và chè; ưu tiên trái cây tươi ít ngọt thay cho đường tự do."
+    ),
     ("kcal", "over"): "Giảm dầu mỡ khi chế biến và giảm khẩu phần tinh bột.",
     ("kcal", "under"): "Tăng khẩu phần tinh bột phức hợp hoặc thêm một bữa phụ.",
 }
@@ -128,6 +132,28 @@ def validate_menu(
                     rule_id=target.rule_ids[0] if target.rule_ids else None,
                 )
             )
+
+    # Có ngưỡng đường nhưng tổng đường thiếu số liệu → tổng bị thấp hơn thực tế,
+    # không được coi việc "chưa vượt trần" là đạt. Cảnh báo mềm để chuyên gia biết.
+    sugar_target = targets.targets.get("sugar_g")
+    if sugar_target is not None and not nutrition.sugar_is_complete:
+        violations.append(
+            Violation(
+                nutrient="sugar_g",
+                actual=round(nutrition.sugar_g, 1),
+                limit=round(sugar_target.max_value, 1) if sugar_target.max_value is not None else 0.0,
+                unit=sugar_target.unit,
+                kind="incomplete_data",
+                severity=Severity.SOFT,
+                message_vi=(
+                    "Không đủ số liệu đường: một số món chưa có giá trị đường nên tổng "
+                    f"đường ({nutrition.sugar_g:.0f} {sugar_target.unit}) đang THẤP hơn thực tế. "
+                    "Không thể kết luận đạt ngưỡng đường tự do — cần bổ sung số liệu."
+                ),
+                suggestion="Bổ sung cột sugar_g cho các món còn thiếu trong CSDL thực phẩm.",
+                rule_id=sugar_target.rule_ids[0] if sugar_target.rule_ids else None,
+            )
+        )
 
     return violations
 
