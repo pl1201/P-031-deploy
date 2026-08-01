@@ -199,7 +199,7 @@ class FoodItem(BaseModel):
         return v
 
     @model_validator(mode="after")
-    def _gi_and_sugar_consistency(self) -> "FoodItem":
+    def _gi_and_sugar_consistency(self) -> FoodItem:
         # RULE-2 cho cột GI: có trị GI thì phải dẫn được nguồn GI, không mượn
         # source_ref của NIN (nguồn kcal khác nguồn GI).
         if self.gi_index is not None and not (self.gi_source and self.gi_source_ref):
