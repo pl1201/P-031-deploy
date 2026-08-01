@@ -313,7 +313,7 @@ class Violation(BaseModel):
     actual: float
     limit: float
     unit: str
-    kind: Literal["over", "under", "allergy", "drug_food"]
+    kind: Literal["over", "under", "allergy", "drug_food", "incomplete_data"]
     severity: Severity
     message_vi: str
     suggestion: str | None = None
