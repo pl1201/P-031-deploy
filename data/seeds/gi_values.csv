@@ -6,3 +6,7 @@ food_id,name_vi,gi_index,gi_source,gi_source_ref,note
 6,Miến dong,39,estimated,"Ước tính từ Chan HMS et al. 2001 (Mung bean noodles GI 39)",Miến dong (tinh bột dong riềng) proxy theo miến đậu xanh — cùng nhóm miến/bún tàu, khác nguồn tinh bột. Cần đo riêng để xác nhận.
 117,Na,58,Chan2001_VN,"Chan HMS et al. 2001, Eur J Clin Nutr 55:1076-1083, Table 2 — Custard apple, fresh; glucose=100, n=12",Na = mãng cầu ta = custard apple (đúng món được đo, quả tươi).
 125,Sữa đặc có đường,61,Chan2001_VN,"Chan HMS et al. 2001, Eur J Clin Nutr 55:1076-1083, Table 2 — Milk, full-cream condensed, sweetened; glucose=100, n=12",Sữa đặc có đường (đúng món được đo).
+3,Gạo lứt,65,Atkinson2021,"Atkinson FS et al. 2021, Am J Clin Nutr 114:1625-1632, tr.1629 — trung bình brown rice = 65; glucose=100",Trị trung bình brown rice từ bài tổng quan. GI gạo dao động rộng (19-116) theo giống/vùng.
+12,Khoai tây,73,Atkinson2021,"Atkinson FS et al. 2021, Am J Clin Nutr 114:1625-1632, tr.1628 — boiled potatoes = 73; glucose=100",Khoai tây LUỘC. Nghiền/instant cao hơn (79-84); để lạnh qua đêm thấp hơn (~49) — GI đổi mạnh theo cách chế biến.
+17,Yến mạch,55,Atkinson2021,"Atkinson FS et al. 2021, Am J Clin Nutr 114:1625-1632, tr.1629 — sản phẩm yến mạch/oat flakes trung bình 55; glucose=100",Trung bình nhóm yến mạch/muesli.
+85,Cà chua,22,Atkinson2021,"Atkinson FS et al. 2021, Am J Clin Nutr 114:1625-1632, tr.1630 — whole tomatoes GI 22; glucose=100",Cà chua nguyên quả — một trong các trị thấp nhất ghi nhận.
