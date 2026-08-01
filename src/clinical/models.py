@@ -9,7 +9,7 @@ from __future__ import annotations
 from enum import Enum
 from typing import ClassVar, Literal
 
-from pydantic import BaseModel, Field, field_validator
+from pydantic import BaseModel, Field, field_validator, model_validator
 
 
 class Sex(str, Enum):
@@ -168,11 +168,24 @@ class FoodItem(BaseModel):
     carb_g: float = Field(ge=0, le=100)
     fat_g: float = Field(ge=0, le=100)
     fiber_g: float = Field(ge=0, le=80)
+    sugar_g: float | None = Field(
+        default=None,
+        ge=0,
+        le=100,
+        description=(
+            "Tổng đường (thuộc carb_g). Cần cho ngưỡng đường tự do ĐTĐ2 (WHO <10%/<5% "
+            "năng lượng). None khi nguồn không tách được đường ra khỏi carb tổng."
+        ),
+    )
     na_mg: float = Field(ge=0, le=25000)
     k_mg: float = Field(ge=0, le=5000)
     p_mg: float = Field(ge=0, le=2000)
     purine_mg: float = Field(ge=0, le=1000)
     gi_index: float | None = Field(default=None, ge=0, le=110)
+    # GI có nguồn RIÊNG, tách khỏi kcal/natri (thường là Atkinson 2021 hoặc Mai 2001
+    # cho món Việt) — nên cần source_ref của chính nó để giữ RULE-2.
+    gi_source: Literal["Atkinson2021", "Mai2001_VN", "estimated"] | None = None
+    gi_source_ref: str | None = None
     contains_allergens: list[str] = Field(default_factory=list)
     source: Literal["NIN", "USDA", "curated", "estimated"]
     source_ref: str = Field(min_length=1)
@@ -184,6 +197,52 @@ class FoodItem(BaseModel):
         if v.strip().upper() in {"TODO", "N/A", "-", "?"}:
             raise ValueError("source_ref bắt buộc phải là nguồn thật, không được để TODO")
         return v
+
+    @model_validator(mode="after")
+    def _gi_and_sugar_consistency(self) -> "FoodItem":
+        # RULE-2 cho cột GI: có trị GI thì phải dẫn được nguồn GI, không mượn
+        # source_ref của NIN (nguồn kcal khác nguồn GI).
+        if self.gi_index is not None and not (self.gi_source and self.gi_source_ref):
+            raise ValueError(
+                f"[{self.name_vi}] gi_index={self.gi_index} nhưng thiếu gi_source/"
+                "gi_source_ref — mỗi con số hiển thị phải có nguồn riêng (RULE-2)"
+            )
+        if self.gi_source_ref is not None and self.gi_source_ref.strip().upper() in {
+            "TODO",
+            "N/A",
+            "-",
+            "?",
+        }:
+            raise ValueError("gi_source_ref không được để placeholder (RULE-2)")
+        # Đường là tập con của carbohydrate → không thể lớn hơn carb tổng.
+        if self.sugar_g is not None and self.sugar_g > self.carb_g:
+            raise ValueError(
+                f"[{self.name_vi}] sugar_g={self.sugar_g} > carb_g={self.carb_g} — "
+                "đường phải là tập con của carb tổng"
+            )
+        return self
+
+    @property
+    def available_carb_g(self) -> float:
+        """Carbohydrate khả dụng trên 100 g = carb tổng − chất xơ.
+
+        GI và GL được đo trên carb khả dụng chứ không phải carb tổng (ISO/Atkinson
+        2021). Với 'carbohydrate by difference' của NIN/USDA, chất xơ nằm trong
+        carb_g nên phải trừ ra. Kẹp sàn 0 để tránh trị âm do sai số nguồn.
+        """
+        return max(self.carb_g - self.fiber_g, 0.0)
+
+    def glycemic_load(self, grams: float) -> float | None:
+        """Tải đường huyết (GL) của một khẩu phần `grams`.
+
+        GL = GI × (carb khả dụng của khẩu phần) / 100. Trả None khi chưa có GI —
+        caller PHẢI suy giảm mềm (dựa vào lượng carb + nhóm thực phẩm), không được
+        coi món thiếu GI là GL = 0.
+        """
+        if self.gi_index is None:
+            return None
+        portion_avail_carb = self.available_carb_g * grams / 100.0
+        return self.gi_index * portion_avail_carb / 100.0
 
 
 class MenuItem(BaseModel):

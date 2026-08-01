@@ -29,6 +29,7 @@ RANGES: dict[str, tuple[float, float]] = {
     "carb_g": (0, 100),
     "fat_g": (0, 100),
     "fiber_g": (0, 80),
+    "sugar_g": (0, 100),
     "na_mg": (0, 25000),
     "k_mg": (0, 5000),
     "p_mg": (0, 2000),
@@ -36,7 +37,12 @@ RANGES: dict[str, tuple[float, float]] = {
     "gi_index": (0, 110),
 }
 
+# Cột số liệu được phép để trống (không phải mọi nguồn đều có).
+# gi_index: GI phủ thưa. sugar_g: nhiều nguồn không tách đường khỏi carb tổng.
+OPTIONAL_NUMERIC_COLS = {"gi_index", "sugar_g"}
+
 VALID_SOURCES = {"NIN", "USDA", "curated", "estimated"}
+VALID_GI_SOURCES = {"Atkinson2021", "Mai2001_VN", "estimated"}
 PLACEHOLDER = {"", "todo", "tbd", "n/a", "-", "?", "x"}
 
 errors: list[str] = []
@@ -97,7 +103,7 @@ def check_food_items(path: Path) -> None:
         for col, (lo, hi) in RANGES.items():
             raw = (row.get(col) or "").strip()
             if not raw:
-                if col != "gi_index":
+                if col not in OPTIONAL_NUMERIC_COLS:
                     err(f"{loc} thiếu giá trị cột {col}")
                 continue
             try:
@@ -117,6 +123,29 @@ def check_food_items(path: Path) -> None:
                 err(f"{loc} tổng đa chất {macro:.1f} g/100 g — bất khả thi")
         except ValueError:
             pass
+
+        # RULE-2 cho cột GI: có trị GI thì phải dẫn nguồn GI riêng (DAT-07).
+        gi_raw = (row.get("gi_index") or "").strip()
+        if gi_raw:
+            gi_source = (row.get("gi_source") or "").strip()
+            gi_ref = (row.get("gi_source_ref") or "").strip()
+            if gi_source not in VALID_GI_SOURCES:
+                err(
+                    f"{loc} gi_index có trị nhưng gi_source='{gi_source}' không hợp lệ "
+                    f"(phải là {sorted(VALID_GI_SOURCES)}) — RULE-2"
+                )
+            if gi_ref.lower() in PLACEHOLDER:
+                err(f"{loc} gi_index có trị nhưng thiếu gi_source_ref — RULE-2")
+
+        # Đường là tập con của carb tổng.
+        sugar_raw = (row.get("sugar_g") or "").strip()
+        carb_raw = (row.get("carb_g") or "").strip()
+        if sugar_raw and carb_raw:
+            try:
+                if float(sugar_raw) > float(carb_raw):
+                    err(f"{loc} sugar_g={sugar_raw} > carb_g={carb_raw} — đường phải ≤ carb tổng")
+            except ValueError:
+                pass
 
     print(f"  {path.name}: {len(rows)} dòng, {filled} dòng đã nhập số liệu")
     if filled < len(rows):
