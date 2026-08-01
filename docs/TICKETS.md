@@ -101,6 +101,14 @@ Thu thập ~15 tài liệu (BYT, ADA, KDIGO, AHA/DASH, ACR, tài liệu Viện D
 
 ---
 
+### `DAT-07` Mở rộng schema `food_items`: đường tự do + nguồn GI riêng (anchor ĐTĐ2)
+**Owner:** R2 · **P1** · 3h · **Deps:** DAT-02
+Bổ sung `sugar_g` (cho ngưỡng đường tự do WHO) và cặp `gi_source`/`gi_source_ref` để GI có nguồn riêng, tách khỏi `source_ref` của NIN (RULE-2). Thêm helper `available_carb_g` (carb − xơ) và `glycemic_load(grams)` (None-safe). GI lấy từ **Atkinson 2021** (ISO, >4000 món) + **Mai 2001** (GI món Việt: gạo/bún/phở).
+**AC:** Tạo `FoodItem` có `gi_index` mà thiếu nguồn GI → bị chặn (RULE-2) · `glycemic_load` trả `None` khi thiếu GI (không phải 0) · `sugar_g > carb_g` bị chặn · `validate_data.py` áp cùng ràng buộc trên CSV · Có unit test cho cả 4 nhánh.
+> Đây là thay đổi schema tối thiểu để chốt ĐTĐ2 làm bệnh chính. GI phủ thưa nên menu engine phải suy giảm mềm khi thiếu GI.
+
+---
+
 ## EPIC 2 — CLINICAL ENGINE (S2–S3) — *Owner chính: R2, review R1*
 
 ### `CLN-01` Module tính năng lượng

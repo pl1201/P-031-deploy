@@ -1,0 +1,8 @@
+food_id,name_vi,gi_index,gi_source,gi_source_ref,note
+2,Cơm tẻ,109,Chan2001_VN,"Chan HMS et al. 2001, Eur J Clin Nutr 55:1076-1083, Table 2 — Jasmine rice long grain; glucose=100, n=12",Gạo tẻ thơm hạt dài. GI dao động mạnh theo giống/độ xay xát — nguồn cảnh báo rõ.
+10,Xôi trắng,94,Chan2001_VN,"Chan HMS et al. 2001, Eur J Clin Nutr 55:1076-1083, Table 2 — Glutinous rice; glucose=100, n=12",Gạo nếp đồ.
+4,Bún tươi,40,Chan2001_VN,"Chan HMS et al. 2001, Eur J Clin Nutr 55:1076-1083, Table 2 — Rice noodles, fresh; glucose=100, n=12",Bún tươi = fresh rice noodles (đúng món được đo).
+5,Bánh phở tươi,40,Chan2001_VN,"Chan HMS et al. 2001, Eur J Clin Nutr 55:1076-1083, Table 2 — Rice noodles, fresh; glucose=100, n=12",Bánh phở tươi cùng nhóm fresh rice noodles với bún tươi.
+6,Miến dong,39,estimated,"Ước tính từ Chan HMS et al. 2001 (Mung bean noodles GI 39)",Miến dong (tinh bột dong riềng) proxy theo miến đậu xanh — cùng nhóm miến/bún tàu, khác nguồn tinh bột. Cần đo riêng để xác nhận.
+117,Na,58,Chan2001_VN,"Chan HMS et al. 2001, Eur J Clin Nutr 55:1076-1083, Table 2 — Custard apple, fresh; glucose=100, n=12",Na = mãng cầu ta = custard apple (đúng món được đo, quả tươi).
+125,Sữa đặc có đường,61,Chan2001_VN,"Chan HMS et al. 2001, Eur J Clin Nutr 55:1076-1083, Table 2 — Milk, full-cream condensed, sweetened; glucose=100, n=12",Sữa đặc có đường (đúng món được đo).
