@@ -201,19 +201,17 @@ class FoodItem(BaseModel):
     @model_validator(mode="after")
     def _gi_and_sugar_consistency(self) -> FoodItem:
         # RULE-2 cho cột GI: có trị GI thì phải dẫn được nguồn GI, không mượn
-        # source_ref của NIN (nguồn kcal khác nguồn GI).
-        if self.gi_index is not None and not (self.gi_source and self.gi_source_ref):
-            raise ValueError(
-                f"[{self.name_vi}] gi_index={self.gi_index} nhưng thiếu gi_source/"
-                "gi_source_ref — mỗi con số hiển thị phải có nguồn riêng (RULE-2)"
-            )
-        if self.gi_source_ref is not None and self.gi_source_ref.strip().upper() in {
-            "TODO",
-            "N/A",
-            "-",
-            "?",
-        }:
-            raise ValueError("gi_source_ref không được để placeholder (RULE-2)")
+        # source_ref của NIN (nguồn kcal khác nguồn GI). Ref chỉ có khoảng trắng
+        # cũng bị coi là thiếu — nếu không, "   " sẽ lọt qua guard này.
+        if self.gi_index is not None:
+            ref = (self.gi_source_ref or "").strip()
+            if not self.gi_source or not ref:
+                raise ValueError(
+                    f"[{self.name_vi}] gi_index={self.gi_index} nhưng thiếu gi_source/"
+                    "gi_source_ref — mỗi con số hiển thị phải có nguồn riêng (RULE-2)"
+                )
+            if ref.upper() in {"TODO", "N/A", "-", "?"}:
+                raise ValueError("gi_source_ref không được để placeholder (RULE-2)")
         # Đường là tập con của carbohydrate → không thể lớn hơn carb tổng.
         if self.sugar_g is not None and self.sugar_g > self.carb_g:
             raise ValueError(
@@ -293,6 +291,11 @@ class NutritionSummary(BaseModel):
     k_mg: float
     p_mg: float
     purine_mg: float
+    # Tổng đường (đường tự do WHO cho ĐTĐ2). Chỉ cộng các món có sugar_g.
+    # `sugar_is_complete=False` nghĩa là có món thiếu số liệu đường → tổng bị
+    # thiếu hụt, rule đường tự do KHÔNG được coi đây là "đạt ngưỡng".
+    sugar_g: float = 0.0
+    sugar_is_complete: bool = True
     sources: list[SourceRef]
     has_estimated: bool = False
 

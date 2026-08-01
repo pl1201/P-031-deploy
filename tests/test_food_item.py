@@ -7,7 +7,8 @@ from __future__ import annotations
 
 import pytest
 
-from src.clinical.models import FoodItem
+from src.clinical.models import FoodItem, MealSlot, MenuDraft, MenuItem
+from src.clinical.nutrition import InMemoryFoodRepository, compute_nutrition
 
 FAKE_REF = "TEST-FIXTURE (dữ liệu giả)"
 
@@ -72,6 +73,11 @@ class TestGiProvenanceRule2:
         with pytest.raises(ValueError):
             _rice(gi_index=73, gi_source="Chan2001_VN", gi_source_ref="TODO")
 
+    def test_gi_source_ref_toan_khoang_trang_bi_chan(self):
+        """Ref chỉ có khoảng trắng cũng là thiếu nguồn — không được lọt RULE-2."""
+        with pytest.raises(ValueError, match="RULE-2"):
+            _rice(gi_index=73, gi_source="Chan2001_VN", gi_source_ref="   ")
+
     def test_gi_day_du_nguon_thi_hop_le(self):
         item = _rice(
             gi_index=40,
@@ -93,3 +99,55 @@ class TestSugar:
     def test_sugar_hop_le_khi_nho_hon_carb(self):
         item = _rice(carb_g=28.0, sugar_g=0.1)
         assert item.sugar_g == pytest.approx(0.1)
+
+
+class TestSugarAggregation:
+    """sugar_g phải đi qua NutritionSummary để rule đường tự do dùng được."""
+
+    def _repo(self):
+        return InMemoryFoodRepository(
+            [
+                _rice(id=1, name_vi="Cơm", carb_g=28.0, sugar_g=0.2),
+                FoodItem(
+                    id=2,
+                    name_vi="Chuối",
+                    kcal_100g=88,
+                    protein_g=1.5,
+                    carb_g=22.0,
+                    fat_g=0.2,
+                    fiber_g=0.8,
+                    sugar_g=12.0,
+                    na_mg=1,
+                    k_mg=329,
+                    p_mg=28,
+                    purine_mg=20,
+                    source="curated",
+                    source_ref=FAKE_REF,
+                ),
+            ]
+        )
+
+    def _menu(self):
+        return MenuDraft(
+            items={MealSlot.BREAKFAST: [MenuItem(food_id=1, grams=100), MenuItem(food_id=2, grams=100)]}
+        )
+
+    def test_summary_co_field_sugar_g(self):
+        """RULE-2 hồi quy: value_of('sugar_g') phải hoạt động, không AttributeError."""
+        summary = compute_nutrition(self._menu(), self._repo())
+        assert summary.value_of("sugar_g") == pytest.approx(12.2)  # 0.2 + 12.0
+        assert summary.sugar_is_complete is True
+
+    def test_summary_danh_dau_thieu_khi_mon_khong_co_duong(self):
+        repo = InMemoryFoodRepository(
+            [
+                _rice(id=1, name_vi="Cơm", carb_g=28.0, sugar_g=0.2),
+                _rice(id=2, name_vi="Cơm không rõ đường", carb_g=28.0),  # sugar_g=None
+            ]
+        )
+        menu = MenuDraft(
+            items={MealSlot.LUNCH: [MenuItem(food_id=1, grams=100), MenuItem(food_id=2, grams=100)]}
+        )
+        summary = compute_nutrition(menu, repo)
+        assert summary.sugar_g == pytest.approx(0.2)  # chỉ cộng món có số liệu
+        assert summary.sugar_is_complete is False  # tổng bị thiếu hụt → rule phải biết
