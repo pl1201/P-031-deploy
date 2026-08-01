@@ -66,20 +66,20 @@ class TestGiProvenanceRule2:
 
     def test_gi_thieu_source_ref_bi_chan(self):
         with pytest.raises(ValueError, match="RULE-2"):
-            _rice(gi_index=73, gi_source="Mai2001_VN")  # thiếu gi_source_ref
+            _rice(gi_index=73, gi_source="Chan2001_VN")  # thiếu gi_source_ref
 
     def test_gi_source_ref_placeholder_bi_chan(self):
         with pytest.raises(ValueError):
-            _rice(gi_index=73, gi_source="Mai2001_VN", gi_source_ref="TODO")
+            _rice(gi_index=73, gi_source="Chan2001_VN", gi_source_ref="TODO")
 
     def test_gi_day_du_nguon_thi_hop_le(self):
         item = _rice(
-            gi_index=53,
-            gi_source="Mai2001_VN",
-            gi_source_ref="Mai et al. 2001, EJCN — phở bò",
+            gi_index=40,
+            gi_source="Chan2001_VN",
+            gi_source_ref="Chan et al. 2001, EJCN 55:1076-1083, Table 2 — rice noodles, fresh",
         )
-        assert item.gi_index == 53
-        assert item.gi_source == "Mai2001_VN"
+        assert item.gi_index == 40
+        assert item.gi_source == "Chan2001_VN"
 
 
 class TestSugar:

@@ -184,7 +184,7 @@ class FoodItem(BaseModel):
     gi_index: float | None = Field(default=None, ge=0, le=110)
     # GI có nguồn RIÊNG, tách khỏi kcal/natri (thường là Atkinson 2021 hoặc Mai 2001
     # cho món Việt) — nên cần source_ref của chính nó để giữ RULE-2.
-    gi_source: Literal["Atkinson2021", "Mai2001_VN", "estimated"] | None = None
+    gi_source: Literal["Atkinson2021", "Chan2001_VN", "estimated"] | None = None
     gi_source_ref: str | None = None
     contains_allergens: list[str] = Field(default_factory=list)
     source: Literal["NIN", "USDA", "curated", "estimated"]
