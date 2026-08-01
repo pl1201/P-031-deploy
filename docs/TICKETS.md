@@ -149,6 +149,14 @@ Món không có trong DB: (1) tra `aliases` → (2) tìm mờ tên món → (3) 
 
 ---
 
+### `CLN-08` Rule đường tự do WHO cho ĐTĐ2
+**Owner:** R2 · **P1** · 2h · **Deps:** CLN-02, DAT-07
+Thêm rule `T2DM-SUG-01` (đường tự do < 10% năng lượng, WHO 2015) dùng cột `sugar_g` (DAT-07). Bổ sung `sugar_g` vào `KCAL_PER_GRAM` cho basis `pct_energy`. Validator: nhãn "Đường" + gợi ý, và **cảnh báo `incomplete_data`** khi có món thiếu `sugar_g` (tổng đường thấp hơn thực tế → không được coi là đạt ngưỡng).
+**AC:** compute_targets ĐTĐ2 sinh trần `sugar_g = E×10%/4` · thực đơn thừa đường → soft violation · thực đơn thiếu số liệu đường → cảnh báo `incomplete_data` (không im lặng) · rule scope T2DM để không đụng test HTN hiện có.
+> Đặt `severity=soft` dù WHO là khuyến nghị mạnh: dữ liệu đường thường thiếu (`sugar_is_complete=False`), chặn cứng trên tổng thiếu hụt sẽ sai. Broaden sang BASE khi phủ đủ `sugar_g`.
+
+---
+
 ## EPIC 3 — AGENT (S3) — *Owner chính: R1*
 
 ### `AGT-01` State schema & khung graph
