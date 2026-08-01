@@ -28,9 +28,7 @@ if sys.platform == "win32":
 
 def git(*args: str) -> str:
     try:
-        return subprocess.check_output(
-            ["git", *args], text=True, stderr=subprocess.DEVNULL
-        ).strip()
+        return subprocess.check_output(["git", *args], text=True, stderr=subprocess.DEVNULL).strip()
     except Exception:
         return ""
 
@@ -43,11 +41,7 @@ def path_matches_repo(value: str, repo_root: str) -> bool:
     path = normalize_path(value)
     if not path or not repo_root:
         return False
-    return (
-        path == repo_root
-        or path.startswith(repo_root + "\\")
-        or repo_root.startswith(path + "\\")
-    )
+    return path == repo_root or path.startswith(repo_root + "\\") or repo_root.startswith(path + "\\")
 
 
 def parse_timestamp(value: str) -> datetime | None:
@@ -114,12 +108,8 @@ def read_transcript(path: Path) -> tuple[set[str], list[dict]]:
             payload_type = payload.get("type")
 
             if item_type == "session_meta":
-                session_id = str(
-                    payload.get("id") or payload.get("session_id") or path.stem
-                )
-                originator = str(
-                    payload.get("originator") or payload.get("source") or "codex"
-                )
+                session_id = str(payload.get("id") or payload.get("session_id") or path.stem)
+                originator = str(payload.get("originator") or payload.get("source") or "codex")
                 cwd = payload.get("cwd")
                 if isinstance(cwd, str):
                     cwds.add(cwd)
@@ -176,9 +166,7 @@ def read_transcript(path: Path) -> tuple[set[str], list[dict]]:
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(
-        description="Extract prompts from local Codex session transcripts."
-    )
+    parser = argparse.ArgumentParser(description="Extract prompts from local Codex session transcripts.")
     parser.add_argument("--auto", action="store_true")
     parser.add_argument("--hours", type=int, default=24)
     parser.add_argument("--all", action="store_true")
@@ -207,24 +195,17 @@ def main() -> None:
     repo = repo_url.rstrip("/").split("/")[-1].removesuffix(".git")
     branch = git("rev-parse", "--abbrev-ref", "HEAD")
     commit = git("rev-parse", "--short", "HEAD")
-    student = git("config", "user.email") or os.environ.get(
-        "USERNAME", os.environ.get("USER", "unknown")
-    )
+    student = git("config", "user.email") or os.environ.get("USERNAME", os.environ.get("USER", "unknown"))
 
     new_entries: list[dict] = []
     for transcript in CODEX_SESSIONS.rglob("rollout-*.jsonl"):
         if cutoff:
-            modified = datetime.fromtimestamp(
-                transcript.stat().st_mtime, timezone.utc
-            )
+            modified = datetime.fromtimestamp(transcript.stat().st_mtime, timezone.utc)
             if modified < cutoff:
                 continue
 
         cwds, messages = read_transcript(transcript)
-        if (
-            not args.no_repo_filter
-            and not any(path_matches_repo(cwd, repo_root) for cwd in cwds)
-        ):
+        if not args.no_repo_filter and not any(path_matches_repo(cwd, repo_root) for cwd in cwds):
             continue
 
         for message in messages:
@@ -232,20 +213,14 @@ def main() -> None:
             if cutoff and timestamp and timestamp < cutoff:
                 continue
 
-            entry_id = (
-                f"codex-{message['session_id']}-{message['message_key']}"
-            )
+            entry_id = f"codex-{message['session_id']}-{message['message_key']}"
             turn_key = (message["session_id"], message["turn_id"])
             if entry_id in entry_ids:
                 continue
             if message["turn_id"] and turn_key in turns:
                 continue
 
-            local_timestamp = (
-                timestamp.astimezone(VN_TZ).isoformat()
-                if timestamp
-                else datetime.now(VN_TZ).isoformat()
-            )
+            local_timestamp = timestamp.astimezone(VN_TZ).isoformat() if timestamp else datetime.now(VN_TZ).isoformat()
             entry = {
                 "ts": local_timestamp,
                 "tool": "codex",
