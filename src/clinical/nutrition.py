@@ -60,11 +60,7 @@ class InMemoryFoodRepository:
 
     def search(self, term: str) -> list[FoodItem]:
         t = term.strip().lower()
-        return [
-            i
-            for i in self._by_id.values()
-            if t in i.name_vi.lower() or any(t in a.lower() for a in i.aliases)
-        ]
+        return [i for i in self._by_id.values() if t in i.name_vi.lower() or any(t in a.lower() for a in i.aliases)]
 
     def all(self) -> list[FoodItem]:
         return list(self._by_id.values())
@@ -93,8 +89,7 @@ def compute_nutrition(menu: MenuDraft, repo: FoodRepository) -> NutritionSummary
         food = repo.get(item.food_id)
         if food is None:
             raise UnknownFoodError(
-                f"food_id={item.food_id} không có trong CSDL. "
-                "Không được đoán sang thực phẩm gần giống (RULE R40.4)."
+                f"food_id={item.food_id} không có trong CSDL. Không được đoán sang thực phẩm gần giống (RULE R40.4)."
             )
         factor = item.grams / 100.0
         totals["kcal"] += food.kcal_100g * factor
@@ -133,9 +128,7 @@ def compute_nutrition(menu: MenuDraft, repo: FoodRepository) -> NutritionSummary
     )
 
 
-def check_allergies(
-    menu: MenuDraft, profile: PatientProfile, repo: FoodRepository
-) -> list[Violation]:
+def check_allergies(menu: MenuDraft, profile: PatientProfile, repo: FoodRepository) -> list[Violation]:
     """Dị ứng là ràng buộc CỨNG tuyệt đối (RULE R10.6) — không bao giờ hạ xuống cảnh báo."""
     if not profile.allergies:
         return []

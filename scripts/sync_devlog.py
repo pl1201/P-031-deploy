@@ -49,11 +49,15 @@ def git_log() -> list[str]:
     try:
         out = subprocess.run(
             [
-                "git", "log",
+                "git",
+                "log",
                 "--date=short",
                 "--pretty=format:| %ad | %an | %s |",
             ],
-            cwd=ROOT, capture_output=True, text=True, check=True,
+            cwd=ROOT,
+            capture_output=True,
+            text=True,
+            check=True,
         )
         return out.stdout.strip().split("\n") if out.stdout.strip() else []
     except (subprocess.CalledProcessError, FileNotFoundError):
@@ -64,7 +68,10 @@ def git_stats() -> str:
     try:
         authors = subprocess.run(
             ["git", "shortlog", "-sn", "--all"],
-            cwd=ROOT, capture_output=True, text=True, check=True,
+            cwd=ROOT,
+            capture_output=True,
+            text=True,
+            check=True,
         ).stdout.strip()
         if not authors:
             return ""

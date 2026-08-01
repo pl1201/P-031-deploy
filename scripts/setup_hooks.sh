@@ -15,6 +15,11 @@ bash scripts/_pyrun.sh scripts/submit_log.py || true
 exit 0  # Never block push, even if either step fails
 EOF
 
+# Windows Git Bash trên một số máy chèn UTF-8 BOM ở đầu file khi ghi bằng
+# heredoc, làm hỏng shebang ("cannot spawn .git/hooks/pre-push") khi git tự
+# gọi hook. Loại bỏ BOM nếu có để chạy được trên mọi hệ.
+sed -i '1s/^\xEF\xBB\xBF//' "$HOOK_FILE"
+
 chmod +x "$HOOK_FILE"
 chmod +x scripts/_pyrun.sh 2>/dev/null || true
 echo "[ai-log] Git pre-push hook installed."

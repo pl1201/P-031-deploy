@@ -116,9 +116,7 @@ def check_food_items(path: Path) -> None:
 
         # Kiểm tra chéo: tổng đa chất không được vượt quá 100 g / 100 g thực phẩm
         try:
-            macro = sum(
-                float(row.get(c) or 0) for c in ("protein_g", "carb_g", "fat_g", "fiber_g")
-            )
+            macro = sum(float(row.get(c) or 0) for c in ("protein_g", "carb_g", "fat_g", "fiber_g"))
             if macro > 105:
                 err(f"{loc} tổng đa chất {macro:.1f} g/100 g — bất khả thi")
         except ValueError:
@@ -149,10 +147,7 @@ def check_food_items(path: Path) -> None:
 
     print(f"  {path.name}: {len(rows)} dòng, {filled} dòng đã nhập số liệu")
     if filled < len(rows):
-        warn(
-            f"{path.name}: còn {len(rows) - filled} dòng chưa nhập số liệu "
-            "(xem cột assigned_to để biết ai phụ trách)"
-        )
+        warn(f"{path.name}: còn {len(rows) - filled} dòng chưa nhập số liệu (xem cột assigned_to để biết ai phụ trách)")
 
 
 def check_clinical_rules(path: Path) -> None:
@@ -173,8 +168,7 @@ def check_clinical_rules(path: Path) -> None:
         # Khuyến nghị yếu (2C/2D) không nên là ràng buộc chặn cứng
         if (row.get("guideline_grade") or "").strip() in {"2C", "2D"} and row.get("severity") == "hard":
             warn(
-                f"{loc} mức bằng chứng {row.get('guideline_grade')} (yếu) nhưng severity=hard "
-                "— cân nhắc hạ xuống soft"
+                f"{loc} mức bằng chứng {row.get('guideline_grade')} (yếu) nhưng severity=hard — cân nhắc hạ xuống soft"
             )
         if row.get("bound") not in {"max", "min"}:
             err(f"{loc} bound phải là max hoặc min")

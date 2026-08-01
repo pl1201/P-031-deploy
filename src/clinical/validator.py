@@ -65,9 +65,7 @@ def _energy_severity(actual: float, bound: float, kind: str) -> Severity:
     return Severity.HARD if actual < base * (1 - ENERGY_HARD_TOLERANCE) else Severity.SOFT
 
 
-def _severity_for_rules(
-    nutrient: str, rule_ids: list[str], all_rules: list[ClinicalRule] | None
-) -> Severity:
+def _severity_for_rules(nutrient: str, rule_ids: list[str], all_rules: list[ClinicalRule] | None) -> Severity:
     """Mức độ của vi phạm lấy theo rule nghiêm ngặt nhất đã tạo ra ngưỡng đó."""
     if not all_rules:
         return Severity.HARD
@@ -183,9 +181,7 @@ def build_feedback(violations: list[Violation], nutrition: NutritionSummary) -> 
     top = sorted(nutrition.sources, key=lambda s: s.grams, reverse=True)[:3]
     if top:
         lines.append(
-            "Các món chiếm khối lượng lớn nhất: "
-            + ", ".join(f"{s.name} ({s.grams:.0f} g)" for s in top)
-            + "."
+            "Các món chiếm khối lượng lớn nhất: " + ", ".join(f"{s.name} ({s.grams:.0f} g)" for s in top) + "."
         )
     lines.append("Hãy giữ cấu trúc bữa ăn nhưng điều chỉnh đúng các điểm nêu trên.")
     return "\n".join(lines)
