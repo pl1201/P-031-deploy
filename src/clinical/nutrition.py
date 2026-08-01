@@ -60,11 +60,7 @@ class InMemoryFoodRepository:
 
     def search(self, term: str) -> list[FoodItem]:
         t = term.strip().lower()
-        return [
-            i
-            for i in self._by_id.values()
-            if t in i.name_vi.lower() or any(t in a.lower() for a in i.aliases)
-        ]
+        return [i for i in self._by_id.values() if t in i.name_vi.lower() or any(t in a.lower() for a in i.aliases)]
 
     def all(self) -> list[FoodItem]:
         return list(self._by_id.values())
@@ -83,13 +79,17 @@ def compute_nutrition(menu: MenuDraft, repo: FoodRepository) -> NutritionSummary
     totals = dict.fromkeys(NUTRIENT_FIELDS, 0.0)
     sources: list[SourceRef] = []
     has_estimated = False
+    # Đường xử lý riêng vì sugar_g là Optional: chỉ cộng món có số liệu, và
+    # đánh dấu không đầy đủ nếu có món thiếu — để rule đường tự do không bị
+    # đánh lừa bởi một tổng bị thiếu hụt.
+    sugar_total = 0.0
+    sugar_is_complete = True
 
     for item in menu.all_items():
         food = repo.get(item.food_id)
         if food is None:
             raise UnknownFoodError(
-                f"food_id={item.food_id} không có trong CSDL. "
-                "Không được đoán sang thực phẩm gần giống (RULE R40.4)."
+                f"food_id={item.food_id} không có trong CSDL. Không được đoán sang thực phẩm gần giống (RULE R40.4)."
             )
         factor = item.grams / 100.0
         totals["kcal"] += food.kcal_100g * factor
@@ -101,6 +101,11 @@ def compute_nutrition(menu: MenuDraft, repo: FoodRepository) -> NutritionSummary
         totals["k_mg"] += food.k_mg * factor
         totals["p_mg"] += food.p_mg * factor
         totals["purine_mg"] += food.purine_mg * factor
+
+        if food.sugar_g is None:
+            sugar_is_complete = False
+        else:
+            sugar_total += food.sugar_g * factor
 
         has_estimated = has_estimated or food.is_estimated
         sources.append(
@@ -116,14 +121,14 @@ def compute_nutrition(menu: MenuDraft, repo: FoodRepository) -> NutritionSummary
 
     return NutritionSummary(
         **{k: round(v, 2) for k, v in totals.items()},
+        sugar_g=round(sugar_total, 2),
+        sugar_is_complete=sugar_is_complete,
         sources=sources,
         has_estimated=has_estimated,
     )
 
 
-def check_allergies(
-    menu: MenuDraft, profile: PatientProfile, repo: FoodRepository
-) -> list[Violation]:
+def check_allergies(menu: MenuDraft, profile: PatientProfile, repo: FoodRepository) -> list[Violation]:
     """Dị ứng là ràng buộc CỨNG tuyệt đối (RULE R10.6) — không bao giờ hạ xuống cảnh báo."""
     if not profile.allergies:
         return []

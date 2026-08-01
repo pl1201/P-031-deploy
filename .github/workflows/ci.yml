@@ -25,11 +25,26 @@ jobs:
       - name: Lint with ruff
         run: ruff check src/ tests/
 
+      - name: Check formatting with ruff
+        run: ruff format --check src/ tests/ scripts/
+
+      - name: Type check with mypy
+        run: mypy src/
+
       - name: Run tests
         run: pytest tests/ -v --tb=short
         env:
           APP_ENV: test
           OPENAI_API_KEY: test-key
+
+  docker-build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build Docker image
+        run: docker build -t nutricare-agent:ci .
 
   structure:
     runs-on: ubuntu-latest

@@ -24,8 +24,13 @@ from .models import ClinicalTargets, NutrientTarget, PatientProfile
 
 DEFAULT_RULES_PATH = Path(__file__).resolve().parents[2] / "data" / "seeds" / "clinical_rules.csv"
 
-# Hệ số quy đổi năng lượng cho basis = pct_energy
-KCAL_PER_GRAM: dict[str, float] = {"protein_g": 4.0, "carb_g": 4.0, "fat_g": 9.0}
+# Hệ số quy đổi năng lượng cho basis = pct_energy. Đường là carbohydrate → 4 kcal/g.
+KCAL_PER_GRAM: dict[str, float] = {
+    "protein_g": 4.0,
+    "carb_g": 4.0,
+    "fat_g": 9.0,
+    "sugar_g": 4.0,
+}
 
 # Dung sai năng lượng so với định mức
 ENERGY_SOFT_TOLERANCE = 0.10
@@ -79,9 +84,7 @@ class ClinicalRule:
         if self.basis == "pct_energy":
             kcal_g = KCAL_PER_GRAM.get(self.nutrient)
             if kcal_g is None:
-                raise ValueError(
-                    f"Rule {self.rule_id}: basis=pct_energy không áp dụng cho {self.nutrient}"
-                )
+                raise ValueError(f"Rule {self.rule_id}: basis=pct_energy không áp dụng cho {self.nutrient}")
             return energy_kcal * (self.value / 100.0) / kcal_g
         raise ValueError(f"Rule {self.rule_id}: basis không hợp lệ: {self.basis}")
 
@@ -121,9 +124,7 @@ def load_rules(path: Path | None = None) -> list[ClinicalRule]:
     return rules
 
 
-def _select_rules(
-    profile: PatientProfile, rules: list[ClinicalRule]
-) -> tuple[list[ClinicalRule], list[ClinicalRule]]:
+def _select_rules(profile: PatientProfile, rules: list[ClinicalRule]) -> tuple[list[ClinicalRule], list[ClinicalRule]]:
     """Chọn rule áp dụng cho bệnh nhân.
 
     Ba cơ chế lọc, theo thứ tự:
@@ -171,9 +172,7 @@ def _select_rules(
     return selected, disabled
 
 
-def compute_targets(
-    profile: PatientProfile, rules: list[ClinicalRule] | None = None
-) -> ClinicalTargets:
+def compute_targets(profile: PatientProfile, rules: list[ClinicalRule] | None = None) -> ClinicalTargets:
     """Tính định mức cá thể hoá. Luôn trả về kèm applied_rule_ids để UI giải trình."""
     rules = rules if rules is not None else load_rules()
     energy = compute_energy_target_kcal(profile)

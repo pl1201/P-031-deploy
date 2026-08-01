@@ -53,9 +53,7 @@ def _run(graph, patient_id="BN-DEMO-02"):
 
 # ------------------------------------------------------------------- luồng
 class TestAgentFlow:
-    def test_thuc_don_dat_ngay_lan_dau_thi_khong_retry(
-        self, foods, profile_htn, modest_menu
-    ):
+    def test_thuc_don_dat_ngay_lan_dau_thi_khong_retry(self, foods, profile_htn, modest_menu):
         gen = ScriptedGenerator([modest_menu])
         graph = build_graph(
             profiles=FakeProfiles(profile_htn),
@@ -71,9 +69,7 @@ class TestAgentFlow:
         assert out["computed_nutrition"].sources
         assert out.get("used_fallback") is not True
 
-    def test_thuc_don_sai_thi_sinh_lai_kem_feedback_cu_the(
-        self, foods, profile_htn, salty_menu, modest_menu
-    ):
+    def test_thuc_don_sai_thi_sinh_lai_kem_feedback_cu_the(self, foods, profile_htn, salty_menu, modest_menu):
         """Lần 1 thừa muối → phải retry, và feedback phải nêu đúng chất vi phạm."""
         gen = ScriptedGenerator([salty_menu, modest_menu])
         graph = build_graph(
@@ -90,9 +86,7 @@ class TestAgentFlow:
         assert "Natri" in gen.feedbacks[1]
         assert out["status"] == "pending_review"
 
-    def test_het_luot_retry_thi_dung_fallback_va_gan_co_can_chu_y(
-        self, foods, profile_htn, salty_menu, modest_menu
-    ):
+    def test_het_luot_retry_thi_dung_fallback_va_gan_co_can_chu_y(self, foods, profile_htn, salty_menu, modest_menu):
         gen = ScriptedGenerator([salty_menu])  # luôn trả thực đơn sai
         graph = build_graph(
             profiles=FakeProfiles(profile_htn),
@@ -108,9 +102,7 @@ class TestAgentFlow:
         assert out["needs_attention"] is True
         assert out["status"] == "pending_review"
 
-    def test_khong_co_fallback_thi_that_bai_chu_khong_phat_hanh_thuc_don_sai(
-        self, foods, profile_htn, salty_menu
-    ):
+    def test_khong_co_fallback_thi_that_bai_chu_khong_phat_hanh_thuc_don_sai(self, foods, profile_htn, salty_menu):
         """Fail closed: thà không có thực đơn còn hơn có thực đơn vi phạm."""
         graph = build_graph(
             profiles=FakeProfiles(profile_htn),
@@ -139,14 +131,8 @@ class TestAgentFlow:
         assert "99999" in gen.feedbacks[1]
         assert out["status"] == "pending_review"
 
-    def test_di_ung_chan_cung_du_cac_chi_so_khac_dat(
-        self, foods, profile_allergy_seafood, modest_menu
-    ):
-        shrimp = MenuDraft(
-            items={
-                MealSlot.LUNCH: [MenuItem(food_id=1, grams=300), MenuItem(food_id=9, grams=100)]
-            }
-        )
+    def test_di_ung_chan_cung_du_cac_chi_so_khac_dat(self, foods, profile_allergy_seafood, modest_menu):
+        shrimp = MenuDraft(items={MealSlot.LUNCH: [MenuItem(food_id=1, grams=300), MenuItem(food_id=9, grams=100)]})
         gen = ScriptedGenerator([shrimp, modest_menu])
         graph = build_graph(
             profiles=FakeProfiles(profile_allergy_seafood),
@@ -173,9 +159,7 @@ class TestAgentFlow:
 
 # --------------------------------------------------------------------- HITL
 class TestHITL:
-    def test_graph_dung_truoc_khi_phat_hanh_va_giu_duoc_state(
-        self, foods, profile_htn, modest_menu
-    ):
+    def test_graph_dung_truoc_khi_phat_hanh_va_giu_duoc_state(self, foods, profile_htn, modest_menu):
         """RULE-3: không có đường nào đi thẳng từ agent tới bệnh nhân."""
         graph = build_graph(
             profiles=FakeProfiles(profile_htn),
@@ -198,9 +182,7 @@ class TestHITL:
         graph.invoke(None, config)
         assert graph.get_state(config).values["status"] == "pending_review"
 
-    def test_khong_bao_gio_tu_dat_trang_thai_approved(
-        self, foods, profile_htn, modest_menu
-    ):
+    def test_khong_bao_gio_tu_dat_trang_thai_approved(self, foods, profile_htn, modest_menu):
         graph = build_graph(
             profiles=FakeProfiles(profile_htn),
             foods=foods,
@@ -213,8 +195,13 @@ class TestHITL:
 
 # --------------------------------------------------- ràng buộc kiến trúc
 FORBIDDEN_LLM_MODULES = {
-    "openai", "anthropic", "langchain_openai", "langchain_anthropic",
-    "langchain_core.language_models", "litellm", "google.generativeai",
+    "openai",
+    "anthropic",
+    "langchain_openai",
+    "langchain_anthropic",
+    "langchain_core.language_models",
+    "litellm",
+    "google.generativeai",
 }
 
 DETERMINISTIC_FILES = [
@@ -254,8 +241,20 @@ class TestArchitectureInvariants:
         assert set(MenuItem.model_fields) == {"food_id", "grams"}
 
         nutrition_like = {
-            "kcal", "calorie", "calories", "protein", "carb", "fat",
-            "fiber", "na", "sodium", "k", "potassium", "p", "phosphorus", "purine",
+            "kcal",
+            "calorie",
+            "calories",
+            "protein",
+            "carb",
+            "fat",
+            "fiber",
+            "na",
+            "sodium",
+            "k",
+            "potassium",
+            "p",
+            "phosphorus",
+            "purine",
         }
         for model in (MenuItem, MenuDraft):
             for field in model.model_fields:
@@ -268,8 +267,17 @@ class TestArchitectureInvariants:
         from src.clinical.models import FoodItem
 
         base = dict(
-            id=1, name_vi="X", kcal_100g=100, protein_g=1, carb_g=1, fat_g=1,
-            fiber_g=1, na_mg=1, k_mg=1, p_mg=1, purine_mg=1,
+            id=1,
+            name_vi="X",
+            kcal_100g=100,
+            protein_g=1,
+            carb_g=1,
+            fat_g=1,
+            fiber_g=1,
+            na_mg=1,
+            k_mg=1,
+            p_mg=1,
+            purine_mg=1,
         )
         with pytest.raises(Exception):
             FoodItem(**base, source="NIN", source_ref="")

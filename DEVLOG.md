@@ -60,6 +60,28 @@
 - **Vướng:** vẫn chưa chốt được nguồn Bảng thành phần thực phẩm VN (DAT-01) — rủi ro RSK-01 còn nguyên
 - **Tiếp theo:** SET-01→06 (R3), DAT-00 + DAT-01 (R2), nhập 152 dòng thực phẩm chia 4 người
 
+### [2026-08-01] · R2 Clinical & Data · CLN-08 — rule đường tự do WHO cho ĐTĐ2
+- **Làm:** Thêm rule `T2DM-SUG-01` (đường tự do <10%E, WHO 2015) dùng `sugar_g`; bổ sung `sugar_g` vào `KCAL_PER_GRAM`; validator có nhãn "Đường" + cảnh báo `incomplete_data` khi thiếu số liệu đường
+- **Kết quả:** 3 test mới (TestFreeSugarRule) pass, tổng 68 test xanh, validator 21 rule sạch, ruff clean
+- **Quyết định:** đặt `severity=soft` dù WHO là khuyến nghị mạnh — vì `sugar_is_complete` thường False (dữ liệu đường thiếu), chặn cứng trên tổng thiếu hụt sẽ sai. Scope T2DM để không phá test HTN hiện có
+- **Tiếp theo:** khi phủ đủ `sugar_g` thì broaden rule sang BASE; lấy Supplemental Table 1 cho GI quả (DAT-08)
+- **Thời gian:** ~1.5h
+
+### [2026-08-01] · R2 Clinical & Data · DAT-08 — bổ sung GI staple từ Atkinson 2021
+- **Làm:** Đọc [Atkinson 2021, AJCN 114:1625-1632](https://academic.oup.com/ajcn/article/114/5/1625/6320814) để transcribe GI cho staple quốc tế
+- **Kết quả:** Thêm 4 trị per-food nêu rõ trong bài (gạo lứt 65, khoai tây luộc 73, yến mạch 55, cà chua 22) → gi_values.csv nay 11 dòng, validate sạch
+- **Phát hiện:** Bài 8 trang **chỉ có trung bình theo nhóm**, per-food (quả/đậu/khoai lang/ngô/bánh mì) nằm trong Supplemental Table 1 / CSDL glycemicindex.com — chưa lấy được ở đây. KHÔNG gán trung bình nhóm cho một loại quả cụ thể (biến thiên lớn). Giữ nguyên tắc "research chuẩn nguồn" (DEC-008)
+- **Tiếp theo:** lấy Supplemental Table 1 cho GI quả/đậu; CLN — rule đường tự do WHO dùng sugar_g
+- **Thời gian:** ~1h
+
+### [2026-08-01] · R2 Clinical & Data · Chốt ĐTĐ2 làm bệnh chính + mở rộng schema (DAT-07)
+- **Làm:** Nghiên cứu khoanh vùng bệnh mãn tính sẵn dataset (HF/Kaggle/NIN/NHANES) → chọn **ĐTĐ2 làm anchor tim-chuyển hoá** (THA + CKD sớm là comorbidity modifier). Mở rộng `FoodItem`: thêm `sugar_g`, `gi_source`/`gi_source_ref`, helper `available_carb_g` + `glycemic_load()`
+- **Kết quả:** 11 unit test mới (tests/test_food_item.py) pass, tổng 46 test xanh (trừ test_agent.py cần langgraph chưa cài trong env này); `validate_data.py` áp cùng ràng buộc GI/đường trên CSV, chạy sạch
+- **Phát hiện:** Dataset "diabetes/heart" trên HF/Kaggle hầu hết là dữ liệu **dự đoán bệnh**, không phải dữ liệu dinh dưỡng — nguồn thật cho engine vẫn là NIN 2017 + USDA + GI (Atkinson 2021 / Mai 2001). GI phủ thưa → `glycemic_load` phải None-safe
+- **Vướng:** GI cho món Việt (phở/bún) mâu thuẫn giữa nguồn (phở GI 53 vs "cao") → cần chốt ở bước seed gi_values
+- **Tiếp theo:** (2) tải & trích Mai 2001 + Atkinson 2021 thành `data/seeds/gi_values.csv`; (3) ghi deep-dive vào `docs/NGHIEN_CUU_BO_SUNG_v2.md`
+- **Thời gian:** ~2h
+
 ### [2026-07-26] · Cả đội · Khởi động
 - **Làm:** Đọc đề bài VMEC-10, rà soát đề án mở rộng và tài liệu nghiên cứu; nhận đánh giá kỹ thuật độc lập
 - **Kết quả:** Bộ tài liệu `docs/` v1 (đánh giá, kế hoạch 6 tuần, kiến trúc, phân vai, 52 ticket, rules, skills)
@@ -67,6 +89,35 @@
 - **Vướng:** chưa xác định nguồn Bảng thành phần thực phẩm Việt Nam dùng được → đây là rủi ro số 1
 - **Tiếp theo:** SET-01 đến SET-06 và DAT-00, DAT-01 trong tuần 1
 - **Thời gian:** —
+
+### [2026-07-27] · Claude (thay R3) · SET-03 + SET-04
+- **Làm:** SET-03 — `.github/CODEOWNERS` (theo mẫu `TEAM.md` §4), `pull_request_template.md`, issue template feature + bug. SET-04 — bổ sung `ruff format --check`, `mypy`, job `docker-build` vào `ci.yml`
+- **Kết quả:** `make check` xanh (51 test), `mypy src/` sạch, `docker build` + chạy container xác nhận `GET /health` trả 200
+- **Phát hiện (ngoài phạm vi ticket nhưng chặn CI mới):**
+  1. `src/api/routes.py` import `agent` không tồn tại trong `src/agents/graph.py` (đã đổi sang `build_graph()` từ AGT-01..06) → app không boot được. Đã tạm thay `/chat` bằng stub 501 trỏ sang ticket BE-06 (nơi cần wire `build_graph()` với repository/generator thật)
+  2. 4 lỗi mypy: `MenuDraft | None` truyền vào hàm yêu cầu `MenuDraft` không None-check ở `compute_nutrition_node`/`validate_node`; `ChatOpenAI.api_key` cần `SecretStr`
+  3. `print()` trong `src/main.py` (vi phạm `CLAUDE.md` §4) → đổi sang `logging`
+  4. Dockerfile: `pip install --user` cài vào `/root/.local`, nhưng `/root` mode 0700 chặn traversal của `appuser` dù đã `chown` — container không khởi động được (`Permission denied`). Đổi sang cài system-wide, copy `/usr/local/lib/.../site-packages` + `/usr/local/bin` — xem DEC-009
+  5. `ruff format --check` fail trên 16 file cũ (chưa từng chạy formatter) → chạy `ruff format` một lần cho toàn repo (chỉ whitespace, test vẫn 51/51 xanh) để gate mới không đỏ ngay khi bật
+- **Vướng:** chưa có `develop` branch (chỉ có `main`) → tạo nhánh `feature/SET-03-04-codeowners-ci` từ `main`
+- **Tiếp theo:** SET-05 (deploy) cần thông tin tài khoản Render/Vercel/Neon từ R3; SET-01/SET-02/SET-06 cần xác nhận đã hoàn tất hay chưa
+- **Thời gian:** ~2h
+
+### [2026-07-27] · Claude (thay R3) · SET-01 bootstrap
+- **Làm:** Rà lại toàn bộ EPIC 0 và phát hiện nhiều phần trước đó *chưa thực sự* đạt AC dù trông như đã xong. Sửa: thêm `pyproject.toml` (không tồn tại), thêm target `make run`/`lint`/`format` vào `Makefile` (AC "cả 5 người chạy `make run`" trước đó chắc chắn fail vì không có target), bổ sung biến thiếu trong `.env.example` (`APP_NAME`, `MODEL_NAME`, `LLM_TEMPERATURE`), redact `AI_LOG_API_KEY` thật khỏi `.env.example` (đã từng bị redact bởi Đinh Lê Quỳnh Phương rồi bị commit đè lại bằng key thật). Tạo branch `develop` trên repo đội thật (`AI20K-Build-Phase-Cohort-3/P-031`) — trước đó chỉ có `main`
+- **Kết quả:** PR #3 (SET-01) + PR #2 (SET-03/SET-04, xem entry trước) mở trên repo đội thật
+- **Phát hiện quan trọng:** repo đội thật là `AI20K-Build-Phase-Cohort-3/P-031`, không phải `hwngkm/VMEC10_P31` (repo cá nhân) — công việc trước đó (bao gồm cả PR đầu của phiên này) từng nhắm nhầm repo
+- **Vướng:** tài khoản GitHub hiện dùng (`hwngkm`) không có quyền Admin trên repo đội thật (`permissions.admin=false` qua API) dù được xác nhận là admin — cần người thật kiểm tra lại trên GitHub UI để bật branch protection cho `main`/`develop` (AC SET-01 "main không push thẳng được" chưa đạt). TEAM.md/CODEOWNERS vẫn dùng handle placeholder vì chưa có tên GitHub thật của 4 thành viên
+- **Tiếp theo:** merge PR #2 + PR #3, sau đó bật branch protection, điền tên thật vào TEAM.md/CODEOWNERS, xác nhận SET-02 đã chạy trên máy cả 4 người, viết lại README theo đúng AC SET-06 (hiện là README kỹ thuật cho khung code, thiếu phần giới thiệu dự án/Live URL/thành viên)
+- **Thời gian:** ~1h
+
+### [2026-07-27] · Claude (thay R3) · Gộp lên nhánh hung + SET-05/SET-06
+- **Làm:** Theo yêu cầu Hưng — vì admin repo là BTC (không phải đội), gộp PR #2 + PR #3 vào một nhánh và đẩy thẳng lên `hung` (nhánh cá nhân trên repo đội) thay vì chờ merge qua `develop`/`main`. Trong lúc gộp: phát hiện + fix bug BOM khiến `.git/hooks/pre-push` không chạy được trên Windows (`cannot spawn ... No such file or directory`) — sửa gốc trong `scripts/setup_hooks.sh`. Thêm `GET /api/v1/health` (AC SET-05 yêu cầu đúng path này, code cũ chỉ có `/health` ở root). Thêm `render.yaml` blueprint cho backend. Viết lại `README.md` theo `docs/templates/README_boilerplate.md` cho đúng AC SET-06 (nội dung kỹ thuật cũ chuyển sang `docs/KHUNG_CODE.md`)
+- **Kết quả:** nhánh `hung` trên `AI20K-Build-Phase-Cohort-3/P-031` có đầy đủ SET-01, SET-02 (hook), SET-03, SET-04, phần code của SET-05, và SET-06 (được duyệt, bảng thành viên/tài khoản demo còn để trống chờ đội tự điền)
+- **Phát hiện:** working tree có sẵn thay đổi dở từ phiên làm việc khác (không phải tôi) — `src/agents/graph.py` được thêm một `agent` object "backward-compat" xung đột với cách tôi đã sửa `routes.py` trong PR #2 (bỏ `/chat` cũ). Đã `git stash` (không mất), **chưa quyết định** giữ cách nào — cần Hưng xem lại trước khi áp dụng
+- **Vướng:** SET-05 mới có tài khoản Vercel; chưa có Render + Neon/Supabase nên chưa deploy thật được, `render.yaml` mới là chuẩn bị sẵn cấu hình
+- **Tiếp theo:** hướng dẫn Hưng các bước Render + Neon cụ thể; quyết định xử lý stash graph.py; đội tự điền TEAM.md/README khi có tên thật
+- **Thời gian:** ~1.5h
 
 ---
 
@@ -82,6 +133,9 @@
 | DEC-006 | 2026-07-26 | Đội 4 người: gộp DevOps vào R3, Eval vào R2, Deliverables vào R4, PM vào R1 | Cả đội | Xem `TEAM.md` §1 |
 | DEC-007 | 2026-07-26 | Thêm cơ chế `overridden_by` cho clinical_rules | R2 | Bối cảnh: ADA (protein 15-20%E) xung đột KDIGO (0.6-0.8 g/kg) ở bệnh nhân ĐTĐ+CKD. Phương án: (A) để cơ chế conflict đẩy sang chuyên gia, (B) rule precedence. Chọn B vì ĐTĐ+CKD quá phổ biến, phương án A làm hỏng trải nghiệm. Hệ quả: giữ nguyên cơ chế conflict làm lưới an toàn cho trường hợp chưa lường trước |
 | DEC-008 | 2026-07-26 | Không điền sẵn số liệu dinh dưỡng vào seed, để trống chờ tra nguồn thật | R2 | Bối cảnh: có thể sinh nhanh 152×10 con số trông hợp lý. Quyết định không làm, vì dữ liệu không truy vết được sẽ qua được cả validator lẫn mắt chuyên gia nhưng vẫn sai định mức bệnh nhân. Hệ quả: `validate_data.py` chặn merge nếu thiếu `source_ref` |
+| DEC-009 | 2026-08-01 | Chọn ĐTĐ2 làm bệnh chính (anchor tim-chuyển hoá), THA + CKD sớm là comorbidity modifier | R2 | Bối cảnh: cần 1 bệnh chính cho MVP dinh dưỡng dù bệnh nhân đa bệnh. Phương án: A) làm cả 4 bệnh song song, B) anchor 1 bệnh. Chọn B/ĐTĐ2 vì: luật dinh dưỡng ĐTĐ2 tính được bằng SQL hợp RULE-1 nhất, ĐTĐ2 là hub kéo theo THA/CKD, dataset & guideline phong phú nhất, và purine (cột khó nguồn nhất) không cần cho anchor. Hệ quả: DAT-07 mở rộng schema cho đường tự do + GI |
+| DEC-010 | 2026-08-01 | GI có nguồn riêng (`gi_source`/`gi_source_ref`), tách khỏi `source_ref` của NIN | R2 | Bối cảnh: GI đến từ Atkinson 2021 / Mai 2001, khác nguồn kcal (NIN). Dùng chung 1 source_ref là vi phạm tinh thần RULE-2. Hệ quả: model + validate_data chặn `gi_index` không có nguồn GI; `glycemic_load` None-safe để menu engine suy giảm mềm khi thiếu GI |
+| DEC-011 | 2026-07-27 | Dockerfile cài dependency system-wide thay vì `pip install --user` | R3 (SET-04) | Bối cảnh: image 2-stage copy `/root/.local` từ builder sang runtime rồi chạy bằng `appuser` không phải root; `/root` có mode 0700 nên `appuser` không traverse được dù đã `chown -R` các file bên trong → container luôn crash `Permission denied` khi khởi động, kể cả khi build thành công. Phương án cân nhắc: (A) `chmod o+x /root` — mở quyền lên thư mục home của root, chấp nhận được vì rỗng nhưng vẫn xấu; (B) cài system-wide (bỏ `--user`), copy `/usr/local/lib/python3.11/site-packages` + `/usr/local/bin`. Chọn B vì không cần nới quyền `/root`. Hệ quả: `docker build` xanh không đủ để coi là "deploy được" — phải thực sự chạy container và gọi healthcheck (đã làm khi verify SET-04). *(đổi số từ DEC-009 khi merge develop→main để tránh trùng)* |
 
 **Mẫu ghi quyết định mới:**
 

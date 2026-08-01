@@ -4,6 +4,7 @@ BASE-FIB-01,BASE,,fiber_g,min,14,g,per_1000kcal,soft,"ADA Standards of Care in D
 T2DM-CARB-01,T2DM,,carb_g,max,55,%E,pct_energy,soft,"ADA/EASD consensus - carbohydrate 45-55% tổng năng lượng",B,to_verify,,,
 T2DM-CARB-02,T2DM,,carb_g,min,45,%E,pct_energy,soft,"ADA/EASD consensus - carbohydrate 45-55% tổng năng lượng",B,to_verify,,,
 T2DM-FIB-01,T2DM,,fiber_g,min,14,g,per_1000kcal,hard,"ADA Standards of Care in Diabetes 2026 - nguồn carbohydrate giàu xơ, ít chế biến",A,to_verify,,,
+T2DM-SUG-01,T2DM,,sugar_g,max,10,%E,pct_energy,soft,"WHO 2015 Guideline: Sugars intake for adults and children - đường tự do < 10% tổng năng lượng (khuyến nghị mạnh); < 5% là khuyến nghị có điều kiện",strong,to_verify,,,
 T2DM-PRO-01,T2DM,,protein_g,min,15,%E,pct_energy,soft,"Viện Dinh dưỡng - protein 15-20% năng lượng",C,to_verify,CKD,,
 T2DM-PRO-02,T2DM,,protein_g,min,0.8,g/kg,per_kg,soft,"ADA Standards of Care in Diabetes 2026 - người cao tuổi mắc ĐTĐ tối thiểu 0.8 g/kg để duy trì khối nạc",B,to_verify,,,elderly
 HTN-NA-01,HTN,,na_mg,max,2000,mg,absolute,hard,"WHO 2012 / AHA - natri < 2000 mg/ngày (< 5 g muối)",strong,to_verify,,,

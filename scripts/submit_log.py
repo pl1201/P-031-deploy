@@ -9,6 +9,7 @@ After a successful submit, the live log is rotated:
 
 If the POST fails, the pending file is restored so nothing is lost.
 """
+
 import json
 import os
 import shutil
@@ -21,6 +22,7 @@ from pathlib import Path
 
 try:
     from dotenv import load_dotenv
+
     load_dotenv()
 except ImportError:
     # Keep the hook dependency-free on fresh Windows setups. The project

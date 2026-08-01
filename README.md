@@ -1,153 +1,151 @@
-# CODE KHUNG — Clinical Engine + LangGraph Agent
+# NutriCare Agent
 
-> Ticket bao phủ: CLN-01 → CLN-05, AGT-01 → AGT-06, một phần HIT-01, EVL-03
-> Trạng thái: **43 test xanh**, chạy được ngay, không cần API key và không cần database.
+> Tư vấn dinh dưỡng lâm sàng bằng AI cho bệnh nhân mãn tính Việt Nam (ĐTĐ2, tăng huyết áp, bệnh thận mạn, gout) — đề bài **VMEC-10**, AI20K Build Phase Cohort 3, đội **P-031**.
+
+⚠️ **Đây không phải công cụ y tế thay thế bác sĩ.** Xem [Disclaimer y tế](#-disclaimer-y-tế) bên dưới trước khi đọc tiếp.
 
 ---
 
-## Chạy thử trong 30 giây
+## Vấn đề
+
+Bệnh nhân mãn tính (ĐTĐ2, tăng huyết áp, bệnh thận mạn, gout) ở Việt Nam cần chế độ ăn tuân theo nhiều ngưỡng dinh dưỡng chồng chéo (natri, kali, phospho, protein, purine…) tuỳ theo bệnh lý và giai đoạn — nhưng:
+
+- Tư vấn dinh dưỡng lâm sàng 1-1 tốn thời gian chuyên gia, không scale được cho số đông bệnh nhân mãn tính.
+- Thực đơn Việt Nam (phở, bún riêu, canh cua, mắm…) thường có natri/purine cao mà bệnh nhân không nhận ra.
+- Bệnh nhân đa bệnh lý (VD: ĐTĐ + CKD) đối mặt các khuyến nghị xung đột nhau (ADA vs KDIGO) mà không có công cụ nào tự động hoà giải an toàn.
+
+## Giải pháp
+
+NutriCare Agent dùng LangGraph để sinh thực đơn cá thể hoá, nhưng theo nguyên tắc bất biến: **LLM chỉ chọn món, Python tính số**. Ba rule không bao giờ bị vi phạm (thực thi bằng code, không phải lời dặn — xem `CLAUDE.md` §2):
+
+1. **RULE-1** — LLM chỉ trả về `food_id`/`dish_id` + gram. Mọi giá trị kcal/natri/protein… được tính bằng SQL/Python xác định (deterministic), không bao giờ để mô hình tự bịa con số.
+2. **RULE-2** — Không con số nào không có nguồn. Mỗi giá trị dinh dưỡng hiển thị cho người dùng đều kèm `source` (NIN/USDA/estimated) + `source_ref`.
+3. **RULE-3** — Không có đường tắt tới bệnh nhân. Thực đơn luôn dừng ở trạng thái chờ chuyên gia duyệt (HITL) trước khi đến tay bệnh nhân.
+
+Chi tiết kiến trúc kỹ thuật (luồng graph, ví dụ xung đột ADA/KDIGO đã xử lý ra sao): xem [`docs/KHUNG_CODE.md`](docs/KHUNG_CODE.md) và [`docs/architecture_diagram.md`](docs/architecture_diagram.md).
+
+## Đối tượng sử dụng
+
+- **Chính:** bệnh nhân mãn tính Việt Nam cần thực đơn tuân thủ ngưỡng dinh dưỡng theo bệnh lý.
+- **Phụ:** chuyên gia dinh dưỡng/bác sĩ — chốt chặn cuối cùng duyệt thực đơn trước khi đến bệnh nhân (RULE-3).
+
+## Tech Stack
+
+| Layer | Công nghệ |
+|---|---|
+| AI Agent | LangGraph + LangChain (OpenAI) |
+| Backend | FastAPI + Python 3.11+, Pydantic |
+| Frontend | Next.js *(chưa triển khai — xem EPIC 6 trong `docs/TICKETS.md`)* |
+| Database | PostgreSQL + pgvector (prod) / SQLite (dev) |
+| DevOps | Docker (multi-stage) + GitHub Actions (`ruff`, `mypy`, `pytest`, `docker build`) |
+| Deploy | Render (backend, Docker) + Vercel (frontend) + Neon/Supabase (Postgres) |
+
+## Cài đặt & chạy thử
 
 ```bash
-pip install pydantic langgraph pytest
-python -m pytest -q            # 43 passed
-python scripts/validate_data.py
+# 1. Clone repo
+git clone https://github.com/AI20K-Build-Phase-Cohort-3/P-031.git
+cd P-031
+
+# 2. Tạo virtual environment
+python3.11 -m venv .venv
+source .venv/bin/activate   # Windows: .venv\Scripts\activate
+
+# 3. Cài dependencies
+pip install -r requirements.txt
+
+# 4. Cấu hình môi trường
+cp .env.example .env
+# Mở .env, điền OPENAI_API_KEY của bạn và AI_LOG_API_KEY do giảng viên cấp
+# (không commit .env, không điền secret thật vào .env.example)
+
+# 5. Cài AI Usage Logging hook (bắt buộc — xem SET-02)
+bash scripts/setup_hooks.sh
+
+# 6. Chạy thử không cần API key/DB (logic lâm sàng deterministic)
+make check          # ruff + validate-data + pytest, 51 test xanh
+
+# 7. Chạy server
+make run             # hoặc: uvicorn src.main:app --reload --port 8000
+# Swagger UI: http://localhost:8000/docs
 ```
 
-Không cần `OPENAI_API_KEY`: LLM được ẩn sau interface `MenuGenerator`, test dùng bản giả. Đây là chủ ý — toàn bộ logic lâm sàng phải kiểm chứng được mà không cần gọi mô hình.
-
----
-
-## Cấu trúc
+## Cấu trúc dự án
 
 ```
-src/
-├── clinical/                 ⭐ Tầng deterministic — KHÔNG import LLM
-│   ├── models.py             Pydantic: hồ sơ, định mức, thực đơn, vi phạm
-│   ├── energy.py             BMR (Mifflin-St Jeor), TDEE, cân nặng hiệu chỉnh
-│   ├── rules.py              Nạp clinical_rules.csv, hợp nhất đa bệnh lý
-│   ├── nutrition.py          compute_nutrition() — nơi RULE-1 được thực thi
-│   └── validator.py          Bounds checker + sinh feedback cho retry
-├── agents/
-│   ├── state.py              NutriState (TypedDict)
-│   ├── nodes/core.py         8 node + router, mỗi node khai báo LLM: YES/NO
-│   └── graph.py              StateGraph + interrupt cho HITL
-data/seeds/
-├── clinical_rules.csv        18 rule, mỗi rule có guideline_ref
-├── drug_food_interactions.csv 30 cặp tương tác
-└── food_items.template.csv   152 thực phẩm — phần số liệu chờ nhập (xem data/README.md)
-scripts/validate_data.py      Chặn merge nếu dữ liệu thiếu nguồn hoặc phi lý
+├── src/
+│   ├── clinical/         # ⭐ Tầng deterministic — KHÔNG import LLM (RULE-1)
+│   ├── agents/            # LangGraph: state.py, graph.py, nodes/
+│   ├── api/                # FastAPI routes
+│   ├── models/             # Pydantic schemas
+│   ├── services/           # LLM client, business logic
+│   ├── config.py           # Pydantic Settings
+│   └── main.py             # App entry point
+├── data/seeds/            # clinical_rules.csv, drug_food_interactions.csv, food_items.csv
+├── tests/                 # pytest suite
+├── docs/                  # Tài liệu dự án + rules cho AI coding agent (xem CLAUDE.md)
+├── eval/                  # Bộ đánh giá + báo cáo
+├── presentation/          # Slide, video demo
+├── Dockerfile             # Multi-stage build, non-root user
+├── render.yaml            # Render Blueprint (backend)
+└── .github/workflows/     # CI: ruff, mypy, pytest, docker build
 ```
 
----
+## API chính
 
-## Ba nguyên tắc được thực thi bằng code, không phải bằng lời dặn
-
-### RULE-1 — LLM chọn món, Python tính số
-
-`MenuItem` chỉ có đúng hai field:
-
-```python
-class MenuItem(BaseModel):
-    food_id: int
-    grams: float
-```
-
-Không có chỗ nào để LLM ghi kcal hay natri. Con số duy nhất đến từ `compute_nutrition()`, vốn tra `FoodRepository`. Có test kiểm tra bằng AST rằng `src/clinical/*` không import `openai`, `anthropic`, `langchain_openai`…
-
-```
-test_tang_deterministic_khong_duoc_import_llm[clinical/nutrition.py] PASSED
-test_schema_llm_khong_co_field_dinh_duong PASSED
-```
-
-### RULE-2 — Không con số nào không có nguồn
-
-`FoodItem.source_ref` là field bắt buộc, và validator từ chối `TODO`/`N/A`. Mỗi lần tính đều sinh `sources[]`. `scripts/validate_data.py` chặn CI nếu seed thiếu nguồn.
-
-### RULE-3 — Không có đường tắt tới bệnh nhân
-
-Graph `interrupt_before=["to_review"]`. Test xác nhận sau khi chạy xong, `state.next == ("to_review",)` và `status != "approved"`. Không có nhánh nào trong graph đặt trạng thái `approved` — việc đó chỉ xảy ra khi chuyên gia thao tác qua API.
-
----
-
-## Luồng agent
-
-```mermaid
-graph TD;
-	__start__([start]):::first
-	load_profile(load_profile)
-	compute_targets(compute_targets)
-	retrieve_context(retrieve_context)
-	generate_menu(generate_menu)
-	compute_nutrition(compute_nutrition)
-	validate(validate)
-	build_feedback(build_feedback)
-	fallback(fallback)
-	to_review(to_review)
-	__end__([end]):::last
-	__start__ --> load_profile;
-	load_profile -. end .-> __end__;
-	load_profile -. continue .-> compute_targets;
-	compute_targets --> retrieve_context;
-	retrieve_context --> generate_menu;
-	generate_menu --> compute_nutrition;
-	compute_nutrition --> validate;
-	validate -.-> to_review;
-	validate -.-> build_feedback;
-	validate -.-> fallback;
-	build_feedback --> generate_menu;
-	fallback --> __end__;
-	to_review --> __end__;
-	classDef first fill-opacity:0
-	classDef last fill:#bfb6fc
-```
-
-Sơ đồ này xuất trực tiếp từ code bằng `graph.get_graph().draw_mermaid()` — nghĩa là nó **không thể lệch với thực tế**. Dùng cho Deliverable #3.
-
-| Node | LLM | Vai trò |
-|---|:-:|---|
-| `load_profile` | ❌ | Nạp hồ sơ, thoát sớm nếu không có |
-| `compute_targets` | ❌ | BMR → TDEE → định mức theo bệnh lý |
-| `retrieve_context` | ❌ | Lọc sẵn thực phẩm cấm/dị ứng **trước khi** LLM nhìn thấy |
-| `generate_menu` | ✅ | Node duy nhất gọi LLM trong luồng sinh thực đơn |
-| `compute_nutrition` | ❌ | Cộng bằng dữ liệu tra được, sinh `sources[]` |
-| `validate` | ❌ | Bounds checker + dị ứng, fail closed |
-| `build_feedback` | ❌ | Sinh feedback cụ thể cho lần retry |
-| `fallback` | ❌ | Thực đơn mẫu khi hết 3 lượt, gắn `needs_attention` |
-
----
-
-## Một phát hiện đáng chú ý từ test
-
-Test `test_da_benh_ly_lay_nguong_nghiem_ngat_hon` ban đầu **fail**, và nó fail vì một xung đột y khoa có thật:
-
-- ADA khuyến nghị bệnh nhân ĐTĐ ăn protein 15–20% năng lượng → **72 g/ngày**
-- KDIGO giới hạn bệnh nhân CKD ở 0,6–0,8 g/kg → **52 g/ngày**
-
-Bệnh nhân ĐTĐ + CKD (rất phổ biến) rơi vào mâu thuẫn: ngưỡng tối thiểu cao hơn ngưỡng tối đa. Hệ thống đã hành xử đúng — gắn cờ `needs_expert_review` thay vì tự chọn. Nhưng nếu để vậy thì **mọi ca ĐTĐ+CKD đều bị đẩy sang chuyên gia**, làm hỏng trải nghiệm.
-
-Giải pháp: thêm cột `overridden_by` vào `clinical_rules.csv`. Rule protein của ADA bị vô hiệu khi bệnh nhân có CKD — đúng với thực hành lâm sàng (KDIGO thắng ADA ở nhóm bệnh nhân này). Cơ chế xung đột vẫn giữ nguyên làm lưới an toàn cho các trường hợp chưa lường trước.
-
-> Đây là loại chi tiết nên đưa vào slide "Challenges & Learnings". Nó cho thấy đội hiểu domain chứ không chỉ ghép thư viện.
-
----
-
-## Những gì còn thiếu (không nằm trong khung này)
-
-| Việc | Ticket | Ai |
+| Method | Path | Mô tả |
 |---|---|---|
-| Bản cài đặt `MenuGenerator` thật (structured output) | AGT-04 | R1 |
-| `FoodRepository` dùng SQL thay vì in-memory | BE-01 | R3 |
-| PostgresSaver thay MemorySaver | HIT-01 | R1 |
-| Guardrail chặn chỉ định y khoa | AGT-07 | R1 |
-| RAG guideline + citation | AGT-03, DAT-06 | R1, R2 |
-| Kiểm tra tương tác thuốc trong validator | CLN-06 | R2 |
-| OOV Estimator | CLN-07 | R2 |
-| Toàn bộ API và frontend | EPIC 4, 6 | R3, R4 |
+| GET | `/health` | Health check (dùng cho Docker/Render probe) |
+| GET | `/api/v1/health` | Health check dưới prefix API |
+| GET | `/api/v1/status` | Trạng thái agent |
+| POST | `/api/v1/chat` | *(chưa triển khai — chờ BE-06 nối `build_graph()` với DB thật)* |
 
-Khi cắm `MenuGenerator` thật vào, **không được sửa gì trong `src/clinical/`**. Nếu thấy mình đang phải sửa tầng deterministic để LLM chạy được, đó là dấu hiệu đang vi phạm RULE-1.
+## Live URL
 
----
+*(Đang deploy — cập nhật khi SET-05 hoàn tất. Backend: Render, Frontend: Vercel, DB: Neon.)*
 
-## Ghi chú về dữ liệu trong test
+## Tài khoản demo
 
-Toàn bộ số liệu dinh dưỡng trong `tests/conftest.py` là **dữ liệu giả** dùng để kiểm tra logic, đánh dấu `source_ref = "TEST-FIXTURE"`. Không copy sang `data/seeds/`. Dữ liệu thật phải đến từ NIN hoặc USDA (ticket DAT-02).
+*(Chưa có — sẽ tạo ở ticket `BE-05` khi có schema DB + seed dữ liệu mô phỏng.)*
+
+## Đội ngũ & vai trò
+
+| Vai trò | Thành viên | Phụ trách |
+|---|---|---|
+| R1 — Tech Lead / Agent Engineer + PM | *(điền sau)* | LangGraph, guardrails, theo dõi deliverables |
+| R2 — Clinical & Data Engineer + Eval | *(điền sau)* | Ngưỡng lâm sàng, dữ liệu thực phẩm, eval |
+| R3 — Backend Engineer + DevOps | *(điền sau)* | FastAPI, DB, CI/CD, deploy |
+| R4 — Frontend Engineer + Deliverables | *(điền sau)* | Next.js, README, video, pitch deck |
+
+Chi tiết RACI + phân quyền: [`docs/TEAM.md`](docs/TEAM.md).
+
+## Deliverables
+
+| # | Deliverable | Trạng thái | Vị trí |
+|---|---|:-:|---|
+| 1 | Source Code | 🟡 | `src/` |
+| 2 | README.md | ✅ | file này |
+| 3 | Architecture Diagram | 🟡 | `docs/architecture_diagram.md` |
+| 4 | AI Logs | ✅ | `.ai-log/` + LangSmith |
+| 5 | Live URL | ⬜ | Render + Vercel — đang triển khai |
+| 6 | Video Demo | ⬜ | `presentation/` |
+| 7 | Pitch Deck | ⬜ | `presentation/` |
+| 8 | Development Journal | 🟡 | `DEVLOG.md` §2 |
+| 9 | Worklog | 🟡 | `DEVLOG.md` §8 |
+| 10 | Evaluation Evidence | ⬜ | `eval/results/` |
+
+⬜ chưa bắt đầu · 🟡 đang làm · ✅ xong — chi tiết theo tuần: `DEVLOG.md` §6.
+
+## ⚕️ Disclaimer y tế
+
+NutriCare Agent **không**:
+- Chẩn đoán bệnh.
+- Kê đơn, gợi ý liều, hay khuyên ngừng/đổi thuốc.
+- Diễn giải kết quả xét nghiệm thành kết luận y khoa.
+- Thay thế bác sĩ hoặc chuyên gia dinh dưỡng ở bất kỳ đâu.
+
+Mọi thực đơn do hệ thống sinh ra đều phải được **chuyên gia dinh dưỡng duyệt** trước khi đến tay bệnh nhân (RULE-3). Dữ liệu bệnh nhân trong hệ thống này **100% mô phỏng** — không có dữ liệu bệnh nhân thật.
+
+## License
+
+MIT — Sử dụng cho mục đích giáo dục (AI20K Build Phase).

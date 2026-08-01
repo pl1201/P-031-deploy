@@ -15,6 +15,7 @@ from src.clinical.models import (
     ActivityLevel,
     Condition,
     ConditionCode,
+    FoodItem,
     MealSlot,
     MenuDraft,
     MenuItem,
@@ -23,7 +24,12 @@ from src.clinical.models import (
     Sex,
     WeightGoal,
 )
-from src.clinical.nutrition import UnknownFoodError, check_allergies, compute_nutrition
+from src.clinical.nutrition import (
+    InMemoryFoodRepository,
+    UnknownFoodError,
+    check_allergies,
+    compute_nutrition,
+)
 from src.clinical.rules import compute_targets, load_rules
 from src.clinical.validator import build_feedback, has_blocking, validate_menu
 
@@ -50,14 +56,17 @@ class TestEnergy:
         assert adj < 100
         assert adj > ideal_body_weight_kg(165)
 
-    @pytest.mark.parametrize(
-        "sex,floor", [(Sex.FEMALE, 1200.0), (Sex.MALE, 1500.0)]
-    )
+    @pytest.mark.parametrize("sex,floor", [(Sex.FEMALE, 1200.0), (Sex.MALE, 1500.0)])
     def test_khong_bao_gio_xuong_duoi_san_an_toan(self, sex, floor):
         """Sàn năng lượng là ràng buộc an toàn, không phải tuỳ chọn."""
         p = PatientProfile(
-            patient_id="X", age=80, sex=sex, height_cm=145, weight_kg=38,
-            activity_level=ActivityLevel.SEDENTARY, weight_goal=WeightGoal.LOSE,
+            patient_id="X",
+            age=80,
+            sex=sex,
+            height_cm=145,
+            weight_kg=38,
+            activity_level=ActivityLevel.SEDENTARY,
+            weight_goal=WeightGoal.LOSE,
         )
         assert compute_energy_target_kcal(p) >= floor
 
@@ -87,7 +96,11 @@ class TestTargets:
     def test_rule_bi_vo_hieu_khi_khong_co_benh_ghi_de(self):
         """Không có CKD thì rule protein của ADA vẫn áp dụng bình thường."""
         p = PatientProfile(
-            patient_id="X", age=58, sex=Sex.MALE, height_cm=165, weight_kg=65,
+            patient_id="X",
+            age=58,
+            sex=Sex.MALE,
+            height_cm=165,
+            weight_kg=65,
             conditions=[Condition(code=ConditionCode.T2DM)],
         )
         t = compute_targets(p, load_rules())
@@ -113,7 +126,11 @@ class TestTargets:
 
     def test_gout_gioi_han_purin(self):
         p = PatientProfile(
-            patient_id="X", age=50, sex=Sex.MALE, height_cm=170, weight_kg=80,
+            patient_id="X",
+            age=50,
+            sex=Sex.MALE,
+            height_cm=170,
+            weight_kg=80,
             conditions=[Condition(code=ConditionCode.GOUT)],
         )
         assert compute_targets(p, load_rules()).max_of("purine_mg") == 150
@@ -129,7 +146,11 @@ class TestTargets:
         bad = replace(conflicting[0], rule_id="TEST-CONFLICT", bound="min", value=2.0)
         t = compute_targets(
             PatientProfile(
-                patient_id="X", age=60, sex=Sex.MALE, height_cm=170, weight_kg=70,
+                patient_id="X",
+                age=60,
+                sex=Sex.MALE,
+                height_cm=170,
+                weight_kg=70,
                 conditions=[Condition(code=ConditionCode.CKD, stage="G4")],
             ),
             rules + [bad],
@@ -180,9 +201,7 @@ class TestAllergy:
 
 # --------------------------------------------------------------- validator
 class TestValidator:
-    def test_chan_thuc_don_thua_muoi_cho_benh_nhan_tang_huyet_ap(
-        self, foods, profile_htn, salty_menu
-    ):
+    def test_chan_thuc_don_thua_muoi_cho_benh_nhan_tang_huyet_ap(self, foods, profile_htn, salty_menu):
         rules = load_rules()
         targets = compute_targets(profile_htn, rules)
         nutrition = compute_nutrition(salty_menu, foods)
@@ -209,15 +228,13 @@ class TestValidator:
     @pytest.mark.parametrize(
         "ratio,expected",
         [
-            (1.15, Severity.SOFT),   # vượt 15% so với định mức → cảnh báo
-            (1.40, Severity.HARD),   # vượt 40% → chặn
-            (0.85, Severity.SOFT),   # thiếu 15% → cảnh báo
-            (0.60, Severity.HARD),   # thiếu 40% → chặn
+            (1.15, Severity.SOFT),  # vượt 15% so với định mức → cảnh báo
+            (1.40, Severity.HARD),  # vượt 40% → chặn
+            (0.85, Severity.SOFT),  # thiếu 15% → cảnh báo
+            (0.60, Severity.HARD),  # thiếu 40% → chặn
         ],
     )
-    def test_muc_do_vi_pham_nang_luong_theo_do_lech(
-        self, foods, profile_htn, ratio, expected
-    ):
+    def test_muc_do_vi_pham_nang_luong_theo_do_lech(self, foods, profile_htn, ratio, expected):
         """±10% là bình thường, ±25% trở lên là chặn (RULE: fail closed)."""
         rules = load_rules()
         targets = compute_targets(profile_htn, rules)
@@ -225,12 +242,8 @@ class TestValidator:
 
         # Cơm tẻ 1.3 kcal/g — dùng để đạt chính xác mức năng lượng cần test
         grams = base_kcal * ratio / 1.30
-        nutrition = compute_nutrition(
-            MenuDraft(items={MealSlot.LUNCH: [MenuItem(food_id=1, grams=grams)]}), foods
-        )
-        kcal_violations = [
-            v for v in validate_menu(nutrition, targets, rules) if v.nutrient == "kcal"
-        ]
+        nutrition = compute_nutrition(MenuDraft(items={MealSlot.LUNCH: [MenuItem(food_id=1, grams=grams)]}), foods)
+        kcal_violations = [v for v in validate_menu(nutrition, targets, rules) if v.nutrient == "kcal"]
         assert len(kcal_violations) == 1
         assert kcal_violations[0].severity is expected
 
@@ -263,9 +276,7 @@ class TestKdigo2024SafetyFlags:
 
     def test_suy_yeu_thieu_co_thi_go_tran_protein_thap(self):
         """PP 3.3.1.5: người cao tuổi có frailty/sarcopenia cần protein CAO HƠN."""
-        p = PatientProfile(
-            **self.BASE, age=72, conditions=self.CKD_G4, frailty_sarcopenia=True
-        )
+        p = PatientProfile(**self.BASE, age=72, conditions=self.CKD_G4, frailty_sarcopenia=True)
         t = compute_targets(p, load_rules())
 
         assert "CKD-PRO-01" not in t.targets["protein_g"].rule_ids
@@ -276,9 +287,7 @@ class TestKdigo2024SafetyFlags:
 
     def test_chuyen_hoa_khong_on_dinh_thi_khong_han_che_protein(self):
         """PP 3.3.1.3: không kê chế độ thấp protein cho người chuyển hoá không ổn định."""
-        p = PatientProfile(
-            **self.BASE, age=58, conditions=self.CKD_G4, metabolically_unstable=True
-        )
+        p = PatientProfile(**self.BASE, age=58, conditions=self.CKD_G4, metabolically_unstable=True)
         t = compute_targets(p, load_rules())
 
         ids = t.targets["protein_g"].rule_ids
@@ -321,9 +330,7 @@ class TestKdigo2024SafetyFlags:
 
     def test_rule_theo_tuoi_khong_ap_cho_nguoi_tre(self):
         """T2DM-PRO-02 chỉ áp cho người cao tuổi (requires_flag=elderly)."""
-        young = PatientProfile(
-            **self.BASE, age=45, conditions=[Condition(code=ConditionCode.T2DM)]
-        )
+        young = PatientProfile(**self.BASE, age=45, conditions=[Condition(code=ConditionCode.T2DM)])
         t = compute_targets(young, load_rules())
         assert "T2DM-PRO-02" not in t.applied_rule_ids
 
@@ -336,6 +343,89 @@ class TestKdigo2024SafetyFlags:
         """Mức bằng chứng phải khớp severity: khuyến nghị yếu không nên chặn cứng."""
         for rule in load_rules():
             if rule.guideline_grade == "2C" and rule.rule_id.endswith("PRO-01"):
-                assert rule.severity == "soft", (
-                    f"{rule.rule_id} là khuyến nghị 2C (yếu) nhưng đang đặt severity=hard"
-                )
+                assert rule.severity == "soft", f"{rule.rule_id} là khuyến nghị 2C (yếu) nhưng đang đặt severity=hard"
+
+
+# ---------------------------------------------- đường tự do WHO (CLN-08)
+class TestFreeSugarRule:
+    FIXTURE_REF = "TEST-FIXTURE (dữ liệu giả)"
+
+    def _t2dm(self) -> PatientProfile:
+        return PatientProfile(
+            patient_id="BN-SUG",
+            age=50,
+            sex=Sex.MALE,
+            height_cm=165,
+            weight_kg=65,
+            conditions=[Condition(code=ConditionCode.T2DM)],
+        )
+
+    def _food(self, fid, name, kcal, carb, sugar):
+        return FoodItem(
+            id=fid,
+            name_vi=name,
+            kcal_100g=kcal,
+            protein_g=1.0,
+            carb_g=carb,
+            fat_g=0.5,
+            fiber_g=0.5,
+            sugar_g=sugar,
+            na_mg=1,
+            k_mg=50,
+            p_mg=30,
+            purine_mg=10,
+            source="curated",
+            source_ref=self.FIXTURE_REF,
+        )
+
+    def test_t2dm_co_nguong_duong_tu_do(self):
+        """WHO: đường tự do < 10% năng lượng → trần sugar_g = E * 0.10 / 4."""
+        t = compute_targets(self._t2dm(), load_rules())
+        assert "T2DM-SUG-01" in t.applied_rule_ids
+        # kcal target = E*(1±10%) → suy ngược định mức năng lượng E rồi tính trần đường
+        energy = t.targets["kcal"].max_value / 1.10
+        assert t.max_of("sugar_g") == pytest.approx(energy * 0.10 / 4.0)
+
+    def test_thua_duong_sinh_canh_bao_mem(self):
+        rules = load_rules()
+        repo = InMemoryFoodRepository(
+            [self._food(1, "Chè đặc", 300, 60.0, 55.0)]  # 200 g → 110 g đường
+        )
+        menu = MenuDraft(items={MealSlot.SNACK: [MenuItem(food_id=1, grams=200)]})
+        nutrition = compute_nutrition(menu, repo)
+        assert nutrition.sugar_is_complete is True
+        v = validate_menu(nutrition, compute_targets(self._t2dm(), rules), rules)
+        sugar_over = [x for x in v if x.nutrient == "sugar_g" and x.kind == "over"]
+        assert len(sugar_over) == 1
+        assert sugar_over[0].severity is Severity.SOFT  # WHO strong nhưng đặt soft
+
+    def test_thieu_so_lieu_duong_thi_canh_bao_incomplete(self):
+        """Món thiếu sugar_g → không được coi là đạt ngưỡng đường."""
+        rules = load_rules()
+        repo = InMemoryFoodRepository(
+            [
+                self._food(1, "Có đường", 100, 20.0, 5.0),
+                FoodItem(  # sugar_g=None
+                    id=2,
+                    name_vi="Chưa rõ đường",
+                    kcal_100g=130,
+                    protein_g=2.7,
+                    carb_g=28.0,
+                    fat_g=0.3,
+                    fiber_g=0.4,
+                    na_mg=1,
+                    k_mg=35,
+                    p_mg=43,
+                    purine_mg=15,
+                    source="curated",
+                    source_ref=self.FIXTURE_REF,
+                ),
+            ]
+        )
+        menu = MenuDraft(items={MealSlot.LUNCH: [MenuItem(food_id=1, grams=100), MenuItem(food_id=2, grams=200)]})
+        nutrition = compute_nutrition(menu, repo)
+        assert nutrition.sugar_is_complete is False
+        v = validate_menu(nutrition, compute_targets(self._t2dm(), rules), rules)
+        incomplete = [x for x in v if x.kind == "incomplete_data"]
+        assert len(incomplete) == 1
+        assert incomplete[0].severity is Severity.SOFT
