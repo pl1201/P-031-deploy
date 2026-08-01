@@ -224,7 +224,8 @@ Bản 1.0 nói bảng 2007 trên FAO như thể là bản mới nhất. **Không
 |---|---|---|---|---|
 | `CLN-10` | **Sửa `clinical_rules.csv` theo KDIGO 2024 + ADA 2026**: tách guideline_ref, thêm CKD-PRO-03/04/05 (người cao tuổi, chuyển hoá không ổn định, trần 1,3 g/kg) | R2 | 4h | 🔴 **P0** |
 | `EVL-07` | Đọc FAM-Bench, áp khung tiêu chí cho bộ 60 ca tiếng Việt | R2 + R1 | 6h | 🔴 P0 |
-| `DAT-07` *(sửa)* | Trích xuất bảng NIN 2007 từ PDF FAO **+ hỏi thư viện về bản 2017** | R2 | 10–14h | 🔴 P0 |
+| `DAT-08` *(đổi số từ DAT-07)* | Trích xuất bảng NIN 2007 từ PDF FAO **+ hỏi thư viện về bản 2017** | R2 | 10–14h | 🔴 P0 |
+| `DAT-07` *(đã làm)* | Mở rộng schema `food_items`: `sugar_g` + nguồn GI riêng + helper GL. Xem §8 | R2 | 3h | ✅ P1 |
 | `CLN-09` | Thêm `bioavailability_class` cho K/P (thực vật vs siêu chế biến) | R2 | 5h | 🟡 P2 |
 | `DAT-10` | Rà NutriBench để tham chiếu cách đánh giá ước tính từ mô tả text | R1 | 3h | 🟡 P2 |
 | `DAT-00` *(sửa)* | Bổ sung: đổi "8,1–9,4 g muối" thành **"8,1 g (STEPS 2021)"** trong mọi tài liệu | R2 | 1h | 🔴 P0 |
@@ -291,3 +292,43 @@ Bản 1.0 nói bảng 2007 trên FAO như thể là bản mới nhất. **Không
 2. **Dùng FAM-Bench làm khung đánh giá.** Một benchmark 5/2026, 2.500 mẫu do chuyên gia thẩm định, hỏi đúng câu hỏi của dự án. Rẻ hơn và uy tín hơn nhiều so với tự nghĩ tiêu chí.
 
 3. **Đổi cách phát biểu về thị giác trong pitch.** Bằng chứng 6/2026 cho thấy mô hình đa phương thức đang tiến rất nhanh. Nói *"hiện chưa đủ chính xác cho ngưỡng ±10%, và kiến trúc của chúng em cho phép thay thế khi nó đủ tốt"* — trung thực, và biến hạn chế thành ưu điểm thiết kế.
+
+---
+
+## 8. CHỌN BỆNH CHÍNH & TÍNH KHẢ THI DỮ LIỆU ĐTĐ2 (deep-dive 01/08/2026)
+
+> Bối cảnh: rà soát dataset bệnh mãn tính (HuggingFace, Kaggle, NIN, NHANES, GI tables) để chốt **một bệnh chính** cho MVP dinh dưỡng, dù bệnh nhân đa bệnh. Kết quả đã đưa vào code (DAT-07) và Decision Log (DEC-009, DEC-010).
+
+### 8.1. Kết luận: chọn **ĐTĐ2 làm bệnh chính** (anchor tim-chuyển hoá)
+
+THA và CKD-sớm là **comorbidity modifier** chồng lên, không phải bệnh riêng lẻ. Lý do:
+
+| Tiêu chí | Vì sao ĐTĐ2 thắng |
+|---|---|
+| Hợp RULE-1 | Luật dinh dưỡng ĐTĐ2 (kcal, %carb, GI/GL, đường tự do) **tính được bằng SQL** — LLM chỉ chọn món, Python tính số |
+| Trung tâm đa bệnh | ĐTĐ2 là hub kéo theo THA + rối loạn lipid + CKD sớm → chọn nó cho phép layer các modifier |
+| Dữ liệu & guideline | Phong phú nhất; ADA 2026 + WHO + FAO/WHO 1998 |
+| Giảm gánh nguồn khó | **Purine** (cột khó nguồn nhất, không có trong NIN/USDA) là chuyện của gout, **không cần cho anchor ĐTĐ2** |
+
+### 8.2. Phát hiện then chốt về dataset
+
+**Hầu hết dataset "diabetes/heart" trên HF/Kaggle là dữ liệu DỰ ĐOÁN bệnh** (Pima, Cleveland 303 dòng, BRFSS 253k, Diabetes 130-US) — **không phải dữ liệu dinh dưỡng** và không dùng được cho engine tính món. Nguồn thật cho engine vẫn là: **NIN 2017/2007 + USDA** (thành phần) và **GI tables** (Atkinson 2021 + Chan 2001) — đúng như bản 2.0 đã xác định. Các dataset dự đoán chỉ dùng làm **bối cảnh dân số / validate**, không phải lõi.
+
+### 8.3. Thay đổi schema đã áp (DAT-07)
+
+`FoodItem` ([src/clinical/models.py](../src/clinical/models.py)) được bổ sung:
+- `sugar_g` — cho ngưỡng **đường tự do WHO** (<10%, lý tưởng <5% năng lượng). Ràng buộc `sugar_g ≤ carb_g`.
+- `gi_source` + `gi_source_ref` — GI có **nguồn riêng**, tách khỏi `source_ref` của NIN (RULE-2). Model chặn `gi_index` không có nguồn GI.
+- `available_carb_g` (= carb − xơ) và `glycemic_load(grams)` — GL tính trên carb khả dụng, **None-safe** khi thiếu GI.
+
+### 8.4. Nguồn GI và rủi ro (đã seed `data/seeds/gi_values.csv`)
+
+- **[Chan HMS et al. 2001, Eur J Clin Nutr 55:1076–1083](https://www.nature.com/articles/1601265)** (glucose=100, n=12): nguồn duy nhất đo **GI món Việt** mà bảng quốc tế thiếu. Đã trích 7 trị: bún/bánh phở tươi **40**, cơm tẻ jasmine **109**, xôi **94**, na **58**, sữa đặc **61**, miến (proxy) **39**.
+- **[Atkinson 2021](https://ajcn.nutrition.org/article/S0002-9165(22)00494-4/fulltext)** (ISO, >4000 món): dùng cho staple/quả quốc tế còn thiếu — **chưa transcribe**, thuộc DAT-08. **Không điền GI từ trí nhớ** (DEC-008).
+- **Rủi ro GI:** phủ thưa + mâu thuẫn giữa nguồn (VD phở GI 53 vs "cao"). GI món Việt cực cao ngoài dự đoán (gạo tẻ 109 > glucose) — **lật lại giả định "cơm ta GI thấp"**. → Menu engine **phải** suy giảm mềm theo lượng carb + nhóm thực phẩm khi thiếu GI, không coi thiếu GI là GL=0.
+
+### 8.5. Việc tiếp theo
+
+1. **DAT-08**: transcribe GI staple/quả quốc tế từ Atkinson 2021 (gạo lứt, khoai, ngô, yến mạch, bánh mì, các loại quả).
+2. **CLN-02/CLN-10**: thêm rule ĐTĐ2 dùng `sugar_g` (đường tự do WHO) và GL/ngày (khi đủ phủ GI).
+3. Cân nhắc đo riêng GI **miến dong** để thay trị proxy 39 bằng số đo thật.
