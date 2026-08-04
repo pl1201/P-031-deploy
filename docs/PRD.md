@@ -1,161 +1,439 @@
-# Product Requirements Document (PRD)
+# Product Requirements Document (PRD) - VNutriCare
 
-## 1. Thông tin sản phẩm
+> **Đề bài:** VMEC-10 - AI20K Build Cohort 3  
+> **Phiên bản:** 2.0  
+> **Phạm vi:** MVP 6 tuần, 100% hồ sơ bệnh nhân mô phỏng  
+> **Bệnh lý trọng tâm:** Tăng huyết áp và nguy cơ tim mạch  
+> **Nguồn yêu cầu chính:** `KeHoachDuAn_VNutriCare_VMEC10_v3.docx`
 
-- **Tên:** NutriCare Agent (VNutrCare AI Agent)
-- **Phiên bản:** MVP / Build Phase
-- **Thời gian:** 5 tuần
-- **Đối tượng:** bệnh nhân mạn tính tại Việt Nam và bác sĩ/chuyên gia dinh dưỡng
-- **Trạng thái dữ liệu:** 100% dữ liệu bệnh nhân mô phỏng; không dùng dữ liệu định danh thật
+## 1. Mục đích tài liệu
 
-## 2. Bối cảnh và vấn đề
+PRD này xác định sản phẩm sẽ làm gì trong MVP: danh sách tính năng, luồng dữ liệu, tiêu chí nghiệm thu, yêu cầu phi chức năng, ràng buộc an toàn và phần để lại cho các phiên bản sau.
 
-Bệnh nhân đái tháo đường type 2, tăng huyết áp, bệnh thận mạn và gout phải đồng thời kiểm soát nhiều ngưỡng dinh dưỡng (năng lượng, protein, natri, kali, phospho, purine...). Món Việt và gia vị/nước chấm khó định lượng, trong khi tư vấn 1-1 của chuyên gia tốn thời gian và không mở rộng được. Với bệnh đa bệnh lý, khuyến nghị giữa các guideline có thể xung đột.
+Đây không phải guideline điều trị và không thay thế quyết định của bác sĩ. MVP chỉ được đánh giá trên dữ liệu mô phỏng, không được tuyên bố hiệu quả lâm sàng trên bệnh nhân thật.
 
-LLM có thể diễn đạt tự nhiên nhưng không được phép tự bịa số dinh dưỡng hoặc bỏ qua dị ứng, tương tác thuốc-thực phẩm. Vì vậy sản phẩm cần tạo thực đơn cá nhân hóa có thể truy xuất nguồn, kiểm tra bằng luật xác định và luôn có chuyên gia duyệt trước khi gửi bệnh nhân.
+## 2. Tổng quan sản phẩm
 
-## 3. Mục tiêu và chỉ số thành công
+### 2.1. Định vị
 
-### Mục tiêu
+- **Tên:** VNutriCare.
+- **Loại sản phẩm:** AI Agent hỗ trợ chuyên gia lập và duyệt thực đơn dinh dưỡng lâm sàng.
+- **Người dùng đích:** người trưởng thành đã được chuyên gia xác nhận tăng huyết áp/nguy cơ tim mạch; người chăm sóc; bác sĩ/chuyên gia dinh dưỡng.
+- **Chế độ ăn tham chiếu:** nguyên tắc DASH, ưu tiên kiểm soát natri, chất lượng chất béo, rau quả và thực phẩm ít chế biến.
+- **Người quyết định cuối:** bác sĩ hoặc chuyên gia dinh dưỡng.
+- **Nguyên tắc kỹ thuật:** LLM chỉ chọn món và diễn đạt; Python/SQL tính định mức, tính dinh dưỡng và kiểm tra an toàn.
 
-1. Giúp chuyên gia tạo và duyệt thực đơn cá nhân hóa nhanh hơn.
-2. Giúp bệnh nhân hiểu thực đơn Việt Nam và lý do lựa chọn món.
-3. Ngăn thực đơn vi phạm ngưỡng lâm sàng, dị ứng hoặc tương tác thuốc-thực phẩm.
-4. Cung cấp bằng chứng và audit trail cho mọi kết quả được hiển thị.
+### 2.2. Ranh giới bệnh lý
 
-### KPIs nghiệm thu MVP
+MVP **không triển khai dinh dưỡng cho đái tháo đường type 2**; không có rule carbohydrate, GI/GL, HbA1c hoặc đường tự do dành cho bệnh này trong phạm vi nghiệm thu.
 
-| Chỉ số | Mục tiêu |
-|---|---:|
-| Giá trị dinh dưỡng có `source` và `source_ref` | 100% |
-| Bắt đúng kịch bản tương tác nguy hiểm trong bộ red-team | >= 90% |
-| Thực đơn đạt luật sau tối đa 3 lần sinh/điều chỉnh | >= 95% |
-| Thời gian chuyên gia duyệt một thực đơn | < 2 phút |
-| Chặn câu hỏi kê đơn/chỉnh thuốc | >= 95% |
-| Hồ sơ demo sử dụng dữ liệu thật | 0 |
+MVP cũng không tự động lập phác đồ dinh dưỡng điều trị CKD, gout hoặc đa bệnh lý. Nếu hồ sơ có bệnh đồng mắc hoặc dấu hiệu có thể làm thay đổi chế độ DASH thông thường, hệ thống phải:
 
-## 4. Người dùng và quyền hạn
+1. gắn cờ `needs_expert_review`;
+2. không tự kết luận thực đơn an toàn;
+3. hiển thị lý do chuyển chuyên gia;
+4. không kích hoạt rule điều trị bệnh ngoài phạm vi.
 
-### Bệnh nhân/người nhà
+## 3. Vấn đề cần giải quyết
 
-- Xem hồ sơ và thực đơn đã được duyệt.
-- Xem khẩu phần, tổng dinh dưỡng, cảnh báo và nguồn giải thích.
-- Gửi phản hồi hoặc yêu cầu chuyên gia xem lại.
-- Không được xem thực đơn ở trạng thái nháp/chưa duyệt.
+Người tăng huyết áp tại Việt Nam khó ước tính lượng natri thực tế vì natri tập trung trong nước mắm, bột canh, hạt nêm, nước chấm, thực phẩm đóng gói và nước dùng. Các ứng dụng đếm calo phổ thông thường thiếu dữ liệu món Việt, không kiểm tra tương tác thuốc - thực phẩm và không có quy trình chuyên gia duyệt.
 
-### Bác sĩ/chuyên gia dinh dưỡng
+LLM có thể tạo thực đơn tự nhiên nhưng không đủ tin cậy để tự sinh hàm lượng dinh dưỡng. VNutriCare phải tách phần sinh gợi ý khỏi phần tính số, truy vết từng giá trị về nguồn và chặn phát hành khi thiếu dữ liệu hoặc còn cảnh báo nghiêm trọng.
 
-- Tạo/cập nhật hồ sơ lâm sàng và mục tiêu dinh dưỡng.
-- Yêu cầu AI lập thực đơn.
-- Xem cảnh báo, nguồn dữ liệu, lý do từng lựa chọn.
-- Sửa món/khẩu phần, duyệt hoặc từ chối kèm lý do.
-- Xem lịch sử thay đổi và người duyệt.
+## 4. Mục tiêu và không mục tiêu
 
-## 5. Phạm vi
+### 4.1. Mục tiêu MVP
 
-### In scope (MVP)
+1. Rút ngắn thời gian chuyên gia lập và duyệt một thực đơn DASH cá nhân hóa.
+2. Bảo đảm 100% giá trị dinh dưỡng hiển thị có nguồn và có thể tính lại.
+3. Phát hiện thực đơn vượt ngưỡng natri, năng lượng hoặc các ràng buộc tim mạch đã được xác minh.
+4. Phát hiện dị ứng và tương tác thuốc - thực phẩm tim mạch trong danh mục curated.
+5. Bắt buộc chuyên gia sửa, duyệt hoặc từ chối trước khi bệnh nhân nhận thực đơn.
+6. Thu thập nhật ký ăn uống và phản hồi để chuyên gia xem lại.
+7. Tạo bằng chứng định lượng cho RQ1 (groundedness), RQ2 (HITL) và RQ5 (tương tác thuốc).
 
-- Hồ sơ: chẩn đoán, bệnh kèm, giai đoạn bệnh, nhân trắc, hoạt động, dị ứng, thuốc, sở thích và thực phẩm/món tham chiếu.
-- Tính năng lượng và dinh dưỡng bằng deterministic clinical core: kcal, protein, carbohydrate, chất béo, natri; mở rộng kali/phospho/purine theo dữ liệu/rule đã có.
-- Bộ quy tắc ngưỡng lâm sàng và precedence khi guideline xung đột (ví dụ CKD ưu tiên giới hạn protein an toàn hơn mục tiêu chung của ĐTĐ2).
-- Cảnh báo dị ứng và tương tác thuốc-thực phẩm từ danh mục đã kiểm duyệt.
-- Agent LangGraph: parse ý định/thực thể, chọn món + gram, gọi clinical core, kiểm tra, sửa/sinh lại, diễn đạt bằng RAG.
-- Hàng đợi Human-in-the-Loop: chuyên gia sửa, duyệt hoặc từ chối.
-- Truy xuất nguồn cho từng số dinh dưỡng và audit log.
-- API FastAPI hiện có; giao diện web cho hai vai trò.
+### 4.2. Không mục tiêu
 
-### Out of scope (MVP)
+- Không chẩn đoán tăng huyết áp hoặc bệnh tim mạch.
+- Không kê đơn, đổi/ngừng thuốc hoặc thay đổi liều.
+- Không thay thế bác sĩ/chuyên gia dinh dưỡng.
+- Không điều trị đái tháo đường type 2, CKD, gout hoặc đa bệnh lý trong MVP.
+- Không chứng minh hệ thống làm giảm huyết áp hoặc biến cố tim mạch.
+- Không sử dụng dữ liệu bệnh nhân thật.
+- Không ước tính dinh dưỡng trực tiếp từ ảnh.
+- Không kết nối wearable, HealthKit, Health Connect, CGM hoặc bệnh án điện tử.
+- Không fine-tune mô hình từ đầu.
 
-- Chẩn đoán, kê đơn, khuyến nghị liều hoặc ngừng/đổi thuốc.
-- Tự động phát hành thực đơn chưa được chuyên gia duyệt.
-- Nhận diện ảnh mâm cơm, wearable/Apple Health.
-- Điều trị đa bệnh lý ngoài các rule và dữ liệu MVP.
-- Fine-tune mô hình từ đầu, dữ liệu bệnh nhân thật, thanh toán và giao hàng thực phẩm.
+## 5. Người dùng và quyền hạn
 
-## 6. Tính năng và yêu cầu nghiệm thu
+### 5.1. Bệnh nhân
 
-### F1. Quản lý hồ sơ
+- Xem thực đơn đã duyệt, khẩu phần, tổng dinh dưỡng và nguồn.
+- Xem hướng dẫn ăn/chế biến đã được duyệt.
+- Ghi nhật ký ăn thực tế và gửi phản hồi.
+- Không xem bản nháp, bản bị từ chối hoặc hồ sơ người khác.
 
-Người dùng nhập ngày sinh, giới tính, cân nặng, chiều cao, BMI/nhân trắc, mức hoạt động, chẩn đoán và giai đoạn bệnh, bệnh kèm, thuốc, dị ứng, mục tiêu và sở thích. Hệ thống kiểm tra trường bắt buộc; thiếu hồ sơ thì không cho tạo thực đơn và chỉ rõ trường cần bổ sung.
+### 5.2. Người nhà/người chăm sóc
 
-**Nghiệm thu:** hồ sơ hợp lệ được lưu; hồ sơ thiếu bệnh/thuốc/dị ứng hoặc nhân trắc bị chặn; dữ liệu demo được gắn mã mô phỏng.
+- Được cấp quyền vào một hồ sơ cụ thể.
+- Xem thực đơn đã duyệt, ghi nhật ký hộ và bổ sung thông tin món có sẵn.
+- Không thay đổi mục tiêu lâm sàng hoặc duyệt thực đơn.
 
-### F2. Tạo thực đơn
+### 5.3. Bác sĩ/chuyên gia dinh dưỡng
 
-Chuyên gia chọn bệnh nhân và khoảng thời gian/bữa ăn, sau đó bấm **Lập thực đơn**. Agent chỉ trả về định danh món và khối lượng; clinical core tra CSDL và tính mọi con số. Mỗi món có khẩu phần, thành phần, tổng dinh dưỡng, cảnh báo và nguồn.
+- Tạo/cập nhật hồ sơ, mục tiêu và ngoại lệ lâm sàng.
+- Yêu cầu agent tạo thực đơn nháp.
+- Xem nguồn, vi phạm, cảnh báo và lý do lựa chọn.
+- Sửa món/gram, tính lại, duyệt hoặc từ chối kèm lý do.
+- Xem nhật ký và lịch sử phiên bản.
 
-**Nghiệm thu:** không có trường số dinh dưỡng do LLM sinh; kết quả có thể tái lập từ cùng input và phiên bản dữ liệu; lỗi thiếu dữ liệu khiến hệ thống fail-closed.
+### 5.4. Quản trị viên
 
-### F3. Kiểm tra an toàn và tự điều chỉnh
+- Quản lý tài khoản mô phỏng, vai trò và cấu hình.
+- Quản lý phiên bản dataset/rule sau khi nội dung được phê duyệt.
+- Xem log vận hành; không có quyền duyệt lâm sàng mặc định.
 
-Validator kiểm tra ngưỡng năng lượng/dinh dưỡng, dị ứng, chống chỉ định, tương tác thuốc-thực phẩm và xung đột guideline. Nếu không đạt, hệ thống nêu lý do cụ thể, thay món/khẩu phần và sinh lại tối đa cấu hình (mặc định 3) lần. Hết lượt hoặc còn nghi ngờ thì chuyển chuyên gia, không phát hành.
+## 6. Dữ liệu đầu vào
 
-**Nghiệm thu:** ca vượt natri/protein hoặc có cặp tương tác bị chặn; cảnh báo đỏ hiển thị trước nút duyệt; mọi lần sửa có log.
+### 6.1. Dữ liệu tri thức nền
 
-### F4. Duyệt thực đơn (HITL)
+| Nhóm | Nguồn/chiến lược | Cách dùng | Điều kiện |
+|---|---|---|---|
+| Thành phần thực phẩm Việt | Bảng thành phần thực phẩm Việt Nam 2007; đối chiếu bản 2017 khi tiếp cận được | Nguồn ưu tiên cho nguyên liệu, gia vị và nước chấm Việt | Mỗi giá trị có `source_ref`; kiểm tra quyền sử dụng |
+| Thực phẩm bổ sung | USDA FoodData Central | Bổ sung nguyên liệu thiếu trong nguồn Việt | Lưu `fdcId`, trạng thái sống/chín và mô tả bản ghi đã ghép |
+| Món ăn Việt | Công thức curated, mục tiêu tối thiểu 80 món nếu đủ nguồn lực | Tính món từ nguyên liệu và khối lượng | Chuyên gia review; LLM không tự tạo số dinh dưỡng |
+| Rule lâm sàng | WHO, AHA/DASH, Bộ Y tế và nguồn được phê duyệt | Tính mục tiêu và kiểm tra thực đơn | Rule `to_verify` không được kích hoạt như rule production |
+| Tương tác thuốc | Danh mục curated theo hoạt chất | Cảnh báo trước khi duyệt | Có nguồn, mức độ, cơ chế và hành động cho từng cặp |
+| Guideline văn bản | Tài liệu chính thống đã ingest | RAG để giải thích | Không dùng RAG để tính số dinh dưỡng |
 
-Chuyên gia xem hàng đợi bản nháp, bộ chỉ số so với mục tiêu, cảnh báo và nguồn. Có thể sửa món/gram, ghi chú, **Duyệt**, hoặc **Từ chối** với lý do. Sau khi sửa, tổng dinh dưỡng được tính lại tự động.
+### 6.2. Hồ sơ bệnh nhân mô phỏng v1
 
-**Nghiệm thu:** chỉ trạng thái `approved` mới hiển thị cho bệnh nhân; bản từ chối quay lại chỉnh sửa; lưu người duyệt, thời điểm, phiên bản và lý do.
+Các trường cần thu thập:
 
-### F5. Xem và giải thích cho bệnh nhân
+- mã hồ sơ mô phỏng;
+- tuổi, giới tính, chiều cao, cân nặng;
+- mức hoạt động và mục tiêu cân nặng;
+- chẩn đoán tăng huyết áp/nguy cơ tim mạch do chuyên gia nhập;
+- huyết áp tâm thu/tâm trương gần nhất, ngày đo và nguồn nhập;
+- bilan lipid nếu có: cholesterol toàn phần, LDL, HDL, triglyceride;
+- thuốc đang dùng, gồm hoạt chất và tên biệt dược nếu có;
+- dị ứng/không dung nạp;
+- vùng miền, sở thích, món không ăn và thực phẩm sẵn có;
+- ngân sách tiền ăn mỗi ngày theo khoảng, tùy chọn;
+- mục tiêu riêng do chuyên gia đặt và lý do ghi đè mặc định.
 
-Bệnh nhân xem thực đơn đã duyệt theo ngày/bữa, khẩu phần và tổng ngày. Nút “Vì sao?” mở giải thích dựa trên rule/guideline và nguồn; không đưa lời khuyên kê đơn. Có thể xem cảnh báo và gửi phản hồi.
+Không hỏi tổng thu nhập gia đình. Sản phẩm chỉ cần ngân sách bữa ăn tùy chọn.
 
-**Nghiệm thu:** bệnh nhân không truy cập được draft/rejected; giải thích không chứa số không có nguồn; disclaimer y tế luôn hiển thị.
+### 6.3. Dữ liệu sau v1
 
-### F6. An toàn, phân quyền và audit
+- Số đo vòng, InBody/BIA và thành phần cơ thể theo tháng.
+- Xét nghiệm nhập tự động từ cơ sở y tế.
+- Wearable, HealthKit/Health Connect.
+- Dữ liệu theo dõi thật để đánh giá outcome lâm sàng.
 
-Input guard từ chối câu hỏi chẩn đoán/kê đơn/chỉnh thuốc và hướng người dùng đến chuyên gia. Phân quyền tách bệnh nhân và chuyên gia. Ghi log request, phiên bản rule/model, dữ liệu nguồn, kết quả validator và hành động duyệt; không ghi secret hay PII thật.
+## 7. Tính năng và tiêu chí nghiệm thu
 
-## 7. Luồng nghiệp vụ chính
+### FR-01. Đăng nhập và phân quyền
 
-1. Chuyên gia đăng nhập, chọn/tạo hồ sơ mô phỏng.
-2. Hệ thống kiểm tra đủ hồ sơ lâm sàng, nhân trắc, dị ứng/thuốc và sở thích.
-3. Agent parse yêu cầu và chọn món/gram từ CSDL.
-4. Clinical core tính dinh dưỡng; validator kiểm tra ngưỡng, dị ứng, tương tác.
-5. Không đạt: điều chỉnh/sinh lại; đạt: tạo bản nháp và đưa vào hàng đợi.
-6. Chuyên gia xem nguồn, sửa nếu cần, duyệt hoặc từ chối.
-7. Bệnh nhân chỉ xem bản đã duyệt và có thể gửi phản hồi.
+**Mô tả:** cung cấp phiên đăng nhập cho bốn vai trò; mỗi API kiểm tra vai trò và phạm vi hồ sơ.
 
-## 8. Dữ liệu và yêu cầu kỹ thuật
+**Luồng:** thông tin đăng nhập -> xác thực -> phiên/token -> kiểm tra quyền -> cho phép hoặc từ chối.
 
-- Nguồn thực phẩm ưu tiên NIN/Bảng thành phần thực phẩm Việt Nam 2007, sau đó USDA; dữ liệu ước tính phải gắn nhãn `estimated` và công thức.
-- Các bảng tối thiểu: `patients`, `clinical_profiles`, `foods/dishes`, `drug_food_interactions`, `clinical_rules`, `meal_plans`, `meal_items`, `approvals`, `audit_logs`.
-- API: `GET /health`, `GET /api/v1/status`, `POST /api/v1/chat`; bổ sung endpoint hồ sơ, tạo thực đơn, duyệt/từ chối theo schema Pydantic.
-- Backend FastAPI/Python; LangGraph/LangChain; PostgreSQL + pgvector (SQLite cho dev); frontend Next.js.
-- Mọi số phải được tính ngoài LLM; clinical core không import LLM.
+**Nghiệm thu:**
 
-## 9. Phi chức năng
+- Bệnh nhân không truy cập được draft/rejected hoặc hồ sơ người khác.
+- Người chăm sóc chỉ thấy hồ sơ được cấp quyền.
+- Chỉ chuyên gia được duyệt/từ chối.
+- Truy cập trái quyền trả lỗi phù hợp và có security log không chứa secret.
 
-- **An toàn:** fail-closed, xác thực/phân quyền, mã hóa khi truyền, không lưu dữ liệu thật.
-- **Truy vết:** 100% kết quả có nguồn và phiên bản dữ liệu/rule.
-- **Hiệu năng:** phản hồi tạo bản nháp mục tiêu < 30 giây; thao tác UI thông thường < 2 giây (không tính LLM).
-- **Độ tin cậy:** lỗi LLM/DB không tạo hoặc phát hành thực đơn; retry có giới hạn và thông báo rõ.
-- **Kiểm thử:** unit test clinical core, integration test graph/API, red-team tương tác thuốc và test phân quyền trong CI.
+### FR-02. Quản lý hồ sơ mô phỏng
 
-## 10. Kế hoạch 5 tuần
+**Mô tả:** chuyên gia tạo hồ sơ nền; bệnh nhân/người chăm sóc bổ sung sở thích trong phạm vi cho phép.
+
+**Luồng:** form -> kiểm tra schema/đơn vị -> chuẩn hóa tên thuốc -> lưu phiên bản -> audit event.
+
+**Nghiệm thu:**
+
+- Chặn tạo thực đơn nếu thiếu nhân trắc, mức hoạt động, bệnh trọng tâm, danh sách thuốc hoặc xác nhận dị ứng.
+- Huyết áp/xét nghiệm có đơn vị, thời điểm và nguồn.
+- Biệt dược phải được ánh xạ sang hoạt chất và xác nhận; không ghép được thì chuyển review.
+- Hồ sơ có bệnh ngoài phạm vi được gắn `needs_expert_review`.
+- Mọi hồ sơ demo có nhãn `synthetic`, không chứa PII thật.
+
+### FR-03. Tính định mức xác định
+
+**Mô tả:** clinical core tính BMR/TDEE và mục tiêu theo hồ sơ, mục tiêu chuyên gia và rule tim mạch đã xác minh.
+
+**Luồng:** hồ sơ hợp lệ + rule version -> clinical core -> `ClinicalTargets`, `rule_ids`, `guideline_refs`, cờ xung đột.
+
+**Nghiệm thu:**
+
+- Cùng input và rule version luôn cho cùng kết quả.
+- Mức natri tham chiếu mặc định dưới 2.000 mg/ngày; chuyên gia chỉ ghi đè khi có lý do và nguồn.
+- Năng lượng, protein, carbohydrate, chất béo, chất xơ và natri có đơn vị rõ ràng.
+- Không tự động khuyên tăng kali khi thiếu thông tin chức năng thận, kali máu hoặc thuốc gây tăng kali.
+- Thiếu dữ liệu, rule chưa xác minh hoặc xung đột phải fail-closed/chuyển chuyên gia.
+- Clinical core không gọi LLM.
+
+### FR-04. Tra cứu thực phẩm/món ăn có nguồn
+
+**Luồng:** truy vấn -> chuẩn hóa alias -> SQL search -> lọc độ đầy đủ và nguồn -> ứng viên.
+
+**Nghiệm thu:**
+
+- Mỗi ứng viên có ID, trạng thái sống/chín, đơn vị, nguồn và phiên bản.
+- Không tự gộp món trùng tên nhưng khác cách chế biến.
+- Gia vị, nước chấm và nước dùng phải được tính như thành phần.
+- Thiếu natri thì không được kết luận món/thực đơn đạt ngưỡng natri.
+- Bản ghi `estimated` có nhãn và công thức, bắt buộc chuyên gia xem.
+
+### FR-05. Sinh thực đơn nháp
+
+**Mô tả:** LangGraph chọn món Việt và gram từ danh sách ứng viên theo mục tiêu, sở thích, vùng miền, dị ứng và ngân sách nếu có.
+
+**Luồng:** hồ sơ + targets + ứng viên + feedback lần trước -> LLM structured output -> ID + gram theo bữa.
+
+**Nghiệm thu:**
+
+- Output LLM chỉ có `food_id`/`dish_id`, gram và bữa; không có kcal/natri/protein.
+- ID lạ hoặc gram ngoài giới hạn bị từ chối.
+- V1 tạo thực đơn một ngày; bảy ngày là stretch.
+- Không có ứng viên an toàn thì báo không có lời giải, không tự bịa món.
+- Lưu model, prompt và dataset version.
+
+### FR-06. Tính dinh dưỡng
+
+**Luồng:** menu IDs + gram -> food/recipe DB -> quy đổi trên 100 g -> tổng theo món/bữa/ngày -> `NutritionSummary` + `sources[]`.
+
+**Nghiệm thu:**
+
+- 100% số hiển thị truy về được bản ghi nguồn.
+- Cùng menu và dataset version cho cùng kết quả.
+- Không dùng giá trị do LLM sinh trong phép tính.
+- Thiếu chất cần cho hard rule phải trả `incomplete_data`, không coi là 0.
+- Sửa gram phải tính lại ngay mà không gọi LLM.
+
+### FR-07. Validator an toàn tim mạch
+
+**Mô tả:** kiểm tra năng lượng, natri, chất béo/chất xơ theo rule đã duyệt, dị ứng, tương tác thuốc và dữ liệu thiếu.
+
+**Nghiệm thu:**
+
+- Vượt hard limit, có dị ứng hoặc tương tác nghiêm trọng thì chặn phát hành.
+- Mỗi violation có actual, limit, unit, severity, message, suggestion và nguồn/rule.
+- Cảnh báo kali xét thuốc ACEi/ARB/thuốc giữ kali và thông tin thận nếu có; thiếu thì chuyển review.
+- Không đưa ra kết luận điều chỉnh thuốc.
+- Rule ngoài phạm vi không tự kích hoạt như một phác đồ điều trị.
+
+### FR-08. Tự điều chỉnh có giới hạn
+
+**Luồng:** violations -> feedback có cấu trúc -> sinh lại -> tính lại -> kiểm tra lại.
+
+**Nghiệm thu:**
+
+- Tối đa ba lần, có thể cấu hình.
+- Mỗi lần đều tính lại từ database và lưu lịch sử.
+- Hết lượt còn hard violation thì `needs_expert_review`, không phát hành.
+- Không được hạ ngưỡng lâm sàng để làm menu pass.
+
+### FR-09. Duyệt Human-in-the-Loop
+
+**Luồng:** draft -> review queue -> thao tác chuyên gia -> tính/kiểm tra lại -> approved/rejected/revision_required.
+
+**Nghiệm thu:**
+
+- Chỉ `approved` mới hiển thị cho bệnh nhân/người chăm sóc.
+- Khóa nút duyệt nếu còn hard violation hoặc thiếu nguồn bắt buộc.
+- Override cảnh báo mềm phải có lý do.
+- Lưu người duyệt, thời điểm, thay đổi trước/sau và mọi phiên bản liên quan.
+- Tiếp tục được phiên review sau gián đoạn; có fallback trạng thái DB.
+
+### FR-10. Xem và giải thích thực đơn đã duyệt
+
+**Luồng:** approved plan + sources + guideline chunks -> diễn giải có ràng buộc -> UI.
+
+**Nghiệm thu:**
+
+- Chỉ dùng số đã tính và nội dung guideline truy xuất được.
+- Hướng dẫn nấu không đổi nguyên liệu/gram đã duyệt.
+- Ưu tiên hành động cụ thể: giảm nước chấm, không chan nước dùng, đọc nhãn natri, hạn chế gia vị mặn và thực phẩm siêu chế biến.
+- Disclaimer y tế luôn hiển thị.
+
+### FR-11. Nhật ký ăn uống và phản hồi
+
+**Luồng:** món + gram/thời gian -> tìm ID -> tính -> tổng ngày -> cảnh báo/báo cáo.
+
+**Nghiệm thu:**
+
+- Món trong DB tính từ ID; món ngoài DB không được tự bịa số.
+- Cho phép đánh dấu không rõ khẩu phần.
+- Tổng natri ngày có trạng thái đầy đủ/không đầy đủ.
+- Cảnh báo nghiêm trọng đi vào hàng đợi chuyên gia.
+- Lưu phản hồi về độ no, khẩu vị, khả năng mua và lý do không tuân thủ.
+
+### FR-12. Tương tác thuốc - thực phẩm
+
+**Luồng:** biệt dược -> ứng viên hoạt chất -> xác nhận -> tra cứu xác định -> cảnh báo có cấu trúc.
+
+**Nghiệm thu:**
+
+- Không tự chấp nhận ánh xạ thuốc mơ hồ.
+- Mỗi cảnh báo có thuốc, thực phẩm/chất, mức độ, cơ chế, hành động và nguồn.
+- Recall cho tương tác nghiêm trọng cao trong red-team đạt tối thiểu 90%; đồng thời báo cáo precision.
+- Luôn khuyên trao đổi với bác sĩ, không thay đổi thuốc.
+
+### FR-13. Audit và quản lý phiên bản
+
+**Nghiệm thu:**
+
+- Meal plan gắn profile, rule, dataset, recipe, model và prompt version.
+- Log generate, compute, validate, retry, review và publish.
+- Audit event append-only ở tầng ứng dụng.
+- Không ghi token, mật khẩu, API key hoặc PII thật.
+
+### FR-14. Quản trị dữ liệu và rule
+
+**Nghiệm thu:**
+
+- Chặn import khi thiếu nguồn, trùng định danh hoặc giá trị ngoài miền hợp lý.
+- Chỉ kích hoạt rule có `verify_status=verified` và guideline reference cụ thể.
+- Thay đổi tạo phiên bản mới, không sửa ngầm kết quả lịch sử.
+- Có thể quay về phiên bản trước mà không xóa audit.
+
+## 8. Luồng nghiệp vụ end-to-end
+
+1. Chuyên gia tạo/chọn hồ sơ mô phỏng tăng huyết áp/tim mạch.
+2. Bệnh nhân/người chăm sóc bổ sung sở thích, dị ứng, vùng miền, thực phẩm sẵn có và ngân sách tùy chọn.
+3. Hệ thống kiểm tra hồ sơ, ánh xạ thuốc sang hoạt chất và yêu cầu xác nhận.
+4. Clinical core tính mục tiêu kèm rule/source.
+5. Agent lấy ứng viên có đủ dữ liệu và chỉ sinh ID + gram.
+6. Clinical core tính mọi giá trị; validator kiểm tra dinh dưỡng, dị ứng và tương tác.
+7. Menu vi phạm được sinh lại tối đa ba lần; còn lỗi thì chuyển chuyên gia.
+8. Chuyên gia xem nguồn, sửa, tính lại, duyệt hoặc từ chối.
+9. Bệnh nhân chỉ nhận thực đơn đã duyệt và ghi nhật ký thực tế.
+10. Hệ thống tổng hợp nhật ký để chuyên gia xem lại và cập nhật mục tiêu.
+
+## 9. Yêu cầu phi chức năng
+
+### NFR-01. An toàn
+
+- Fail-closed khi thiếu dữ liệu, nguồn, rule hoặc kết quả không chắc chắn.
+- Không tự động phát hành.
+- Chặn chẩn đoán, kê đơn và điều chỉnh thuốc.
+- Cảnh báo có mức độ và hành động rõ ràng, tránh alert fatigue.
+
+### NFR-02. Truy vết và tái lập
+
+- 100% số dinh dưỡng hiển thị có nguồn.
+- Cùng input và phiên bản phụ thuộc tái lập cùng kết quả tính.
+- Không sửa/xóa dấu vết quyết định đã phát hành.
+
+### NFR-03. Bảo mật và riêng tư
+
+- MVP chỉ dùng dữ liệu mô phỏng; RBAC và least privilege.
+- TLS khi truyền; secret qua biến môi trường/secret manager.
+- Không đưa thông tin định danh vào prompt/log.
+- Trước pilot dữ liệu thật phải có đồng ý, đánh giá đạo đức và tuân thủ Nghị định 13/2023/NĐ-CP.
+
+### NFR-04. Hiệu năng và độ tin cậy
+
+- API/UI thông thường: mục tiêu p95 dưới 2 giây, không tính LLM.
+- Tạo menu nháp: mục tiêu dưới 30 giây trong điều kiện demo.
+- Sửa gram tính lại không cần LLM.
+- Retry có giới hạn và idempotency; lỗi LLM/DB/RAG không tạo trạng thái approved.
+
+### NFR-05. Khả dụng và kiểm thử
+
+- Giao diện tiếng Việt, đơn vị quen thuộc, cảnh báo không chỉ dựa vào màu.
+- Unit test clinical core; integration test graph/API/RBAC/HITL.
+- Data validation trong CI.
+- Red-team ép bịa số, bỏ qua dị ứng, chẩn đoán và đổi thuốc.
+
+## 10. KPI và đánh giá
+
+| Mã | Chỉ số | Mục tiêu | Cách đo |
+|---|---|---:|---|
+| RQ1-M1 | Giá trị dinh dưỡng có nguồn hợp lệ | 100% | Toàn bộ output/log eval |
+| RQ1-M2 | Menu pass rule lần đầu | >= 70% | Bộ hồ sơ mô phỏng chuẩn hóa |
+| RQ1-M3 | Menu pass sau tối đa 3 lần | >= 95% | Agent/validator log |
+| RQ1-M4 | Sai lệch năng lượng so với mục tiêu | trong +/-10% | Clinical core |
+| RQ2-M1 | Duyệt không sửa hoặc sửa nhẹ dưới 10% gram | >= 70% | So sánh draft/approved |
+| RQ2-M2 | Thời gian duyệt trung bình | <= 2 phút | Tối thiểu 10 lượt trên UI |
+| RQ5-M1 | Recall tương tác nghiêm trọng cao | >= 90% | Red-team gắn nhãn |
+| SAFE-M1 | Phát hiện dị ứng trong test | 100% | Test tự động |
+| SAFE-M2 | Chặn chẩn đoán/đổi thuốc | >= 95% | Prompt red-team |
+
+Kết quả thực tế phải ghi tại `eval/results/report.md`, gồm cỡ mẫu, phiên bản dữ liệu/rule/model, case thất bại và giới hạn. Không thay mục tiêu bằng kết quả khi chưa đo.
+
+## 11. Phạm vi phát hành
+
+### 11.1. V1 bắt buộc
+
+- Hồ sơ mô phỏng và RBAC.
+- Clinical core tăng huyết áp/tim mạch.
+- Food DB có nguồn, ưu tiên natri/gia vị/nước chấm.
+- Menu một ngày, compute, validate và retry.
+- Dị ứng và tương tác thuốc tim mạch curated.
+- Dashboard HITL và màn hình bệnh nhân xem bản approved.
+- Nhật ký ăn uống có tổng natri.
+- Audit, eval và deploy demo.
+
+### 11.2. Stretch
+
+- Phân rã mâm cơm bằng mô tả text, đối chiếu tối thiểu năm kịch bản chuyên gia.
+- Ràng buộc ngân sách với giá thực phẩm có ngày/nguồn.
+- Thực đơn bảy ngày, shopping list và biểu đồ xu hướng.
+
+### 11.3. V2/V3
+
+- Ảnh và ước tính khẩu phần; voice/TTS; đọc đơn thuốc từ ảnh.
+- InBody/BIA, wearable, HealthKit/Health Connect và bệnh án điện tử.
+- Dữ liệu bệnh nhân thật, nghiên cứu outcome và pilot tại bệnh viện.
+- Hỗ trợ đái tháo đường type 2, CKD, gout và đa bệnh lý.
+
+## 12. Lộ trình 6 tuần
 
 | Tuần | Kết quả bắt buộc |
 |---|---|
-| 1 | Chốt schema, rule, nguồn dữ liệu, seed mô phỏng và API hồ sơ |
-| 2 | Hoàn thiện clinical core, validator, tương tác thuốc và test hồi quy |
-| 3 | Tích hợp LangGraph, structured output, retry/fail-closed, audit log |
-| 4 | UI bệnh nhân/chuyên gia, hàng đợi HITL, gọi API end-to-end |
-| 5 | Eval 60 hồ sơ, red-team, bảo mật, deploy, demo và tài liệu |
+| 1 | Schema, nguồn, rule tim mạch, seed mô phỏng, CI và health-check deploy |
+| 2 | Clinical core, validator, dữ liệu natri, API hồ sơ/targets và unit test |
+| 3 | LangGraph, output ID + gram, compute, retry, guardrail và audit |
+| 4 | HITL, RBAC, nhật ký và demo end-to-end |
+| 5 | Tương tác thuốc, RAG giải thích và hoàn thiện UI; stretch chỉ khi luồng chính ổn định |
+| 6 | Eval, red-team, expert review, sửa lỗi, deploy, video, pitch và code freeze |
 
-## 11. Rủi ro và quyết định
+## 13. Rủi ro chính
 
-- **Thiếu/không đồng nhất dữ liệu món Việt:** gắn nguồn từng dòng, đánh dấu ước tính, review R2 trước merge.
-- **LLM hallucination:** schema giới hạn food_id + gram; mọi số do Python/SQL tính.
-- **Xung đột guideline:** rule precedence được cấu hình và hiển thị cho chuyên gia; nghi ngờ thì chặn.
-- **Trách nhiệm y khoa:** disclaimer, dữ liệu mô phỏng, HITL bắt buộc; không dùng production cho bệnh nhân thật trong MVP.
-- **Scope creep:** ưu tiên luồng tạo–kiểm tra–duyệt–xem; ảnh và wearable để phiên bản sau.
+| Rủi ro | Biện pháp |
+|---|---|
+| Dữ liệu món Việt thiếu/sai natri | Ưu tiên gia vị, nước chấm và nước dùng; nguồn từng dòng; data/expert review |
+| Rule chưa xác minh | Chỉ kích hoạt rule verified; ghi phiên bản guideline; fail-closed |
+| LLM bịa số/ID | Schema chỉ ID + gram; reject ID lạ; mọi số do Python/SQL tính |
+| Ánh xạ sai tên thuốc | Xác nhận hoạt chất; không match thì review; bảng curated có nguồn |
+| Nguy cơ tăng kali do thuốc/bệnh thận | Không mặc định tăng kali; kiểm tra thuốc/renal flag; chuyển chuyên gia |
+| Cảnh báo quá nhiều | Severity có nghĩa, hành động cụ thể, interaction được curate |
+| Không đủ thời gian | Ưu tiên generate-compute-validate-review-publish; cắt stretch trước |
+| Tuyên bố quá mức | Chỉ báo cáo kết quả trên dữ liệu mô phỏng; không tuyên bố giảm huyết áp |
 
-## 12. Tiêu chí hoàn thành (Definition of Done)
+## 14. Definition of Done
 
-- Luồng F1–F6 chạy được từ API/UI với dữ liệu mô phỏng.
-- `make check` xanh; dữ liệu qua `scripts/validate_data.py`.
-- Bộ eval có báo cáo số liệu thực, không để placeholder `__`/`[VERIFY]`.
-- Có bằng chứng 100% số hiển thị truy xuất được nguồn và test tương tác đạt KPI.
-- Deploy được backend/frontend, có health check, README và video/pitch demo cập nhật.
+MVP chỉ hoàn thành khi:
+
+- FR-01 đến FR-13 chạy end-to-end trên API/UI; FR-14 có quy trình validate/kích hoạt tối thiểu.
+- Không có đầu vào, output, rule hoặc màn hình nào mô tả đái tháo đường type 2 như bệnh được MVP hỗ trợ.
+- Bệnh nhân không thể xem thực đơn chưa `approved`.
+- Mọi số dinh dưỡng hiển thị có nguồn và tái lập được.
+- Không hard violation nào được phát hành.
+- Eval có kết quả thật, case thất bại và giới hạn; không còn placeholder.
+- `make check` và data validation chạy thành công trong CI.
+- Backend/frontend deploy được, health check hoạt động và tài liệu demo phản ánh đúng phạm vi.
+
+## 15. Tài liệu liên quan
+
+- `KeHoachDuAn_VNutriCare_VMEC10_v3.docx`: bối cảnh, luồng đối tượng/dữ liệu, RQ, bằng chứng và lộ trình.
+- `brief.md`: định vị tăng huyết áp/tim mạch và phạm vi cắt gọn.
+- `docs/ARCHITECTURE.md`: kiến trúc và hợp đồng kỹ thuật.
+- `docs/NGHIEN_CUU_BO_SUNG.md`, `docs/NGHIEN_CUU_BO_SUNG_v2.md`: bằng chứng, dataset và điểm cần xác minh.
+- `data/README.md`: trạng thái dữ liệu, nguồn và quy trình nhập.
+- `docs/TICKETS.md`: backlog triển khai.
+- `UI_flow.md`: luồng màn hình; cần cập nhật riêng nếu không còn khớp PRD này.
