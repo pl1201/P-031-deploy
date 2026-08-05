@@ -159,7 +159,7 @@ class FoodItem(BaseModel):
     id: int
     name_vi: str
     aliases: list[str] = Field(default_factory=list)
-    kcal_100g: float = Field(ge=0, le=900)
+    kcal_100g: float = Field(ge=0, le=920)  # mỡ/dầu tinh ~884-902 kcal/100 g
     protein_g: float = Field(ge=0, le=90)
     carb_g: float = Field(ge=0, le=100)
     fat_g: float = Field(ge=0, le=100)
@@ -173,10 +173,14 @@ class FoodItem(BaseModel):
             "năng lượng). None khi nguồn không tách được đường ra khỏi carb tổng."
         ),
     )
-    na_mg: float = Field(ge=0, le=25000)
+    na_mg: float = Field(ge=0, le=40000)  # trần ~muối tinh (NaCl ≈ 38.758 mg Na/100 g)
     k_mg: float = Field(ge=0, le=5000)
     p_mg: float = Field(ge=0, le=2000)
-    purine_mg: float = Field(ge=0, le=1000)
+    # Purine chỉ cần cho GOUT và KHÔNG có trong NIN → optional (giống sugar_g/gi).
+    # None = chưa có nguồn purine; menu engine suy giảm mềm + cảnh báo cho ca gout.
+    # purine đến từ nguồn RIÊNG (USDA/ODS-NIH Purine DB) nên có source_ref riêng (RULE-2).
+    purine_mg: float | None = Field(default=None, ge=0, le=1000)
+    purine_source_ref: str | None = None
     gi_index: float | None = Field(default=None, ge=0, le=110)
     # GI có nguồn RIÊNG, tách khỏi kcal/natri (thường là Atkinson 2021 hoặc Mai 2001
     # cho món Việt) — nên cần source_ref của chính nó để giữ RULE-2.
@@ -286,6 +290,9 @@ class NutritionSummary(BaseModel):
     k_mg: float
     p_mg: float
     purine_mg: float
+    # Chỉ cộng các món có purine_mg. False = có món thiếu số liệu purine → tổng bị
+    # thiếu hụt, rule gout KHÔNG được coi đây là "đạt ngưỡng".
+    purine_is_complete: bool = True
     # Tổng đường (đường tự do WHO cho ĐTĐ2). Chỉ cộng các món có sugar_g.
     # `sugar_is_complete=False` nghĩa là có món thiếu số liệu đường → tổng bị
     # thiếu hụt, rule đường tự do KHÔNG được coi đây là "đạt ngưỡng".

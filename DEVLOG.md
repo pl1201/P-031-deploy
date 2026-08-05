@@ -60,6 +60,101 @@
 - **Vướng:** vẫn chưa chốt được nguồn Bảng thành phần thực phẩm VN (DAT-01) — rủi ro RSK-01 còn nguyên
 - **Tiếp theo:** SET-01→06 (R3), DAT-00 + DAT-01 (R2), nhập 152 dòng thực phẩm chia 4 người
 
+### [2026-08-02] · R2 Clinical & Data · DAT-02 — gỡ đường găng: fetcher NIN + bản nháp food_items
+- **Làm:** Tìm ra **API công khai Viện Dinh dưỡng** (`/api/fe/foodNatunal/getPageFoodData`, 853 món, đủ chất trừ purine). Viết `scripts/fetch_nin_foods.py` + `scripts/build_food_items_from_nin.py` (khớp token-subset + neo đầu). Sinh `data/seeds/food_items.nin_draft.csv`: **107/152 dòng có dữ liệu NIN thật** (kcal/protein/carb/fat/xơ/đường/Na/K/P), mỗi dòng có `match_confidence` + `nin_name` để R2 soát
+- **Schema:** `purine_mg` → **optional** (None-aware như sugar), vì NIN/USDA không có purine và chỉ gout cần. Validator có guard `incomplete_data` cho gout
+- **Kết quả:** 70 test xanh, ruff + format sạch, validate_data sạch. Bản nháp bắt được cả lỗi khớp (VD 'Đường trắng' từng khớp nhầm sữa có đường → đã neo đầu để loại)
+- **Promote:** đã sinh `food_items.csv` sản xuất — **59 dòng hoàn chỉnh** (đủ kcal/đạm/carb/béo/xơ/Na/K/P + GI merge), validate sạch. Chỉ nhận dòng NIN đủ khoáng chất; NIN thiếu Na/K/P thì để trống cho R2. Bỏ sugar khi NIN báo sugar>carb (mâu thuẫn dữ liệu, không bịa)
+- **Còn 93 dòng trống:** món nấu chín (cơm/xôi/cháo — cần ước tính), NIN thiếu khoáng, và món chưa khớp tên. R2/USDA bổ sung
+- **Tiếp theo:** ✅ đã probe API *món ăn* NIN (DAT-04, xem dưới); còn purine từ bảng Nhật; ước tính món nấu chín
+
+### [2026-08-03] · R2 Clinical & Data · Khẩu phần chuẩn + PHÁT HIỆN dữ liệu món ăn NIN không đáng tin
+- **Làm:** Tìm khẩu phần chuẩn (VN/Mỹ) → `data/seeds/serving_sizes.csv` (phở/bún 1 bát ~500g, bát cơm ~150g…)
+- **🔴 Phát hiện quan trọng:** dữ liệu API *món ăn* NIN **KHÔNG dùng được cho ngưỡng muối lâm sàng**. Cùng "Phở bò": kcal dao động **276–826/100g** (vô lý — bát ăn thực ~70 kcal/100g), muối **0,01–6,7 g/100g**. Nhân với bất kỳ khối lượng bát nào cũng ra muối phi lý (0,8–33 g/bát)
+- **Quyết định (DEC-013):** **KHÔNG seed dishes.csv từ số per-món của NIN.** Quay lại kế hoạch gốc DAT-04: LLM phân rã món → nguyên liệu → tính bằng SQL từ `food_items.csv` (nước mắm Na=7720 đáng tin). Test hồi quy muối tính từ nguyên liệu, không tin số món NIN
+- **Tiếp theo:** DAT-04 theo hướng phân rã nguyên liệu; wiring agent cần Gemini key
+
+### [2026-08-03] · R1 Agent · Nối GeminiMenuGenerator vào graph — luồng 8-node chạy đầu-cuối ✅
+- **Làm:** `src/agents/assembly.py` — ráp cổng cụ thể vào `build_graph`: `load_food_repository` (seed), `GeminiMenuGenerator`, `InMemoryProfileRepository`, `SimpleFallbackProvider`. Hàm `build_nutricare_graph()`
+- **Kết quả:** **Chạy thật qua graph với Gemini** — status=`pending_review` (happy path): Gemini chọn 16 món → Python tính 1926 kcal/Na 608mg (~1,54g muối) → 1 vi phạm mềm → tới bước duyệt HITL. `tests/test_graph_e2e.py` (generator giả, CI không cần key) chứng minh 8 node chạy thông. 78 test xanh
+- **Ghi chú:** LangSmith báo 403 (key tracing trong .env không hợp lệ) — vô hại, graph vẫn chạy. Sẵn sàng quay video demo
+- **Tiếp theo:** merge PR lớn vào develop
+
+### [2026-08-05] · R1 Agent · AGT-09 — CPSATMenuOptimizer (OR-Tools CP-SAT thay vòng lặp sinh-rồi-thử của LLM)
+- **Làm:** `src/agents/optimizer.py` — implement thẳng `Protocol MenuGenerator` bằng OR-Tools CP-SAT, không gọi LLM (`LLM: NO`, R20.1). Model: biến IntVar gram (bước 25g) + BoolVar chọn/không-chọn cho mỗi món trong `candidates`, ràng buộc tuyến tính lấy động từ mọi nutrient có ngưỡng trong `ClinicalTargets.targets` (kcal/protein/carb/fat/xơ/Na/K/P/purine/đường), chia định mức cả ngày theo tỉ lệ 4 bữa (sáng 25% / trưa 35% / tối 30% / phụ 10%), tối ưu mục tiêu đưa kcal về giữa khoảng cho phép thay vì chỉ chạm biên
+- **Vì sao:** vòng lặp hiện tại (`generate_menu` → `validate` → `build_feedback` → retry ≤3, AGT-06) tốn tới 3 lượt gọi LLM mà vẫn có thể fallback nếu LLM không đoán trúng. CP-SAT giải trực tiếp — khả thi thì ra kết quả ngay lần đầu, vô nghiệm thì báo ngay (trả `MenuDraft` rỗng, route hiện có tự chuyển fallback, không cần route mới)
+- **POC trước khi code thật:** chạy thử trên `food_items.csv` thật (`scripts/poc_cpsat_menu.py`, không commit — chỉ để nghiên cứu), phát hiện lần đầu solver trả UNKNOWN dù bài toán khả thi vì chi phí nạp thư viện native OR-Tools trong sandbox tốn ~8s cố định (đo `deterministic_time` thực chỉ ~0.003s) — phải nới trần thời gian solve lên 20-30s để không bị cắt giữa chừng
+- **Hạn chế đã biết (ghi trong docstring module):** chia 4 bữa theo tỉ lệ cố định thay vì tối ưu đồng thời 1 model lớn (đơn giản hơn, chưa tối ưu toàn cục); `FoodItem` chưa có `category` nên chưa ép được ràng buộc kiểu "phải có món nhóm rau" — cần thêm cột đó vào model trước (việc khác)
+- **Kết quả:** 3 test mới (`tests/test_cpsat_optimizer.py`) — khả thi trên dữ liệu thật, rỗng khi không có ứng viên, rỗng khi vô nghiệm. 81 test xanh, ruff+format+mypy sạch. Thêm `ortools>=9.11.0` vào `requirements.txt`
+- **Tiếp theo:** nối `CPSATMenuOptimizer` vào `build_nutricare_graph()` như một lựa chọn generator (song song `GeminiMenuGenerator`, chọn theo cấu hình) — chưa làm trong ticket này để giữ PR gọn
+
+### [2026-08-05] · R1 Agent · AGT-10 — Nối CP-SAT vào graph + 2 phát hiện đo được về solver
+- **Làm:** (a) Gộp CP-SAT thành **một model cả ngày** (biến theo cặp bữa×món, ràng buộc dinh dưỡng trên tổng ngày, chỉ số món còn theo bữa); (b) `src/agents/hybrid.py` — `HybridMenuGenerator`: lượt đầu CP-SAT, chuyển Gemini khi vô nghiệm hoặc khi đã có feedback; (c) `settings.menu_generator` (`hybrid`/`cpsat`/`gemini`, mặc định `hybrid`) cho `assembly.py` chọn generator
+- **Vì sao bỏ chia tỉ lệ 25/35/30/10:** cách cũ bắt MỖI bữa tự thoả `tỉ_lệ × min` cho MỌI chất, nên bữa phụ (10%) phải tự gánh 10% chất xơ + 10% đạm → dễ vô nghiệm; slot đó trả rỗng làm tổng ngày hụt → `validate` báo vi phạm ngưỡng tối thiểu. Đây là lỗi hệ thống chứ không phải ca hiếm
+- **🔴 Phát hiện 1 — hàm mục tiêu làm solver không tìm nổi lời giải:** bản có `Minimize(|kcal − điểm giữa|)` chạy **105 s vẫn trả UNKNOWN** (không tìm được lời giải khả thi NÀO), trong khi bản khả thi thuần xong **0,1 s OPTIMAL** — chênh ~1000 lần. Hàm mục tiêu lái tìm kiếm sang nhánh xấu. Thay bằng **2 pha khả thi**: pha 1 siết năng lượng vào dải ±3% quanh điểm giữa, vô nghiệm thì pha 2 dùng khoảng gốc. Đạt cùng ý định lâm sàng ("vừa đủ, không chạm biên") mà nhanh và tất định
+- **🔴 Phát hiện 2 — sai số làm tròn có thể phá ngưỡng MAX:** CP-SAT chỉ nhận hệ số nguyên, bản đầu làm tròn giá trị/100 g về số nguyên (`protein_g=9.43` → 9, sai −4,6%). Sai số cộng dồn qua ~20 món có thể đẩy tổng **vượt ngưỡng MAX thật** dù solver tin là còn trong ngưỡng. Sửa: giữ 1 chữ số thập phân (`VALUE_SCALE=10`). Đo thực tế cho thấy biên rất sát — ca ĐTĐ2+THA ra `sugar=49,3/49,7` và `fat=65,1/66,3`, đúng chỗ sai số cũ sẽ phá
+- **Kết quả:** graph chạy hết với CP-SAT thật **không cần API key** — `status=pending_review`, `retry_count=1` (xong ngay lượt đầu, không cần vòng lặp retry), **không rơi fallback**, 0,1 s. **Không đổi `graph.py`, không thêm route** — nhờ giữ đúng `Protocol MenuGenerator`
+- **Tiếp theo:** audit độc lập trước khi merge (xem entry kế)
+
+### [2026-08-05] · R1 Agent · AGT-10 hardening — audit ĐỘC LẬP bắt bug làm tròn mà 89 test tự viết bỏ lọt
+- **Bối cảnh:** trước khi merge, chạy **2 agent audit độc lập** (một soi tính đúng đắn CP-SAT, một soi độ đủ test) — cố ý bắt đầu lạnh, không mớm kết luận "code đúng", đúng nguyên tắc tách bạch người viết ≠ người kiểm.
+- **🔴 Bug audit tìm ra (test tôi tự viết KHÔNG bắt được):** `VALUE_SCALE=10` làm tròn `round()` đối xứng, cộng với giải khả thi thuần (không hàm mục tiêu) đặt tổng ĐÚNG SÁT ngưỡng → sai số làm tròn cộng dồn đẩy tổng **thật** (do `compute_nutrition` tính) ra ngoài ngưỡng. Auditor quét 126 hồ sơ → **11 thực đơn** bị `validate_menu` gắn cờ, cả min lẫn max, gồm **hard rule** (chất xơ, carb, chất béo, đường). Test cũ chỉ dùng 1 hồ sơ ĐTĐ2 tình cờ an toàn nên pass giả.
+- **Vì sao "2 phát hiện" của entry trên vẫn chưa đủ:** phát hiện 2 tôi tự nghĩ đã "sửa" bằng `VALUE_SCALE=10`, nhưng đó chỉ **giảm** sai số chứ không **loại**. Bản chất: round() đối xứng không có bảo đảm hướng.
+- **Cách sửa (có chứng minh toán học, không phải nới magic number):** làm tròn **CÓ HƯỚNG** — ngưỡng MAX dùng hệ số `ceil` + ngưỡng `floor` (mô hình ước lượng tổng CAO hơn thật ⇒ thật ≤ ngưỡng); ngưỡng MIN dùng hệ số `floor` + ngưỡng `ceil` (thật ≥ ngưỡng). Đảm bảo đúng **bất kể** VALUE_SCALE. Nutrient có cả 2 phía (carb, kcal) dùng 2 biểu thức riêng.
+- **Bug thứ 2 lộ ra khi sửa:** `compute_nutrition` **làm tròn tổng về 2 chữ số** rồi `validate_menu` mới so — nên hợp đồng thật là giá trị ĐÃ tròn. Thêm `SUMMARY_ROUND_MARGIN=0,005` siết ngưỡng để bù. Sau đó quét **168 hồ sơ** (thêm gout): **0 vi phạm, 0 blocking** (24 ca vô nghiệm là gout thật — purine lọc còn quá ít món, hybrid chuyển LLM).
+- **Lỗ hổng test audit chỉ ra (đã đóng):** thêm test hồi quy 6 hồ sơ **đã kiểm chứng fail dưới bản cũ** (fixed→pass, buggy→4/6 fail, chứng minh bằng cách áp lại bản buggy); test `_eligible_candidates` loại món thiếu purine (RULE-2); test 2 pha (monkeypatch `_try_solve`); test `_generator_from_settings` cả 3 nhánh config; mạnh hóa assert lỏng (`test_graph_chay_het_8_node` → pin `pending_review`+`used_fallback`+`retry=3`; đủ 4 bữa; memoize lazy-init LLM); thêm e2e "CP-SAT vô nghiệm → fallback qua graph thật".
+- **Bài học:** agent viết code/test không được tự chấm bài mình. 2 audit độc lập bắt 1 bug đúng (hard rule, ảnh hưởng bệnh nhân thật) + ~10 lỗ hổng test mà pipeline "89 test xanh" hoàn toàn che.
+- **Kết quả:** **102 test xanh**, ruff+format+mypy sạch (mypy còn 3 lỗi baseline: thiếu stub langgraph/pydantic_settings). Fix có test hồi quy khoá lại.
+- **Tiếp theo:** eval runner (EVL-01/02) hoặc quay video demo — MVP giờ demo được không cần key
+
+### [2026-08-03] · R2 Data · Lấp food_items từ USDA — 88 → 111 dòng
+- **Làm:** Tra USDA FDC cho ~32 món NIN thiếu, soát tay bỏ khớp sai (cam→vỏ cam, sữa→phô mai, bí đao→dưa) → `data/seeds/usda_values.csv` **23 món sạch** (cá rô phi, đậu đen/đỏ, cà tím, su hào, mướp đắng, đậu bắp, cam/quýt/bưởi/nhãn, sữa tươi, dầu, mỡ, bơ, lạc, đường…). Build merge USDA làm fallback sau NIN
+- **Kết quả:** food_items.csv **111/152 dòng** có số liệu thật (NIN+USDA+GI+purine+ước tính), validate sạch. Nới trần kcal→920 (mỡ/dầu ~902)
+- **Ghi chú:** lạc rang USDA có muối (Na cao), nấm rơm USDA đóng hộp — đã note; R2 soát. Còn 41 dòng trống (món thuần Việt: tía tô/kinh giới/rau răm/chao/tương/mắm nêm…) cần nguồn khác
+
+### [2026-08-03] · R2 Data · DAT-03 — tích hợp USDA FoodData Central + dò thêm API NIN
+- **Làm:** `scripts/fetch_usda_foods.py` — client USDA FDC (`/fdc/v1/foods/search`, ưu tiên Foundation/SR Legacy). Config `usda_api_key`. Map nutrientId→cột schema (kcal/đạm/carb/béo/xơ/đường/Na/K/P). USDA KHÔNG có purine (đã có DB purine riêng)
+- **Kết quả:** chạy thật OK với key R1 cấp — salmon/tofu trả đủ chất + `source_ref=USDA fdcId:xxx`. Dùng lấp món NIN thiếu; khớp tên cần curate (snakehead→bluefish sai) như NIN
+- **Dò API NIN:** 2 trang còn lại (*nhu cầu*, *đánh giá tình trạng*) là SPA, endpoint dựng động trong JS → cần browser network inspect (đang tạm chặn). Giá trị thấp: ta đã tự tính BMR/TDEE/BMI. 2 API giá trị cao (thực phẩm + món ăn) đã tích hợp
+- **Tiếp theo:** map query USDA cho các món NIN thiếu (giống OVERRIDES) để lấp nốt 64 dòng trống
+
+### [2026-08-03] · R2 Clinical & Data · Gia vị mặn — lấp nốt trục chính bài toán muối
+- **Làm:** MANUAL_FILL 5 gia vị mặn: mì chính (MSG, Na 12280 — hoá học, curated), bột canh (~33000, est), hạt nêm (~17000, est), mắm tôm (Na 4054 từ NIN 13011 + macro est), nước mắm giảm mặn (~4000, est)
+- **Kết quả:** food_items.csv **88 dòng**, validate sạch. Nới trần na_mg→40000 cho muối tinh. Ước tính có ghi rõ "cần đối chiếu nhãn"
+- **Ghi chú:** bột canh/hạt nêm là sản phẩm thương mại (proprietary) → ước tính; R2 nên xác nhận từ nhãn thực tế
+
+### [2026-08-03] · R1 Agent · AGT-04 — MVP end-to-end với Gemini thật ✅
+- **Làm:** `GeminiMenuGenerator` (src/services/llm.py) cài Protocol `MenuGenerator` bằng google-genai structured output — LLM CHỈ trả slot+food_id+grams (schema `_LLMSelection` cố ý không có trường dinh dưỡng, RULE-1). Config 5 GEMINI key + **xoay vòng khi 429**. Sửa llm.py cũ (đang import langchain_openai chưa cài)
+- **Kết quả:** **Chạy thật thành công** — Gemini chọn 8 món → `compute_nutrition` tính 1874 kcal/Na 393mg → validator ra 2 vi phạm (kích hoạt retry loop). 76 test xanh (3 test mock mới), ruff sạch
+- **Phát hiện:** `gemini-2.0-flash` free-tier limit=0 (429 cả 5 key); `gemini-1.5-flash` đã ngừng (404) → **default `gemini-2.5-flash`** (chạy được). Key rotation hoạt động đúng như thiết kế
+- **Lưu ý:** `.env` (có key) nằm ở repo gốc, gitignore — app đọc từ thư mục chạy. CI/test không cần key (đã mock)
+- **Tiếp theo:** nối vào graph (make_generate_menu đã sẵn cổng); khẩu phần chuẩn + gia vị mặn
+
+### [2026-08-03] · R2 Clinical & Data · DAT-04 — phân rã món ăn + test hồi quy muối
+- **Làm:** `dishes.csv` + `dish_ingredients.csv` (phở bò, bún đậu, canh rau muống) — món phân rã thành nguyên liệu (food_id+gram), dinh dưỡng tính bằng `compute_nutrition` (RULE-1, không lưu số của món). Loader `src/clinical/seeds.py`. Điền tay nguyên liệu nền (muối NaCl Na=38758, bún/phở gạo) qua MANUAL_FILL
+- **Kết quả:** **phở bò = 3,58 g muối/bát** — KHỚP mốc nghiên cứu 3,3–4,0 g → xác nhận cả chuỗi (nước mắm NIN + muối USDA + công thức) đúng. Test hồi quy `tests/test_dishes.py`. 73 test xanh. food_items.csv nay 83 dòng
+- **Nới trần:** na_mg 25000→40000 (muối tinh ~38758). Công thức là NHÁP, verified_by=pending — R2 rà
+- **Tiếp theo:** wiring agent với 5 GEMINI key (item 2); thêm món nguy hiểm (bún riêu, bún bò Huế) khi đủ nguyên liệu
+
+### [2026-08-03] · R2 Clinical & Data · Purine (gout) — điền từ USDA/ODS-NIH Purine DB R2.0
+- **Làm:** R1 tải `data/PURINEDATABASEANDDATASOURCES2025.xlsx` (436 món, cột "Total of 4 Purines" mg/100g). Trích + map tay 19 món template (nội tạng/thịt/cá/tôm/cua/mực/ngao/nấm/đậu) → `data/seeds/purine_values.csv`
+- **Provenance:** thêm cột `purine_source_ref` (nguồn RIÊNG, khác NIN — RULE-2); model FoodItem + validate_data ép mỗi trị purine phải dẫn nguồn USDA + mô tả món gốc
+- **Kết quả:** gan lợn 289, cá thu 194, tôm 166.5, đậu phụ 31.1… merge vào food_items.csv. 70 test xanh, validate sạch (19 trị purine). Nấm hương ghi rõ trị TƯƠI 23.1 (khô cao gấp ~13 lần)
+- **Tiếp theo:** dishes.csv cần khẩu phần chuẩn (đang tìm nghiên cứu VN/Mỹ)
+
+### [2026-08-02] · R2 Clinical & Data · DAT-04 (probe) — API món ăn NIN
+- **Làm:** Tìm ra API **`/api/fe/tool/getPageFoodData`** — **1250 món ăn Việt** kèm dinh dưỡng/100g: kcal, đạm, béo, carb, **Natri + tương đương muối (g)**, Kali, xơ, cholesterol. Viết `scripts/fetch_nin_dishes.py` (tái lập). KHÔNG có purine; `dish_components` (công thức) để trống
+- **Kết quả:** có đủ nhóm món "nguy hiểm" natri của đề bài. VD **Bún riêu cua: Na 2176mg = 5,44g muối/bát** (vượt trần WHO 5g/ngày chỉ với 1 bát) — đúng thông điệp muối của dự án
+- **Tiếp theo:** dựng `dishes.csv` (DAT-04) từ API, chọn ~80 món + test hồi quy muối (phở bò 3,3–4,0g); purine (DAT gout)
+- **Thời gian:** ~2h
+
+### [2026-08-02] · R2 Clinical & Data · DAT-08b — trích Atkinson Suppl. Table 1 (GI quả/staple)
+- **Làm:** Đọc PDF `docs/TLTK/SupplementalTable1.pdf` (139 trang, 2091 món) bằng pypdf, trích GI per-food cho 17 món Việt còn thiếu (chuối/cam/quýt/táo/lê/xoài/đu đủ/dứa/dưa hấu/vải/ổi/nho/khoai lang/ngô/bánh mì/đậu xanh/giá đỗ)
+- **Kết quả:** `gi_values.csv` từ 11 → **28 trị**, validate sạch. Mỗi trị dẫn số hiệu mục Suppl. Table 1
+- **Trung thực:** để trống đậu đen/đậu đỏ/thanh long/sầu riêng/bơ vì không có mục sạch (chỉ có dạng chế biến/mixed) — không gán bừa (DEC-008)
+- **Tiếp theo:** dò API Viện Dinh dưỡng (viendinhduong.vn) để lấp số liệu dinh dưỡng food_items (DAT-02, đường găng)
+- **Thời gian:** ~1.5h
+
 ### [2026-08-01] · R2 Clinical & Data · CLN-08 — rule đường tự do WHO cho ĐTĐ2
 - **Làm:** Thêm rule `T2DM-SUG-01` (đường tự do <10%E, WHO 2015) dùng `sugar_g`; bổ sung `sugar_g` vào `KCAL_PER_GRAM`; validator có nhãn "Đường" + cảnh báo `incomplete_data` khi thiếu số liệu đường
 - **Kết quả:** 3 test mới (TestFreeSugarRule) pass, tổng 68 test xanh, validator 21 rule sạch, ruff clean
@@ -119,6 +214,27 @@
 - **Tiếp theo:** hướng dẫn Hưng các bước Render + Neon cụ thể; quyết định xử lý stash graph.py; đội tự điền TEAM.md/README khi có tên thật
 - **Thời gian:** ~1.5h
 
+### [2026-08-05] · Claude (tiếp quản HANDOFF_2026-08-05.md) · Merge chuỗi 6 PR (CI self-hosted, DAT-09/10, AGT-09/10, nghiên cứu ĐTĐ) + 2 sự cố phát sinh
+- **Làm:** Tiếp quản `HANDOFF_2026-08-05.md` từ phiên trước (worktree `vmec10-architecture-audit-253205`), merge theo đúng thứ tự phụ thuộc #18 → #20 → #21 → #24 → #22 → #23 vào `develop`. Trước khi merge từng PR, verify **thật** (không chỉ tin CI đã báo, vì `.venv` dùng chung thiếu `ortools` nên CI/agent trước không chạy được test CP-SAT thật): cài `ortools` + `google-genai`, chạy lại `make check` trên từng nhánh.
+- **Kết quả xác minh:** claim "0 vi phạm sau khi sửa làm tròn có hướng" trong handoff **CONFIRMED thật** — 13/13 test `test_cpsat_optimizer.py` pass (gồm 6 hồ sơ `_AUDIT_PROFILES`), không chỉ đọc code tĩnh như agent trước.
+- **2 phát hiện mới (không có trong handoff gốc):**
+  1. `requirements.txt` thiếu `google-genai` — bug **có sẵn từ trước trên `develop`** (không liên quan 6 PR), chặn `pytest` fail ngay bước collect. Vá bằng PR riêng (#25), merge trước tiên.
+  2. Cài `ortools` thật vào `mypy` mới lộ 12 lỗi thật ở `src/agents/optimizer.py` (API PascalCase `NewIntVar`/`Add`... không có type stub, dù chạy đúng ở runtime qua alias legacy) — khác hẳn "3 lỗi baseline langgraph/pydantic_settings" mà handoff ghi. Sửa sang API snake_case có stub (`new_int_var`/`add`...), thêm vào PR AGT-10.
+- **🔴 Sự cố tự gây ra:** dùng `gh pr merge 21 --delete-branch` xoá `feature/AGT-09-cpsat-menu-optimizer` — đúng cái bẫy handoff cảnh báo ("GitHub tự đổi base PR #24 sang develop, đừng tự đổi tay") nhưng theo cách khác: xoá branch base khiến GitHub **tự đóng PR #24** thay vì tự retarget. `gh pr reopen` không cứu được (base đã mất). Khắc phục: tạo PR mới **#26** từ đúng branch đầu (`feature/AGT-10-wire-cpsat-graph`, commit không mất), base thẳng `develop`, merge `develop` vào nhánh, giải xung đột (DEVLOG.md/TICKETS.md: cộng dồn cả hai đoạn; `optimizer.py`/`test_cpsat_optimizer.py`: giữ bản AGT-10 vì AGT-09's `_solve_slot` bị viết lại hoàn toàn), verify lại đủ 102 test + mypy sạch, merge #26 thay #24 (đã đóng #24 kèm comment trỏ sang #26).
+- **Bài học:** sau lần này, **không dùng `--delete-branch` khi PR khác còn base vào branch sắp xoá** — kiểm tra trước bằng `gh pr list --state open` xem có PR nào base = branch sắp xoá không.
+- **Kết quả cuối trên `develop`:** 102 test xanh, `ruff check`/`ruff format --check`/`mypy src/` sạch 0 lỗi, `food_items.csv` **125/152 dòng** có nguồn, `scripts/validate_data.py` 0 lỗi (5 cảnh báo cũ, không cảnh báo mới). Không còn PR nào trong 6 PR gốc ở trạng thái OPEN.
+- **Chưa xử lý (để nguyên, ngoài phạm vi phiên này):** PR #17 (`develop`→`main`, có sẵn từ trước, không thuộc chuỗi handoff); file `HANDOFF_2026-08-05.md` ở `D:\VMEC10_P31\` gốc (tự ghi "tự huỷ giá trị sau khi merge hết 6 PR" nhưng để người dùng tự xoá).
+- **Tiếp theo:** EVL-01/EVL-02 (bộ eval + runner) hoặc DEL-03 (video demo, MVP demo được ngay không cần API key nhờ hybrid CP-SAT mặc định) — theo gợi ý ưu tiên trong handoff §7.
+- **Thời gian:** ~2h
+
+### [2026-08-05] · Claude (theo yêu cầu Hưng) · Đồng bộ tài liệu theo PRD v2.1 + rà lại quyết định needs_expert_review đa bệnh lý
+- **Làm:** Sau khi merge PRD v2.1 (Đinh Lê Quỳnh Phương, thu hẹp trọng tâm MVP về ĐTĐ2) vào `develop`, cập nhật `CLAUDE.md`, `docs/TICKETS.md`, `docs/rules/10-clinical-safety.md`, `docs/00_ASSESSMENT.md`, `docs/PLAN.md`, `docs/ARCHITECTURE.md` để nhất quán với PRD mới — không xoá nội dung đa bệnh lý, chỉ chú thích ưu tiên nghiệm thu.
+- **Câu hỏi mở ra:** PRD v2.1 §2.2 đọc theo nghĩa đen có thể hiểu là MỌI hồ sơ có bệnh đồng mắc ngoài ĐTĐ2 phải bắt buộc `needs_expert_review` — khác hành vi hiện tại của `compute_targets()` (chỉ gắn cờ khi rule thật sự xung đột, DEC-007). Ban đầu định sửa code theo hướng này nhưng dừng lại vì đây là ngưỡng lâm sàng thật, đúng tinh thần `CLAUDE.md` §6 "không chắc thì hỏi, đừng tự đặt".
+- **Research trước khi quyết:** đọc lại `KeHoachDuAn_VNutriCare_VMEC10_v3.docx` (chính PRD.md v2.1 ghi là "Nguồn yêu cầu chính") — mục 6.4.1 "Bốn tình huống kiểm chứng" đặc tả **chính xác** hành vi hiện tại: ca ĐTĐ2+CKD chỉ chuyển chuyên gia khi dải ngưỡng ADA/KDIGO hẹp bằng 0 (xung đột số thật), KHÔNG phải vì có 2 bệnh — trích nguyên văn tài liệu: "Một hệ thống kém sẽ âm thầm chọn một bên. Hệ thống này phát hiện [xung đột] và chuyển cho chuyên gia quyết định." Mục 1.1 của cùng tài liệu còn nói thẳng đồng mắc "bắt buộc hệ thống phải xử lý được, không thể thiết kế cho từng bệnh riêng lẻ". `docs/NGHIEN_CUU_DAI_THAO_DUONG_2026.md` (merge cùng ngày) liệt kê cơ chế phát hiện xung đột này là **điểm khác biệt cạnh tranh** so với app đối thủ (không app nào xử lý đa bệnh lý đồng thời).
+- **Quyết định:** giữ nguyên `compute_targets()`/DEC-007, KHÔNG sửa code. Đã sửa lại các note vừa thêm vào `CLAUDE.md`/`docs/TICKETS.md`/`docs/rules/10-clinical-safety.md` cho khớp kết luận này (bản đầu ghi nhầm là "cần sửa code" — xem DEC-014).
+- **Bài học:** một dòng tóm tắt trong PRD (viết bởi 1 thành viên, không trích tài liệu gốc) có thể đọc sai nghĩa nếu không đối chiếu lại nguồn chính — nhất là khi nó đảo ngược một quyết định đã kiểm chứng bằng test. Luôn tìm "nguồn yêu cầu chính" thật trước khi sửa code lâm sàng.
+- **Thời gian:** ~30 phút (research + sửa tài liệu)
+
 ---
 
 ## 3. Quyết định kỹ thuật (Decision Log)
@@ -136,6 +252,9 @@
 | DEC-009 | 2026-08-01 | Chọn ĐTĐ2 làm bệnh chính (anchor tim-chuyển hoá), THA + CKD sớm là comorbidity modifier | R2 | Bối cảnh: cần 1 bệnh chính cho MVP dinh dưỡng dù bệnh nhân đa bệnh. Phương án: A) làm cả 4 bệnh song song, B) anchor 1 bệnh. Chọn B/ĐTĐ2 vì: luật dinh dưỡng ĐTĐ2 tính được bằng SQL hợp RULE-1 nhất, ĐTĐ2 là hub kéo theo THA/CKD, dataset & guideline phong phú nhất, và purine (cột khó nguồn nhất) không cần cho anchor. Hệ quả: DAT-07 mở rộng schema cho đường tự do + GI |
 | DEC-010 | 2026-08-01 | GI có nguồn riêng (`gi_source`/`gi_source_ref`), tách khỏi `source_ref` của NIN | R2 | Bối cảnh: GI đến từ Atkinson 2021 / Mai 2001, khác nguồn kcal (NIN). Dùng chung 1 source_ref là vi phạm tinh thần RULE-2. Hệ quả: model + validate_data chặn `gi_index` không có nguồn GI; `glycemic_load` None-safe để menu engine suy giảm mềm khi thiếu GI |
 | DEC-011 | 2026-07-27 | Dockerfile cài dependency system-wide thay vì `pip install --user` | R3 (SET-04) | Bối cảnh: image 2-stage copy `/root/.local` từ builder sang runtime rồi chạy bằng `appuser` không phải root; `/root` có mode 0700 nên `appuser` không traverse được dù đã `chown -R` các file bên trong → container luôn crash `Permission denied` khi khởi động, kể cả khi build thành công. Phương án cân nhắc: (A) `chmod o+x /root` — mở quyền lên thư mục home của root, chấp nhận được vì rỗng nhưng vẫn xấu; (B) cài system-wide (bỏ `--user`), copy `/usr/local/lib/python3.11/site-packages` + `/usr/local/bin`. Chọn B vì không cần nới quyền `/root`. Hệ quả: `docker build` xanh không đủ để coi là "deploy được" — phải thực sự chạy container và gọi healthcheck (đã làm khi verify SET-04). *(đổi số từ DEC-009 khi merge develop→main để tránh trùng)* |
+| DEC-013 | 2026-08-03 | Không dùng số per-món của API NIN cho dishes; phân rã nguyên liệu (DAT-04 gốc) | R2 | Bối cảnh: API món ăn NIN có kcal/muối per-100g dao động phi lý (phở 276–826 kcal/100g, muối 0,01–6,7 g/100g). Phương án: A) seed dishes.csv từ NIN, B) phân rã món → nguyên liệu → tính SQL từ food_items. Chọn B vì số món NIN không đáng tin cho ngưỡng lâm sàng; food_items có nguồn NIN/USDA truy được. Hệ quả: test hồi quy muối (phở 3,3–4,0g/bát) tính từ nguyên liệu + khẩu phần (serving_sizes.csv) |
+| DEC-012 | 2026-08-02 | `purine_mg` thành optional (None) trong FoodItem/NutritionSummary | R2 | Bối cảnh: điền food_items từ NIN nhưng NIN (và USDA) KHÔNG có purine; purine chỉ cần cho gout. Phương án: A) tìm nguồn purine riêng cho cả 152 món rồi mới điền, B) purine optional + None-aware giống sugar/gi. Chọn B: gỡ được đường găng DAT-02 ngay, purine bổ sung sau từ nguồn riêng (bảng purine Nhật). Hệ quả: compute_nutrition cộng purine None-aware + cờ `purine_is_complete`; validator sinh cảnh báo `incomplete_data` cho ca gout khi thiếu → an toàn không bị đánh lừa bởi tổng thiếu hụt |
+| DEC-014 | 2026-08-05 | Giữ nguyên `compute_targets()`/DEC-007 (chỉ gắn `needs_expert_review` khi rule xung đột) dù PRD v2.1 §2.2 đọc thoáng qua có vẻ yêu cầu gắn cờ cho MỌI ca đồng mắc ngoài ĐTĐ2 | Hưng (xác nhận) | Bối cảnh: PRD v2.1 (Phương) thu hẹp trọng tâm MVP về ĐTĐ2, §2.2 dễ đọc thành "mọi bệnh đồng mắc → bắt buộc chuyên gia duyệt", ngược DEC-007. Phương án cân nhắc: A) sửa code theo nghĩa đen PRD mới; B) chỉ flag khi thật sự không xác định được ngưỡng an toàn (giữ DEC-007); C) hỏi R2 trước. Đã research `KeHoachDuAn_VNutriCare_VMEC10_v3.docx` (nguồn yêu cầu chính của chính PRD.md) mục 6.4.1 "Bốn tình huống kiểm chứng" — đặc tả gốc khớp chính xác hành vi hiện tại, kể cả ca ĐTĐ2+CKD chỉ chuyển chuyên gia khi dải ngưỡng hẹp bằng 0. `docs/NGHIEN_CUU_DAI_THAO_DUONG_2026.md` xác nhận cơ chế này là điểm khác biệt cạnh tranh. Chọn B. Hệ quả: không đổi code/test; sửa lại các note đã lỡ ghi "cần sửa code" trong `CLAUDE.md`/`TICKETS.md`/`docs/rules/10-clinical-safety.md` cho khớp kết luận |
 
 **Mẫu ghi quyết định mới:**
 

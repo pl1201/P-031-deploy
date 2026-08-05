@@ -147,3 +147,23 @@ class TestSugarAggregation:
         summary = compute_nutrition(menu, repo)
         assert summary.sugar_g == pytest.approx(0.2)  # chỉ cộng món có số liệu
         assert summary.sugar_is_complete is False  # tổng bị thiếu hụt → rule phải biết
+
+
+class TestPurineOptional:
+    """Purine optional (không có trong NIN) — None-aware như sugar."""
+
+    def test_fooditem_chap_nhan_purine_none(self):
+        item = _rice(purine_mg=None)
+        assert item.purine_mg is None
+
+    def test_purine_none_aware_trong_tong_hop(self):
+        repo = InMemoryFoodRepository(
+            [
+                _rice(id=1, name_vi="Thịt", purine_mg=145.0),
+                _rice(id=2, name_vi="Món chưa rõ purine", purine_mg=None),
+            ]
+        )
+        menu = MenuDraft(items={MealSlot.LUNCH: [MenuItem(food_id=1, grams=100), MenuItem(food_id=2, grams=100)]})
+        summary = compute_nutrition(menu, repo)
+        assert summary.purine_mg == pytest.approx(145.0)  # chỉ cộng món có số liệu
+        assert summary.purine_is_complete is False

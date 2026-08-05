@@ -8,11 +8,13 @@
 
 ## 1. Dự án này là gì
 
-**NutriCare Agent** — AI Agent dinh dưỡng lâm sàng cho bệnh nhân mãn tính Việt Nam (ĐTĐ2, tăng huyết áp, bệnh thận mạn, gout). Đề bài VMEC-10, chương trình AI20K Build Cohort 2, thời hạn 6 tuần.
+**NutriCare Agent (VNutriCare)** — AI Agent dinh dưỡng lâm sàng, **trọng tâm MVP là bệnh nhân đái tháo đường type 2 (ĐTĐ2)** tại Việt Nam. Đề bài VMEC-10, chương trình AI20K Build Cohort 3, thời hạn 6 tuần.
+
+> ⚠️ **Đổi phạm vi (2026-08-05):** MVP thu hẹp trọng tâm **nghiệm thu/demo** về ĐTĐ2, theo `docs/PRD.md` v2.1. Rule/dữ liệu/code cho CKD, gout, tăng huyết áp **vẫn giữ nguyên và tiếp tục hoạt động** — cơ chế phát hiện xung đột đa bệnh lý (`compute_targets()`, DEC-007) **KHÔNG bị thu hẹp**, đã đối chiếu lại với tài liệu kế hoạch gốc (`KeHoachDuAn_VNutriCare_VMEC10_v3.docx` mục 6.4.1) và xác nhận đúng đặc tả ban đầu, còn là điểm khác biệt cạnh tranh (xem DEVLOG DEC-014). Khi viết ticket/code mới, ưu tiên đường găng ĐTĐ2 trước cho tính năng mới; đừng hiểu nhầm thành "tắt xử lý đa bệnh lý".
 
 Stack: **FastAPI + LangGraph + PostgreSQL/pgvector + Next.js**, deploy Render + Vercel.
 
-Đọc trước khi làm bất cứ việc gì: `docs/00_ASSESSMENT.md`, `docs/PLAN.md`, `docs/ARCHITECTURE.md`.
+Đọc trước khi làm bất cứ việc gì: `docs/PRD.md` (nguồn phạm vi/tính năng chính thức), `docs/00_ASSESSMENT.md`, `docs/PLAN.md`, `docs/ARCHITECTURE.md`.
 
 ---
 
@@ -120,12 +122,18 @@ Khi không chắc về một ngưỡng lâm sàng → **hỏi R2**, đừng tự
 
 Thêm dependency mới cần lý do trong PR description và được R1 hoặc R3 đồng ý.
 
+**Ranh giới bệnh lý (từ `docs/PRD.md` v2.1 §4.2, đã làm rõ thêm — xem DEVLOG DEC-014):**
+- Không xây **tính năng mới** chuyên biệt để điều trị CKD, gout, tăng huyết áp nặng trong phạm vi MVP — đây là "không mục tiêu" cho công sức phát triển mới, ưu tiên dồn vào ĐTĐ2.
+- **Cơ chế đa bệnh lý hiện có (`compute_targets()`, DEC-007) giữ nguyên, không thu hẹp:** hồ sơ có bệnh đồng mắc vẫn được tính ngưỡng bình thường (lấy ngưỡng chặt hơn); chỉ gắn `needs_expert_review` khi rule thật sự **xung đột** (min > max, hoặc dải quá hẹp) hoặc rule bị vô hiệu bởi cờ an toàn — **không** gắn cờ cho mọi ca đồng mắc. Đã đối chiếu `KeHoachDuAn_VNutriCare_VMEC10_v3.docx` mục 6.4.1 và xác nhận đây đúng là đặc tả gốc.
+- Không diễn giải "trọng tâm ĐTĐ2" thành "tắt/xoá code CKD/gout/THA" — cơ chế này là điểm khác biệt cạnh tranh, không phải nợ kỹ thuật cần dọn.
+
 ---
 
 ## 8. Tra cứu nhanh
 
 | Cần gì | Xem đâu |
 |---|---|
+| Phạm vi sản phẩm, tính năng, không-mục-tiêu | `docs/PRD.md` (v2.1 — trọng tâm ĐTĐ2) |
 | Kiến trúc, luồng graph, schema DB, API | `docs/ARCHITECTURE.md` |
 | Việc của tôi tuần này | `docs/TICKETS.md` + `docs/PLAN.md` §4 |
 | Ai duyệt PR của tôi | `docs/TEAM.md` §4 + `.github/CODEOWNERS` |

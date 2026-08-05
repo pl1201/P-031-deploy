@@ -4,6 +4,8 @@
 > Ký hiệu: **P0** = chặn dự án · **P1** = cần cho MVP · **P2** = nâng cao · **P3** = có thì tốt
 > Owner theo mã vai trò trong `TEAM.md` (R1–R4 · đội 4 người)
 
+> ⚠️ **Đổi phạm vi (2026-08-05, `docs/PRD.md` v2.1):** MVP thu hẹp trọng tâm nghiệm thu/demo về **ĐTĐ2**. Các ticket/AC nhắc tới THA, CKD, Gout (chủ yếu `CLN-02`, `CLN-03`, `CLN-06`, `DAT-05`, `AGT-03`) **không bị xoá khỏi backlog, code đã build cho các bệnh này vẫn giữ nguyên và tiếp tục hoạt động đúng như thiết kế** (cơ chế phát hiện xung đột đa bệnh lý đã đối chiếu lại với tài liệu kế hoạch gốc, xác nhận đúng đặc tả — xem `CLAUDE.md` §7, DEVLOG DEC-014) — chỉ không còn là **trọng tâm phát triển tính năng mới**. Ưu tiên sprint còn lại: đường găng ĐTĐ2 trước cho việc mới, không cần mở rộng thêm phạm vi đa bệnh lý trừ khi có ticket riêng.
+
 **Cách dùng:** copy sang GitHub Issues hoặc Notion. Tiêu đề issue = `[MÃ] Tên ticket`. Gắn label = epic + priority. Milestone = sprint.
 
 ---
@@ -198,6 +200,16 @@ Tầng 1: regex tiếng Việt (liều, mg thuốc, "có nên uống", "bị b�
 **Owner:** R1 · **P2** · 4h · **Deps:** AGT-06
 Bật tracing, gắn tag theo node, log token và chi phí mỗi request.
 **AC:** Xem được trace đầy đủ 1 lần sinh thực đơn trên LangSmith · Có số "chi phí trung bình / thực đơn" để trả lời Q&A · Screenshot cho Deliverable #4.
+
+### `AGT-09` CP-SAT menu optimizer (thay thế vòng lặp sinh-rồi-thử của LLM)
+**Owner:** R1 · **P1** · 8h · **Deps:** AGT-04, AGT-05
+`generate_menu` hiện để LLM đoán food_id+grams rồi `validate` kiểm tra, sai thì `build_feedback` cho LLM đoán lại (tối đa 3 lần, AGT-06/R20.3). Thay bằng `CPSATMenuOptimizer` implement thẳng `Protocol MenuGenerator` — dùng OR-Tools CP-SAT giải trực tiếp bài toán ràng buộc (chọn food_id + gram sao cho tổng dinh dưỡng nằm trong định mức + phủ đủ nhóm thực phẩm bắt buộc) trên `candidates` đã lọc dị ứng ở `retrieve_context`. Không đổi contract, không đổi graph — cắm thẳng vào `generate_menu` node hiện có.
+**AC:** Implement `Protocol MenuGenerator` (chỉ trả `food_id`+`grams`, RULE-1) · Docstring khai `LLM: NO` (R20.1) · Trả `MenuDraft` rỗng khi infeasible để route hiện có tự chuyển `fallback` (không route mới) · ≥1 test happy path + ≥1 test infeasible · `ortools` thêm vào `requirements.txt`.
+
+### `AGT-10` Nối CP-SAT vào graph (hybrid CP-SAT → Gemini)
+**Owner:** R1 · **P1** · 6h · **Deps:** AGT-09
+AGT-09 mới tạo `CPSATMenuOptimizer` đứng riêng, `build_nutricare_graph()` vẫn luôn dùng Gemini. Ticket này: (a) gộp model CP-SAT thành **một model cả ngày** thay vì chia 4 bữa theo tỉ lệ cố định — cách cũ khiến bữa nhỏ dễ vô nghiệm, tổng ngày hụt, `validate` báo vi phạm; (b) `HybridMenuGenerator` (`src/agents/hybrid.py`) — lượt đầu CP-SAT, chuyển Gemini khi vô nghiệm hoặc khi đã có feedback (CP-SAT tất định nên retry cùng input là vô nghĩa); (c) `settings.menu_generator` (`hybrid`/`cpsat`/`gemini`, mặc định `hybrid`) để `assembly.py` chọn generator.
+**AC:** Graph chạy hết với CP-SAT thật **không cần API key** (CI kiểm được luồng thật) · Tổng dinh dưỡng đối chiếu bằng `compute_nutrition` nằm trong mọi ngưỡng của `compute_targets` · `retry_count == 1` và không rơi `fallback` ở happy path · Hybrid không chạm LLM khi CP-SAT giải được (test bằng spy) · Không đổi `graph.py`, không thêm route.
 
 ---
 

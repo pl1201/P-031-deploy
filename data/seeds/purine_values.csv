@@ -1,0 +1,20 @@
+food_id,name_vi,purine_mg,purine_source_ref,note
+19,Thịt lợn nạc,237.2,"USDA/ODS-NIH Purine DB R2.0 (2025) — Pork loin, boneless, skinless, raw [USA]",Thịt nạc lợn (thăn).
+21,Thịt bò thăn,156.6,"USDA/ODS-NIH Purine DB R2.0 (2025) — Beef chuck roast, boneless, choice, raw [USA]",Bò nạc (proxy chuck).
+23,"Thịt gà (ức, bỏ da)",174.9,"USDA/ODS-NIH Purine DB R2.0 (2025) — Chicken breast, raw [USA]",Ức gà.
+26,Gan lợn,289,"USDA/ODS-NIH Purine DB R2.0 (2025) — Pork, liver, raw [USA]",Nội tạng — purine RẤT cao, hạn chế cho gout.
+41,Cá thu,194,"USDA/ODS-NIH Purine DB R2.0 (2025) — Mackerel, raw (unspecified) [USA]",Cá thu.
+42,Cá ngừ,157.2,"USDA/ODS-NIH Purine DB R2.0 (2025) — Tuna, raw (unspecified) [Japan]",Cá ngừ.
+44,Cá trích,139.2,"USDA/ODS-NIH Purine DB R2.0 (2025) — Herring, raw [Japan]",Cá trích.
+45,Cá hồi,250,"USDA/ODS-NIH Purine DB R2.0 (2025) — Salmon, mixed species, raw [USA]",Cá hồi.
+47,Tôm biển,166.5,"USDA/ODS-NIH Purine DB R2.0 (2025) — Shrimp, raw (unspecified) [Japan]",Tôm biển.
+48,Tôm sú,166.5,"USDA/ODS-NIH Purine DB R2.0 (2025) — Shrimp, raw (unspecified) [Japan]",Tôm sú (proxy tôm chung).
+49,Cua đồng,136.5,"USDA/ODS-NIH Purine DB R2.0 (2025) — Crab, snow, raw [Japan]",Cua (proxy).
+50,Ghẹ,136.5,"USDA/ODS-NIH Purine DB R2.0 (2025) — Crab, snow, raw [Japan]",Ghẹ (proxy cua).
+51,Mực tươi,135,"USDA/ODS-NIH Purine DB R2.0 (2025) — Squid, raw (unspecified) [USA]",Mực tươi.
+52,Ngao,136,"USDA/ODS-NIH Purine DB R2.0 (2025) — Clams, raw [USA]",Ngao/nghêu (proxy clam).
+55,Đậu phụ,31.1,"USDA/ODS-NIH Purine DB R2.0 (2025) — Tofu, raw (nigari) [Japan]",Đậu phụ — purine thấp.
+61,Đậu tương hạt,172.5,"USDA/ODS-NIH Purine DB R2.0 (2025) — Soybeans, dried, raw [Japan]",Hạt đậu nành khô.
+99,Măng tươi,47.2,"USDA/ODS-NIH Purine DB R2.0 (2025) — Bamboo shoots, raw [Japan]",Măng tươi — purine trung bình-thấp.
+100,Nấm rơm,46.9,"USDA/ODS-NIH Purine DB R2.0 (2025) — Mushrooms (not further specified), raw [Canada]",Nấm (proxy nấm chung).
+101,Nấm hương,23.1,"USDA/ODS-NIH Purine DB R2.0 (2025) — Mushrooms, shiitake, raw [Japan]",Nấm hương TƯƠI. Nấm hương KHÔ cao hơn nhiều (~311) — nếu dùng khô phải đổi.

@@ -16,6 +16,12 @@ import subprocess
 import sys
 from pathlib import Path
 
+# CI runner có thể không đặt locale UTF-8 → in tiếng Việt sẽ UnicodeEncodeError.
+if hasattr(sys.stdout, "reconfigure"):
+    sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+if hasattr(sys.stderr, "reconfigure"):
+    sys.stderr.reconfigure(encoding="utf-8", errors="replace")
+
 ROOT = Path(__file__).resolve().parents[1]
 
 # --- Thư mục bắt buộc theo template AI20K (chapter-02, quick-start) -------

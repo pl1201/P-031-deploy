@@ -10,3 +10,20 @@ food_id,name_vi,gi_index,gi_source,gi_source_ref,note
 12,Khoai tây,73,Atkinson2021,"Atkinson FS et al. 2021, Am J Clin Nutr 114:1625-1632, tr.1628 — boiled potatoes = 73; glucose=100",Khoai tây LUỘC. Nghiền/instant cao hơn (79-84); để lạnh qua đêm thấp hơn (~49) — GI đổi mạnh theo cách chế biến.
 17,Yến mạch,55,Atkinson2021,"Atkinson FS et al. 2021, Am J Clin Nutr 114:1625-1632, tr.1629 — sản phẩm yến mạch/oat flakes trung bình 55; glucose=100",Trung bình nhóm yến mạch/muesli.
 85,Cà chua,22,Atkinson2021,"Atkinson FS et al. 2021, Am J Clin Nutr 114:1625-1632, tr.1630 — whole tomatoes GI 22; glucose=100",Cà chua nguyên quả — một trong các trị thấp nhất ghi nhận.
+103,Chuối tiêu,47,Atkinson2021,"Atkinson et al. 2021, AJCN Suppl. Table 1 (#1088) — Banana, raw, Australia 2008, GI 47±5; glucose=100",Chuối chín tới. Chuối chín rục cao hơn (~57).
+104,Cam sành,45,Atkinson2021,"Atkinson et al. 2021, AJCN Suppl. Table 1 — Oranges, navel, Australia 2020, GI 45±5; glucose=100",Cam quả tươi (không phải nước ép).
+105,Quýt,52,Atkinson2021,"Atkinson et al. 2021, AJCN Suppl. Table 1 (#1140) — Mandarin orange (Citrus reticulata), Italy 2004, GI 52±8; glucose=100",Quýt tươi.
+107,Táo,44,Atkinson2021,"Atkinson et al. 2021, AJCN Suppl. Table 1 — Apples, raw, Australia 2020, GI 44±5; glucose=100",Táo tươi.
+108,Lê,33,Atkinson2021,"Atkinson et al. 2021, AJCN Suppl. Table 1 (#1161) — Pear, Williams, raw, ripe/soft, Australia 2015, GI 33±4; glucose=100",Lê chín mềm. Lê giòn chưa chín thấp hơn (~24).
+109,Xoài chín,48,Atkinson2021,"Atkinson et al. 2021, AJCN Suppl. Table 1 (#1142) — Mango, raw (Chin-Hwang), Taiwan 2010, GI 48; glucose=100",Xoài chín, quả tươi.
+110,Đu đủ chín,38,Atkinson2021,"Atkinson et al. 2021, AJCN Suppl. Table 1 (#1153) — Papaya/paw paw, raw, Singapore 2017, GI 38±2; glucose=100",Đu đủ chín tươi.
+111,Dứa,82,Atkinson2021,"Atkinson et al. 2021, AJCN Suppl. Table 1 (#1164) — Pineapple, raw (Ananas comosa), Malaysia 2008, GI 82±4; glucose=100",Dứa/thơm tươi — GI cao, cần lưu ý cho ĐTĐ.
+112,Dưa hấu,51,Atkinson2021,"Atkinson et al. 2021, AJCN Suppl. Table 1 (#1147) — Watermelon, raw, red-fleshed, seedless, Malaysia 2017, GI 51±2; glucose=100",Dưa hấu đỏ. Dải các mẫu đỏ 48-55.
+114,Vải,57,Atkinson2021,"Atkinson et al. 2021, AJCN Suppl. Table 1 (#1138) — Lychee, fresh, Australia 2009, GI 57±3; glucose=100",Vải TƯƠI (thay trị vải đóng hộp 79 đã bị loại trước đó).
+115,Ổi,29,Atkinson2021,"Atkinson et al. 2021, AJCN Suppl. Table 1 (#1131) — Guava, raw, Singapore 2017, GI 29±4; glucose=100",Ổi tươi — GI thấp, lựa chọn tốt cho ĐTĐ.
+120,Nho,54,Atkinson2021,"Atkinson et al. 2021, AJCN Suppl. Table 1 (#1133-1135) — Grapes, trung bình 3 mẫu (Crimson 50/green 54/black 59); glucose=100",Trung bình các giống nho.
+11,Khoai lang,77,Atkinson2021,"Atkinson et al. 2021, AJCN Suppl. Table 1 — Sweet potato (kumara), cooking method NS, New Zealand 2000, GI 77±12; glucose=100",Cách nấu NS. GI khoai lang biến thiên RẤT rộng (44-94) theo giống/cách nấu — cần thận trọng.
+15,Ngô luộc,52,Atkinson2021,"Atkinson et al. 2021, AJCN Suppl. Table 1 (#558-559) — Sweet corn, cooked, trung bình (51 AUS / 55 CHN); glucose=100",Ngô ngọt luộc/hấp.
+7,Bánh mì,59,Atkinson2021,"Atkinson et al. 2021, AJCN Suppl. Table 1 (#235-236) — White bread, UK/USA 2006-2011, GI 59-60; glucose=100",PROXY: bánh mì trắng thường quốc tế. Bánh mì Việt (baguette) chưa đo riêng — dùng tạm, GI bánh mì dao động 24-100.
+58,Đậu xanh,42,Atkinson2021,"Atkinson et al. 2021, AJCN Suppl. Table 1 (#1302) — Mung bean, pressure cooked, Australia 1998, GI 42±5; glucose=100",Đậu xanh nấu chín (hạt). Đậu chiên cao hơn (~53).
+62,Giá đỗ,25,Atkinson2021,"Atkinson et al. 2021, AJCN Suppl. Table 1 (#1301) — Mung bean, germinated, Australia 1998, GI 25±4; glucose=100",Giá đỗ = mung bean nảy mầm — GI rất thấp.

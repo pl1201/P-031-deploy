@@ -33,7 +33,6 @@ NUTRIENT_FIELDS = (
     "na_mg",
     "k_mg",
     "p_mg",
-    "purine_mg",
 )
 
 
@@ -84,6 +83,9 @@ def compute_nutrition(menu: MenuDraft, repo: FoodRepository) -> NutritionSummary
     # đánh lừa bởi một tổng bị thiếu hụt.
     sugar_total = 0.0
     sugar_is_complete = True
+    # Purine cũng Optional (không có trong NIN/USDA) — xử lý None-aware như sugar.
+    purine_total = 0.0
+    purine_is_complete = True
 
     for item in menu.all_items():
         food = repo.get(item.food_id)
@@ -100,7 +102,11 @@ def compute_nutrition(menu: MenuDraft, repo: FoodRepository) -> NutritionSummary
         totals["na_mg"] += food.na_mg * factor
         totals["k_mg"] += food.k_mg * factor
         totals["p_mg"] += food.p_mg * factor
-        totals["purine_mg"] += food.purine_mg * factor
+
+        if food.purine_mg is None:
+            purine_is_complete = False
+        else:
+            purine_total += food.purine_mg * factor
 
         if food.sugar_g is None:
             sugar_is_complete = False
@@ -121,6 +127,8 @@ def compute_nutrition(menu: MenuDraft, repo: FoodRepository) -> NutritionSummary
 
     return NutritionSummary(
         **{k: round(v, 2) for k, v in totals.items()},
+        purine_mg=round(purine_total, 2),
+        purine_is_complete=purine_is_complete,
         sugar_g=round(sugar_total, 2),
         sugar_is_complete=sugar_is_complete,
         sources=sources,

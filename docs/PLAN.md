@@ -3,6 +3,8 @@
 > Dự án: **NutriCare Agent** (tên đề xuất) — AI Agent Dinh dưỡng Lâm sàng, đề bài VMEC-10
 > Phiên bản: 1.0 · Cập nhật: 26/07/2026
 > Đọc trước: `00_ASSESSMENT.md`
+>
+> ⚠️ **Tài liệu lịch sử (26/07).** Phạm vi bệnh lý đã thu hẹp còn **ĐTĐ2** theo `docs/PRD.md` v2.1 (05/08) — đọc PRD để biết mục tiêu/chỉ số thành công hiện hành trước khi dùng số liệu trong file này.
 
 ---
 

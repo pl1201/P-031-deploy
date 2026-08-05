@@ -3,6 +3,10 @@
 > Owner: **R2** (nội dung lâm sàng) + **R1** (thực thi kỹ thuật)
 > Đây là file quan trọng nhất trong `docs/rules/`. Sai ở đây không phải là bug thường.
 
+> ⚠️ **Đổi phạm vi (2026-08-05, `docs/PRD.md` v2.1):** MVP trọng tâm ĐTĐ2. R10.4/R10.5 dưới đây mô tả cơ chế **đa bệnh lý** (đã build, hoạt động đúng như mô tả) — **giữ nguyên, không sửa**.
+>
+> **Đã research và chốt (2026-08-05, xem DEVLOG DEC-014):** ban đầu nghi ngờ PRD v2.1 §2.2 yêu cầu gắn `needs_expert_review` cho MỌI hồ sơ có bệnh đồng mắc ngoài ĐTĐ2 — khác hành vi hiện tại (chỉ gắn cờ khi rule thật sự **xung đột**, DEC-007). Đối chiếu lại `KeHoachDuAn_VNutriCare_VMEC10_v3.docx` (chính tài liệu PRD.md ghi là "Nguồn yêu cầu chính") mục 6.4.1 "Bốn tình huống kiểm chứng" thì hành vi hiện tại của `compute_targets()` **khớp chính xác** với 4 kịch bản đặc tả gốc — kể cả ca ĐTĐ2+CKD chỉ chuyển chuyên gia khi dải ngưỡng hẹp bằng 0, không phải vì có 2 bệnh. `docs/NGHIEN_CUU_DAI_THAO_DUONG_2026.md` còn liệt kê cơ chế phát hiện xung đột này là **điểm khác biệt cạnh tranh** so với các app khác (không app nào xử lý đa bệnh lý đồng thời). Kết luận: **không sửa `compute_targets()`**, dòng PRD v2.1 §2.2 là tóm tắt quá tay, không phải quyết định lật ngược DEC-007.
+
 ---
 
 ## R10.1 — Phạm vi cho phép của hệ thống

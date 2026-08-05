@@ -1,0 +1,12 @@
+dish_id,food_id,grams,note
+PHO-BO,5,200,Bánh phở tươi
+PHO-BO,21,50,Thịt bò thăn
+PHO-BO,137,10,Nước mắm nêm
+PHO-BO,139,1.5,Muối nêm nước dùng
+PHO-BO,62,30,Giá đỗ
+BUN-DAU-MAM,4,200,Bún tươi
+BUN-DAU-MAM,55,100,Đậu phụ
+BUN-DAU-MAM,137,8,Mắm chấm (quy nước mắm)
+CANH-RAU-MUONG,65,100,Rau muống
+CANH-RAU-MUONG,137,3,Nước mắm
+CANH-RAU-MUONG,139,0.5,Muối

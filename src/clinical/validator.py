@@ -155,6 +155,27 @@ def validate_menu(
             )
         )
 
+    # Tương tự cho purine (ca gout): NIN không có purine → nhiều món thiếu số liệu.
+    purine_target = targets.targets.get("purine_mg")
+    if purine_target is not None and not nutrition.purine_is_complete:
+        violations.append(
+            Violation(
+                nutrient="purine_mg",
+                actual=round(nutrition.purine_mg, 1),
+                limit=round(purine_target.max_value, 1) if purine_target.max_value is not None else 0.0,
+                unit=purine_target.unit,
+                kind="incomplete_data",
+                severity=Severity.SOFT,
+                message_vi=(
+                    "Không đủ số liệu purine: một số món chưa có giá trị purine nên tổng "
+                    f"purine ({nutrition.purine_mg:.0f} {purine_target.unit}) đang THẤP hơn thực tế. "
+                    "Không thể kết luận đạt ngưỡng purine cho bệnh nhân gout — cần bổ sung số liệu."
+                ),
+                suggestion="Bổ sung cột purine_mg (nguồn riêng, VD bảng purine Nhật) cho các món còn thiếu.",
+                rule_id=purine_target.rule_ids[0] if purine_target.rule_ids else None,
+            )
+        )
+
     return violations
 
 

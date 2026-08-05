@@ -19,18 +19,25 @@ import csv
 import sys
 from pathlib import Path
 
+# CI runner có thể không đặt locale UTF-8 → in tiếng Việt sẽ UnicodeEncodeError.
+# Ép stdout/stderr về UTF-8 để script chạy được ở mọi môi trường.
+if hasattr(sys.stdout, "reconfigure"):
+    sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+if hasattr(sys.stderr, "reconfigure"):
+    sys.stderr.reconfigure(encoding="utf-8", errors="replace")
+
 SEEDS = Path(__file__).resolve().parents[1] / "data" / "seeds"
 
 # RULE R40.3 — khoảng hợp lý cho 100 g thực phẩm.
 # Trần natri để cao vì nước mắm và bột canh thực sự rất mặn.
 RANGES: dict[str, tuple[float, float]] = {
-    "kcal_100g": (0, 900),
+    "kcal_100g": (0, 920),
     "protein_g": (0, 90),
     "carb_g": (0, 100),
     "fat_g": (0, 100),
     "fiber_g": (0, 80),
     "sugar_g": (0, 100),
-    "na_mg": (0, 25000),
+    "na_mg": (0, 40000),
     "k_mg": (0, 5000),
     "p_mg": (0, 2000),
     "purine_mg": (0, 1000),
@@ -39,7 +46,7 @@ RANGES: dict[str, tuple[float, float]] = {
 
 # Cột số liệu được phép để trống (không phải mọi nguồn đều có).
 # gi_index: GI phủ thưa. sugar_g: nhiều nguồn không tách đường khỏi carb tổng.
-OPTIONAL_NUMERIC_COLS = {"gi_index", "sugar_g"}
+OPTIONAL_NUMERIC_COLS = {"gi_index", "sugar_g", "purine_mg"}
 
 VALID_SOURCES = {"NIN", "USDA", "curated", "estimated"}
 VALID_GI_SOURCES = {"Atkinson2021", "Chan2001_VN", "estimated"}
@@ -134,6 +141,11 @@ def check_food_items(path: Path) -> None:
                 )
             if gi_ref.lower() in PLACEHOLDER:
                 err(f"{loc} gi_index có trị nhưng thiếu gi_source_ref — RULE-2")
+
+        # RULE-2 cho purine: có trị purine thì phải dẫn nguồn purine riêng (USDA Purine DB).
+        pur_raw = (row.get("purine_mg") or "").strip()
+        if pur_raw and (row.get("purine_source_ref") or "").strip().lower() in PLACEHOLDER:
+            err(f"{loc} purine_mg có trị nhưng thiếu purine_source_ref — RULE-2")
 
         # Đường là tập con của carb tổng.
         sugar_raw = (row.get("sugar_g") or "").strip()
@@ -245,6 +257,52 @@ def check_gi_values(path: Path) -> None:
     print(f"  {path.name}: {len(rows)} trị GI")
 
 
+def check_purine_values(path: Path) -> None:
+    """Bảng purine tách riêng (nguồn USDA/ODS-NIH, khác NIN). Merge vào food_items khi nạp."""
+    if not path.exists():
+        warn(f"{path.name}: chưa có file")
+        return
+    with open(path, newline="", encoding="utf-8") as f:
+        rows = list(csv.DictReader(f))
+    seen: set[str] = set()
+    for i, row in enumerate(rows, start=2):
+        loc = f"{path.name}:{i} [{row.get('name_vi') or '?'}]"
+        fid = (row.get("food_id") or "").strip()
+        if not fid.isdigit():
+            err(f"{loc} food_id='{fid}' phải là số nguyên")
+        if fid in seen:
+            err(f"{loc} trùng food_id={fid}")
+        seen.add(fid)
+        try:
+            val = float((row.get("purine_mg") or "").strip())
+            if not (0 <= val <= 1000):
+                err(f"{loc} purine_mg={val} ngoài khoảng [0, 1000]")
+        except ValueError:
+            err(f"{loc} purine_mg không phải số")
+        if (row.get("purine_source_ref") or "").strip().lower() in PLACEHOLDER:
+            err(f"{loc} thiếu purine_source_ref — mỗi trị purine phải dẫn nguồn (RULE-2)")
+    print(f"  {path.name}: {len(rows)} trị purine")
+
+
+def check_usda_values(path: Path) -> None:
+    """Bảng USDA FDC tách riêng (nguồn USDA, lấp món NIN thiếu). Merge vào food_items."""
+    if not path.exists():
+        warn(f"{path.name}: chưa có file")
+        return
+    with open(path, newline="", encoding="utf-8") as f:
+        rows = list(csv.DictReader(f))
+    for i, row in enumerate(rows, start=2):
+        loc = f"{path.name}:{i} [{row.get('name_vi') or '?'}]"
+        if not (row.get("food_id") or "").strip().isdigit():
+            err(f"{loc} food_id phải là số nguyên")
+        if "fdcid" not in (row.get("source_ref") or "").lower():
+            err(f"{loc} source_ref phải dẫn fdcId USDA (RULE-2)")
+        for col in ("kcal_100g", "na_mg", "k_mg", "p_mg"):
+            if not (row.get(col) or "").strip():
+                err(f"{loc} thiếu {col}")
+    print(f"  {path.name}: {len(rows)} món USDA")
+
+
 def main() -> int:
     print("Kiểm tra dữ liệu seed...")
     check_food_items(SEEDS / "food_items.csv")
@@ -252,6 +310,8 @@ def main() -> int:
     check_clinical_rules(SEEDS / "clinical_rules.csv")
     check_drug_food(SEEDS / "drug_food_interactions.csv")
     check_gi_values(SEEDS / "gi_values.csv")
+    check_purine_values(SEEDS / "purine_values.csv")
+    check_usda_values(SEEDS / "usda_values.csv")
 
     print()
     for w in warnings:
