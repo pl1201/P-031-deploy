@@ -199,6 +199,15 @@ sequenceDiagram
 
 ## 5. Mô hình dữ liệu
 
+> ⚠️ **2026-08-05 (BE-01):** ERD dưới đây build ra thẳng từ `src/db/models.py`
+> (SQLAlchemy, nguồn sự thật cho DDL) — 2 bản mô tả cùng 1 schema, sửa bên
+> này phải sửa bên kia. So với bản vẽ ban đầu ở S1 (trước khi có dữ liệu
+> thật), đã bổ sung 6 bảng: `dishes`, `dish_ingredients`, `serving_sizes`,
+> `patient_medications`, `patient_allergies`, `food_logs`, `guideline_chunks`
+> — những bảng này đã tồn tại thật trong `data/seeds/`/ticket DAT-04/DAT-06/
+> CLN-05/CLN-06/BE-07 nhưng ERD cũ chưa vẽ ra. Đã build + chạy thật
+> `alembic upgrade head` / `downgrade base` trên SQLite trắng — xem `alembic/`.
+
 ```mermaid
 erDiagram
     users ||--o| patient_profiles : has
@@ -209,76 +218,158 @@ erDiagram
     patient_profiles ||--o{ patient_allergies : has
     meal_plans ||--|{ meal_plan_items : contains
     meal_plan_items }o--|| food_items : references
+    food_logs }o--o| food_items : "references (null nếu OOV)"
     dishes ||--|{ dish_ingredients : "made of"
     dish_ingredients }o--|| food_items : uses
-    drug_food_interactions }o--|| food_items : involves
     meal_plans ||--o{ audit_log : generates
 
     users {
-        uuid id PK
-        string email
+        string id PK "UUID"
+        string email UK
         string password_hash
-        enum role "patient|dietitian|admin"
+        string role "patient|dietitian|admin"
     }
     patient_profiles {
-        uuid id PK
+        string id PK "UUID"
+        string user_id FK
         int age
-        enum sex
+        string sex
         float height_cm
         float weight_kg
-        jsonb conditions "ICD10 + stage"
-        jsonb lab_values "eGFR, HbA1c, K, uric"
-        enum activity_level
+        json conditions "ICD10 + stage"
+        json lab_values "eGFR, HbA1c, K, uric"
+        string activity_level
         string region "north|central|south"
+    }
+    patient_medications {
+        string id PK "UUID"
+        string profile_id FK
+        string drug_name
+        string dosage
+        date started_at
+    }
+    patient_allergies {
+        string id PK "UUID"
+        string profile_id FK
+        string allergen "VD hải sản, đậu phộng"
     }
     food_items {
         int id PK
         string name_vi
-        string name_en
-        jsonb aliases "OOV synonyms"
+        json aliases "OOV synonyms"
+        string category
         float kcal_100g
         float protein_g
         float carb_g
         float fat_g
         float fiber_g
+        float sugar_g
         float na_mg
         float k_mg
         float p_mg
         float purine_mg
+        string purine_source_ref
         float gi_index
-        string source "NIN|USDA|estimated"
+        string gi_source
+        string gi_source_ref
+        json contains_allergens
+        string source "NIN|USDA|curated|estimated"
         string source_ref
         bool is_estimated
     }
+    dishes {
+        string dish_id PK
+        string name_vi
+        string region "north|central|south"
+        float serving_g
+        string verified_by
+        string note
+    }
+    dish_ingredients {
+        int id PK
+        string dish_id FK
+        int food_id FK
+        float grams
+        string note
+    }
+    serving_sizes {
+        int id PK
+        string category
+        float serving_g
+        string note
+        string source
+    }
     clinical_rules {
-        string id PK
+        string rule_id PK
         string condition_code
+        string stages
         string nutrient
-        string operator
-        float threshold
+        string bound "min|max"
+        float value
         string unit
+        string basis "absolute|per_kg|pct_energy|per_1000kcal"
         string severity "hard|soft"
         string guideline_ref
+        string guideline_grade
+        string verify_status
+        string overridden_by
+    }
+    drug_food_interactions {
+        int id PK
+        string drug_name
+        string drug_class
+        string food_or_nutrient
+        string severity "high|moderate|low"
+        string mechanism_vi
+        string recommendation_vi
+        string source_ref
+        string verify_status
+    }
+    guideline_chunks {
+        string id PK "UUID"
+        string source "VD ADA 2025, KDIGO 2024"
+        string title
+        int page
+        string condition_code
+        string content
+        json embedding "pgvector.Vector khi có Postgres thật, JSON tạm trên SQLite"
     }
     meal_plans {
-        uuid id PK
+        string id PK "UUID"
+        string profile_id FK
         date plan_date
-        enum status
-        jsonb targets
-        jsonb computed_nutrition
-        jsonb violations
+        string status
+        json targets
+        json computed_nutrition
+        json violations
         int retry_count
-        uuid reviewer_id FK
-        text reviewer_notes
+        string reviewer_id FK
+        string reviewer_notes
         string trace_id
     }
+    meal_plan_items {
+        string id PK "UUID"
+        string plan_id FK
+        string slot "breakfast|lunch|dinner|snack"
+        int food_id FK
+        float grams
+    }
+    food_logs {
+        string id PK "UUID"
+        string profile_id FK
+        datetime logged_at
+        int food_id FK "null nếu gõ tự do (OOV)"
+        string free_text_vi "tên gõ tay khi chưa có trong DB"
+        float grams
+        bool is_estimated "true nếu qua OOV Estimator (CLN-07)"
+    }
     audit_log {
-        bigint id PK
-        timestamptz at
-        uuid actor_id
+        int id PK
+        datetime at
+        string actor_id
         string action
-        jsonb before
-        jsonb after
+        json before
+        json after
     }
 ```
 
@@ -286,6 +377,13 @@ erDiagram
 
 `food_items`, `dishes`, `clinical_rules`, `drug_food_interactions`, `guideline_chunks`.
 **CI có test chặn: không dòng nào được có `source IS NULL`.**
+
+### Vì sao `dish_ingredients`/`meal_plan_items`/`food_logs` không tự tính dinh dưỡng
+
+Đúng RULE-1: các bảng này chỉ lưu `food_id` + `grams` (+ `slot` cho thực đơn).
+Không cột nào lưu sẵn kcal/Na/protein của dòng — mọi tổng dinh dưỡng tính lại
+bằng SQL từ `food_items` tại thời điểm đọc, không bao giờ cache giá trị đã
+tính (tránh lệch khi `food_items` được sửa lại sau).
 
 ---
 

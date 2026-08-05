@@ -1,6 +1,6 @@
 # TICKETS — BACKLOG & GIAO VIỆC
 
-> 53 ticket · 6 sprint · Ước tính tổng ≈ 434 giờ-người
+> 54 ticket · 6 sprint · Ước tính tổng ≈ 438 giờ-người
 > Ký hiệu: **P0** = chặn dự án · **P1** = cần cho MVP · **P2** = nâng cao · **P3** = có thì tốt
 > Owner theo mã vai trò trong `TEAM.md` (R1–R4 · đội 4 người)
 
@@ -73,41 +73,48 @@ Xác định lấy Bảng TPTP Việt Nam ở đâu (bản in/PDF/website NIN), 
 **Đã nghiên cứu bổ sung** (xem `data/README.md` mục "Nghiên cứu bổ sung nguồn dữ liệu"): **Open Food Facts** xác nhận dùng được ngay (free API, ODbL) cho nhóm thực phẩm đóng gói; **Dược thư Quốc gia VN 2022** xác nhận dùng được cho `source_ref` của DAT-05. uFiSh1.0 (FAO cá/thủy sản) cần R2 tự thử tải link trực tiếp để xác nhận nốt. PhyFoodComp/eBASIS/ASEANFOODS/WikiFCD-FoodOn đã bị loại có ghi lý do (ngoài scope lâm sàng / license không rõ / trùng lặp VFCT / over-engineering).
 **AC:** `data/README.md` ghi rõ: nguồn nào dùng được, giấy phép, cách trích dẫn · Có API key USDA hoạt động · Quyết định về DDID được ghi vào DEVLOG dạng ADR.
 
-### `DAT-02` Thiết kế schema & nhập 150 thực phẩm cốt lõi
-**Owner:** R2 (cả đội hỗ trợ nhập) · **P0** · 12h · **Deps:** DAT-01
+### `DAT-02` Thiết kế schema & nhập thực phẩm — KHÔNG GIỚI HẠN TRÊN
+**Owner:** R2 (cả đội hỗ trợ nhập) · **P0** · 12h+ (mở, xem ghi chú) · **Deps:** DAT-01
 CSV `data/seeds/food_items.csv` với cột: `id, name_vi, name_en, aliases, unit_ref, kcal_100g, protein_g, carb_g, fat_g, fiber_g, na_mg, k_mg, p_mg, purine_mg, gi_index, source, source_ref, is_estimated`.
-Ưu tiên: gạo/bún/phở/bánh mì, thịt heo/bò/gà, cá phổ biến, tôm, trứng, đậu phụ, 25 loại rau, 15 loại quả, dầu mỡ, gia vị (nước mắm, bột canh, hạt nêm, mì chính, đường).
-**AC:** ≥150 dòng · **0 dòng thiếu `source`** · Gia vị mặn có `na_mg` chính xác (đây là trục chính của bài toán muối) · Script `make seed` nạp được vào DB.
-> Chia 5 người × 30 dòng, 1 buổi tối là xong. Đừng để 1 người làm cả tuần.
+Ưu tiên: gạo/bún/phở/bánh mì, thịt heo/bò/gà, cá phổ biến, tôm, trứng, đậu phụ, rau, quả, dầu mỡ, gia vị (nước mắm, bột canh, hạt nêm, mì chính, đường).
+**AC:** **≥150 dòng là SÀN, không phải trần** — nhập càng nhiều thực phẩm/món có nguồn thật càng tốt, không dừng lại vì đã đạt 150 · **0 dòng thiếu `source`** · Gia vị mặn có `na_mg` chính xác (trục chính của bài toán muối) · Script `make seed` nạp được vào DB.
+> ⚠️ **2026-08-05: bỏ trần số lượng.** Trước đây giới hạn "≥150 dòng" bị hiểu nhầm thành mục tiêu dừng lại — thực tế hiện đã có sẵn nguồn xác minh được (NIN 2017/2007, USDA FDC bulk, Open Food Facts — xem `data/README.md`) đủ để vượt xa 150 nếu có thời gian nhập. Không đặt trần trên; chỉ giới hạn bởi **có nguồn thật hay không** (RULE-2/DEC-008), không phải bởi số lượng mục tiêu ban đầu.
+> Chia người × 30 dòng/buổi tối là nhịp làm việc gợi ý, không phải mức trần.
 
 ### `DAT-03` Tích hợp USDA FoodData Central
 **Owner:** R2 · **P1** · 6h · **Deps:** DAT-01
 Client gọi API USDA, mapping field sang schema nội bộ, cache vào DB, đánh dấu `source='USDA'`.
 **AC:** Tra được ≥ 20 thực phẩm nhập khẩu · Có retry + timeout · Có test dùng mock, không gọi API thật trong CI.
 
-### `DAT-04` Bộ 80 món ăn Việt + công thức nguyên liệu
-**Owner:** R2 · **P1** · 14h · **Deps:** DAT-02
+### `DAT-04` Bộ món ăn Việt + công thức nguyên liệu — KHÔNG GIỚI HẠN TRÊN
+**Owner:** R2 · **P1** · 14h+ (mở) · **Deps:** DAT-02
 `dishes` + `dish_ingredients`. Mỗi món: nguyên liệu + gram cho 1 khẩu phần chuẩn + vùng miền + tag (mặn/ngọt/dầu mỡ). Bao gồm món "nguy hiểm": phở bò, bún cá, canh cua, thịt kho tàu, cá kho tộ, bún riêu, mì tôm.
 Quy trình: LLM sinh nháp công thức → **R2 rà soát và sửa tay** → đối chiếu tổng dinh dưỡng với nguồn tham khảo.
-**AC:** ≥80 món · Na của phở bò tính ra nằm trong khoảng 3,3–4,0g muối (khớp nghiên cứu) → dùng làm test hồi quy · Mỗi món ghi `verified_by`.
+**AC:** **≥80 món là SÀN** — hiện `dishes.csv` mới có **3/80**, đây là ticket P1 tồn đọng lớn nhất của EPIC 1, ưu tiên làm tiếp trước khi mở rộng thêm. Không đặt trần trên; thêm món mới bất cứ khi nào có công thức đã đối chiếu được nguồn · Na của phở bò tính ra nằm trong khoảng 3,3–4,0g muối (khớp nghiên cứu) → dùng làm test hồi quy · Mỗi món ghi `verified_by`.
+> ⚠️ **2026-08-05:** bỏ trần "80 món". Thực tế mới đạt 3/80 — trước khi tính chuyện "không giới hạn", việc cấp thiết là lấp cho đủ sàn 80.
 
-### `DAT-05` Bảng tương tác thuốc – thực phẩm (80 cặp)
-**Owner:** R2 · **P1** · 8h · **Deps:** DAT-01
+### `DAT-05` Bảng tương tác thuốc – thực phẩm — KHÔNG GIỚI HẠN TRÊN
+**Owner:** R2 · **P1** · 8h+ (mở) · **Deps:** DAT-01
 `drug_food_interactions`: `drug_name, drug_class, food_or_nutrient, severity(high/moderate/low), mechanism, recommendation, source_ref`.
 Bắt buộc có: Warfarin–vitamin K, ACEi/ARB–kali & muối thay thế, Statin–bưởi, Metformin–rượu & B12, Levothyroxine–canxi/đậu nành/cà phê, Digoxin–chất xơ cao, MAOI–tyramine, Allopurinol–rượu bia, lợi tiểu thiazide–kali.
 **Nguồn `source_ref` ưu tiên:** **Dược thư Quốc gia Việt Nam 2022** (QĐ 3445/QĐ-BYT, 743 chuyên luận, tra cứu online miễn phí) — mỗi cặp tra chuyên luận thuốc tương ứng, `source_ref` dạng `Dược thư Quốc gia VN 2022, chuyên luận <tên thuốc>`. **Không dùng** Quyết định 5948/QĐ-BYT làm nguồn cho bảng này trừ khi ai đó mở file thật và xác nhận có mục thuốc-thực phẩm — mọi mô tả tìm được đều chỉ nói đây là danh mục tương tác **thuốc-thuốc** (633 cặp hoạt chất + 68 cặp nhóm dược lý), đừng suy đoán nó phủ cả thực phẩm.
-**AC:** ≥80 cặp, mỗi cặp có nguồn · Khớp được cả theo hoạt chất lẫn theo nhóm thuốc · Test: hồ sơ dùng Warfarin + thực đơn nhiều rau ngót → sinh cảnh báo `high`.
+**AC:** **≥80 cặp là SÀN, không phải trần** — 2026-08-05: đã điền `source_ref` cho 17/30 cặp (Warfarin, Digoxin, Enalapril, Atorvastatin, Hydrochlorothiazide, Colchicin, Allopurinol, Ciprofloxacin, Amlodipin, Gliclazide, Insulin — có chuyên luận riêng xác nhận trên Dược thư QGVN 2022), còn 13/30 cặp thiếu nguồn (Losartan, Simvastatin, Metformin, Levothyroxine, Furosemide, Spironolactone, Phenelzine, Tetracycline, Sắt, Canxi — chưa xác nhận được có chuyên luận riêng, KHÔNG suy đoán, cần R2 tự tra trực tiếp) · Mỗi cặp có nguồn · Khớp được cả theo hoạt chất lẫn theo nhóm thuốc · Test: hồ sơ dùng Warfarin + thực đơn nhiều rau ngót → sinh cảnh báo `high`.
 
-### `DAT-06` Ingest guideline vào RAG
-**Owner:** R2 · **P1** · 8h · **Deps:** SET-05
-Thu thập ~15 tài liệu (BYT, ADA, KDIGO, AHA/DASH, ACR, tài liệu Viện Dinh dưỡng). Chunk 500–800 token, overlap 100, embed, lưu `guideline_chunks` (pgvector) kèm metadata `{source, title, page, condition}`.
-**AC:** Truy vấn "protein cho CKD giai đoạn 4" trả về chunk đúng ở top-3 · Mỗi chunk có metadata đầy đủ · Có script `make ingest` chạy lại được.
+### `DAT-06` Ingest guideline vào RAG — KHÔNG GIỚI HẠN TRÊN
+**Owner:** R2 · **P1** · 8h+ (mở) · **Deps:** SET-05
+Thu thập tài liệu (BYT, ADA, KDIGO, AHA/DASH, ACR, tài liệu Viện Dinh dưỡng — ~15 là điểm khởi đầu, không phải đích). Chunk 500–800 token, overlap 100, embed, lưu `guideline_chunks` (pgvector) kèm metadata `{source, title, page, condition}`.
+**AC:** **≥15 tài liệu là SÀN** — thêm tài liệu mới bất cứ khi nào tìm được nguồn guideline chính thức phù hợp 4 bệnh mục tiêu, không giới hạn số lượng · Truy vấn "protein cho CKD giai đoạn 4" trả về chunk đúng ở top-3 · Mỗi chunk có metadata đầy đủ · Có script `make ingest` chạy lại được.
 
 ### `DAT-11` Tích hợp Open Food Facts cho thực phẩm đóng gói
 **Owner:** R2 · **P2** · 4h · **Deps:** DAT-02
 Client gọi API Open Food Facts (`https://world.openfoodfacts.org/api/v2/product/{barcode}.json`, free, không cần key, giới hạn 15 req/phút/IP) để lấp các dòng `food_items` là sản phẩm đóng gói/công nghiệp mà NIN/USDA không có (mì gói theo nhãn hiệu cụ thể, nước chấm/gia vị đóng gói). `source='OFF'`, `source_ref='Open Food Facts, barcode:xxxxxxxxxxxxx'`.
 **AC:** Tra được ≥10 sản phẩm Việt thật (VD mì Omachi đã xác nhận có trên nền tảng) · Ghi rõ giấy phép ODbL trong `data/README.md` (yêu cầu ghi nguồn khi dùng lại) · Test dùng mock, không gọi API thật trong CI.
 > P2 vì đây là nhóm phụ (thực phẩm công nghiệp), không nằm trên đường găng — chỉ làm sau khi 150 thực phẩm cốt lõi (DAT-02) đã xong.
+
+### `DAT-12` Bỏ trần số lượng EPIC 1/2 + fill dữ liệu thật không giới hạn
+**Owner:** R2 · **P1** · mở (điều phối, không phải 1 khối việc) · **Deps:** DAT-01
+Ticket điều phối cho việc bỏ trần cứng ở `DAT-02/04/05/06`, `CLN-02` (đã sửa AC, xem các ticket đó) và tiếp tục fill dữ liệu thật không giới hạn trên, chỉ giới hạn bởi có nguồn thật (RULE-2/DEC-008). Kế hoạch chi tiết + trạng thái từng nguồn: `docs/PLAN_DAT-12-uncap-data-and-db.md`.
+**AC:** Mỗi ticket con (`DAT-02/04/05/06`, `CLN-02`) có AC "sàn tối thiểu, không trần" · `docs/PLAN_DAT-12-uncap-data-and-db.md` được cập nhật khi có tiến độ mới · Không hạ chuẩn nguồn gốc để chạy nhanh số lượng.
 
 ---
 
@@ -126,11 +133,11 @@ Bổ sung `sugar_g` (cho ngưỡng đường tự do WHO) và cặp `gi_source`/
 `src/clinical/energy.py`: BMR theo Mifflin-St Jeor, hệ số hoạt động, TDEE, điều chỉnh theo mục tiêu cân nặng (giảm/giữ/tăng), dùng cân nặng lý tưởng khi BMI > 30.
 **AC:** ≥12 unit test bao gồm biên (tuổi 18, tuổi 90, BMI 15, BMI 40) · Docstring ghi rõ công thức + nguồn · Không gọi LLM, không truy vấn DB.
 
-### `CLN-02` Bảng quy tắc lâm sàng
-**Owner:** R2 · **P0** · 8h · **Deps:** DAT-01
+### `CLN-02` Bảng quy tắc lâm sàng — KHÔNG GIỚI HẠN TRÊN
+**Owner:** R2 · **P0** · 8h+ (mở) · **Deps:** DAT-01
 `data/seeds/clinical_rules.csv` + loader. Mỗi rule: `id, condition_code, stage, nutrient, operator, threshold, unit, per(day|meal|kg_bw), severity(hard|soft), guideline_ref`.
 Phủ: ĐTĐ2 (carb %, chất xơ, GI), THA/tim mạch (Na, chất béo bão hoà), CKD G3a–G5 (protein/kg, K, P, Na), Gout (purine, cồn, fructose).
-**AC:** ≥40 rule, mỗi rule có `guideline_ref` · Sửa ngưỡng chỉ cần sửa dữ liệu, **không phải sửa code** · Có test rule bị trùng/xung đột.
+**AC:** **≥40 rule là SÀN** (hiện đã có 21 rule) — thêm rule mới bất cứ khi nào tìm được ngưỡng guideline chưa phủ, không giới hạn số lượng trên, mỗi rule có `guideline_ref` · Sửa ngưỡng chỉ cần sửa dữ liệu, **không phải sửa code** · Có test rule bị trùng/xung đột.
 
 ### `CLN-03` Bộ tính định mức cá thể
 **Owner:** R2 · **P0** · 8h · **Deps:** CLN-01, CLN-02
@@ -223,10 +230,18 @@ AGT-09 mới tạo `CPSATMenuOptimizer` đứng riêng, `build_nutricare_graph()
 
 ## EPIC 4 — BACKEND (S2–S4) — *Owner chính: R3*
 
-### `BE-01` Schema DB + Alembic
+### `BE-01` Schema DB + Alembic ✅ (khung đã build, còn phần tích hợp)
 **Owner:** R3 · **P0** · 8h · **Deps:** SET-05
 Toàn bộ bảng theo `ARCHITECTURE.md` §5. Migration chạy được từ trắng.
 **AC:** `alembic upgrade head` trên DB rỗng thành công · Có index cho các truy vấn nóng · `audit_log` không có API xoá.
+**2026-08-05 — đã làm:** `src/db/models.py` (15 bảng SQLAlchemy, khớp ERD đã cập nhật ở `ARCHITECTURE.md` §5, bổ sung 6 bảng ERD cũ chưa vẽ: `dishes`, `dish_ingredients`, `serving_sizes`, `patient_medications`, `patient_allergies`, `food_logs`, `guideline_chunks`) · `alembic/` init + migration `initial schema - BE-01`, đã test `upgrade head` / `downgrade base` sạch trên SQLite trắng · `tests/test_db_models.py` (6 test: tạo bảng, insert/round-trip, quan hệ dish↔ingredient không lưu dinh dưỡng đúng RULE-1) · `src/db/base.py` (session factory + FastAPI dependency `get_db()`).
+**Còn lại (chưa làm trong lượt này):** index cho truy vấn nóng (mới có index mặc định theo FK/unique, chưa rà theo pattern truy vấn thật của BE-03..BE-07) · chưa nối `src/api/routes.py` dùng `get_db()` thay vì CSV loader hiện tại (đó là việc của BE-03 trở đi) · `psycopg2-binary` chưa cài (chỉ cần khi deploy Postgres thật, xem comment trong `requirements.txt`) · migrate dữ liệu từ `data/seeds/*.csv` sang DB thật (script `make seed`/`scripts/seed_db.py`) chưa viết — đây nên là ticket riêng, xem `BE-05`.
+
+### `BE-10` Script nạp seed CSV vào DB thật ✅
+**Owner:** R3 · **P1** · 4h · **Deps:** BE-01
+`scripts/seed_db.py`: đọc toàn bộ `data/seeds/*.csv` (food_items, dishes, dish_ingredients, clinical_rules, drug_food_interactions, serving_sizes) rồi insert vào DB qua `src/db/models.py`, dùng `session.merge()` hoặc upsert theo khoá chính để chạy lại nhiều lần không tạo trùng.
+**AC:** Chạy trên DB SQLite trắng → đủ 152 dòng `food_items`, đủ dòng hiện có của mọi bảng seed khác, không lỗi FK (dish_ingredients trỏ đúng food_id/dish_id đã tồn tại) · Chạy lại lần 2 không tăng gấp đôi số dòng (idempotent) · Có test dùng SQLite tạm, không đụng DB thật trong CI.
+**2026-08-05 — đã làm:** `scripts/seed_db.py` + `make seed`. Idempotent qua `session.merge()` theo khoá chính (`FoodItem.id`, `Dish.dish_id`, `ClinicalRule.rule_id`, `DrugFoodInteraction.id`); riêng `serving_sizes` không có khoá tự nhiên trong CSV nên xoá-hết-rồi-nạp-lại. `dish_ingredients` tự bỏ qua (kèm log) dòng trỏ tới `food_id` chưa có số liệu thay vì crash FK. **Không** seed `gi_values.csv`/`purine_values.csv`/`usda_values.csv` — đây là bảng phụ trợ đã merge vào `food_items.csv`, không phải bảng DB độc lập. `tests/test_seed_db.py` (4 test: nạp đúng số liệu thật, không lỗi FK, idempotent chạy 2 lần, bỏ qua dish_ingredient thiếu food_item) — chạy trên SQLite in-memory, không đụng DB thật. Verify thật trên SQLite trắng: 125 food_items / 3 dishes / 11 dish_ingredients / 21 clinical_rules / 30 drug_food_interactions / 5 serving_sizes, chạy lại lần 2 số dòng không đổi.
 
 ### `BE-02` Auth JWT + RBAC
 **Owner:** R3 · **P0** · 8h · **Deps:** BE-01

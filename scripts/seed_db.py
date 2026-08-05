@@ -1,0 +1,248 @@
+#!/usr/bin/env python3
+"""Nạp dữ liệu từ `data/seeds/*.csv` vào DB thật qua SQLAlchemy.
+
+Ticket: BE-10 (tách từ BE-01). LLM: NO — thuần ETL, không có logic lâm sàng.
+Chạy: python scripts/seed_db.py   (hoặc `make seed`)
+
+Idempotent: dùng `session.merge()` theo khoá chính của từng bảng (id/dish_id/
+rule_id...) — chạy lại nhiều lần không tạo dòng trùng, chỉ cập nhật giá trị
+mới nhất từ CSV. Riêng `serving_sizes` không có khoá tự nhiên trong CSV nên
+seed theo kiểu xoá-hết-rồi-nạp-lại (nội dung giống hệt sau mỗi lần chạy).
+
+KHÔNG seed từ `gi_values.csv` / `purine_values.csv` / `usda_values.csv` —
+đây là bảng phụ trợ dùng để MERGE số liệu vào `food_items.csv` lúc biên tập
+dữ liệu (xem `data/README.md`), không phải bảng DB độc lập trong
+`src/db/models.py`.
+
+Dòng `food_items.csv` chưa nhập số liệu (còn trống `kcal_100g`) bị bỏ qua có
+chủ đích — không seed dữ liệu rỗng/rác vào DB (RULE-2).
+"""
+
+from __future__ import annotations
+
+import csv
+import sys
+from pathlib import Path
+
+# CI runner có thể không đặt locale UTF-8 → in tiếng Việt sẽ UnicodeEncodeError.
+if hasattr(sys.stdout, "reconfigure"):
+    sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))  # cho phép chạy trực tiếp `python scripts/seed_db.py`
+
+from sqlalchemy.orm import Session  # noqa: E402
+
+from src.db.base import get_engine  # noqa: E402
+from src.db.models import (  # noqa: E402
+    Base,
+    ClinicalRule,
+    Dish,
+    DishIngredient,
+    DrugFoodInteraction,
+    FoodItem,
+    ServingSize,
+)
+
+SEEDS = Path(__file__).resolve().parents[1] / "data" / "seeds"
+
+
+def _split(raw: str | None) -> list[str]:
+    return [s.strip() for s in (raw or "").split("|") if s.strip()]
+
+
+def _opt_float(raw: str | None) -> float | None:
+    raw = (raw or "").strip()
+    return float(raw) if raw else None
+
+
+def _opt_str(raw: str | None) -> str | None:
+    raw = (raw or "").strip()
+    return raw or None
+
+
+def seed_food_items(session: Session, path: Path | None = None) -> int:
+    n = 0
+    with open(path or SEEDS / "food_items.csv", newline="", encoding="utf-8") as f:
+        for row in csv.DictReader(f):
+            if not (row.get("kcal_100g") or "").strip():
+                continue
+            session.merge(
+                FoodItem(
+                    id=int(row["id"]),
+                    name_vi=row["name_vi"],
+                    aliases=_split(row.get("aliases")),
+                    category=_opt_str(row.get("category")),
+                    kcal_100g=float(row["kcal_100g"]),
+                    protein_g=float(row["protein_g"]),
+                    carb_g=float(row["carb_g"]),
+                    fat_g=float(row["fat_g"]),
+                    fiber_g=float(row["fiber_g"]),
+                    sugar_g=_opt_float(row.get("sugar_g")),
+                    na_mg=float(row["na_mg"]),
+                    k_mg=float(row["k_mg"]),
+                    p_mg=float(row["p_mg"]),
+                    purine_mg=_opt_float(row.get("purine_mg")),
+                    purine_source_ref=_opt_str(row.get("purine_source_ref")),
+                    gi_index=_opt_float(row.get("gi_index")),
+                    gi_source=_opt_str(row.get("gi_source")),
+                    gi_source_ref=_opt_str(row.get("gi_source_ref")),
+                    contains_allergens=_split(row.get("contains_allergens")),
+                    source=row["source"],
+                    source_ref=row["source_ref"],
+                    is_estimated=(row.get("is_estimated") or "").strip().upper() == "TRUE",
+                )
+            )
+            n += 1
+    session.flush()
+    return n
+
+
+def seed_dishes(session: Session, path: Path | None = None) -> int:
+    n = 0
+    with open(path or SEEDS / "dishes.csv", newline="", encoding="utf-8") as f:
+        for row in csv.DictReader(f):
+            session.merge(
+                Dish(
+                    dish_id=row["dish_id"],
+                    name_vi=row["name_vi"],
+                    region=_opt_str(row.get("region")),
+                    serving_g=_opt_float(row.get("serving_g")),
+                    verified_by=_opt_str(row.get("verified_by")),
+                    note=_opt_str(row.get("note")),
+                )
+            )
+            n += 1
+    session.flush()
+    return n
+
+
+def seed_dish_ingredients(session: Session, path: Path | None = None) -> tuple[int, int]:
+    """Trả về (số dòng đã nạp, số dòng bỏ qua vì food_id/dish_id chưa tồn tại)."""
+    known_food_ids = {fid for (fid,) in session.query(FoodItem.id).all()}
+    known_dish_ids = {did for (did,) in session.query(Dish.dish_id).all()}
+    n, skipped = 0, 0
+    with open(path or SEEDS / "dish_ingredients.csv", newline="", encoding="utf-8") as f:
+        for i, row in enumerate(csv.DictReader(f), start=1):
+            dish_id, food_id = row["dish_id"], int(row["food_id"])
+            if dish_id not in known_dish_ids or food_id not in known_food_ids:
+                print(
+                    f"  BỎ QUA dish_ingredients dòng {i}: {dish_id} × food_id={food_id} "
+                    "— dish hoặc food_item chưa tồn tại/chưa có số liệu"
+                )
+                skipped += 1
+                continue
+            existing = session.query(DishIngredient).filter_by(dish_id=dish_id, food_id=food_id).one_or_none()
+            if existing is not None:
+                existing.grams = float(row["grams"])
+                existing.note = _opt_str(row.get("note"))
+            else:
+                session.add(
+                    DishIngredient(
+                        dish_id=dish_id,
+                        food_id=food_id,
+                        grams=float(row["grams"]),
+                        note=_opt_str(row.get("note")),
+                    )
+                )
+            n += 1
+    session.flush()
+    return n, skipped
+
+
+def seed_clinical_rules(session: Session, path: Path | None = None) -> int:
+    n = 0
+    with open(path or SEEDS / "clinical_rules.csv", newline="", encoding="utf-8") as f:
+        for row in csv.DictReader(f):
+            if not row.get("rule_id"):
+                continue
+            session.merge(
+                ClinicalRule(
+                    rule_id=row["rule_id"],
+                    condition_code=row["condition_code"],
+                    stages=_opt_str(row.get("stages")),
+                    nutrient=row["nutrient"],
+                    bound=row["bound"],
+                    value=float(row["value"]),
+                    unit=row["unit"],
+                    basis=row["basis"],
+                    severity=row["severity"],
+                    guideline_ref=row["guideline_ref"],
+                    guideline_grade=_opt_str(row.get("guideline_grade")),
+                    verify_status=_opt_str(row.get("verify_status")) or "to_verify",
+                    overridden_by=_opt_str(row.get("overridden_by")),
+                    disabled_by_flag=_opt_str(row.get("disabled_by_flag")),
+                    requires_flag=_opt_str(row.get("requires_flag")),
+                )
+            )
+            n += 1
+    session.flush()
+    return n
+
+
+def seed_drug_food_interactions(session: Session, path: Path | None = None) -> int:
+    n = 0
+    with open(path or SEEDS / "drug_food_interactions.csv", newline="", encoding="utf-8") as f:
+        for row in csv.DictReader(f):
+            session.merge(
+                DrugFoodInteraction(
+                    id=int(row["id"]),
+                    drug_name=row["drug_name"],
+                    drug_class=_opt_str(row.get("drug_class")),
+                    food_or_nutrient=row["food_or_nutrient"],
+                    severity=row["severity"],
+                    mechanism_vi=row["mechanism_vi"],
+                    recommendation_vi=row["recommendation_vi"],
+                    source_ref=_opt_str(row.get("source_ref")),
+                    verify_status=_opt_str(row.get("verify_status")) or "to_verify",
+                )
+            )
+            n += 1
+    session.flush()
+    return n
+
+
+def seed_serving_sizes(session: Session, path: Path | None = None) -> int:
+    """Không có khoá tự nhiên trong CSV — xoá hết rồi nạp lại cho idempotent."""
+    session.query(ServingSize).delete()
+    n = 0
+    with open(path or SEEDS / "serving_sizes.csv", newline="", encoding="utf-8") as f:
+        for row in csv.DictReader(f):
+            session.add(
+                ServingSize(
+                    category=row["category"],
+                    serving_g=float(row["serving_g"]),
+                    note=_opt_str(row.get("note")),
+                    source=_opt_str(row.get("source")),
+                )
+            )
+            n += 1
+    session.flush()
+    return n
+
+
+def seed_all(session: Session) -> dict[str, int]:
+    counts = {"food_items": seed_food_items(session)}
+    counts["dishes"] = seed_dishes(session)
+    counts["dish_ingredients"], skipped = seed_dish_ingredients(session)
+    counts["dish_ingredients_skipped"] = skipped
+    counts["clinical_rules"] = seed_clinical_rules(session)
+    counts["drug_food_interactions"] = seed_drug_food_interactions(session)
+    counts["serving_sizes"] = seed_serving_sizes(session)
+    return counts
+
+
+def main() -> int:
+    engine = get_engine()
+    Base.metadata.create_all(engine)  # no-op nếu bảng đã tồn tại (đã chạy alembic)
+    with Session(engine) as session:
+        counts = seed_all(session)
+        session.commit()
+
+    print("Đã nạp dữ liệu vào DB:")
+    for table, n in counts.items():
+        print(f"  {table}: {n}")
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

@@ -11,9 +11,11 @@ langchain-openai>=0.3.0
 langgraph>=0.2.0
 google-genai>=1.0.0
 
-# Database (uncomment as needed)
-# sqlalchemy>=2.0.0
-# alembic>=1.14.0
+# Database (BE-01 — schema thật + migration)
+sqlalchemy>=2.0.0
+alembic>=1.14.0
+# psycopg2-binary bắt buộc khi deploy Postgres thật; SQLite (mặc định dev/test)
+# không cần driver rời, dùng thẳng sqlite3 built-in của Python.
 # psycopg2-binary>=2.9.0
 
 # Vector Store (uncomment as needed)

@@ -1,4 +1,4 @@
-.PHONY: run test lint format validate-data graph check
+.PHONY: run test lint format validate-data graph check seed
 run:
 	uvicorn src.main:app --reload --host 0.0.0.0 --port 8000
 test:
@@ -9,6 +9,8 @@ format:
 	python3 -m ruff format src/ tests/ scripts/
 validate-data:
 	python3 scripts/validate_data.py
+seed:
+	python3 scripts/seed_db.py
 graph:
 	python3 -c "import sys;sys.path.insert(0,'.');from scripts.render_graph import main;main()"
 check: lint validate-data test
