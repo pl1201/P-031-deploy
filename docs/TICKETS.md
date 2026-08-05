@@ -1,6 +1,6 @@
 # TICKETS — BACKLOG & GIAO VIỆC
 
-> 52 ticket · 6 sprint · Ước tính tổng ≈ 430 giờ-người
+> 53 ticket · 6 sprint · Ước tính tổng ≈ 434 giờ-người
 > Ký hiệu: **P0** = chặn dự án · **P1** = cần cho MVP · **P2** = nâng cao · **P3** = có thì tốt
 > Owner theo mã vai trò trong `TEAM.md` (R1–R4 · đội 4 người)
 
@@ -15,7 +15,7 @@
 | Sprint | Tuần | Ticket | Giờ ước tính |
 |---|---|---|---|
 | S1 | 27/07–02/08 | SET-01→06, DAT-00→03 | 78h |
-| S2 | 03/08–09/08 | DAT-04→06, CLN-01→05, BE-01→05 | 92h |
+| S2 | 03/08–09/08 | DAT-04→06, DAT-11, CLN-01→05, BE-01→05 | 96h |
 | S3 | 10/08–16/08 | AGT-01→08, CLN-06→07, BE-06→07 | 96h |
 | S4 | 17/08–23/08 | HIT-01→05, FE-01→06, BE-08→09 | 88h |
 | S5 | 24/08–30/08 | ADV-01→06, FE-07→08, EVL-01→03 | 62h |
@@ -70,6 +70,7 @@ Kiểm chứng từng số liệu trong `nghien_cuu_dinh_duong_ai_agent.md`: cá
 ### `DAT-01` Chốt nguồn dữ liệu thực phẩm & pháp lý sử dụng
 **Owner:** R2 · **P0** · 4h · **Deps:** —
 Xác định lấy Bảng TPTP Việt Nam ở đâu (bản in/PDF/website NIN), điều kiện sử dụng. Đăng ký API key USDA FoodData Central. Kiểm tra license DDID — nếu không rõ ràng thì chuyển sang phương án curate 80 cặp thủ công.
+**Đã nghiên cứu bổ sung** (xem `data/README.md` mục "Nghiên cứu bổ sung nguồn dữ liệu"): **Open Food Facts** xác nhận dùng được ngay (free API, ODbL) cho nhóm thực phẩm đóng gói; **Dược thư Quốc gia VN 2022** xác nhận dùng được cho `source_ref` của DAT-05. uFiSh1.0 (FAO cá/thủy sản) cần R2 tự thử tải link trực tiếp để xác nhận nốt. PhyFoodComp/eBASIS/ASEANFOODS/WikiFCD-FoodOn đã bị loại có ghi lý do (ngoài scope lâm sàng / license không rõ / trùng lặp VFCT / over-engineering).
 **AC:** `data/README.md` ghi rõ: nguồn nào dùng được, giấy phép, cách trích dẫn · Có API key USDA hoạt động · Quyết định về DDID được ghi vào DEVLOG dạng ADR.
 
 ### `DAT-02` Thiết kế schema & nhập 150 thực phẩm cốt lõi
@@ -94,12 +95,19 @@ Quy trình: LLM sinh nháp công thức → **R2 rà soát và sửa tay** → �
 **Owner:** R2 · **P1** · 8h · **Deps:** DAT-01
 `drug_food_interactions`: `drug_name, drug_class, food_or_nutrient, severity(high/moderate/low), mechanism, recommendation, source_ref`.
 Bắt buộc có: Warfarin–vitamin K, ACEi/ARB–kali & muối thay thế, Statin–bưởi, Metformin–rượu & B12, Levothyroxine–canxi/đậu nành/cà phê, Digoxin–chất xơ cao, MAOI–tyramine, Allopurinol–rượu bia, lợi tiểu thiazide–kali.
+**Nguồn `source_ref` ưu tiên:** **Dược thư Quốc gia Việt Nam 2022** (QĐ 3445/QĐ-BYT, 743 chuyên luận, tra cứu online miễn phí) — mỗi cặp tra chuyên luận thuốc tương ứng, `source_ref` dạng `Dược thư Quốc gia VN 2022, chuyên luận <tên thuốc>`. **Không dùng** Quyết định 5948/QĐ-BYT làm nguồn cho bảng này trừ khi ai đó mở file thật và xác nhận có mục thuốc-thực phẩm — mọi mô tả tìm được đều chỉ nói đây là danh mục tương tác **thuốc-thuốc** (633 cặp hoạt chất + 68 cặp nhóm dược lý), đừng suy đoán nó phủ cả thực phẩm.
 **AC:** ≥80 cặp, mỗi cặp có nguồn · Khớp được cả theo hoạt chất lẫn theo nhóm thuốc · Test: hồ sơ dùng Warfarin + thực đơn nhiều rau ngót → sinh cảnh báo `high`.
 
 ### `DAT-06` Ingest guideline vào RAG
 **Owner:** R2 · **P1** · 8h · **Deps:** SET-05
 Thu thập ~15 tài liệu (BYT, ADA, KDIGO, AHA/DASH, ACR, tài liệu Viện Dinh dưỡng). Chunk 500–800 token, overlap 100, embed, lưu `guideline_chunks` (pgvector) kèm metadata `{source, title, page, condition}`.
 **AC:** Truy vấn "protein cho CKD giai đoạn 4" trả về chunk đúng ở top-3 · Mỗi chunk có metadata đầy đủ · Có script `make ingest` chạy lại được.
+
+### `DAT-11` Tích hợp Open Food Facts cho thực phẩm đóng gói
+**Owner:** R2 · **P2** · 4h · **Deps:** DAT-02
+Client gọi API Open Food Facts (`https://world.openfoodfacts.org/api/v2/product/{barcode}.json`, free, không cần key, giới hạn 15 req/phút/IP) để lấp các dòng `food_items` là sản phẩm đóng gói/công nghiệp mà NIN/USDA không có (mì gói theo nhãn hiệu cụ thể, nước chấm/gia vị đóng gói). `source='OFF'`, `source_ref='Open Food Facts, barcode:xxxxxxxxxxxxx'`.
+**AC:** Tra được ≥10 sản phẩm Việt thật (VD mì Omachi đã xác nhận có trên nền tảng) · Ghi rõ giấy phép ODbL trong `data/README.md` (yêu cầu ghi nguồn khi dùng lại) · Test dùng mock, không gọi API thật trong CI.
+> P2 vì đây là nhóm phụ (thực phẩm công nghiệp), không nằm trên đường găng — chỉ làm sau khi 150 thực phẩm cốt lõi (DAT-02) đã xong.
 
 ---
 

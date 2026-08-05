@@ -28,13 +28,33 @@ Cột `source_ref` bỏ trống sẽ khiến `validate_data.py` báo lỗi và C
 | **NIN 2017** — bản PDF đầy đủ (304 trang) | Bổ sung 17 dòng `food_items.csv` (DAT-09) | 🟢 đã trích | Không commit file gốc — xem mục "NIN 2017/2007" bên dưới |
 | **USDA FoodData Central** | Vi chất chi tiết, nguyên liệu nhập khẩu | ⬜ cần đăng ký API key | Miễn phí. `source_ref` = `USDA fdcId:xxxxx` |
 | **Guideline lâm sàng** (ADA, KDIGO, AHA/WHO, ACR, BYT) | `clinical_rules.csv` | 🟡 đã seed, chờ verify | Mỗi rule phải dẫn được tài liệu + năm |
-| **Tương tác thuốc – thực phẩm** | `drug_food_interactions.csv` | 🟡 đã seed 30 cặp, chưa có `source_ref` | Xem mục "DDID" bên dưới |
+| **Tương tác thuốc – thực phẩm** | `drug_food_interactions.csv` | 🟡 đã seed 30 cặp, chưa có `source_ref` | Xem mục "DDID" bên dưới, và **Dược thư Quốc gia VN 2022** ở mục nghiên cứu bổ sung |
+| **Open Food Facts** | Thực phẩm đóng gói/công nghiệp (mì gói theo nhãn hiệu, nước chấm đóng gói) mà NIN/USDA không có | 🟢 xác nhận dùng được, chưa tích hợp | Free API, ODbL license. `source_ref` = `Open Food Facts, barcode:xxxxxxxxxxxxx` |
 
 ### Về DDID (23.950 bản ghi tương tác)
 
 Đề án ban đầu định dùng trọn bộ DDID. **Quyết định đã đổi (ADR-005):** license chưa rõ ràng và 23.950 bản ghi là quá thừa cho 4 nhóm bệnh của đề bài. Thay bằng **80 cặp curated** — hiện đã seed 30 cặp phổ biến nhất, cần bổ sung thêm 50.
 
 Nếu vẫn muốn dùng DDID: phải kiểm tra license **trước khi** import, và ghi kết quả kiểm tra vào `DEVLOG.md` §3.
+
+---
+
+## Nghiên cứu bổ sung nguồn dữ liệu (DAT-01, dựa trên `data/Dữ liệu dinh dưỡng Việt Nam.md`)
+
+Tài liệu tổng quan `data/Dữ liệu dinh dưỡng Việt Nam.md` (57 trích dẫn, khảo sát hệ sinh thái dữ liệu dinh dưỡng VN + quốc tế) nêu 8 nguồn ngoài NIN/USDA. Đã tự xác minh từng nguồn qua web (không chép nguyên claim từ tài liệu — một số claim trong đó chưa kiểm chứng được, VD số liệu Open Food Facts luôn thay đổi theo thời gian thực). Kết quả:
+
+| Nguồn | Xác minh được | Quyết định |
+|---|---|---|
+| **Open Food Facts** | ✅ API free, không cần key, giấy phép **ODbL** (Open Database License — cho phép dùng lại có ghi nguồn), endpoint `/api/v2/product/{barcode}.json`, giới hạn 15 req/phút/IP. Có sản phẩm Việt thật (VD mì Omachi — `world.openfoodfacts.org/product/8936221043064/mi-tomyum-omachi`), `vn.openfoodfacts.org` liệt kê 399 category cho VN | **Dùng được** cho nhóm thực phẩm đóng gói/công nghiệp mà NIN/USDA không có (mì gói theo nhãn hiệu, nước chấm/gia vị đóng gói cụ thể). `source_ref` đề xuất: `Open Food Facts, barcode:xxxxxxxxxxxxx` |
+| **FAO/INFOODS uFiSh1.0** | 🟡 Xác nhận có thật: file Excel, 12 sheet, 78 loài cá/giáp xác/nhuyễn thể, bản 2016. Trang gốc `openknowledge.fao.org` không tải được lúc kiểm tra (lỗi kết nối, có thể tạm thời) — **chưa xác nhận được link tải + điều khoản license cụ thể** | **Cần thêm bước xác minh** trước khi seed — R2 tự thử tải link `openknowledge.fao.org/handle/20.500.14283/i6655en` trực tiếp (không qua tool fetch), nếu vào được thì license FAO nhìn chung cho phép dùng phi thương mại có trích dẫn |
+| **FAO/INFOODS PhyFoodComp1.0** | ✅ Có thật (2018, hợp tác FAO/INFOODS/IZiNCG), dữ liệu phytate + tỷ lệ mol với Fe/Zn/Ca | ❌ **Không tích hợp.** Phytate phục vụ đánh giá sinh khả dụng khoáng chất (thiếu máu/thiếu kẽm) — ngoài phạm vi 4 bệnh mục tiêu (ĐTĐ2, THA, CKD, gout). Ghi nhận làm nguồn tương lai nếu dự án mở rộng sang thiếu vi chất |
+| **EuroFIR eBASIS** | ⚠️ Trang chủ `eurofir.org` mô tả eBASIS là lợi ích dành cho **thành viên** (membership), không nêu rõ có gói truy cập miễn phí công khai hay không | ❌ **Không tích hợp** — rủi ro vi phạm giấy phép nếu dùng mà chưa xác nhận, đúng nguyên tắc "để trống còn hơn dùng sai nguồn". Có thể xác minh lại sau nếu cần polyphenol/phytosterol cho rau |
+| **ASEANFOODS** | ✅ Có bản điện tử độc lập tại Viện Dinh dưỡng ĐH Mahidol, Thái Lan (`inmu.mahidol.ac.th/aseanfoods`, bản 2/2014) | ❌ **Không ưu tiên** — theo chính tài liệu gốc, VFCT 2017 **đã đối chiếu chéo** với ASEANFOODS khi biên soạn, nên phần lớn giá trị đã nằm sẵn trong VFCT 2017 (đã có trong repo). Dùng lại sẽ trùng lặp, không phải nguồn bổ sung độc lập |
+| **WikiFCD / FoodOn / Wikidata SPARQL** | ✅ Dự án có thật (semantic web, ánh xạ food entity ↔ Wikidata) | ❌ **Không làm cho MVP** — cần hạ tầng SPARQL/ontology mapping, không phục vụ trực tiếp ngưỡng lâm sàng nào của 4 bệnh mục tiêu. Rủi ro over-engineering rõ ràng so với lợi ích |
+| **Quyết định 5948/QĐ-BYT (2021)** | ✅ Có thật: 633 cặp theo hoạt chất + 68 cặp theo nhóm dược lý, ban hành 30/12/2021, tải được qua thuvienphapluat.vn/luatvietnam.vn. **Nhưng:** mọi mô tả tìm được đều gọi đây là danh mục tương tác **thuốc – thuốc** ("tương tác thuốc chống chỉ định"), không tìm thấy xác nhận cụ thể văn bản có phủ cặp **thuốc – thực phẩm** (warfarin–vitamin K, statin–bưởi...) hay không | ⚠️ **Không dùng làm `source_ref` cho `drug_food_interactions.csv`** cho tới khi ai đó mở file thật và xác nhận có mục thuốc-thực phẩm — đừng suy đoán. Ghi nhận là nguồn tiềm năng cho một bảng `drug_drug_interactions` (ngoài schema hiện tại) trong tương lai |
+| **Dược thư Quốc gia Việt Nam** (bản 3, 2022, QĐ 3445/QĐ-BYT) | ✅ 743 chuyên luận + 25 chuyên luận hướng dẫn chung, tra cứu online miễn phí tại `trungtamthuoc.com/hoat-chat`, `duocdienvietnam.com`, `vnras.com` (có bản PDF). Theo tài liệu gốc, có Phụ lục Tương tác Thuốc riêng, biên soạn dựa trên Martindale/BNF/AHFS | ✅ **Nguồn `source_ref` ưu tiên cho DAT-05** — mỗi cặp thuốc-thực phẩm trong `drug_food_interactions.csv` nên tra chuyên luận thuốc tương ứng trong Dược thư, `source_ref` dạng: `Dược thư Quốc gia VN 2022 (QĐ 3445/QĐ-BYT), chuyên luận <tên thuốc>` |
+
+**Tóm lại:** 2 nguồn dùng ngay (Open Food Facts, Dược thư QGVN), 1 nguồn cần thêm bước xác minh (uFiSh1.0), 4 nguồn loại rõ lý do (PhyFoodComp, eBASIS, ASEANFOODS, WikiFCD/FoodOn), 1 nguồn cần đọc trực tiếp trước khi kết luận (5948/QĐ-BYT).
 
 ---
 
