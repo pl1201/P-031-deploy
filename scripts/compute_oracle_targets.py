@@ -130,6 +130,10 @@ def compute_kcal_target_oracle(
     kcal_min = max(1200, kcal_min)
     kcal_max = min(3000, kcal_max)
 
+    # Ensure min < max after clamping (avoid range collapse for low TDEE patients)
+    if kcal_min >= kcal_max:
+        kcal_max = kcal_min + 100
+
     metadata = OracleMetadata(
         formula=f"Mifflin-St Jeor: BMR={'10W+6.25H-5A+5' if sex == 'male' else '10W+6.25H-5A-161'}, H={height_cm}cm (actual), TDEE=BMR*{factor}, range=±10%",
         guideline_ref="Academy of Nutrition and Dietetics 2020",
