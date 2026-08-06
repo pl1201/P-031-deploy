@@ -63,7 +63,7 @@ cp .env.example .env
 bash scripts/setup_hooks.sh
 
 # 6. Chạy thử không cần API key/DB (logic lâm sàng deterministic)
-make check          # ruff + validate-data + pytest, 51 test xanh
+make check          # ruff + validate-data + pytest, 112 test xanh
 
 # 7. Chạy server
 make run             # hoặc: uvicorn src.main:app --reload --port 8000

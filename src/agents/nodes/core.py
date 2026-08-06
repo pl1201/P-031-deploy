@@ -97,11 +97,23 @@ def make_compute_targets(rules: list[ClinicalRule] | None = None):
     return compute_targets_node
 
 
+# `food_items.csv` từ DAT-12 gồm ~150 dòng curated (id nội bộ tuần tự, nhỏ) +
+# ~6.850 dòng USDA FoodData Central bulk (SR Legacy/Foundation, id = fdc_id
+# gốc, luôn ≥ 100000 — xem `data/README.md`). Khối bulk là KHO THAM CHIẾU
+# (tra cứu, OOV, mở rộng sau), KHÔNG dùng làm ứng viên sinh thực đơn: đưa cả
+# ~7000 dòng vào CP-SAT/prompt LLM làm chậm CP-SAT ~30-50 lần (đo thực tế:
+# 13 test từ ~1,5s lên ~50s) và làm prompt Gemini phình to vô ích — phần lớn
+# là thực phẩm Mỹ/quốc tế không phù hợp bối cảnh bệnh nhân Việt Nam.
+USDA_BULK_ID_THRESHOLD = 100_000
+
+
 def make_retrieve_context(foods: FoodRepository):
     """Node: retrieve_context — LLM: NO.
 
     Lọc sẵn danh sách ứng viên theo dị ứng và bệnh lý, để LLM không bao giờ
-    nhìn thấy thực phẩm cấm. Chặn ở đầu vào rẻ hơn chặn ở đầu ra.
+    nhìn thấy thực phẩm cấm. Chặn ở đầu vào rẻ hơn chặn ở đầu ra. Đồng thời
+    loại khối USDA bulk (id ≥ `USDA_BULK_ID_THRESHOLD`) khỏi ứng viên — xem
+    ghi chú ở trên.
     """
 
     def retrieve_context(state: NutriState) -> dict:
@@ -110,7 +122,8 @@ def make_retrieve_context(foods: FoodRepository):
         candidates = [
             f
             for f in all_items
-            if not any(a in profile.allergies for a in map(str.lower, f.contains_allergens))
+            if f.id < USDA_BULK_ID_THRESHOLD
+            and not any(a in profile.allergies for a in map(str.lower, f.contains_allergens))
             and f.name_vi.lower() not in profile.dislikes
         ]
         return {"candidate_foods": candidates}

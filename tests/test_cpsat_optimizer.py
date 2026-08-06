@@ -10,6 +10,7 @@ from __future__ import annotations
 
 import pytest
 
+from src.agents.nodes.core import USDA_BULK_ID_THRESHOLD
 from src.agents.optimizer import CPSATMenuOptimizer
 from src.clinical.models import (
     ActivityLevel,
@@ -30,6 +31,16 @@ def foods():
     return load_food_repository()
 
 
+@pytest.fixture(scope="module")
+def menu_candidates(foods):
+    """Ứng viên thật cho CP-SAT — khớp bộ lọc `retrieve_context` (DAT-12): loại
+    khối USDA bulk (id ≥ `USDA_BULK_ID_THRESHOLD`), chỉ curated Việt Nam. Không
+    dùng `foods.all()` trực tiếp cho CP-SAT trong test — ~7000 ứng viên (sau
+    khi nhập USDA bulk) làm solver chậm 30-50 lần so với ~150 ứng viên curated.
+    """
+    return [f for f in foods.all() if f.id < USDA_BULK_ID_THRESHOLD]
+
+
 def _profile(**overrides) -> PatientProfile:
     base = dict(
         patient_id="BN-CPSAT-01",
@@ -44,9 +55,9 @@ def _profile(**overrides) -> PatientProfile:
     return PatientProfile(**base)
 
 
-def test_giai_duoc_thuc_don_kha_thi_tren_du_lieu_that(foods):
+def test_giai_duoc_thuc_don_kha_thi_tren_du_lieu_that(foods, menu_candidates):
     """Happy path: dữ liệu seed thật, định mức thật từ compute_targets()."""
-    candidates = foods.all()
+    candidates = menu_candidates
     profile = _profile()
     targets = compute_targets(profile)
 
@@ -90,7 +101,7 @@ _AUDIT_PROFILES = [
 
 
 @pytest.mark.parametrize("spec", _AUDIT_PROFILES)
-def test_thuc_don_thoa_validate_that(foods, spec):
+def test_thuc_don_thoa_validate_that(foods, menu_candidates, spec):
     """Thực đơn CP-SAT phải QUA được đúng `validate_menu` mà graph dùng.
 
     Đây là hợp đồng thật: `compute_nutrition` làm tròn tổng về 2 chữ số rồi
@@ -103,7 +114,7 @@ def test_thuc_don_thoa_validate_that(foods, spec):
     profile = _profile(conditions=conditions, **fields)
     targets = compute_targets(profile)
 
-    draft = CPSATMenuOptimizer().generate(profile, targets, foods.all(), feedback=None)
+    draft = CPSATMenuOptimizer().generate(profile, targets, menu_candidates, feedback=None)
     assert draft.all_items(), "các hồ sơ này đều khả thi — phải có lời giải để kiểm tra ngưỡng"
 
     summary = compute_nutrition(draft, foods)
@@ -111,7 +122,7 @@ def test_thuc_don_thoa_validate_that(foods, spec):
     assert violations == [], f"thực đơn vi phạm ngưỡng: {[str(v) for v in violations]}"
 
 
-def test_xep_du_bon_bua(foods):
+def test_xep_du_bon_bua(menu_candidates):
     """Model ép MIN_ITEMS_PER_SLOT=1 cho cả 4 bữa → lời giải khả thi phải đủ 4 bữa.
 
     Assert đúng con số 4 (không phải '>=2' lỏng lẻo): nếu ai bỏ ràng buộc số món
@@ -120,7 +131,7 @@ def test_xep_du_bon_bua(foods):
     profile = _profile()
     targets = compute_targets(profile)
 
-    draft = CPSATMenuOptimizer().generate(profile, targets, foods.all(), feedback=None)
+    draft = CPSATMenuOptimizer().generate(profile, targets, menu_candidates, feedback=None)
 
     assert len(draft.items) == 4, f"phải xếp món cho đủ 4 bữa, nhận {sorted(s.value for s in draft.items)}"
     for slot, items in draft.items.items():

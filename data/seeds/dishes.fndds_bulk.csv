@@ -1,7 +1,4 @@
 dish_id,name_vi,region,serving_g,verified_by,note
-PHO-BO,Phở bò,bắc,450,pending,"Công thức NHÁP — R2 cần rà. Muối tính từ nguyên liệu ~3,5g/bát (khớp mốc nghiên cứu 3,3-4,0g). Gia vị = phần thực ăn của bát, không phải cả nồi nước dùng."
-BUN-DAU-MAM,Bún đậu mắm,bắc,350,pending,Công thức NHÁP — R2 cần rà.
-CANH-RAU-MUONG,Canh rau muống,any,300,pending,"Món ít muối để đối chiếu (contrast với phở)."
 FNDDS-2705384,"Milk, NFS",,100,USDA FNDDS (nguồn chính thức),"USDA FoodData Central (FNDDS/WWEIA Survey Foods), fdcId:2705384"
 FNDDS-2705385,"Milk, whole",,100,USDA FNDDS (nguồn chính thức),"USDA FoodData Central (FNDDS/WWEIA Survey Foods), fdcId:2705385"
 FNDDS-2705386,"Milk, reduced fat (2%)",,100,USDA FNDDS (nguồn chính thức),"USDA FoodData Central (FNDDS/WWEIA Survey Foods), fdcId:2705386"
@@ -2634,30 +2631,3 @@ FNDDS-2710804,"Summer squash, cooked, as ingredient",,100,USDA FNDDS (nguồn ch
 FNDDS-2710805,"Celery, cooked, as ingredient",,100,USDA FNDDS (nguồn chính thức),"USDA FoodData Central (FNDDS/WWEIA Survey Foods), fdcId:2710805"
 FNDDS-2710813,Sauce as ingredient in hamburgers,,100,USDA FNDDS (nguồn chính thức),"USDA FoodData Central (FNDDS/WWEIA Survey Foods), fdcId:2710813"
 FNDDS-2710814,Industrial oil as ingredient in food,,100,USDA FNDDS (nguồn chính thức),"USDA FoodData Central (FNDDS/WWEIA Survey Foods), fdcId:2710814"
-MENU-TĐ3+4-TD3-Sáng-1,Bữa sáng - Thực đơn 3 (TĐ 3+4),,95,pending,"Trích từ data/Bảng xác định nhu cầu dinh dưỡng + thực đơn.xlsx, sheet 'TĐ 3+4', Thực đơn 3, bữa Sáng. Khớp food_id tự động theo tên chuẩn hoá — CẦN R2 rà soát trước khi dùng."
-MENU-TĐ3+4-TD3-Trưa-2,Bữa trưa - Thực đơn 3 (TĐ 3+4),,175,pending,"Trích từ data/Bảng xác định nhu cầu dinh dưỡng + thực đơn.xlsx, sheet 'TĐ 3+4', Thực đơn 3, bữa Trưa. Khớp food_id tự động theo tên chuẩn hoá — CẦN R2 rà soát trước khi dùng."
-MENU-TĐ3+4-TD3-Tối-3,Bữa tối - Thực đơn 3 (TĐ 3+4),,472,pending,"Trích từ data/Bảng xác định nhu cầu dinh dưỡng + thực đơn.xlsx, sheet 'TĐ 3+4', Thực đơn 3, bữa Tối. Khớp food_id tự động theo tên chuẩn hoá — CẦN R2 rà soát trước khi dùng."
-MENU-TĐ3+4-TD4-Sáng-4,Bữa sáng - Thực đơn 4 (TĐ 3+4),,385,pending,"Trích từ data/Bảng xác định nhu cầu dinh dưỡng + thực đơn.xlsx, sheet 'TĐ 3+4', Thực đơn 4, bữa Sáng. Khớp food_id tự động theo tên chuẩn hoá — CẦN R2 rà soát trước khi dùng."
-MENU-TĐ3+4-TD4-Trưa-5,Bữa trưa - Thực đơn 4 (TĐ 3+4),,479,pending,"Trích từ data/Bảng xác định nhu cầu dinh dưỡng + thực đơn.xlsx, sheet 'TĐ 3+4', Thực đơn 4, bữa Trưa. Khớp food_id tự động theo tên chuẩn hoá — CẦN R2 rà soát trước khi dùng."
-MENU-TĐ3+4-TD4-Tối-6,Bữa tối - Thực đơn 4 (TĐ 3+4),,377,pending,"Trích từ data/Bảng xác định nhu cầu dinh dưỡng + thực đơn.xlsx, sheet 'TĐ 3+4', Thực đơn 4, bữa Tối. Khớp food_id tự động theo tên chuẩn hoá — CẦN R2 rà soát trước khi dùng."
-MENU-TĐ5+6+7-TD5-Sáng-1,Bữa sáng - Thực đơn 5 (TĐ 5+6+7),,50,pending,"Trích từ data/Bảng xác định nhu cầu dinh dưỡng + thực đơn.xlsx, sheet 'TĐ 5+6+7', Thực đơn 5, bữa Sáng. Khớp food_id tự động theo tên chuẩn hoá — CẦN R2 rà soát trước khi dùng."
-MENU-TĐ5+6+7-TD5-Trưa-2,Bữa trưa - Thực đơn 5 (TĐ 5+6+7),,114,pending,"Trích từ data/Bảng xác định nhu cầu dinh dưỡng + thực đơn.xlsx, sheet 'TĐ 5+6+7', Thực đơn 5, bữa Trưa. Khớp food_id tự động theo tên chuẩn hoá — CẦN R2 rà soát trước khi dùng."
-MENU-TĐ5+6+7-TD5-Tối-3,Bữa tối - Thực đơn 5 (TĐ 5+6+7),,246,pending,"Trích từ data/Bảng xác định nhu cầu dinh dưỡng + thực đơn.xlsx, sheet 'TĐ 5+6+7', Thực đơn 5, bữa Tối. Khớp food_id tự động theo tên chuẩn hoá — CẦN R2 rà soát trước khi dùng."
-MENU-TĐ5+6+7-TD6-Sáng-4,Bữa sáng - Thực đơn 6 (TĐ 5+6+7),,338,pending,"Trích từ data/Bảng xác định nhu cầu dinh dưỡng + thực đơn.xlsx, sheet 'TĐ 5+6+7', Thực đơn 6, bữa Sáng. Khớp food_id tự động theo tên chuẩn hoá — CẦN R2 rà soát trước khi dùng."
-MENU-TĐ5+6+7-TD6-Trưa-5,Bữa trưa - Thực đơn 6 (TĐ 5+6+7),,338,pending,"Trích từ data/Bảng xác định nhu cầu dinh dưỡng + thực đơn.xlsx, sheet 'TĐ 5+6+7', Thực đơn 6, bữa Trưa. Khớp food_id tự động theo tên chuẩn hoá — CẦN R2 rà soát trước khi dùng."
-MENU-TĐ5+6+7-TD6-Tối-6,Bữa tối - Thực đơn 6 (TĐ 5+6+7),,565,pending,"Trích từ data/Bảng xác định nhu cầu dinh dưỡng + thực đơn.xlsx, sheet 'TĐ 5+6+7', Thực đơn 6, bữa Tối. Khớp food_id tự động theo tên chuẩn hoá — CẦN R2 rà soát trước khi dùng."
-MENU-TĐ5+6+7-TD7-Sáng-7,Bữa sáng - Thực đơn 7 (TĐ 5+6+7),,300,pending,"Trích từ data/Bảng xác định nhu cầu dinh dưỡng + thực đơn.xlsx, sheet 'TĐ 5+6+7', Thực đơn 7, bữa Sáng. Khớp food_id tự động theo tên chuẩn hoá — CẦN R2 rà soát trước khi dùng."
-MENU-TĐ5+6+7-TD7-Trưa-8,Bữa trưa - Thực đơn 7 (TĐ 5+6+7),,121.2,pending,"Trích từ data/Bảng xác định nhu cầu dinh dưỡng + thực đơn.xlsx, sheet 'TĐ 5+6+7', Thực đơn 7, bữa Trưa. Khớp food_id tự động theo tên chuẩn hoá — CẦN R2 rà soát trước khi dùng."
-MENU-TĐ5+6+7-TD7-Tối-9,Bữa tối - Thực đơn 7 (TĐ 5+6+7),,565,pending,"Trích từ data/Bảng xác định nhu cầu dinh dưỡng + thực đơn.xlsx, sheet 'TĐ 5+6+7', Thực đơn 7, bữa Tối. Khớp food_id tự động theo tên chuẩn hoá — CẦN R2 rà soát trước khi dùng."
-VN-PHO-GA,Phở gà,Bắc,285,pending,"LLM soạn nháp — thiếu nước dùng (không có food_item nước dùng), chỉ tính phần cái. CẦN R2 duyệt gram + bổ sung nước dùng."
-VN-BUN-CHA,Bún chả,Bắc,355,pending,LLM soạn nháp — CẦN R2 duyệt gram.
-VN-CANH-CHUA-CA,Canh chua cá,Nam,240,pending,"LLM soạn nháp — thiếu dứa/me (không có food_item), CẦN R2 duyệt và bổ sung."
-VN-RAU-MUONG-XAO-TOI,Rau muống xào tỏi,Chung,215,pending,LLM soạn nháp — CẦN R2 duyệt gram.
-VN-DAU-PHU-SOT-CA,Đậu phụ sốt cà chua,Chung,320,pending,LLM soạn nháp — CẦN R2 duyệt gram.
-VN-CA-KHO-TO,Cá kho tộ,Nam,225,pending,"LLM soạn nháp — thiếu đường/nước hàng (không có food_item), CẦN R2 duyệt."
-VN-GA-KHO-GUNG,Gà kho gừng,Chung,235,pending,LLM soạn nháp — CẦN R2 duyệt gram.
-VN-CANH-CAI-TOM,Canh cải nấu tôm,Chung,210,pending,LLM soạn nháp — CẦN R2 duyệt gram.
-VN-SUON-XAO-CHUA-NGOT,Sườn xào chua ngọt,Chung,280,pending,"LLM soạn nháp — thiếu đường/dấm (không có food_item), CẦN R2 duyệt."
-VN-TRUNG-CHIEN,Trứng chiên hành,Chung,140,pending,LLM soạn nháp — CẦN R2 duyệt gram.
-VN-CANH-SU-HAO,Canh su hào cà rốt thịt băm,Chung,250,pending,LLM soạn nháp — CẦN R2 duyệt gram.
-VN-NAM-XAO-THIT-BO,Nấm hương xào thịt bò,Chung,165,pending,LLM soạn nháp — CẦN R2 duyệt gram.

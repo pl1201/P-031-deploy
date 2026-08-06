@@ -113,7 +113,46 @@ Ngoài API USDA gọi từng món, đã tải 3 bộ **bulk download** chính th
   - **Lòng lợn** (id 27) ← "Chitterlings", `fdcId 2706163`, `source=estimated` — đây là món lòng chế biến kiểu phương Tây (thường chiên/nấu nhiều mỡ, 20,2 g béo/100g), khác lòng luộc kiểu Việt, dùng tạm làm proxy có ghi rõ hạn chế
   - Đã **cố ý bỏ qua** "Soup, ramen noodles, water added" cho **Mì ăn liền**: mì ramen Nhật pha loãng (66 kcal/100g) khác quá xa mì gói Việt Nam (thường đặc/nhiều dầu hơn) — để trống còn hơn gán sai (DEC-008)
   - Không tìm được mục phù hợp cho: Cá lóc, Cá khô, Đậu phụ chiên, Chao, Tương hột (miso khác bản chất), Rau răm/Tía tô/Kinh giới/Rau má (thảo mộc Việt không có trong khảo sát Mỹ), Đường thốt nốt
-- **`FoodData_Central_csv_2025-12-18`** (bulk CSV toàn bộ database quan hệ, gồm `branded_food.csv` 950MB + `food_nutrient.csv` 1,78GB) — đã xem cấu trúc bảng (`branded_food.csv` chỉ có metadata sản phẩm đóng gói Mỹ, không có giá trị dinh dưỡng trực tiếp, phải JOIN qua `food_nutrient.csv`). **Chưa khai thác sâu** — chi phí xử lý cao (phải join 2 file rất lớn) trong khi giá trị thấp cho mục tiêu "thực phẩm Việt phổ thông" của dự án (branded food chủ yếu là sản phẩm đóng gói thương hiệu Mỹ). Không commit các file gốc — đã bị `.gitignore` (`data/*`) chặn sẵn.
+- **`FoodData_Central_csv_2025-12-18`** (bulk CSV toàn bộ database quan hệ, gồm `branded_food.csv` 950MB + `food_nutrient.csv` 1,78GB) — `branded_food.csv` (1.993.975 dòng, sản phẩm đóng gói thương hiệu Mỹ) **cố ý không khai thác** — chi phí xử lý cao, giá trị thấp cho mục tiêu dự án. Đã khai thác sâu **`sr_legacy_food.csv`** (7.793 món) + **`foundation_food.csv`** (436 món) + **`survey_fndds_food.csv`**/`input_food.csv` (món quốc tế phối hợp) — xem mục "DAT-12 — bỏ trần dữ liệu" bên dưới. Không commit các file gốc USDA — đã bị `.gitignore` (`data/*`) chặn sẵn.
+
+### DAT-12 — bỏ trần dữ liệu: USDA bulk (SR Legacy/Foundation) + NIN 2017 toàn bảng + FNDDS quốc tế (2026-08-05)
+
+Ba script mới, chạy 1 lần lấy toàn bộ dữ liệu có nguồn thật từ tài nguyên đã có sẵn trong `data/` (không gọi API, không suy đoán):
+
+**1. `scripts/extract_usda_bulk.py`** → `data/seeds/food_items.usda_bulk.csv` (**6.854 dòng**, đã merge vào `food_items.csv`)
+- Trích từ `food.csv` + `food_nutrient.csv` (SR Legacy + Foundation Foods), chỉ giữ dòng có đủ 8 cột bắt buộc (RULE-2 — thiếu bất kỳ cột nào thì bỏ, không suy đoán = 0).
+- Loại luôn các mục cô đặc thật nhưng vô nghĩa lâm sàng (bột nở, kem tartar, bột trà hoà tan — per-100g vượt khoảng "thực phẩm ăn được thông thường" dù số liệu USDA đúng, không ai ăn 100g bột nở).
+- **Quy ước ID:** dùng thẳng `fdc_id` của USDA (luôn ≥ 100000) làm `id`, không cấp ID nội bộ mới — tránh trùng, giữ khả năng truy vết bằng chính con số.
+- **Quan trọng — hồi quy hiệu năng đã phát hiện và sửa:** `retrieve_context` (node LangGraph, `src/agents/nodes/core.py`) trước đó đưa TOÀN BỘ `food_items` làm ứng viên cho CP-SAT/prompt Gemini. Với ~7000 dòng thay vì ~150, CP-SAT chậm **30-50 lần** (đo thực tế: 13 test từ ~1,5s → ~50s). Đã thêm hằng số `USDA_BULK_ID_THRESHOLD = 100_000`: khối USDA bulk chỉ là **kho tham chiếu** (tra cứu, OOV, mở rộng sau), bị loại khỏi ứng viên sinh thực đơn. Curated Việt Nam (id < 100000) không bị ảnh hưởng.
+
+**2. `scripts/extract_nin2017_bulk.py`** → `data/seeds/food_items.nin2017_bulk.csv` (**167 dòng mới**, đã merge)
+- Trích TOÀN BỘ bảng chính "Bảng TPTP VN 2017" (304 trang) bằng `pdfplumber`, neo cột theo toạ độ x của header tag-name (`EDIBLE ENERC WATER PROCNT FAT CHOCDF FIBC...`) lặp lại mỗi trang — đã xác nhận khớp 100% với dòng có sẵn (mã 01003 "Gạo tẻ giã" ra đúng kcal=347/protein=8,1/carb=75,7/fat=1,3/fiber=0,7/na=5/k=202/p=108, khớp hệt id=1 hiện có).
+- **Phát hiện kỹ thuật:** tên món và số liệu trên cùng 1 "dòng" thực phẩm không cùng toạ độ `top` chính xác (lệch tới ~6pt) — bin cứng theo top ban đầu bỏ sót nhiều dòng; sửa bằng gán mỗi từ vào **mã gần nhất** theo khoảng cách top.
+- Trong 621 mã có đủ cột dữ liệu trên trang hợp lệ, 87 mã đã có sẵn trong `food_items.csv` (từ DAT-02/09/10 trước), chỉ 167/534 mã còn lại có ĐỦ cả 8 cột bắt buộc — phần lớn còn lại thiếu Na/K/chất béo/chất xơ **thật sự không in trong bảng gốc** (khoảng trống thật, không phải lỗi trích — đúng phát hiện đã ghi ở DAT-09), bị loại đúng theo RULE-2/DEC-008, không suy đoán.
+- ⚠️ **Chất lượng tên:** cột `name_vi` của lô này lấy theo toạ độ, có thể lẫn từ tiếng Anh/sai thứ tự với vài mục (số liệu dinh dưỡng không bị ảnh hưởng — luôn đọc đúng cột theo neo tag-name). Mỗi dòng có `source_ref` = trang + mã NIN chính xác để đối chiếu/sửa tên khi cần.
+
+**3. `scripts/extract_fndds_dishes.py`** → `data/seeds/dishes.fndds_bulk.csv` + `dish_ingredients.fndds_bulk.csv` (**2.632 món quốc tế**, đã merge)
+- USDA FNDDS ("What We Eat In America" survey, `survey_fndds_food.csv` 5.432 món) có sẵn phân rã nguyên liệu thật trong `input_food.csv` (18.585 dòng, nối qua `sr_code`/NDB number → `fdc_id` SR Legacy). Đây là **món quốc tế (chủ yếu Mỹ) có ĐỦ nguyên liệu quy đổi được** sang `food_id` đã tồn tại trong `food_items.csv` — đúng kiến trúc RULE-1 (món = tổng nguyên liệu × gram tính bằng SQL, KHÔNG lưu số dinh dưỡng trực tiếp trên `dishes`).
+- Chỉ giữ món có **TOÀN BỘ** nguyên liệu quy đổi được (2.632/5.432) — bỏ món thiếu bất kỳ nguyên liệu nào (2.799 món, phần lớn dùng nguyên liệu ngoài SR Legacy như branded/survey food chưa nhập).
+- **Bug đã tìm và sửa:** 1 món ("Bread, other white") có nguyên liệu là công thức quy mô lớn (bột mì 4.540g — mẻ bánh thương mại, không phải khẩu phần ăn), vượt `MenuItem.grams<=2000` — thêm bộ lọc loại nguyên liệu > 2000g VÀ tổng khẩu phần > 2000g thay vì nới trần hệ thống cho một nhóm nhỏ dữ liệu ngoại lệ.
+- `verified_by = "USDA FNDDS (nguồn chính thức)"` — **khác** `pending` của món Việt Nam tự soạn: đây là bản ghi trực tiếp từ khảo sát dinh dưỡng chính thức, không phải công thức LLM nháp cần R2 duyệt độ chính xác ẩm thực.
+
+**Xác nhận thật (`make seed` trên SQLite trắng, 2 lần liên tiếp để kiểm idempotent):** 7.146 `food_items` / 2.635 `dishes` / 5.369 `dish_ingredients`, 0 lỗi FK, số dòng không đổi giữa 2 lần chạy.
+
+**Chưa làm trong đợt này (còn để ngỏ):**
+- `PURINEDATABASEANDDATASOURCES2025.xlsx` (608 dòng purine North America + non-NAm) — có sẵn trong `data/`, chưa khai thác. Cần ghép tên món với `food_items.csv` (fuzzy match), không đơn giản như 3 việc trên vì không có khoá chung (id/fdc_id) sẵn.
+- NIN 2007 (526 món) — theo `data/README.md` mục DAT-09, tên món không đọc được đáng tin cậy (font TCVN3/VNI cũ). Bản 2017 đã phủ hầu hết, lợi ích thấp so với công sức xây bảng giải mã font riêng.
+- 27 dòng `food_items.csv` gốc còn trống, `dishes.csv` gốc (3 món Việt tự soạn, `pending`), `clinical_rules.csv`, `drug_food_interactions.csv` (13/30 thiếu `source_ref`) — cần R2 chuyên môn lâm sàng thật, không tự ý làm (xem `docs/PLAN_DAT-12-uncap-data-and-db.md`).
+
+### DAT-12 tiếp — bắt đầu lấp món Việt (2026-08-06, vẫn `pending`)
+
+Trước đợt này `dishes.csv` chỉ có 3 món Việt gốc — toàn bộ 2.632 món thêm ngày 05/08 là USDA FNDDS (Mỹ), không giải quyết nhu cầu món Việt. Đã thêm 27 món/bữa ăn Việt mới, **tất cả vẫn `verified_by=pending`** — chưa qua R2, không dùng cho bệnh nhân:
+
+- **15 "bữa ăn" trích từ nguồn thật:** `data/Bảng xác định nhu cầu dinh dưỡng + thực đơn.xlsx` (file thực đơn nội bộ dự án, sẵn có trong `data/`, chưa từng khai thác) — 4 sheet thực đơn mẫu Sáng/Trưa/Tối với cột "KL sống sạch" (gram thật). Script `scripts/extract_menu_xlsx_dishes.py` parse theo state machine, khớp `food_id` bằng tên đã chuẩn hoá (bỏ ngoặc, hạ chữ thường) — **không fuzzy-match rộng** (để tránh gán nhầm loại thực phẩm, VD không tự suy "Dầu ăn" ≈ "Dầu ăn thực vật") nên tỷ lệ khớp chỉ ~37% (67/180 dòng nguyên liệu), 2 sheet đầu không có nhãn bữa ăn nên 0 kết quả. Dish_id dạng `MENU-<sheet>-TD<n>-<bữa>-<idx>`.
+- **12 món Việt tự soạn qua LLM** (`data/seeds/dishes.vn_llm_draft.csv`): phở gà, bún chả, canh chua cá, rau muống xào tỏi, đậu phụ sốt cà chua, cá kho tộ, gà kho gừng, canh cải nấu tôm, sườn xào chua ngọt, trứng chiên hành, canh su hào cà rốt thịt băm, nấm hương xào thịt bò — nguyên liệu là `food_id` thật đã có trong hệ thống, nhưng **gram theo kinh nghiệm ẩm thực phổ thông, chưa đối chiếu nguồn định lượng nào** (khác 3 món gốc đã đối chiếu Na với nghiên cứu). Vài món thiếu gia vị (đường, dấm, nước dùng) vì chưa có `food_item` tương ứng.
+- Đã kiểm tra 1 nguồn Hưng gợi ý (paper Epicure, arXiv 2605.22391 — Hugging Face `Kaikaku/epicure-*`): đây là model embedding nguyên liệu (Gemini embedding trên RecipeNLG/Recipe1M+/Xiachufang/ChefKoch/SOMOS/USDA), có công thức định lượng thật nhưng **không có món Việt Nam** trong bất kỳ dataset liệt kê — không dùng được cho mục tiêu này.
+- **Xác nhận thật:** `validate_data.py` 0 lỗi mới, `pytest -q` 112/112, `make seed` (SQLite trắng, 2 lần) → `dishes` 2.635→**2.662**, `dish_ingredients` 5.369→**5.479**, 0 skip FK.
+- Vẫn còn 30/2.662 món Việt (3 gốc + 27 mới) cần R2 duyệt tay — **không có bulk source Việt Nam nào tương đương FNDDS** để lấp nhanh tới mục tiêu 500 món; đường đi khả thi là R2 duyệt dần + LLM soạn thêm theo lô.
 
 ---
 

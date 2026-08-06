@@ -80,6 +80,7 @@ CSV `data/seeds/food_items.csv` với cột: `id, name_vi, name_en, aliases, uni
 **AC:** **≥150 dòng là SÀN, không phải trần** — nhập càng nhiều thực phẩm/món có nguồn thật càng tốt, không dừng lại vì đã đạt 150 · **0 dòng thiếu `source`** · Gia vị mặn có `na_mg` chính xác (trục chính của bài toán muối) · Script `make seed` nạp được vào DB.
 > ⚠️ **2026-08-05: bỏ trần số lượng.** Trước đây giới hạn "≥150 dòng" bị hiểu nhầm thành mục tiêu dừng lại — thực tế hiện đã có sẵn nguồn xác minh được (NIN 2017/2007, USDA FDC bulk, Open Food Facts — xem `data/README.md`) đủ để vượt xa 150 nếu có thời gian nhập. Không đặt trần trên; chỉ giới hạn bởi **có nguồn thật hay không** (RULE-2/DEC-008), không phải bởi số lượng mục tiêu ban đầu.
 > Chia người × 30 dòng/buổi tối là nhịp làm việc gợi ý, không phải mức trần.
+> ✅ **2026-08-05 — đã vượt xa sàn:** `food_items.csv` từ 152 → **7.173 dòng** (7.146 có đủ số liệu) nhờ bulk import USDA SR Legacy/Foundation Foods (6.854 dòng) + trích toàn bộ bảng NIN 2017 (167 dòng mới). Xem `data/README.md` mục "DAT-12 — bỏ trần dữ liệu". **Lưu ý quan trọng:** khối USDA bulk (id ≥ 100000) chỉ là kho tham chiếu, KHÔNG dùng làm ứng viên sinh thực đơn (`retrieve_context` đã lọc — xem `src/agents/nodes/core.py`) vì làm CP-SAT chậm 30-50 lần. 152 dòng curated Việt Nam gốc + 167 dòng NIN mới là ứng viên thật cho agent.
 
 ### `DAT-03` Tích hợp USDA FoodData Central
 **Owner:** R2 · **P1** · 6h · **Deps:** DAT-01
@@ -92,6 +93,8 @@ Client gọi API USDA, mapping field sang schema nội bộ, cache vào DB, đá
 Quy trình: LLM sinh nháp công thức → **R2 rà soát và sửa tay** → đối chiếu tổng dinh dưỡng với nguồn tham khảo.
 **AC:** **≥80 món là SÀN** — hiện `dishes.csv` mới có **3/80**, đây là ticket P1 tồn đọng lớn nhất của EPIC 1, ưu tiên làm tiếp trước khi mở rộng thêm. Không đặt trần trên; thêm món mới bất cứ khi nào có công thức đã đối chiếu được nguồn · Na của phở bò tính ra nằm trong khoảng 3,3–4,0g muối (khớp nghiên cứu) → dùng làm test hồi quy · Mỗi món ghi `verified_by`.
 > ⚠️ **2026-08-05:** bỏ trần "80 món". Thực tế mới đạt 3/80 — trước khi tính chuyện "không giới hạn", việc cấp thiết là lấp cho đủ sàn 80.
+> ✅ **2026-08-05 — đã vượt xa sàn (món quốc tế):** `dishes.csv` từ 3 → **2.635 món** nhờ USDA FNDDS (2.632 món quốc tế, phân rã nguyên liệu thật qua `sr_code`→SR Legacy, `verified_by="USDA FNDDS (nguồn chính thức)"` — khác `pending` của món Việt tự soạn). Xem `data/README.md` mục "DAT-12". **3 món Việt Nam gốc (phở bò, bún đậu mắm, canh rau muống) vẫn `pending`, vẫn là việc P1 cấp thiết nhất còn lại** — món quốc tế không thay thế được nhu cầu món Việt cho demo/eval của dự án này.
+> ✅ **2026-08-06 — bắt đầu lấp món Việt (vẫn `pending`, chưa R2 duyệt):** +27 món Việt/bữa ăn Việt — (a) **15 bữa ăn thật** trích từ `data/Bảng xác định nhu cầu dinh dưỡng + thực đơn.xlsx` (file thực đơn nội bộ dự án, có gram thật theo "KL sống sạch"), khớp `food_id` tự động theo tên chuẩn hoá — tỷ lệ khớp thấp (~37%, 67/180 dòng nguyên liệu) vì tên nguyên liệu trong xlsx không khớp chính xác tên trong `food_items.csv` (VD "Dầu ăn" vs "Dầu ăn thực vật") — cố tình **không fuzzy-match rộng hơn** để tránh gán sai loại thực phẩm (rủi ro lâm sàng); (b) **12 món Việt tự soạn qua LLM** (phở gà, bún chả, canh chua cá, rau muống xào tỏi, đậu phụ sốt cà chua, cá kho tộ, gà kho gừng, canh cải nấu tôm, sườn xào chua ngọt, trứng chiên hành, canh su hào cà rốt thịt băm, nấm hương xào thịt bò) — gram ước lượng theo kinh nghiệm ẩm thực phổ thông, **chưa đối chiếu nguồn định lượng nào**, một số thiếu gia vị/nguyên liệu do chưa có `food_item` tương ứng (đường, dấm, nước dùng...). **Cả 27 món đều `pending` — R2 phải rà soát gram + bổ sung nguyên liệu thiếu trước khi dùng cho bệnh nhân.** Script: `scripts/extract_menu_xlsx_dishes.py`, `data/seeds/dishes.vn_llm_draft.csv`. 3 món gốc (phở bò, bún đậu mắm, canh rau muống) vẫn là ví dụ chuẩn duy nhất đã có Na đối chiếu nghiên cứu — chưa món nào trong 27 món mới đạt mức đó.
 
 ### `DAT-05` Bảng tương tác thuốc – thực phẩm — KHÔNG GIỚI HẠN TRÊN
 **Owner:** R2 · **P1** · 8h+ (mở) · **Deps:** DAT-01
@@ -115,6 +118,11 @@ Client gọi API Open Food Facts (`https://world.openfoodfacts.org/api/v2/produc
 **Owner:** R2 · **P1** · mở (điều phối, không phải 1 khối việc) · **Deps:** DAT-01
 Ticket điều phối cho việc bỏ trần cứng ở `DAT-02/04/05/06`, `CLN-02` (đã sửa AC, xem các ticket đó) và tiếp tục fill dữ liệu thật không giới hạn trên, chỉ giới hạn bởi có nguồn thật (RULE-2/DEC-008). Kế hoạch chi tiết + trạng thái từng nguồn: `docs/PLAN_DAT-12-uncap-data-and-db.md`.
 **AC:** Mỗi ticket con (`DAT-02/04/05/06`, `CLN-02`) có AC "sàn tối thiểu, không trần" · `docs/PLAN_DAT-12-uncap-data-and-db.md` được cập nhật khi có tiến độ mới · Không hạ chuẩn nguồn gốc để chạy nhanh số lượng.
+
+### `DAT-13` Rà soát & làm giàu các khoảng trống Na/K/P và source_ref còn lại
+**Owner:** R2 · **P1** · mở (điều phối, không phải 1 khối việc) · **Deps:** DAT-04, DAT-12
+Sau batch 48 nguyên liệu NIN nội bộ (2026-08-06), vẫn còn khoảng trống thật: 309 dòng thiếu Na/K trong sheet "Bảng TP có phospho", 152 dòng `food_items.template.csv` chưa nhập, 13 cặp `drug_food_interactions.csv` thiếu `source_ref`, 21 dòng trùng tên lệch kcal cần đối chiếu ấn bản NIN. Kế hoạch chi tiết + thứ tự ưu tiên tra chéo nguồn (NIN2017 PDF → USDA bulk → chỉ khi không tra được mới xét `estimated` có cơ sở, không suy đoán tùy ý): `docs/PLAN_DAT-13-fill-data-gaps.md`.
+**AC:** Không tự gắn giá trị 0/trace cho Na/K/P mà không có `source_ref` cụ thể (mã NIN, FDC ID, hoặc lý giải khoa học rõ ràng cho nhóm "trace") · Mỗi batch chạy `validate_data.py` + `pytest` sạch trước khi commit · `docs/PLAN_DAT-13-fill-data-gaps.md` cập nhật tiến độ theo từng mục §2.
 
 ---
 
