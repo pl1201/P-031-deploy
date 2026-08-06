@@ -99,8 +99,12 @@ def sample_vietnamese_bmi(original_bmi: float, rng: np.random.Generator) -> floa
 
     new_bmi = original_bmi + shift + noise
 
-    # Clip to reasonable T2DM range (18-35 for Vietnamese)
-    new_bmi = np.clip(new_bmi, 18.0, 35.0)
+    # Soft clamp: instead of hard clip that creates distribution artifacts,
+    # use tanh-based compression at extremes to preserve Gaussian shape
+    if new_bmi < 18.0:
+        new_bmi = 18.0 + 2.0 * np.tanh((new_bmi - 18.0) / 2.0)
+    elif new_bmi > 35.0:
+        new_bmi = 35.0 + 2.0 * np.tanh((new_bmi - 35.0) / 2.0)
 
     return round(new_bmi, 1)
 

@@ -53,8 +53,7 @@ def validate_columns(df: pd.DataFrame, file_name: str, expected: list[str]) -> N
     """Validate that required columns exist in dataframe."""
     missing = set(expected) - set(df.columns)
     if missing:
-        print(f"  [ERROR] Missing columns in {file_name}: {missing}")
-        sys.exit(1)
+        raise ValueError(f"Missing columns in {file_name}: {missing}")
 
 
 def load_xpt_file(file_path: Path, file_key: str) -> pd.DataFrame:
@@ -105,15 +104,14 @@ def merge_nhanes_files(raw_dir: Path) -> pd.DataFrame:
         # Check for unmatched records on right side (data loss risk)
         right_only = (merged["_merge"] == "right_only").sum()
         if right_only > 0:
-            print(f"    ⚠ ERROR: {right_only} records in {name} not found in demographics (data loss)")
-            sys.exit(1)
+            raise RuntimeError(f"{right_only} records in {name} not found in demographics (data loss)")
 
         # Drop merge indicator
         merged = merged.drop(columns=["_merge"])
         print(f"  + {name}: {len(merged):,} rows (joined {len(df):,} records)")
 
         if len(merged) != before_count:
-            print(f"    ⚠ Warning: Row count changed from {before_count:,} to {len(merged):,}")
+            raise RuntimeError(f"Row count changed from {before_count:,} to {len(merged):,} after merging {name}")
 
     return merged
 

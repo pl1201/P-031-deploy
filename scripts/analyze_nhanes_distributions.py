@@ -141,7 +141,9 @@ def compute_correlation_matrix(
                 cov = np.average(wx * wy, weights=norm_weights)
                 std_x = np.sqrt(np.average(wx**2, weights=norm_weights))
                 std_y = np.sqrt(np.average(wy**2, weights=norm_weights))
-                r = cov / (std_x * std_y) if std_x > 0 and std_y > 0 else 0
+                # Use epsilon threshold to avoid division by near-zero std
+                epsilon = 1e-6
+                r = cov / (std_x * std_y) if std_x > epsilon and std_y > epsilon else 0.0
                 corr_matrix[var1][var2] = float(r)
 
     return corr_matrix
