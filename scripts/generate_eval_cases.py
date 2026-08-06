@@ -24,6 +24,7 @@ import argparse
 import json
 import random
 import sys
+from datetime import date
 from pathlib import Path
 from typing import Any, Literal
 
@@ -225,6 +226,7 @@ def sample_baseline_intake(patterns: dict[str, Any], bmi_category: str, age_grou
     fat_g = round(random.gauss(dietary["overall"]["DR1TTFAT"]["mean"], dietary["overall"]["DR1TTFAT"]["std"] * 0.5))
     sodium_mg = round(random.gauss(dietary["overall"]["DR1TSODI"]["mean"], dietary["overall"]["DR1TSODI"]["std"] * 0.5))
 
+    # Clamp to positive values required by Pydantic gt=0 constraint
     return {
         "kcal": max(800, kcal),
         "protein_g": max(40, protein_g),
@@ -329,7 +331,7 @@ def generate_t2dm_case(
         expected_targets=None,
         synthetic=True,
         source_patterns=["NHANES_VN_adapted", "Da_Nang"],
-        generation_date="2026-08-06",
+        generation_date=date.today().isoformat(),
     )
 
 
@@ -401,7 +403,7 @@ def generate_htn_case(
         expected_targets=None,
         synthetic=True,
         source_patterns=["NHANES_VN_adapted"],
-        generation_date="2026-08-06",
+        generation_date=date.today().isoformat(),
     )
 
 
@@ -468,7 +470,7 @@ def generate_ckd_case(
         expected_targets=None,
         synthetic=True,
         source_patterns=["NHANES_VN_adapted"],
-        generation_date="2026-08-06",
+        generation_date=date.today().isoformat(),
     )
 
 
@@ -526,7 +528,7 @@ def generate_gout_case(
         expected_targets=None,
         synthetic=True,
         source_patterns=["NHANES_VN_adapted"],
-        generation_date="2026-08-06",
+        generation_date=date.today().isoformat(),
     )
 
 
@@ -601,7 +603,7 @@ def generate_multi_case(
         expected_targets=None,
         synthetic=True,
         source_patterns=["NHANES_VN_adapted", "MontiFinal_VN_adapted"],
-        generation_date="2026-08-06",
+        generation_date=date.today().isoformat(),
     )
 
 
@@ -665,7 +667,7 @@ def generate_redteam_case(
         expected_targets=None,
         synthetic=True,
         source_patterns=["adversarial_design"],
-        generation_date="2026-08-06",
+        generation_date=date.today().isoformat(),
     )
 
 

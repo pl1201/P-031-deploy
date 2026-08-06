@@ -90,8 +90,11 @@ def compute_weighted_stats(data: pd.Series, weights: pd.Series) -> dict[str, flo
     cumsum_weights = np.cumsum(sorted_weights)
 
     def find_percentile(p: float) -> float:
-        idx = np.searchsorted(cumsum_weights, p / 100)
-        return float(sorted_data[min(idx, len(sorted_data) - 1)])
+        # Use right-side search to handle edge case where cumsum never reaches 1.0
+        idx = np.searchsorted(cumsum_weights, p / 100, side="right")
+        # Clamp to valid range
+        idx = max(0, min(idx, len(sorted_data) - 1))
+        return float(sorted_data[idx])
 
     return {
         "mean": float(mean),
