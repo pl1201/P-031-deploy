@@ -28,12 +28,9 @@ from typing import Any
 
 import numpy as np
 import pandas as pd
-from scipy import stats
 
 
-def compute_weighted_stats(
-    data: pd.Series, weights: pd.Series
-) -> dict[str, float]:
+def compute_weighted_stats(data: pd.Series, weights: pd.Series) -> dict[str, float]:
     """
     Compute weighted mean, std, and percentiles.
 
@@ -61,8 +58,23 @@ def compute_weighted_stats(
             "n": 0,
         }
 
+    # Check for zero-sum weights
+    weight_sum = clean_weights.sum()
+    if weight_sum == 0:
+        print("  ⚠ Warning: All weights are zero, returning unweighted stats")
+        return {
+            "mean": float(clean_data.mean()),
+            "std": float(clean_data.std()),
+            "p5": float(clean_data.quantile(0.05)),
+            "p25": float(clean_data.quantile(0.25)),
+            "p50": float(clean_data.quantile(0.50)),
+            "p75": float(clean_data.quantile(0.75)),
+            "p95": float(clean_data.quantile(0.95)),
+            "n": int(len(clean_data)),
+        }
+
     # Normalize weights
-    norm_weights = clean_weights / clean_weights.sum()
+    norm_weights = clean_weights / weight_sum
 
     # Weighted mean
     mean = np.average(clean_data, weights=norm_weights)
@@ -159,9 +171,7 @@ def analyze_cohort(cohort_path: Path) -> dict[str, Any]:
     # Demographics
     print("  - Demographics")
     distributions["age"] = compute_weighted_stats(df["RIDAGEYR"], weights)
-    distributions["sex_female_pct"] = float(
-        100 * np.average((df["RIAGENDR"] == 2), weights=weights / weights.sum())
-    )
+    distributions["sex_female_pct"] = float(100 * np.average((df["RIAGENDR"] == 2), weights=weights / weights.sum()))
 
     # Anthropometrics
     print("  - Anthropometrics")
@@ -252,12 +262,16 @@ def main() -> None:
         json.dump(result, f, indent=2, ensure_ascii=False)
 
     print(f"[OK] Saved distributions for {result['n_cases']:,} T2DM cases")
-    print(f"\nKey statistics:")
+    print("\nKey statistics:")
     print(f"  Age: {result['distributions']['age']['mean']:.1f} +/- {result['distributions']['age']['std']:.1f} years")
     print(f"  BMI: {result['distributions']['bmi']['mean']:.1f} +/- {result['distributions']['bmi']['std']:.1f} kg/m^2")
-    print(f"  HbA1c: {result['distributions']['hba1c_pct']['mean']:.1f} +/- {result['distributions']['hba1c_pct']['std']:.1f}%")
-    print(f"  Daily kcal: {result['distributions']['kcal_per_day']['mean']:.0f} +/- {result['distributions']['kcal_per_day']['std']:.0f}")
-    print(f"\nNext step: python scripts/generate_synthetic_t2dm_profiles.py")
+    print(
+        f"  HbA1c: {result['distributions']['hba1c_pct']['mean']:.1f} +/- {result['distributions']['hba1c_pct']['std']:.1f}%"
+    )
+    print(
+        f"  Daily kcal: {result['distributions']['kcal_per_day']['mean']:.0f} +/- {result['distributions']['kcal_per_day']['std']:.0f}"
+    )
+    print("\nNext step: python scripts/generate_synthetic_t2dm_profiles.py")
 
 
 if __name__ == "__main__":

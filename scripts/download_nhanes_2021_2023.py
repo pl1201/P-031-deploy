@@ -21,7 +21,7 @@ import hashlib
 import json
 import sys
 import time
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
@@ -120,7 +120,7 @@ def download_file(url: str, dest_path: Path) -> dict[str, Any]:
             # Compute checksum
             sha256 = compute_sha256(dest_path)
             file_size = dest_path.stat().st_size
-            retrieval_time = datetime.now(timezone.utc).isoformat()
+            retrieval_time = datetime.now(UTC).isoformat()
 
             print(f"  [OK] Downloaded {dest_path.name} ({file_size:,} bytes, SHA-256: {sha256[:16]}...)")
 
@@ -147,7 +147,7 @@ def main() -> None:
     output_dir = Path.home() / "data" / "research" / "nhanes_2021_2023" / "raw"
     output_dir.mkdir(parents=True, exist_ok=True)
 
-    print(f"NHANES 2021-2023 Downloader")
+    print("NHANES 2021-2023 Downloader")
     print(f"Output directory: {output_dir}")
     print(f"Files to download: {len(NHANES_FILES)}\n")
 
@@ -157,7 +157,7 @@ def main() -> None:
         "source_url": "https://wwwn.cdc.gov/nchs/nhanes/continuousnhanes/default.aspx?Cycle=2021-2023",
         "license": "NCHS Data User Agreement",
         "license_url": "https://www.cdc.gov/nchs/data_access/restrictions.htm",
-        "download_date": datetime.now(timezone.utc).isoformat(),
+        "download_date": datetime.now(UTC).isoformat(),
         "files": {},
     }
 
@@ -189,7 +189,7 @@ def main() -> None:
 
     print(f"[OK] Download complete: {success_count}/{len(NHANES_FILES)} files")
     print(f"[OK] Manifest saved: {manifest_path}")
-    print(f"\nNext step: python scripts/build_nhanes_2021_2023_cohort.py")
+    print("\nNext step: python scripts/build_nhanes_2021_2023_cohort.py")
 
 
 if __name__ == "__main__":

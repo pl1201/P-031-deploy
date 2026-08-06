@@ -27,13 +27,13 @@ import pandas as pd
 # Expected NHANES files
 REQUIRED_FILES = [
     "DEMO_L.xpt",  # Demographics
-    "DIQ_L.xpt",   # Diabetes questionnaire
-    "GHB_L.xpt",   # HbA1c
-    "GLU_L.xpt",   # Glucose
-    "BMX_L.xpt",   # Body measures
+    "DIQ_L.xpt",  # Diabetes questionnaire
+    "GHB_L.xpt",  # HbA1c
+    "GLU_L.xpt",  # Glucose
+    "BMX_L.xpt",  # Body measures
     "BPXO_L.xpt",  # Blood pressure
-    "DR1TOT_L.xpt", # Dietary day 1
-    "DR2TOT_L.xpt", # Dietary day 2
+    "DR1TOT_L.xpt",  # Dietary day 1
+    "DR2TOT_L.xpt",  # Dietary day 2
 ]
 
 # Key columns to validate
@@ -100,7 +100,16 @@ def merge_nhanes_files(raw_dir: Path) -> pd.DataFrame:
         ("DR2", dr2),
     ]:
         before_count = len(merged)
-        merged = merged.merge(df, on="SEQN", how="left", validate="one_to_one")
+        merged = merged.merge(df, on="SEQN", how="left", validate="one_to_one", indicator=True)
+
+        # Check for unmatched records on right side (data loss risk)
+        right_only = (merged["_merge"] == "right_only").sum()
+        if right_only > 0:
+            print(f"    ⚠ ERROR: {right_only} records in {name} not found in demographics (data loss)")
+            sys.exit(1)
+
+        # Drop merge indicator
+        merged = merged.drop(columns=["_merge"])
         print(f"  + {name}: {len(merged):,} rows (joined {len(df):,} records)")
 
         if len(merged) != before_count:
@@ -208,7 +217,7 @@ def main() -> None:
     print(f"  Mean age (T2DM): {t2dm_cohort['RIDAGEYR'].mean():.1f} years")
     print(f"  Mean BMI (T2DM): {t2dm_cohort['BMXBMI'].mean():.1f} kg/m²")
     print(f"  Mean HbA1c (T2DM): {t2dm_cohort['LBXGH'].mean():.1f}%")
-    print(f"\nNext step: python scripts/analyze_nhanes_distributions.py")
+    print("\nNext step: python scripts/analyze_nhanes_distributions.py")
 
 
 if __name__ == "__main__":
