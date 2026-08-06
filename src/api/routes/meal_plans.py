@@ -21,7 +21,7 @@ from src.api.clinical_bridge import to_clinical_profile
 from src.api.security import CurrentUser, get_current_user
 from src.clinical.models import PatientProfile as ClinicalPatientProfile
 from src.db.base import get_db, get_session_factory
-from src.db.models import FoodItem, MealPlan, MealPlanItem
+from src.db.models import MealPlan, MealPlanItem
 from src.db.models import PatientProfile as DbPatientProfile
 
 logger = logging.getLogger(__name__)
@@ -191,7 +191,11 @@ def _run_graph_and_persist(
 
 
 def _get_visible_plan(db: Session, plan_id: str, user: CurrentUser) -> MealPlan:
-    query = db.query(MealPlan).options(selectinload(MealPlan.items).selectinload(MealPlanItem.food)).filter(MealPlan.id == plan_id)
+    query = (
+        db.query(MealPlan)
+        .options(selectinload(MealPlan.items).selectinload(MealPlanItem.food))
+        .filter(MealPlan.id == plan_id)
+    )
     if user.role == "patient":
         query = query.join(DbPatientProfile).filter(DbPatientProfile.user_id == user.id, MealPlan.status == "approved")
     plan = query.first()

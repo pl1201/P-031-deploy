@@ -11,6 +11,7 @@ AC:
 
 from __future__ import annotations
 
+import json
 import logging
 import re
 from dataclasses import dataclass, field
@@ -53,14 +54,18 @@ _MEDICAL_PATTERNS: list[str] = [
 
 _COMPILED = [re.compile(p) for p in _MEDICAL_PATTERNS]
 
-# Patterns an toàn - không chặn dù match tên thuốc (dinh dưỡng liên quan thuốc)
+# Patterns an toàn — CHỈ dùng để "gỡ chặn" khi 1 dangerous pattern khớp CHỈ VÌ
+# có tên thuốc xuất hiện trong ngữ cảnh hỏi về thực phẩm/tương tác (VD "ăn gì
+# tránh khi uống warfarin"). MỌI pattern ở đây BẮT BUỘC phải yêu cầu 1 tên
+# thuốc/nhóm thuốc cụ thể đứng gần — không được có pattern nào chỉ dựa vào 1
+# từ dinh dưỡng đứng một mình, vì hầu như MỌI câu hỏi y tế nguy hiểm cũng có
+# thể lồng 1 từ dinh dưỡng ở đâu đó (VD "Thực đơn của tôi thì tôi có nên
+# ngừng thuốc insulin không?" — từng lọt qua vì pattern cũ chỉ cần khớp
+# "thực đơn"). Xem lịch sử sửa lỗi bypass 2026-08-07, DEVLOG cùng ngày.
 _SAFE_PATTERNS: list[str] = [
     r"(?i)(thực phẩm|rau|quả|món ăn|ăn gì|không ăn|nên ăn|tránh ăn|kiêng)\s.{0,30}(warfarin|statin|metformin|ACE|thuốc)",
-    r"(?i)(tương tác|ảnh hưởng)\s*(thực phẩm|dinh dưỡng|ăn uống)",
     r"(?i)(vitamin K|grapefruit|rượu|cồn|caffeine)\s.{0,20}(thuốc|warfarin|statin)",
-    r"(?i)ăn gì\s*(tốt|tốt nhất|tốt cho|phù hợp|khi|lúc|để)",
-    r"(?i)(thực đơn|khẩu phần|bữa ăn|dinh dưỡng|calo|carb|protein|chất béo|chất xơ)",
-    r"(?i)(GI|glycemic|đường huyết sau ăn|kiểm soát đường)\s*(của thực phẩm|thấp|cao|index)",
+    r"(?i)(tương tác|ảnh hưởng)\s*(thực phẩm|dinh dưỡng|ăn uống)\s.{0,40}(thuốc|warfarin|statin|metformin|insulin|ACE)",
 ]
 
 _SAFE_COMPILED = [re.compile(p) for p in _SAFE_PATTERNS]
@@ -69,6 +74,7 @@ _SAFE_COMPILED = [re.compile(p) for p in _SAFE_PATTERNS]
 # Result type
 # ---------------------------------------------------------------------------
 
+
 @dataclass
 class GuardrailResult:
     blocked: bool
@@ -76,6 +82,7 @@ class GuardrailResult:
     reason: str = ""
     safe_response: str = field(default_factory=lambda: _SAFE_RESPONSE)
     method: str = "regex"  # "regex" | "llm" | "safe_pattern"
+
 
 _SAFE_RESPONSE = (
     "Tôi là công cụ hỗ trợ tư vấn dinh dưỡng, không có chức năng tư vấn "
@@ -86,6 +93,7 @@ _SAFE_RESPONSE = (
 # ---------------------------------------------------------------------------
 # Public API
 # ---------------------------------------------------------------------------
+
 
 def check_guardrail(message: str) -> GuardrailResult:
     """Kiểm tra message có phải câu hỏi y tế cần chặn không.
@@ -99,19 +107,22 @@ def check_guardrail(message: str) -> GuardrailResult:
     if not message or not message.strip():
         return GuardrailResult(blocked=False, confidence=1.0, reason="empty")
 
-    # Kiểm tra safe patterns trước (tránh false positive)
-    for pat in _SAFE_COMPILED:
-        if pat.search(message):
-            return GuardrailResult(
-                blocked=False,
-                confidence=0.9,
-                reason="safe_pattern_match",
-                method="safe_pattern",
-            )
-
-    # Tầng 1: Regex
+    # Tầng 1: kiểm tra dangerous pattern TRƯỚC — an toàn phải thắng tiện lợi.
+    # (Đảo thứ tự so với bản gốc: safe-pattern kiểm tra trước dangerous-pattern
+    # là lỗ hổng bypass thật — bất kỳ câu nào chứa 1 từ dinh dưỡng đều lọt qua
+    # kể cả khi hỏi "có nên ngừng thuốc". Xem docstring _SAFE_PATTERNS.)
     matches = [pat.pattern for pat in _COMPILED if pat.search(message)]
     if matches:
+        # Chỉ gỡ chặn khi RÕ RÀNG là câu hỏi tương tác thuốc-thực phẩm (safe
+        # pattern luôn yêu cầu tên thuốc/nhóm thuốc cụ thể đi kèm).
+        for pat in _SAFE_COMPILED:
+            if pat.search(message):
+                return GuardrailResult(
+                    blocked=False,
+                    confidence=0.85,
+                    reason="safe_pattern_override",
+                    method="safe_pattern",
+                )
         logger.debug("Guardrail tầng 1 chặn message. Patterns: %s", matches[:2])
         return GuardrailResult(
             blocked=True,
@@ -120,23 +131,40 @@ def check_guardrail(message: str) -> GuardrailResult:
             method="regex",
         )
 
-    # Tầng 2: LLM (nếu có API key) — chỉ gọi khi cần
-    try:
-        return _classify_with_llm(message)
-    except Exception as exc:
-        logger.debug("LLM classifier lỗi, mặc định không chặn: %s", exc)
-        return GuardrailResult(blocked=False, confidence=0.6, reason="llm_error_passthrough", method="llm")
+    # Tầng 2: LLM (nếu có API key) — chỉ gọi khi tầng 1 không bắt được gì.
+    # `_classify_with_llm` tự xử lý lỗi nội bộ, luôn trả GuardrailResult chứ
+    # không raise — không cần bắt Exception trần ở đây (CLAUDE.md §4).
+    return _classify_with_llm(message)
 
 
 def _classify_with_llm(message: str) -> GuardrailResult:
-    """Tầng 2: Gemini zero-shot classifier."""
-    try:
-        from src.config import get_settings  # lazy import
-        settings = get_settings()
-        if not settings.gemini_api_key:
-            raise ValueError("Không có GEMINI_API_KEY")
+    """Tầng 2: Gemini zero-shot classifier.
 
+    Luôn trả về `GuardrailResult`, không bao giờ raise — 2 nhánh lỗi có ý
+    nghĩa khác nhau và xử lý khác nhau có chủ đích:
+      - Chưa cấu hình GEMINI_API_KEY / thiếu thư viện: KHÔNG phải sự cố —
+        tầng 2 vốn chỉ là bổ sung tuỳ chọn cho tầng 1 (đã chạy và không bắt
+        được gì). Fail-open (không chặn) để không phá tính năng chat ở môi
+        trường dev/test/CI không có key thật.
+      - Lỗi THẬT khi đang gọi API đã cấu hình (mạng, timeout, response sai
+        định dạng): đây là sự cố giữa lúc kiểm tra an toàn — fail-closed
+        (chặn), vì hệ thống y tế không nên mặc định "an toàn" khi không biết
+        câu trả lời thật là gì. Đổi từ fail-open sang fail-closed ở nhánh
+        này 2026-08-07, xem DEVLOG cùng ngày.
+    """
+    from src.config import get_settings  # lazy import
+
+    settings = get_settings()
+    if not settings.gemini_api_key:
+        return GuardrailResult(blocked=False, confidence=0.6, reason="llm_not_configured", method="llm")
+
+    try:
         import google.generativeai as genai  # type: ignore
+    except ImportError as exc:
+        logger.warning("Guardrail tầng 2: thiếu thư viện google-generativeai, bỏ qua tầng 2: %s", exc)
+        return GuardrailResult(blocked=False, confidence=0.6, reason="llm_not_installed", method="llm")
+
+    try:
         genai.configure(api_key=settings.gemini_api_key)
         model = genai.GenerativeModel("gemini-2.0-flash")
 
@@ -144,12 +172,10 @@ def _classify_with_llm(message: str) -> GuardrailResult:
             "Phân loại câu hỏi sau: có phải yêu cầu tư vấn y khoa "
             "(chẩn đoán, kê đơn, điều chỉnh thuốc, xét nghiệm) không?\n\n"
             f"Câu hỏi: {message[:400]}\n\n"
-            "Trả lời JSON: {\"is_medical\": true/false, \"confidence\": 0.0-1.0, \"reason\": \"...\"}"
+            'Trả lời JSON: {"is_medical": true/false, "confidence": 0.0-1.0, "reason": "..."}'
         )
         response = model.generate_content(prompt)
-        import json
         text = response.text.strip()
-        # Extract JSON
         start = text.find("{")
         end = text.rfind("}") + 1
         data = json.loads(text[start:end])
@@ -164,5 +190,6 @@ def _classify_with_llm(message: str) -> GuardrailResult:
             reason=reason,
             method="llm",
         )
-    except ImportError:
-        raise ValueError("google-generativeai không được cài")
+    except (ValueError, KeyError, json.JSONDecodeError, ConnectionError, TimeoutError) as exc:
+        logger.warning("Guardrail tầng 2 lỗi khi gọi Gemini, mặc định CHẶN (fail-closed): %s", exc)
+        return GuardrailResult(blocked=True, confidence=0.5, reason=f"llm_call_error_fail_closed:{exc}", method="llm")
