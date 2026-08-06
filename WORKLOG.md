@@ -3,7 +3,7 @@
 > ⚙️ File này được sinh tự động từ `DEVLOG.md` bằng `scripts/sync_devlog.py`.
 > Đừng sửa trực tiếp — hãy sửa `DEVLOG.md` rồi chạy lại script.
 
-> Cập nhật lần cuối: 06/08/2026 12:40 · 92 commit
+> Cập nhật lần cuối: 06/08/2026 15:00 · 86 commit
 
 ---
 
@@ -11,7 +11,7 @@
 
 | Thành viên | Số commit |
 |---|---|
-| Kim Mạnh Hưng | 119 |
+| Kim Mạnh Hưng | 131 |
 | NocNam | 8 |
 | Đinh Lê Quỳnh Phương | 8 |
 | pl1201 | 7 |
@@ -301,19 +301,35 @@
 
 ---
 
+### [2026-08-06] · Claude (theo yêu cầu Hưng, deadline mentor 08/08) · Thiết kế API stack + triển khai BE-02/03/04/05/06, HIT-02
+- **Bối cảnh:** Hưng chuyển yêu cầu mentor tuần này: (1) thiết kế API stack (danh sách API, chức năng, input/output, ràng buộc), (2) xây dữ liệu mẫu + hoàn thiện backend dựa trên đó + deploy để demo. Trước phiên này `src/api/routes.py` chỉ có `/health`, `/status`, `/chat` (stub 501) — chưa có auth, chưa có route nào chạm DB thật.
+- **`docs/API_DESIGN.md`:** 18 endpoint (auth/patients/targets/meal-plans/reviews/food-logs/audit), mỗi API có input/output/ràng buộc/lỗi/mapping DB, thứ tự triển khai theo đường găng `TICKETS.md`. Xác định phạm vi thực tế cho 2 ngày: ưu tiên 1→6 (auth→patients→targets→seed demo→meal-plans→reviews) — đúng lát cắt "đăng ký → hồ sơ → tính định mức → sinh thực đơn → chuyên gia duyệt" cần cho demo.
+- **BE-02 (auth):** JWT (`pyjwt`, access 15p/refresh 7 ngày, rotate khi refresh) + argon2id (`passlib`). Lỗi đăng nhập dùng chung cho sai email/sai mật khẩu (chống user-enumeration, test riêng xác nhận message giống hệt).
+- **BE-03 (patient CRUD):** Tách `src/api/routes.py` (1 file) thành package `src/api/routes/` theo resource — thư mục này đã có sẵn `.gitkeep` từ trước, rõ ràng là dự định gốc chưa ai làm. Chặn quyền ở **tầng query** (`_get_owned_profile` filter theo `user_id` ngay trong câu SQL), không lọc sau khi đã lấy data — bệnh nhân A gọi hồ sơ B → `404` đúng AC BE-09, không phải `403`.
+- **BE-04 (targets):** bọc thẳng `compute_targets()` có sẵn (RULE-1, không LLM). Viết `src/api/clinical_bridge.py` để chuyển ORM `PatientProfile` (DB) sang Pydantic `PatientProfile` (clinical) dùng chung cho cả targets và meal-plans.
+- **BE-05 (seed demo):** `scripts/seed_demo_users.py` — 2 dietitian + 6 patient mô phỏng, phủ đủ 4 nhóm bệnh mục tiêu (T2DM/HTN/CKD/Gout) + 1 ca đa bệnh lý T2DM+CKD (đúng ví dụ DEC-007/DEC-014). Mật khẩu demo chung `Demo1234`, ghi vào README.
+- **BE-06 (sinh thực đơn) — phần khó nhất:** `POST /meal-plans` chạy `build_nutricare_graph()` (đã có sẵn từ AGT-10, `src/agents/assembly.py`) **thật** qua `BackgroundTasks`, trả `202` ngay (đúng AC "không treo quá 60s"). Phát hiện quan trọng khi viết test: `TestClient` **chờ background task chạy xong** trước khi trả response về test (hành vi ASGI chuẩn của Starlette) — nghĩa là test kiểm được thẳng trạng thái cuối cùng, không cần poll giả. Background task mở **session DB riêng** (session request gốc đã đóng khi task chạy) nhưng nhận `session_factory` injectable — route truyền `db.get_bind()` vào nên test tự động dùng đúng engine SQLite tạm của fixture, không cần wiring test riêng.
+- **HIT-02 (duyệt):** `GET /reviews/pending` sort theo số vi phạm hard giảm dần rồi soft giảm dần. `POST /reviews/{id}/approve` — nếu có sửa gram, **không tin số client gửi**, gọi lại `compute_nutrition()`/`validate_menu()` trên server từ `food_id`+`grams` thật (RULE-1); còn hard violation sau khi sửa → `422`, chặn duyệt. Ghi `AuditLog` (before/after) mỗi lần duyệt/từ chối. Phát hiện thiếu sót khi viết test: `MealPlanItemOut` (BE-06) ban đầu không có `id`, khiến reviewer không có cách nào tham chiếu đúng item để sửa gram — bổ sung field `id`.
+- **Docker:** build local thành công (`docker build`, image 2,18GB). Chạy thử container thật (`docker run` + `curl /health`) — `HEALTHCHECK` pass, `/health`/`/api/v1/health` trả `200`. `POST /auth/register` trả lỗi `no such table: users` — đúng như dự kiến vì container test không chạy `alembic upgrade head`, không phải lỗi code.
+- **Deploy Render:** không tự làm — không có credential Render/Vercel/Neon nào trong máy, và Hưng xác nhận đây là việc của R1/đồng đội khác. Dừng lại ở build+test local, đẩy code lên GitHub để đồng đội tiếp tục.
+- **Xác nhận:** `pytest -q` 157/157 pass (37 test API mới), `ruff check`/`ruff format --check`/`mypy src/` sạch. PR #40 (API stack) + PR #41 (backport fix `sync_devlog.py`/`JOURNAL`/`WORKLOG`/README từ `main` — phát hiện `develop` bị thiếu các fix này do đi tiếp trước khi sync chạy) đã merge vào `develop`.
+- **Còn lại:** `BE-07` (food logs), `BE-08` (audit log — đã ghi qua `AuditLog` trong HIT-02 nhưng chưa có `GET /audit` riêng), `BE-09` (security test tự động), `HIT-01` (LangGraph `interrupt()` thật — hiện graph chạy hết 1 lượt rồi API tự quản trạng thái `pending_review`/`approved` ở tầng DB, không dùng cơ chế pause/resume của LangGraph checkpointer). Deploy Render/Vercel/Neon thật vẫn chưa làm.
+- **Thời gian:** ~4h
+
+---
+
 ---
 
 ## 3. Lịch sử commit
 
 | Ngày | Người | Nội dung |
 |---|---|---|
-| 2026-08-06 | Kim Mạnh Hưng | merge: hoa giai xung dot develop <- main (sync dinh ky) |
+| 2026-08-06 | Kim Mạnh Hưng | docs: ghi DEVLOG + cap nhat README cho dot API stack (BE-02..HIT-02) (#42) |
+| 2026-08-06 | Kim Mạnh Hưng | feat(api): API stack day du - BE-02..BE-06, HIT-02 (theo yeu cau mentor, han 08/08) (#40) |
+| 2026-08-06 | Kim Mạnh Hưng | fix(ops): backport UTF-8 fix sync_devlog.py + dong bo JOURNAL/WORKLOG vao develop (#41) |
 | 2026-08-06 | Kim Mạnh Hưng | feat(data): thêm 27 món Việt Nam (pending, cho R2 duyệt) - DAT-04 (#37) |
 | 2026-08-06 | Kim Mạnh Hưng | feat(data): bo tran du lieu toi da - 7173 food_items, 2635 dishes (DAT-12) (#36) |
 | 2026-08-06 | Kim Mạnh Hưng | sync: đưa BE-01/BE-10 (schema DB + seed_db.py) từ main vào develop (#35) |
-| 2026-08-06 | Kim Mạnh Hưng | feat(data,ops): bỏ trần EPIC 1/2 + fill data thật + schema DB (BE-01) (#34) |
-| 2026-08-05 | Kim Mạnh Hưng | docs(data): nghiên cứu bổ sung nguồn dữ liệu từ tài liệu tổng quan |
-| 2026-08-05 | Kim Mạnh Hưng | Develop (#17) |
 | 2026-08-05 | Kim Mạnh Hưng | docs(ops): giu nguyen compute_targets()/DEC-007 - dinh chinh note PRD (#32) |
 | 2026-08-05 | Kim Mạnh Hưng | docs(ops): chu thich pham vi DTD2 vao TICKETS/rules/ARCHITECTURE/PLAN (#31) |
 | 2026-08-05 | Kim Mạnh Hưng | docs(ops): cap nhat CLAUDE.md theo trong tam DTD2 (PRD v2.1) (#29) |
@@ -326,10 +342,6 @@
 | 2026-08-05 | Kim Mạnh Hưng | data: lấp 6 dòng food_items từ Bảng TPTP VN 2017 + USDA (DAT-09) (#20) |
 | 2026-08-05 | Kim Mạnh Hưng | ci(workflows): chuyển runs-on sang self-hosted (BTC runner) (#18) |
 | 2026-08-05 | Kim Mạnh Hưng | fix(ops): them google-genai vao requirements.txt (#25) |
-| 2026-08-04 | Đinh Lê Quỳnh Phương | docs(prd): cập nhật trọng tâm ĐTĐ2 (PR #19) |
-| 2026-08-04 | Phùng Linh | Merge pull request #15 from AI20K-Build-Phase-Cohort-3/ui-main |
-| 2026-08-04 | pl1201 | ci: use self-hosted runners |
-| 2026-08-04 | Đinh Lê Quỳnh Phương | docs(prd): cập nhật PRD tập trung vào ĐTĐ2 làm bệnh lý trọng tâm |
 | 2026-08-04 | Kim Mạnh Hưng | Merge pull request #16 from AI20K-Build-Phase-Cohort-3/fix/ci-utf8-locale |
 | 2026-08-04 | Kim Mạnh Hưng | fix(ci): ép stdout UTF-8 trong check_structure/validate_data — sửa structure CI đỏ (locale non-UTF8) |
 | 2026-08-04 | Kim Mạnh Hưng | Merge pull request #14 from AI20K-Build-Phase-Cohort-3/feature/DAT-08b-atkinson-suppl |
@@ -347,7 +359,6 @@
 | 2026-08-03 | Kim Mạnh Hưng | feat(data): DAT-04 probe — fetcher API món ăn NIN (1250 món, có Na+tương đương muối) |
 | 2026-08-03 | Kim Mạnh Hưng | feat(data): DAT-02 promote — food_items.csv 59 dòng NIN hoàn chỉnh + GI merge (validate sạch) |
 | 2026-08-03 | Kim Mạnh Hưng | feat(data): DAT-02 — purine optional + bản nháp food_items từ API NIN (107/152 dòng) |
-| 2026-08-03 | pl1201 | fix README encoding |
 | 2026-08-02 | Kim Mạnh Hưng | feat(data): fetcher API Viện Dinh dưỡng (NIN) — unblock DAT-02 (853 món, đủ cột trừ purine) |
 | 2026-08-02 | Kim Mạnh Hưng | feat(data): DAT-08b — trích 17 trị GI quả/staple từ Atkinson Suppl. Table 1 (gi_values 11→28) |
 | 2026-08-02 | Đinh Lê Quỳnh Phương | docs: add NutriCare PRD |

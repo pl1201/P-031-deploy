@@ -1,8 +1,13 @@
+"""Health check, status, và endpoint chat stub — di chuyển nguyên trạng từ
+`src/api/routes.py` khi tách route theo resource (BE-02..BE-09)."""
+
+from __future__ import annotations
+
 from fastapi import APIRouter, HTTPException
 
 from src.config import get_settings
 
-router = APIRouter()
+router = APIRouter(tags=["misc"])
 
 
 @router.get("/health")

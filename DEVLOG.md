@@ -329,6 +329,23 @@
 
 ---
 
+### [2026-08-06] · Claude (theo yêu cầu Hưng, deadline mentor 08/08) · Thiết kế API stack + triển khai BE-02/03/04/05/06, HIT-02
+- **Bối cảnh:** Hưng chuyển yêu cầu mentor tuần này: (1) thiết kế API stack (danh sách API, chức năng, input/output, ràng buộc), (2) xây dữ liệu mẫu + hoàn thiện backend dựa trên đó + deploy để demo. Trước phiên này `src/api/routes.py` chỉ có `/health`, `/status`, `/chat` (stub 501) — chưa có auth, chưa có route nào chạm DB thật.
+- **`docs/API_DESIGN.md`:** 18 endpoint (auth/patients/targets/meal-plans/reviews/food-logs/audit), mỗi API có input/output/ràng buộc/lỗi/mapping DB, thứ tự triển khai theo đường găng `TICKETS.md`. Xác định phạm vi thực tế cho 2 ngày: ưu tiên 1→6 (auth→patients→targets→seed demo→meal-plans→reviews) — đúng lát cắt "đăng ký → hồ sơ → tính định mức → sinh thực đơn → chuyên gia duyệt" cần cho demo.
+- **BE-02 (auth):** JWT (`pyjwt`, access 15p/refresh 7 ngày, rotate khi refresh) + argon2id (`passlib`). Lỗi đăng nhập dùng chung cho sai email/sai mật khẩu (chống user-enumeration, test riêng xác nhận message giống hệt).
+- **BE-03 (patient CRUD):** Tách `src/api/routes.py` (1 file) thành package `src/api/routes/` theo resource — thư mục này đã có sẵn `.gitkeep` từ trước, rõ ràng là dự định gốc chưa ai làm. Chặn quyền ở **tầng query** (`_get_owned_profile` filter theo `user_id` ngay trong câu SQL), không lọc sau khi đã lấy data — bệnh nhân A gọi hồ sơ B → `404` đúng AC BE-09, không phải `403`.
+- **BE-04 (targets):** bọc thẳng `compute_targets()` có sẵn (RULE-1, không LLM). Viết `src/api/clinical_bridge.py` để chuyển ORM `PatientProfile` (DB) sang Pydantic `PatientProfile` (clinical) dùng chung cho cả targets và meal-plans.
+- **BE-05 (seed demo):** `scripts/seed_demo_users.py` — 2 dietitian + 6 patient mô phỏng, phủ đủ 4 nhóm bệnh mục tiêu (T2DM/HTN/CKD/Gout) + 1 ca đa bệnh lý T2DM+CKD (đúng ví dụ DEC-007/DEC-014). Mật khẩu demo chung `Demo1234`, ghi vào README.
+- **BE-06 (sinh thực đơn) — phần khó nhất:** `POST /meal-plans` chạy `build_nutricare_graph()` (đã có sẵn từ AGT-10, `src/agents/assembly.py`) **thật** qua `BackgroundTasks`, trả `202` ngay (đúng AC "không treo quá 60s"). Phát hiện quan trọng khi viết test: `TestClient` **chờ background task chạy xong** trước khi trả response về test (hành vi ASGI chuẩn của Starlette) — nghĩa là test kiểm được thẳng trạng thái cuối cùng, không cần poll giả. Background task mở **session DB riêng** (session request gốc đã đóng khi task chạy) nhưng nhận `session_factory` injectable — route truyền `db.get_bind()` vào nên test tự động dùng đúng engine SQLite tạm của fixture, không cần wiring test riêng.
+- **HIT-02 (duyệt):** `GET /reviews/pending` sort theo số vi phạm hard giảm dần rồi soft giảm dần. `POST /reviews/{id}/approve` — nếu có sửa gram, **không tin số client gửi**, gọi lại `compute_nutrition()`/`validate_menu()` trên server từ `food_id`+`grams` thật (RULE-1); còn hard violation sau khi sửa → `422`, chặn duyệt. Ghi `AuditLog` (before/after) mỗi lần duyệt/từ chối. Phát hiện thiếu sót khi viết test: `MealPlanItemOut` (BE-06) ban đầu không có `id`, khiến reviewer không có cách nào tham chiếu đúng item để sửa gram — bổ sung field `id`.
+- **Docker:** build local thành công (`docker build`, image 2,18GB). Chạy thử container thật (`docker run` + `curl /health`) — `HEALTHCHECK` pass, `/health`/`/api/v1/health` trả `200`. `POST /auth/register` trả lỗi `no such table: users` — đúng như dự kiến vì container test không chạy `alembic upgrade head`, không phải lỗi code.
+- **Deploy Render:** không tự làm — không có credential Render/Vercel/Neon nào trong máy, và Hưng xác nhận đây là việc của R1/đồng đội khác. Dừng lại ở build+test local, đẩy code lên GitHub để đồng đội tiếp tục.
+- **Xác nhận:** `pytest -q` 157/157 pass (37 test API mới), `ruff check`/`ruff format --check`/`mypy src/` sạch. PR #40 (API stack) + PR #41 (backport fix `sync_devlog.py`/`JOURNAL`/`WORKLOG`/README từ `main` — phát hiện `develop` bị thiếu các fix này do đi tiếp trước khi sync chạy) đã merge vào `develop`.
+- **Còn lại:** `BE-07` (food logs), `BE-08` (audit log — đã ghi qua `AuditLog` trong HIT-02 nhưng chưa có `GET /audit` riêng), `BE-09` (security test tự động), `HIT-01` (LangGraph `interrupt()` thật — hiện graph chạy hết 1 lượt rồi API tự quản trạng thái `pending_review`/`approved` ở tầng DB, không dùng cơ chế pause/resume của LangGraph checkpointer). Deploy Render/Vercel/Neon thật vẫn chưa làm.
+- **Thời gian:** ~4h
+
+---
+
 ## 3. Quyết định kỹ thuật (Decision Log)
 
 | ID | Ngày | Quyết định | Người quyết | Chi tiết |
