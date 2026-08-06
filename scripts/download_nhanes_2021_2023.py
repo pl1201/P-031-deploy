@@ -111,11 +111,12 @@ def download_file(url: str, dest_path: Path) -> dict[str, Any]:
             )
             response.raise_for_status()
 
-            # Write to disk
-            dest_path.parent.mkdir(parents=True, exist_ok=True)
-            with open(dest_path, "wb") as f:
-                for chunk in response.iter_content(chunk_size=8192):
-                    f.write(chunk)
+            # Write to disk (response auto-closed by context manager on any exception)
+            with response:
+                dest_path.parent.mkdir(parents=True, exist_ok=True)
+                with open(dest_path, "wb") as f:
+                    for chunk in response.iter_content(chunk_size=8192):
+                        f.write(chunk)
 
             # Compute checksum
             sha256 = compute_sha256(dest_path)

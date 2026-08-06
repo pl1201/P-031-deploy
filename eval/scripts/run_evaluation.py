@@ -128,7 +128,12 @@ def evaluate_guideline_compliance(
 ) -> tuple[float, int, list[dict[str, Any]]]:
     """Metric 1: Guideline Compliance.
 
-    Compare actual system output against expected targets.
+    Compare actual system output against expected targets using range overlap logic:
+    - Pass if actual and expected ranges overlap (not necessarily subset)
+    - This allows system to be more conservative (narrower range) while staying safe
+    - Example: expected 1500-1800, actual 1600-1750 → PASS (safer, within bounds)
+    - Example: expected 1500-1800, actual 1400-1700 → PASS (overlap, clinically acceptable)
+    - Example: expected 1500-1800, actual 1900-2100 → FAIL (no overlap, unsafe)
     """
     pass_count = 0
     total = 0
