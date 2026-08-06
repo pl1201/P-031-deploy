@@ -3,7 +3,8 @@
 
 from __future__ import annotations
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter
+from pydantic import BaseModel, Field
 
 from src.config import get_settings
 
@@ -17,14 +18,40 @@ async def health() -> dict[str, str]:
     return {"status": "ok", "env": settings.app_env}
 
 
-@router.post("/chat")
-async def chat() -> None:
-    """Chat với AI agent.
+class ChatRequest(BaseModel):
+    message: str = Field(min_length=1, max_length=2000)
 
-    Chưa triển khai: cần ProfileRepository/FoodRepository/MenuGenerator thật
-    để dựng graph qua `build_graph()` (xem BE-06 trong docs/TICKETS.md).
+
+class ChatResponse(BaseModel):
+    reply: str
+    blocked: bool
+    method: str  # "regex" | "llm" | "safe_pattern"
+
+
+@router.post("/chat", response_model=ChatResponse)
+async def chat(payload: ChatRequest) -> ChatResponse:
+    """Chat với AI agent — AGT-07: guardrail chặn chỉ định y khoa tầng 1 (regex).
+
+    LLM: Tầng 2 (Gemini classifier) tuỳ cấu hình GEMINI_API_KEY.
+    RULE-3: Endpoint này không trả thông tin y khoa trực tiếp cho bệnh nhân.
     """
-    raise HTTPException(status_code=501, detail="Chưa triển khai — xem ticket BE-06")
+    from src.agents.guardrail import check_guardrail
+
+    result = check_guardrail(payload.message)
+    if result.blocked:
+        return ChatResponse(reply=result.safe_response, blocked=True, method=result.method)
+
+    # Placeholder dinh dưỡng — RAG sẽ thay thế khi ADV-01..ADV-03 xong
+    return ChatResponse(
+        reply=(
+            "Câu hỏi của bạn liên quan đến dinh dưỡng. Hiện tại hệ thống đang "
+            "trong giai đoạn MVP — vui lòng xem thực đơn đã được chuyên gia duyệt "
+            "trong mục 'Thực đơn của tôi' để có thông tin dinh dưỡng cá thể hóa. "
+            "Nếu có câu hỏi cụ thể, hãy liên hệ trực tiếp với chuyên gia dinh dưỡng."
+        ),
+        blocked=False,
+        method=result.method,
+    )
 
 
 @router.get("/status")

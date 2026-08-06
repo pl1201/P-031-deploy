@@ -14,14 +14,14 @@ from datetime import date, datetime
 
 from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Query, status
 from pydantic import BaseModel, Field
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, selectinload
 
 from src.agents.assembly import build_nutricare_graph
 from src.api.clinical_bridge import to_clinical_profile
 from src.api.security import CurrentUser, get_current_user
 from src.clinical.models import PatientProfile as ClinicalPatientProfile
 from src.db.base import get_db, get_session_factory
-from src.db.models import MealPlan, MealPlanItem
+from src.db.models import FoodItem, MealPlan, MealPlanItem
 from src.db.models import PatientProfile as DbPatientProfile
 
 logger = logging.getLogger(__name__)
@@ -51,6 +51,12 @@ class MealPlanItemOut(BaseModel):
     slot: str
     food_id: int
     grams: float
+    name_vi: str
+    source: str
+    source_ref: str
+    is_estimated: bool
+
+    model_config = {"from_attributes": True}
 
 
 class MealPlanOut(BaseModel):
@@ -77,7 +83,16 @@ class MealPlanOut(BaseModel):
             plan_date=plan.plan_date,
             status=plan.status,
             items=[
-                MealPlanItemOut(id=i.id, slot=i.slot, food_id=i.food_id, grams=i.grams)
+                MealPlanItemOut(
+                    id=i.id,
+                    slot=i.slot,
+                    food_id=i.food_id,
+                    grams=i.grams,
+                    name_vi=i.food.name_vi,
+                    source=i.food.source,
+                    source_ref=i.food.source_ref,
+                    is_estimated=i.food.is_estimated,
+                )
                 for i in sorted(plan.items, key=lambda i: (i.slot, i.food_id))
             ],
             targets=plan.targets or {},
@@ -176,7 +191,7 @@ def _run_graph_and_persist(
 
 
 def _get_visible_plan(db: Session, plan_id: str, user: CurrentUser) -> MealPlan:
-    query = db.query(MealPlan).filter(MealPlan.id == plan_id)
+    query = db.query(MealPlan).options(selectinload(MealPlan.items).selectinload(MealPlanItem.food)).filter(MealPlan.id == plan_id)
     if user.role == "patient":
         query = query.join(DbPatientProfile).filter(DbPatientProfile.user_id == user.id, MealPlan.status == "approved")
     plan = query.first()
@@ -245,7 +260,7 @@ def list_meal_plans(
     db: Session = Depends(get_db),
     user: CurrentUser = Depends(get_current_user),
 ) -> MealPlanListOut:
-    query = db.query(MealPlan)
+    query = db.query(MealPlan).options(selectinload(MealPlan.items).selectinload(MealPlanItem.food))
     if user.role == "patient":
         query = query.join(DbPatientProfile).filter(DbPatientProfile.user_id == user.id, MealPlan.status == "approved")
     elif patient_id is not None:

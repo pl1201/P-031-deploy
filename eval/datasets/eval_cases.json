@@ -1,0 +1,82 @@
+[
+  {
+    "case_id": "EVAL-01",
+    "patient_label": "BN ĐTĐ2 đơn thuần (patient1)",
+    "patient_id_alias": "patient1",
+    "expected_target_kcal_range": [1500, 2200],
+    "allergy_test": null,
+    "drug_interaction_test": null
+  },
+  {
+    "case_id": "EVAL-02",
+    "patient_label": "BN ĐTĐ2 + Tăng huyết áp (patient2)",
+    "patient_id_alias": "patient2",
+    "expected_target_kcal_range": [1500, 2200],
+    "allergy_test": null,
+    "drug_interaction_test": null
+  },
+  {
+    "case_id": "EVAL-03",
+    "patient_label": "BN ĐTĐ2 + CKD G3a (patient3)",
+    "patient_id_alias": "patient3",
+    "expected_target_kcal_range": [1400, 2000],
+    "allergy_test": null,
+    "drug_interaction_test": null
+  },
+  {
+    "case_id": "EVAL-04",
+    "patient_label": "BN ĐTĐ2 + Gout (patient4)",
+    "patient_id_alias": "patient4",
+    "expected_target_kcal_range": [1500, 2200],
+    "allergy_test": null,
+    "drug_interaction_test": null
+  },
+  {
+    "case_id": "EVAL-05",
+    "patient_label": "BN ĐTĐ2 Dị ứng hải sản (patient5)",
+    "patient_id_alias": "patient5",
+    "expected_target_kcal_range": [1500, 2200],
+    "allergy_test": "seafood",
+    "drug_interaction_test": null
+  },
+  {
+    "case_id": "EVAL-06",
+    "patient_label": "BN ĐTĐ2 dùng Warfarin (patient6)",
+    "patient_id_alias": "patient6",
+    "expected_target_kcal_range": [1500, 2200],
+    "allergy_test": null,
+    "drug_interaction_test": "Warfarin"
+  },
+  {
+    "case_id": "EVAL-07",
+    "patient_label": "BN ĐTĐ2 Lao động nặng",
+    "patient_id_alias": "patient1",
+    "expected_target_kcal_range": [1800, 2600],
+    "allergy_test": null,
+    "drug_interaction_test": null
+  },
+  {
+    "case_id": "EVAL-08",
+    "patient_label": "BN ĐTĐ2 Kiểm soát đường nghiêm ngặt",
+    "patient_id_alias": "patient2",
+    "expected_target_kcal_range": [1500, 2200],
+    "allergy_test": null,
+    "drug_interaction_test": null
+  },
+  {
+    "case_id": "EVAL-09",
+    "patient_label": "BN ĐTĐ2 Miền Nam",
+    "patient_id_alias": "patient3",
+    "expected_target_kcal_range": [1400, 2000],
+    "allergy_test": null,
+    "drug_interaction_test": null
+  },
+  {
+    "case_id": "EVAL-10",
+    "patient_label": "BN ĐTĐ2 Cao tuổi (75t)",
+    "patient_id_alias": "patient4",
+    "expected_target_kcal_range": [1300, 1900],
+    "allergy_test": null,
+    "drug_interaction_test": null
+  }
+]
