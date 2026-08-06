@@ -14,7 +14,6 @@ env/
 
 # Environment variables & secrets
 .env
-.env.example
 .env.local
 .env.production
 *.pem
@@ -40,6 +39,8 @@ Thumbs.db
 data/*
 !data/seeds/
 !data/README.md
+!data/patients/README.md
+!data/VERSION
 *.db
 *.sqlite3
 

@@ -45,7 +45,7 @@ import os
 import re
 import subprocess
 import sys
-from datetime import datetime, timezone, timedelta
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
 # Fix Windows console encoding so VN diacritics in prompts print cleanly.
@@ -186,7 +186,7 @@ def get_logged_entry_ids(log_file: Path) -> set[str]:
     logged: set[str] = set()
     if not log_file.exists():
         return logged
-    with open(log_file, encoding="utf-8-sig") as f:
+    with open(log_file, encoding="utf-8-sig", errors="replace") as f:
         for line in f:
             line = line.strip()
             if not line:

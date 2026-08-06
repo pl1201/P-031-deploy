@@ -97,10 +97,12 @@ def check_forbidden(files: list[str]) -> None:
 
 
 def check_dirs(files: list[str]) -> None:
-    present = {str(Path(f).parent) for f in files}
-    present |= {str(p) for f in files for p in Path(f).parents}
+    # Normalize all paths to forward slashes for cross-platform comparison
+    present = {str(Path(f).parent).replace("\\", "/") for f in files}
+    present |= {str(p).replace("\\", "/") for f in files for p in Path(f).parents}
     for d, purpose in REQUIRED_DIRS:
-        if d not in present:
+        normalized_d = d.replace("\\", "/")
+        if normalized_d not in present:
             missing.append(f"Thiếu thư mục `{d}/` ({purpose})")
 
 

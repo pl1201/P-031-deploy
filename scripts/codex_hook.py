@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
 """Log Codex UserPromptSubmit hook events without affecting Codex output."""
 
-from pathlib import Path
 import os
 import subprocess
 import sys
+from pathlib import Path
 
 
 def main() -> int:
