@@ -184,12 +184,12 @@ def compute_targets(profile: PatientProfile, rules: list[ClinicalRule] | None = 
             min_value=energy * (1 - ENERGY_SOFT_TOLERANCE),
             max_value=energy * (1 + ENERGY_SOFT_TOLERANCE),
             unit="kcal",
-            rule_ids=["ENERGY-MSJ"],
-            guideline_refs=["Mifflin-St Jeor 1990; điều chỉnh theo mục tiêu cân nặng"],
+            rule_ids=["ENERGY-WHO-FAO-UNU"],
+            guideline_refs=["WHO/FAO/UNU 1985 (Schofield); điều chỉnh theo mục tiêu cân nặng — CLN-09"],
         )
     }
 
-    applied: list[str] = ["ENERGY-MSJ"]
+    applied: list[str] = ["ENERGY-WHO-FAO-UNU"]
     conflicts: list[str] = []
 
     selected, disabled_by_safety_flag = _select_rules(profile, rules)

@@ -72,7 +72,7 @@ class PatientProfile(Base):
     weight_kg: Mapped[float] = mapped_column(Float)
     conditions: Mapped[list] = mapped_column(JSON, default=list)  # [{code, stage}] ICD10 + giai đoạn
     lab_values: Mapped[dict] = mapped_column(JSON, default=dict)  # {eGFR, HbA1c, K, uric...}
-    activity_level: Mapped[str] = mapped_column(String(20), default="sedentary")
+    activity_level: Mapped[str] = mapped_column(String(20), default="light")
     region: Mapped[str | None] = mapped_column(String(10), nullable=True)  # north|central|south
 
     user: Mapped[User] = relationship(back_populates="profile")

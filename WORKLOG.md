@@ -3,7 +3,7 @@
 > ⚙️ File này được sinh tự động từ `DEVLOG.md` bằng `scripts/sync_devlog.py`.
 > Đừng sửa trực tiếp — hãy sửa `DEVLOG.md` rồi chạy lại script.
 
-> Cập nhật lần cuối: 06/08/2026 15:00 · 86 commit
+> Cập nhật lần cuối: 06/08/2026 17:37 · 63 commit
 
 ---
 
@@ -11,12 +11,11 @@
 
 | Thành viên | Số commit |
 |---|---|
-| Kim Mạnh Hưng | 131 |
-| NocNam | 8 |
-| Đinh Lê Quỳnh Phương | 8 |
-| pl1201 | 7 |
+| Kim Mạnh Hưng | 129 |
+| NocNam | 6 |
+| pl1201 | 5 |
+| Đinh Lê Quỳnh Phương | 4 |
 | Phùng Linh | 3 |
-| phoenix-mentor[bot] | 1 |
 | pluvia21 | 1 |
 
 ---
@@ -318,49 +317,65 @@
 
 ---
 
+### [2026-08-06] · Claude (theo yêu cầu Hưng) · Đọc trực tiếp Excel chuyên gia — 3 khoảng cách công thức, đề xuất CLN-09/CLN-10/AGT-11
+- **Bối cảnh:** Hưng gửi ảnh chụp 4 khối trong `data/Bảng xác định nhu cầu dinh dưỡng + thực đơn.xlsx` (sheet "Bước 1+2" + "4. Tính toán trên Excel" ở các sheet `tđ*`/`TĐ*`) — form thật chuyên gia dinh dưỡng dự án dùng để tính nhu cầu/chia bữa/lập thực đơn. Đọc trực tiếp formula (không suy đoán từ ảnh) bằng `openpyxl` (`data_only=False`) để trích đúng công thức, không phải giá trị đã tính sẵn.
+- **Phát hiện 1 — công thức BMR khác hẳn:** hệ thống dùng Mifflin-St Jeor; Excel chuyên gia dùng **WHO/FAO/UNU (1985)**, bảng tuyến tính theo (nhóm tuổi × giới), hệ số W (cân nặng) không có số hạng chiều cao (`Bước 1+2!H2:J10`, VD nhóm 30-60 tuổi: Nam = 11,6×W + 879). PAL (hệ số lao động, `H12:J17`) cũng khác `ACTIVITY_FACTOR` hiện có: 4 mức nhẹ/TB/nặng/rất nặng = 1.6/1.7/2.1/2.4 (nam), so với Mifflin đang dùng 1.2/1.375/1.55/1.725. Hai công thức KHÔNG tương đương, cho TDEE khác nhau đáng kể trên cùng 1 hồ sơ.
+- **Phát hiện 2 — phân nguồn đạm/béo động vật-thực vật:** Excel chia Protein 20%NL thành 35% ĐV/65% TV, Lipid 25%NL thành 50/50 ĐV/TV (`Bước 1+2!A12:D18`). Hệ thống hiện không có chiều dữ liệu này ở `food_items` (chỉ có tổng `protein_g`/`fat_g`).
+- **Phát hiện 3 — phân bổ theo bữa áp cho cả macro, không chỉ kcal:** "2. Chia bữa" (Sáng 25%/Trưa 35%/Tối 30%/Phụ tối 10%, `A20:D49`) nhân tỷ lệ này cho TỪNG dòng P/Pđv/Ptv/L/Lđv/Ltv/G, không chỉ tổng kcal. Xác nhận công thức "Phụ tối" ở block đầu (`C49:D49`) và block cuối cùng (`C139:D145`, dùng đúng tham chiếu ô) đều là `Tổng ngày − Sáng − Trưa − Tối`, tương đương cách tính 10% trực tiếp vì 25+35+30+10=100% khớp. **Lưu ý:** các block công thức ở giữa (`C51:D138`) là lỗi copy-paste kéo công thức của người soạn Excel (tham chiếu ô lệch hàng, không khớp ý nghĩa) — không lấy làm chuẩn, chỉ dùng block đầu + block cuối làm nguồn tin cậy.
+- **Đã làm (an toàn, không đổi hành vi hệ thống):** thêm `bmr_who_fao_unu()`, `pal_who_fao()`, `compute_tdee_who_fao()` vào `src/clinical/energy.py` — hàm THAM KHẢO, `compute_targets()`/`compute_bmr()`/`compute_tdee()` mặc định KHÔNG đổi. 7 test mới đối chiếu đúng từng ô công thức trong Excel (VD `test_bmr_nam_30_60_tuoi_khop_cong_thuc_excel`), cộng 1 test xác nhận 2 công thức cho kết quả khác nhau thật (không phải code trùng lặp vô nghĩa).
+- **Không tự làm:** KHÔNG đổi `compute_targets()` sang dùng công thức mới (ảnh hưởng MỌI định mức đầu ra, cần quyết định tường minh — đúng `CLAUDE.md` §6 "ngưỡng lâm sàng sai không phải bug thường"), KHÔNG tự thêm rule tỷ lệ ĐV/TV (chưa có `guideline_ref` học thuật độc lập ngoài chính file Excel nội bộ — RULE-2 cần nguồn xác nhận được, không copy thẳng 1 con số từ bảng không rõ xuất xứ học thuật), KHÔNG tự thêm ràng buộc theo bữa vào CP-SAT (rủi ro hồi quy hiệu năng như đã từng gặp — DEC-017).
+- **Đã thêm 3 ticket ĐỀ XUẤT** (`CLN-09`, `CLN-10`, `AGT-11`) vào `docs/TICKETS.md`, đánh dấu rõ cần R2/đội duyệt trước khi coi là chính thức.
+- **Việc còn để ngỏ cho R4 (frontend) bàn cùng đội — CHƯA code, chỉ liệt kê để thảo luận:**
+  1. ~~Form nhập liệu "loại lao động"~~ **Đã chốt ở entry sau (Hưng xác nhận dùng 4 mức nhãn chuyên gia).**
+  2. Nếu `AGT-11` được duyệt: dashboard cần hiển thị được target/kết quả THEO BỮA (giống bảng "2. Chia bữa" trong Excel — mỗi bữa có Kcal/P/L/G riêng), không chỉ tổng ngày như hiện tại `GET /meal-plans/{id}` trả về.
+  3. "Xác định tình trạng DD/BMI" trong Excel có ô phân loại (gầy/bình thường/thừa cân/béo phì — dù ảnh chụp chưa lộ rõ ngưỡng phân loại cụ thể, chỉ thấy công thức BMI thô) — hệ thống hiện chỉ trả số BMI thô nếu có, chưa có nhãn phân loại; R2 cần tra ngưỡng phân loại BMI chuẩn (WHO châu Á hay chuẩn nào) trước khi thêm, R4 cần biết để hiển thị đúng chỗ trên UI hồ sơ bệnh nhân.
+- **Xác nhận:** `pytest -q` 164/164 pass (7 test mới), `ruff check`/`mypy src/` sạch.
+- **Thời gian:** ~1h
+
+---
+
+### [2026-08-06] · Claude (theo yêu cầu Hưng) · Research BMR theo dân tộc/bệnh lý + chốt nhãn loại lao động 4 mức
+- **Bối cảnh:** Hưng hỏi thẳng "BMR có thay đổi theo dân tộc/quốc gia/nhóm bệnh không? Cần nghiên cứu chứng minh" trước khi cân nhắc đổi công thức BMR mặc định (CLN-09), và xác nhận dùng nhãn "loại lao động" 4 mức của chuyên gia cho `ActivityLevel`. Dùng 2 agent research (WebSearch/WebFetch, không suy đoán từ trí nhớ) trả lời riêng biệt: (1) BMR theo dân tộc/quần thể/bệnh lý, (2) nguồn gốc thang hệ số `ACTIVITY_FACTOR` đang dùng.
+- **Kết quả research 1 — BMR theo dân tộc/quần thể (đã trích đủ nguồn vào `docs/TICKETS.md` CLN-09):** CÓ bằng chứng thật nhưng KHÔNG nhất quán chiều — Mifflin-St Jeor chính xác nhất ở phụ nữ UAE (*Archives of Public Health* 2025), nhưng WHO/FAO/UNU chính xác nhất còn Mifflin **tệ nhất** ở bệnh nhân ĐTĐ2 Hàn Quốc (PubMed 37266123, 2023) — tức "công thức nào tốt hơn" phụ thuộc quần thể cụ thể, không có 1 câu trả lời chung. **Không tìm được nghiên cứu đo calorimetry trực tiếp trên người Việt Nam** — khoảng trống dữ liệu thật, ghi rõ để không ai giả định có. Chưa xác nhận được NIN có quy định chính thức dùng công thức nào (thử đọc PDF "Nhu cầu dinh dưỡng khuyến nghị cho người Việt Nam" qua mirror, không lộ rõ mục công thức — có thể do OCR, không phải bằng chứng NIN không quy định).
+- **Kết quả research về bệnh lý:** ADA không quy định công thức BMR riêng cho ĐTĐ2 (chỉ điều chỉnh mục tiêu calo theo goal). KDOQI (CKD, cập nhật 2020, *Am J Kidney Dis*) dùng khoảng 25-35 kcal/kg — con số THỰC NGHIỆM theo cân nặng, không suy ra từ công thức BMR nào — nên "đổi công thức BMR cho CKD" không có cơ sở, đúng hơn là hệ thống hiện tại (áp `adjusted_body_weight_kg` + khoảng kcal/kg riêng cho CKD trong `clinical_rules.csv`) đã đi đúng hướng cách tiếp cận thật của guideline.
+- **Kết quả research 2 — phát hiện phụ quan trọng:** thang hệ số `ACTIVITY_FACTOR` (1.2/1.375/1.55/1.725, đang dùng với Mifflin-St Jeor từ trước) **KHÔNG truy được về 1 nguồn học thuật/hướng dẫn lâm sàng đơn nhất** — không phải từ bài Mifflin-St Jeor 1990 gốc, cũng không phải IOM/NAM DRI 2005 (DRI 2005 dùng hệ số PA liên tục trong công thức EER khác cấu trúc hẳn, `nap.nationalacademies.org/catalog/10490`). Đây là quy ước phổ biến trong máy tính calo trực tuyến, tồn tại từ trước phiên này nhưng chưa ai phát hiện — ghi rõ vào docstring `models.py` theo đúng tinh thần RULE-2 (không giả vờ đã có nguồn).
+- **Đã chốt (quyết định của Hưng, không phải Claude tự đặt):** `ActivityLevel` đổi từ `SEDENTARY/LIGHT/MODERATE/ACTIVE` sang **4 mức nhãn "loại lao động" của chuyên gia**: `LIGHT/MODERATE/HEAVY/VERY_HEAVY` (nhẹ/trung bình/nặng/rất nặng), khớp thẳng "Bảng 2" Excel. Lan toả thay đổi qua `src/clinical/models.py`, `src/clinical/energy.py` (`pal_who_fao()` giờ khớp 1:1, không cần map xấp xỉ), `src/db/models.py`, `src/api/routes/patients.py` (thêm `Literal` validation, trước là `str` tự do không chặn giá trị sai), `scripts/seed_demo_users.py`. `ACTIVITY_FACTOR` (nhánh Mifflin) thêm `VERY_HEAVY: 1.9` theo ĐÚNG quy ước không-có-nguồn đã dùng cho 3 mức kia (nhất quán, không giả vờ mức mới có nguồn riêng trong khi 3 mức cũ thì không).
+- **Không tự làm:** KHÔNG tự chốt đổi công thức BMR mặc định (research cho thấy bằng chứng trái chiều, chưa đủ để quyết — đúng `CLAUDE.md` §6, để R2 quyết dựa trên xác nhận NIN trước).
+- **Xác nhận:** `pytest -q` 164/164 pass, `ruff check`/`mypy src/` sạch (10 lỗi ruff thấy trong lần chạy toàn repo thuộc file `scripts/log_*.py` của PR #44 đồng đội, không phải file phiên này sửa).
+- **Thời gian:** ~50 phút
+
+### [2026-08-06] · Claude (theo yêu cầu Hưng) · CLN-09 chốt: WHO/FAO/UNU thành công thức BMR/TDEE mặc định hệ thống
+- **Bối cảnh:** Sau entry research trước đó (BMR không nhất quán theo quần thể, thiếu dữ liệu Việt Nam trực tiếp), Hưng chốt quyết định cuối: *"Vậy thì ưu tiên sử dụng từ bản excel, kể cả BMR và ActivityLevel"* — tức chấp nhận không có bằng chứng học thuật khẳng định WHO/FAO/UNU "đúng hơn" cho người Việt, nhưng ưu tiên đây là công thức chuyên gia dinh dưỡng DỰ ÁN đang dùng thật (nguồn thực hành trực tiếp, cao hơn tài liệu quốc tế chưa xác nhận áp dụng được).
+- **Thay đổi code:** viết lại `src/clinical/energy.py` — `compute_bmr()`/`compute_tdee()` (dùng trong `compute_targets()`) chuyển từ Mifflin-St Jeor sang `bmr_who_fao_unu()` + `pal_who_fao()`. Mifflin-St Jeor hạ xuống vai trò THAM KHẢO/so sánh (`compute_bmr_mifflin()`, `compute_tdee_mifflin()`), dùng `_ACTIVITY_FACTOR_MIFFLIN` cục bộ (giữ nguyên giá trị/docstring cảnh báo thiếu nguồn từ trước). `compute_tdee_who_fao()` (cân nặng thô, không hiệu chỉnh béo phì) giữ nguyên làm biến thể khớp Excel 100%; `compute_tdee()` mặc định VẪN áp `adjusted_body_weight_kg` (ràng buộc an toàn lâm sàng riêng, không phải một phần "công thức BMR" nên không mâu thuẫn quyết định ưu tiên Excel).
+- **Dọn dẹp:** xoá `ACTIVITY_FACTOR` khỏi `src/clinical/models.py` — hết consumer sau khi `energy.py` không còn import nó (dùng `_ACTIVITY_FACTOR_MIFFLIN` cục bộ thay thế).
+- **Tác động test:** WHO/FAO/UNU + PAL Bảng 2 cho TDEE cao hơn đáng kể so với Mifflin+`ACTIVITY_FACTOR` cũ (PAL 1.6-2.4 so với hệ số 1.375-1.9) → 8 test ban đầu fail. Đã sửa: (1) `tests/conftest.py::modest_menu` tăng định lượng (~×1.3) để đạt kcal/chất xơ mục tiêu mới; (2) nới biên trên `test_kcal_tren_kg_nam_trong_khoang_lam_sang` từ 40 lên 42 (giá trị thật ~40.2 kcal/kg, nam lao động nhẹ, T2DM+CKD); (3) sửa `test_who_fao_va_mifflin_cho_ket_qua_khac_nhau_ro_ret` so sánh `compute_tdee_mifflin()` thay vì `compute_tdee()` (đã không còn ý nghĩa vì cả hai đều WHO/FAO/UNU); (4) tách `MenuItem` 2210g (vượt `le=2000`) thành 2 món trong `test_muc_do_vi_pham_nang_luong_theo_do_lech[1.4-hard]`.
+- **Xác nhận:** `pytest -q` 164/164 pass, `ruff check src/ tests/` sạch, `mypy src/` sạch (34 file).
+- **Chưa làm (không chặn quyết định này, nhưng nên làm sau):** R2 chưa chạy lại 60 case eval đối chiếu chuyên gia thật với công thức mới; chưa xác nhận trực tiếp với NIN xem có quy định chính thức riêng không.
+- **Thời gian:** ~35 phút
+
+---
+
 ---
 
 ## 3. Lịch sử commit
 
 | Ngày | Người | Nội dung |
 |---|---|---|
-| 2026-08-06 | Kim Mạnh Hưng | docs: ghi DEVLOG + cap nhat README cho dot API stack (BE-02..HIT-02) (#42) |
-| 2026-08-06 | Kim Mạnh Hưng | feat(api): API stack day du - BE-02..BE-06, HIT-02 (theo yeu cau mentor, han 08/08) (#40) |
-| 2026-08-06 | Kim Mạnh Hưng | fix(ops): backport UTF-8 fix sync_devlog.py + dong bo JOURNAL/WORKLOG vao develop (#41) |
-| 2026-08-06 | Kim Mạnh Hưng | feat(data): thêm 27 món Việt Nam (pending, cho R2 duyệt) - DAT-04 (#37) |
-| 2026-08-06 | Kim Mạnh Hưng | feat(data): bo tran du lieu toi da - 7173 food_items, 2635 dishes (DAT-12) (#36) |
-| 2026-08-06 | Kim Mạnh Hưng | sync: đưa BE-01/BE-10 (schema DB + seed_db.py) từ main vào develop (#35) |
-| 2026-08-05 | Kim Mạnh Hưng | docs(ops): giu nguyen compute_targets()/DEC-007 - dinh chinh note PRD (#32) |
-| 2026-08-05 | Kim Mạnh Hưng | docs(ops): chu thich pham vi DTD2 vao TICKETS/rules/ARCHITECTURE/PLAN (#31) |
-| 2026-08-05 | Kim Mạnh Hưng | docs(ops): cap nhat CLAUDE.md theo trong tam DTD2 (PRD v2.1) (#29) |
-| 2026-08-05 | Kim Mạnh Hưng | sync: đưa PRD v2.1 (trọng tâm ĐTĐ2) + fix README từ main vào develop (#28) |
-| 2026-08-05 | Kim Mạnh Hưng | docs(ops): ghi DEVLOG tong ket merge chuoi 6 PR tu HANDOFF_2026-08-05 (#27) |
-| 2026-08-05 | Kim Mạnh Hưng | data(food_items): lấp 5 dòng từ bộ FDC Survey Foods (FNDDS) bulk download (DAT-10) (#23) |
-| 2026-08-05 | Kim Mạnh Hưng | docs: nghiên cứu ĐTĐ, nhu cầu tư vấn dinh dưỡng, khảo sát app, dataset (#22) |
-| 2026-08-05 | Kim Mạnh Hưng | feat(agent): nối CP-SAT vào graph — hybrid CP-SAT → Gemini (AGT-10) (#26) |
-| 2026-08-05 | Kim Mạnh Hưng | feat(agent): CPSATMenuOptimizer — CP-SAT thay vòng lặp sinh-rồi-thử của LLM (AGT-09) (#21) |
-| 2026-08-05 | Kim Mạnh Hưng | data: lấp 6 dòng food_items từ Bảng TPTP VN 2017 + USDA (DAT-09) (#20) |
-| 2026-08-05 | Kim Mạnh Hưng | ci(workflows): chuyển runs-on sang self-hosted (BTC runner) (#18) |
-| 2026-08-05 | Kim Mạnh Hưng | fix(ops): them google-genai vao requirements.txt (#25) |
-| 2026-08-04 | Kim Mạnh Hưng | Merge pull request #16 from AI20K-Build-Phase-Cohort-3/fix/ci-utf8-locale |
-| 2026-08-04 | Kim Mạnh Hưng | fix(ci): ép stdout UTF-8 trong check_structure/validate_data — sửa structure CI đỏ (locale non-UTF8) |
-| 2026-08-04 | Kim Mạnh Hưng | Merge pull request #14 from AI20K-Build-Phase-Cohort-3/feature/DAT-08b-atkinson-suppl |
-| 2026-08-04 | Kim Mạnh Hưng | merge: đồng bộ project/develop (lấy src/api, src/models, presentation của team) |
-| 2026-08-04 | Kim Mạnh Hưng | feat(agent): nối GeminiMenuGenerator vào graph — luồng 8-node chạy đầu-cuối (pending_review) |
-| 2026-08-04 | Kim Mạnh Hưng | feat(data): lấp food_items từ USDA FDC — 23 món, 88→111 dòng có số liệu |
-| 2026-08-04 | Kim Mạnh Hưng | feat(data): DAT-03 — client USDA FoodData Central (lấp món NIN thiếu) + config key |
-| 2026-08-04 | Kim Mạnh Hưng | feat(data): lấp gia vị mặn (mì chính/bột canh/hạt nêm/mắm tôm) — food_items 88 dòng |
-| 2026-08-04 | Kim Mạnh Hưng | feat(agent): AGT-04 — MVP end-to-end với Gemini thật (LLM chọn món, Python tính, key rotation) |
-| 2026-08-04 | Kim Mạnh Hưng | feat(data): DAT-04 — phân rã món ăn + test hồi quy muối (phở bò 3,58g/bát khớp mốc) |
-| 2026-08-03 | Kim Mạnh Hưng | feat(data): matcher ưu tiên đủ khoáng + default carb=0 cho thịt/cá → food_items 63→80 dòng |
-| 2026-08-03 | Kim Mạnh Hưng | docs(data): khẩu phần chuẩn (serving_sizes) + phát hiện dữ liệu món ăn NIN không đáng tin (DEC-013) |
-| 2026-08-03 | Kim Mạnh Hưng | feat(data): purine từ USDA/ODS-NIH Purine DB — 19 món + provenance riêng (RULE-2) |
-| 2026-08-03 | Kim Mạnh Hưng | feat(data): ước tính cơm/xôi/cháo (OOV) + sửa bug khoá OVERRIDES bỏ dấu (food_items 63 dòng) |
-| 2026-08-03 | Kim Mạnh Hưng | feat(data): DAT-04 probe — fetcher API món ăn NIN (1250 món, có Na+tương đương muối) |
-| 2026-08-03 | Kim Mạnh Hưng | feat(data): DAT-02 promote — food_items.csv 59 dòng NIN hoàn chỉnh + GI merge (validate sạch) |
-| 2026-08-03 | Kim Mạnh Hưng | feat(data): DAT-02 — purine optional + bản nháp food_items từ API NIN (107/152 dòng) |
-| 2026-08-02 | Kim Mạnh Hưng | feat(data): fetcher API Viện Dinh dưỡng (NIN) — unblock DAT-02 (853 món, đủ cột trừ purine) |
-| 2026-08-02 | Kim Mạnh Hưng | feat(data): DAT-08b — trích 17 trị GI quả/staple từ Atkinson Suppl. Table 1 (gi_values 11→28) |
+| 2026-08-06 | Kim Mạnh Hưng | feat(cln): doi ActivityLevel sang 4 muc "loai lao dong" cua chuyen gia + research BMR theo dan toc/benh ly |
+| 2026-08-06 | Kim Mạnh Hưng | feat(cln): them cong thuc WHO/FAO/UNU tham khao + 3 de xuat CLN-09/CLN-10/AGT-11 |
+| 2026-08-06 | Kim Mạnh Hưng | chore: giam thoi gian CI test + don file thua (#45) |
+| 2026-08-06 | Phùng Linh | Merge pull request #44 from AI20K-Build-Phase-Cohort-3/ui-main |
+| 2026-08-06 | pl1201 | feat: add web interface and project tooling |
+| 2026-08-06 | Kim Mạnh Hưng | sync: đưa develop vào main (API stack BE-02..HIT-02, 2026-08-06) (#43) |
+| 2026-08-06 | Kim Mạnh Hưng | sync: đưa develop vào main (DAT-04/DAT-12/DAT-13, 2026-08-06) (#38) |
+| 2026-08-06 | Kim Mạnh Hưng | feat(data,ops): bỏ trần EPIC 1/2 + fill data thật + schema DB (BE-01) (#34) |
+| 2026-08-05 | Kim Mạnh Hưng | docs(data): nghiên cứu bổ sung nguồn dữ liệu từ tài liệu tổng quan |
+| 2026-08-05 | Kim Mạnh Hưng | Develop (#17) |
+| 2026-08-04 | Đinh Lê Quỳnh Phương | docs(prd): cập nhật trọng tâm ĐTĐ2 (PR #19) |
+| 2026-08-04 | Phùng Linh | Merge pull request #15 from AI20K-Build-Phase-Cohort-3/ui-main |
+| 2026-08-04 | pl1201 | ci: use self-hosted runners |
+| 2026-08-04 | Đinh Lê Quỳnh Phương | docs(prd): cập nhật PRD tập trung vào ĐTĐ2 làm bệnh lý trọng tâm |
+| 2026-08-03 | pl1201 | fix README encoding |
 | 2026-08-02 | Đinh Lê Quỳnh Phương | docs: add NutriCare PRD |
 | 2026-08-02 | Đinh Lê Quỳnh Phương | docs: add PRD and remove env example from repository |
 | 2026-08-01 | pluvia21 | Merge pull request #12 from AI20K-Build-Phase-Cohort-3/nam-dev |
@@ -370,7 +385,6 @@
 | 2026-08-01 | Phùng Linh | Merge pull request #11 from AI20K-Build-Phase-Cohort-3/ui-main |
 | 2026-08-01 | pl1201 | docs: add Mermaid UI flow |
 | 2026-08-01 | pl1201 | docs: add UI flow |
-| 2026-08-01 | Kim Mạnh Hưng | Merge pull request #9 from AI20K-Build-Phase-Cohort-3/main |
 | 2026-08-01 | Kim Mạnh Hưng | Merge pull request #8 from AI20K-Build-Phase-Cohort-3/sync/gi-sugar-into-main |
 | 2026-08-01 | Kim Mạnh Hưng | style: ruff format cho code DAT-07/CLN-08 để qua bước format-check của CI cohort (SET-04) |
 | 2026-08-01 | Kim Mạnh Hưng | merge: đồng bộ project/main (ops SET-*) vào develop để merge lên main |

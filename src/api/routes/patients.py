@@ -29,7 +29,10 @@ class PatientProfileCreate(BaseModel):
     sex: Literal["male", "female"]
     height_cm: float = Field(ge=80, le=250)
     weight_kg: float = Field(ge=20, le=300)
-    activity_level: str = "sedentary"
+    # 4 mức "loại lao động" đúng nhãn chuyên gia dinh dưỡng dự án dùng thật
+    # (Bảng 2, `data/Bảng xác định nhu cầu dinh dưỡng + thực đơn.xlsx`) — khớp
+    # `src.clinical.models.ActivityLevel`.
+    activity_level: Literal["light", "moderate", "heavy", "very_heavy"] = "light"
     conditions: list[ConditionIn] = Field(default_factory=list)
     lab_values: dict[str, float] = Field(default_factory=dict)
     allergies: list[str] = Field(default_factory=list)
@@ -42,7 +45,7 @@ class PatientProfileUpdate(BaseModel):
     sex: Literal["male", "female"] | None = None
     height_cm: float | None = Field(default=None, ge=80, le=250)
     weight_kg: float | None = Field(default=None, ge=20, le=300)
-    activity_level: str | None = None
+    activity_level: Literal["light", "moderate", "heavy", "very_heavy"] | None = None
     conditions: list[ConditionIn] | None = None
     lab_values: dict[str, float] | None = None
     allergies: list[str] | None = None

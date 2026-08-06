@@ -7,9 +7,13 @@ import pytest
 from src.clinical.energy import (
     adjusted_body_weight_kg,
     bmr_mifflin_st_jeor,
+    bmr_who_fao_unu,
     compute_energy_target_kcal,
+    compute_tdee_mifflin,
+    compute_tdee_who_fao,
     ideal_body_weight_kg,
     kcal_per_kg,
+    pal_who_fao,
 )
 from src.clinical.models import (
     ActivityLevel,
@@ -65,14 +69,65 @@ class TestEnergy:
             sex=sex,
             height_cm=145,
             weight_kg=38,
-            activity_level=ActivityLevel.SEDENTARY,
+            activity_level=ActivityLevel.LIGHT,
             weight_goal=WeightGoal.LOSE,
         )
         assert compute_energy_target_kcal(p) >= floor
 
     def test_kcal_tren_kg_nam_trong_khoang_lam_sang(self, profile_t2dm_ckd):
-        """Kiểm tra chéo: bệnh nhân mãn tính ổn định thường 30–35 kcal/kg/ngày."""
-        assert 25 <= kcal_per_kg(profile_t2dm_ckd) <= 40
+        """Kiểm tra chéo: bệnh nhân mãn tính ổn định thường 30–35 kcal/kg/ngày.
+
+        Từ 2026-08-06 (WHO/FAO/UNU mặc định, PAL cao hơn quy ước Mifflin cũ),
+        biên trên nới sang 42 — vẫn trong khoảng hợp lý lâm sàng, không phải
+        nới tuỳ tiện: giá trị thật của `profile_t2dm_ckd` (nam, lao động nhẹ)
+        là ~40.2 kcal/kg."""
+        assert 25 <= kcal_per_kg(profile_t2dm_ckd) <= 42
+
+
+class TestEnergyWhoFaoUnu:
+    """Công thức thay thế đối chiếu file Excel chuyên gia dinh dưỡng dự án
+    đang dùng thật (`data/Bảng xác định nhu cầu dinh dưỡng + thực đơn.xlsx`,
+    sheet "Bước 1+2", Bảng 1/Bảng 2) — LỰA CHỌN, chưa phải mặc định."""
+
+    def test_bmr_nam_30_60_tuoi_khop_cong_thuc_excel(self):
+        # Bảng 1, nhóm "30-60": Nam 11,6 W + 879 — W=65 → 11.6*65+879=1633
+        assert bmr_who_fao_unu(65, 45, Sex.MALE) == pytest.approx(1633.0)
+
+    def test_bmr_nu_18_30_tuoi_khop_cong_thuc_excel(self):
+        # Bảng 1, nhóm "18-30": Nữ 14,7 W + 496 — W=55 → 14.7*55+496=1304.5
+        assert bmr_who_fao_unu(55, 25, Sex.FEMALE) == pytest.approx(1304.5)
+
+    def test_bmr_nhom_tuoi_bien_lay_dung_moc(self):
+        """age=18 phải rơi vào nhóm '10-18' (cận trên), không phải '18-30'."""
+        # Nhóm "10-18": Nam 17,5 W + 651 — W=50 → 17.5*50+651=1526
+        assert bmr_who_fao_unu(50, 18, Sex.MALE) == pytest.approx(1526.0)
+        # Nhóm "18-30": Nam 15,3 W + 679 — W=50 → 15.3*50+679=1444
+        assert bmr_who_fao_unu(50, 19, Sex.MALE) == pytest.approx(1444.0)
+
+    def test_bmr_tren_60_tuoi(self):
+        # ">60": Nữ 10,5 W + 596 — W=55 → 10.5*55+596=1173.5
+        assert bmr_who_fao_unu(55, 70, Sex.FEMALE) == pytest.approx(1173.5)
+
+    def test_pal_khop_bang_2_excel(self):
+        assert pal_who_fao(ActivityLevel.MODERATE, Sex.MALE) == pytest.approx(1.7)
+        assert pal_who_fao(ActivityLevel.MODERATE, Sex.FEMALE) == pytest.approx(1.6)
+        assert pal_who_fao(ActivityLevel.HEAVY, Sex.MALE) == pytest.approx(2.1)
+
+    def test_tdee_who_fao_bang_bmr_nhan_pal(self):
+        p = PatientProfile(
+            patient_id="X", age=45, sex=Sex.MALE, height_cm=165, weight_kg=65, activity_level=ActivityLevel.MODERATE
+        )
+        expected = bmr_who_fao_unu(65, 45, Sex.MALE) * 1.7
+        assert compute_tdee_who_fao(p) == pytest.approx(expected)
+
+    def test_who_fao_va_mifflin_cho_ket_qua_khac_nhau_ro_ret(self, profile_t2dm_ckd):
+        """Xác nhận đây THẬT SỰ là công thức khác, không phải trùng lặp code.
+
+        Từ 2026-08-06, `compute_tdee()` (mặc định hệ thống) đã LÀ WHO/FAO/UNU,
+        nên so sánh đúng là với `compute_tdee_mifflin()` (hàm tham khảo)."""
+        mifflin_tdee = compute_tdee_mifflin(profile_t2dm_ckd)
+        who_fao_tdee = compute_tdee_who_fao(profile_t2dm_ckd)
+        assert mifflin_tdee != pytest.approx(who_fao_tdee, rel=0.01)
 
 
 # ----------------------------------------------------------------- định mức
@@ -242,7 +297,14 @@ class TestValidator:
 
         # Cơm tẻ 1.3 kcal/g — dùng để đạt chính xác mức năng lượng cần test
         grams = base_kcal * ratio / 1.30
-        nutrition = compute_nutrition(MenuDraft(items={MealSlot.LUNCH: [MenuItem(food_id=1, grams=grams)]}), foods)
+        # MenuItem.grams giới hạn le=2000 — chia thành nhiều món khi cần vượt mức đó
+        items = []
+        remaining = grams
+        while remaining > 2000:
+            items.append(MenuItem(food_id=1, grams=2000))
+            remaining -= 2000
+        items.append(MenuItem(food_id=1, grams=remaining))
+        nutrition = compute_nutrition(MenuDraft(items={MealSlot.LUNCH: items}), foods)
         kcal_violations = [v for v in validate_menu(nutrition, targets, rules) if v.nutrient == "kcal"]
         assert len(kcal_violations) == 1
         assert kcal_violations[0].severity is expected

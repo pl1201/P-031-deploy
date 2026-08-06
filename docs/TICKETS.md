@@ -182,6 +182,35 @@ Thêm rule `T2DM-SUG-01` (đường tự do < 10% năng lượng, WHO 2015) dùn
 
 ---
 
+> ❓ **ĐỀ XUẤT (2026-08-06, Claude theo yêu cầu Hưng — CẦN R2/ĐỘI DUYỆT, chưa gán sprint/giờ).** Đọc trực tiếp công thức trong `data/Bảng xác định nhu cầu dinh dưỡng + thực đơn.xlsx` (sheet "Bước 1+2" — chính file chuyên gia dinh dưỡng dự án đang dùng thật trên Excel), phát hiện 3 khoảng cách giữa công thức hệ thống hiện tại và thực hành chuyên gia. Chi tiết cell/formula trích dẫn trong `DEVLOG.md` entry cùng ngày.
+
+### `CLN-09` Đối chiếu công thức BMR/TDEE với thực hành chuyên gia thật — **ĐÃ CHỐT** (WHO/FAO/UNU là mặc định hệ thống)
+**Owner:** R2 · **P1?** · **Deps:** CLN-01
+Hệ thống trước đây dùng Mifflin-St Jeor + `ACTIVITY_FACTOR`. Chuyên gia dinh dưỡng dự án dùng **WHO/FAO/UNU (1985)** — công thức tuyến tính theo tuổi+cân nặng (không có chiều cao) + hệ số lao động riêng (PAL, "Bước 1+2!I5:J17"). Hai công thức cho kết quả khác nhau đáng kể.
+- **ĐÃ CHỐT (2026-08-06, Hưng xác nhận):** "ưu tiên sử dụng từ bản Excel, kể cả BMR và ActivityLevel" — `compute_bmr()`/`compute_tdee()` trong `src/clinical/energy.py` giờ dùng **WHO/FAO/UNU làm mặc định** (`bmr_who_fao_unu()` + `pal_who_fao()`), không còn Mifflin-St Jeor. Mifflin-St Jeor được giữ lại làm hàm THAM KHẢO/so sánh (`compute_bmr_mifflin()`, `compute_tdee_mifflin()`), không còn dùng trong `compute_targets()`.
+- **Đã chốt trước đó (2026-08-06, Hưng xác nhận):** `ActivityLevel` đổi hẳn sang 4 mức nhãn "loại lao động" của chuyên gia — `LIGHT`/`MODERATE`/`HEAVY`/`VERY_HEAVY`. Đã cập nhật `src/db/models.py`, `src/api/routes/patients.py` (`Literal` validation), `scripts/seed_demo_users.py`.
+- **Dọn dẹp kèm theo:** `ACTIVITY_FACTOR` (dict cũ dùng cho Mifflin) đã bị XOÁ khỏi `src/clinical/models.py` — không còn consumer nào sau khi `energy.py` chuyển sang dùng `_ACTIVITY_FACTOR_MIFFLIN` cục bộ (chỉ phục vụ hàm tham khảo). `tests/conftest.py::modest_menu` đã tăng định lượng để khớp mục tiêu kcal/chất xơ cao hơn của WHO/FAO/UNU. 164/164 test pass, `ruff`/`mypy` sạch.
+- **Research đã làm (2026-08-06, theo yêu cầu Hưng "chứng minh bằng nghiên cứu"), tóm tắt — chi tiết + nguồn trích dẫn đầy đủ trong `DEVLOG.md`:**
+  1. BMR **có** khác theo dân tộc/quần thể — bằng chứng thật nhưng KHÔNG nhất quán chiều: Mifflin-St Jeor chính xác nhất ở phụ nữ UAE (lệch Harris-Benedict 40,9%), nhưng WHO/FAO/UNU chính xác nhất còn Mifflin **tệ nhất** ở bệnh nhân ĐTĐ2 Hàn Quốc (PubMed 37266123, 2023). **Không tìm được nghiên cứu đo lường (calorimetry) trên người Việt Nam** — khoảng trống dữ liệu thật, không giả định.
+  2. WHO/FAO/UNU (1985) = phương trình Schofield, dữ liệu gốc lệch nhiều về dân số châu Âu/Mỹ; hội đồng FAO/WHO/UNU 2001 đã cân nhắc đổi nhưng **quyết định giữ nguyên** vì cải thiện không đáng kể (Henry 2005, *Public Health Nutrition*).
+  3. **Chưa xác nhận được** Viện Dinh dưỡng VN (NIN) có quy định chính thức dùng công thức nào — bản PDF "Nhu cầu dinh dưỡng khuyến nghị cho người Việt Nam" tra được không lộ rõ mục công thức BMR (có thể do OCR bản mirror, không phải bằng chứng NIN không có). **Cần R2 xác nhận trực tiếp bằng bản gốc/hỏi chuyên gia** nếu muốn đối chiếu thêm — không chặn quyết định hiện tại (đã ưu tiên nguồn thực hành trực tiếp của chuyên gia dự án).
+  4. ADA không quy định công thức BMR riêng cho ĐTĐ2. KDOQI (CKD) dùng khoảng kcal/kg (25–35, cập nhật 2020) — con số THỰC NGHIỆM theo cân nặng, không suy ra từ 1 công thức BMR nào. Không tìm được cơ sở đổi công thức BMR riêng cho CKD/THA/Gout.
+  5. **Thang hệ số cũ (`ACTIVITY_FACTOR`/`_ACTIVITY_FACTOR_MIFFLIN`, 1.375/1.55/1.725/1.9) là QUY ƯỚC PHỔ BIẾN trong công cụ tính calo trực tuyến, KHÔNG truy được về 1 nguồn học thuật/hướng dẫn lâm sàng đơn nhất** — đây là lý do chính khiến `pal_who_fao()` (có nguồn Excel chuyên gia rõ ràng) được ưu tiên làm mặc định thay vì giữ thang cũ.
+- **Cơ sở quyết định cuối:** không có bằng chứng học thuật đủ mạnh để khẳng định công thức nào "đúng hơn" cho người Việt (bằng chứng trái chiều tuỳ quần thể, thiếu dữ liệu Việt Nam trực tiếp) — quyết định dựa trên WHO/FAO/UNU là công thức chuyên gia dinh dưỡng DỰ ÁN đang dùng thật (nguồn thực hành trực tiếp), không phải vì có bằng chứng học thuật WHO/FAO/UNU chính xác hơn cho người Việt. Giới hạn này ghi rõ trong docstring `src/clinical/energy.py`.
+**AC (đã hoàn thành):** ✅ Quyết định ghi vào DEVLOG dạng ADR · ✅ `compute_targets()`/`compute_tdee()` đổi mặc định · ✅ Test suite cập nhật (164/164 pass), `ruff`/`mypy` sạch · ⏳ Chưa chạy lại 60 case eval đối chiếu chuyên gia thật (R2 nên làm khi có bộ eval, không chặn merge code) · ⏳ Chưa xác nhận trực tiếp với NIN (không chặn quyết định, chỉ để đối chiếu thêm nếu cần).
+
+### `CLN-10` Phân loại nguồn đạm/chất béo động vật–thực vật (ĐV/TV) — ĐỀ XUẤT
+**Owner:** R2 · **P2?** · **Deps:** DAT-02
+Chuyên gia tính khẩu phần Protein 20% năng lượng (**35% động vật / 65% thực vật**) và Lipid 25% (**50/50 ĐV/TV**) — hệ thống hiện chỉ có tổng `protein_g`/`fat_g`, KHÔNG phân biệt nguồn ĐV/TV cho từng `food_item`. Đây là chiều dữ liệu hoàn toàn mới, cần thêm cột (VD `protein_animal_g`/`protein_plant_g`, hoặc đơn giản hơn: tag `protein_source: animal|plant|mixed` per food_item rồi suy ra tỷ lệ khi tính tổng).
+**AC:** Không suy đoán ĐV/TV cho food_item đã có sẵn nếu không tra được nguồn xác nhận (đúng RULE-2/DEC-008 — nhiều món "mixed" thật sự, VD canh nấu cả thịt lẫn đậu) · Rule mới (nếu thêm) phải có `guideline_ref` thật, R2 tự tra chứ đừng copy thẳng con số 35/65 từ 1 bảng Excel nội bộ không rõ nguồn gốc học thuật · Bàn phạm vi trước — có thể việc này lớn hơn thời gian còn lại của dự án, cân nhắc để P3/không làm nếu quá tốn công so với giá trị.
+
+### `AGT-11` Ràng buộc phân bổ dinh dưỡng theo bữa (Sáng/Trưa/Tối/Phụ tối) — ĐỀ XUẤT
+**Owner:** R1 · **P2?** · **Deps:** AGT-09 (CP-SAT)
+Chuyên gia chia định mức CẢ NGÀY thành 4 bữa theo tỷ lệ cố định — **Sáng 25% / Trưa 35% / Tối 30% / Phụ tối 10%** — áp dụng ĐỀU cho kcal và từng macro (P/L/G), không chỉ tổng ngày. Hệ thống hiện tại (`CPSATMenuOptimizer`, `validate_menu`) **chỉ kiểm tổng ngày**, không có ràng buộc/target theo từng bữa — 1 thực đơn có thể dồn hết carb vào 1 bữa mà vẫn "pass" nếu tổng ngày đúng, dù thực hành lâm sàng thật (đặc biệt ĐTĐ2, kiểm soát đường huyết sau ăn) quan tâm phân bổ theo bữa.
+**AC:** Bàn kỹ trước khi code — thêm ràng buộc per-slot vào CP-SAT làm bài toán CHẶT hơn, có thể tăng tỷ lệ infeasible (đã từng bị hồi quy hiệu năng 1 lần vì thêm ràng buộc/dữ liệu không tính trước tác động, xem DEVLOG DEC-017) · Nếu làm, nên bắt đầu bằng ràng buộc MỀM (soft, cảnh báo lệch tỷ lệ) trước khi làm cứng · Cần quyết định tỷ lệ 25/35/30/10% là cố định hay chỉ là 1 gợi ý mặc định có thể chỉnh theo bệnh nhân.
+
+---
+
 ## EPIC 3 — AGENT (S3) — *Owner chính: R1*
 
 ### `AGT-01` State schema & khung graph

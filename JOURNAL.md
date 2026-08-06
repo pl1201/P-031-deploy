@@ -3,7 +3,7 @@
 > ⚙️ File này được sinh tự động từ `DEVLOG.md` bằng `scripts/sync_devlog.py`.
 > Đừng sửa trực tiếp — hãy sửa `DEVLOG.md` rồi chạy lại script.
 
-> Cập nhật lần cuối: 06/08/2026 15:00
+> Cập nhật lần cuối: 06/08/2026 17:37
 
 ---
 
