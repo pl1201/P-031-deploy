@@ -27,12 +27,9 @@ PRD này xác định sản phẩm sẽ làm gì trong MVP: danh sách tính nă
 
 MVP **tập trung vào đái tháo đường type 2** với các rule carbohydrate, GI/GL, phân bổ bữa ăn và HbA1c trong phạm vi nghiệm thu.
 
-MVP không tự động lập phác đồ dinh dưỡng điều trị CKD, gout, tăng huyết áp nặng hoặc đa bệnh lý phức tạp. Nếu hồ sơ có bệnh đồng mắc hoặc dấu hiệu có thể làm thay đổi chế độ ĐTĐ2 thông thường, hệ thống phải:
+MVP không xây tính năng điều trị mới chuyên biệt cho CKD, gout, tăng huyết áp nặng hoặc đa bệnh lý phức tạp. Cơ chế đa bệnh lý hiện có vẫn áp dụng các rule đã được xác minh và chọn ngưỡng nghiêm ngặt hơn theo DEC-014; không gắn cờ chỉ vì hồ sơ có bệnh đồng mắc.
 
-1. gắn cờ `needs_expert_review`;
-2. không tự kết luận thực đơn an toàn;
-3. hiển thị lý do chuyển chuyên gia;
-4. không kích hoạt rule điều trị bệnh ngoài phạm vi.
+Hệ thống chỉ gắn `needs_expert_review`, không tự kết luận thực đơn an toàn và hiển thị rõ lý do khi rule thật sự xung đột (`min > max`, dải khả thi quá hẹp), rule bị vô hiệu bởi cờ an toàn, hoặc dữ liệu bắt buộc còn thiếu/chưa xác minh. Rule ngoài phạm vi chưa được xác minh không được kích hoạt như phác đồ điều trị.
 
 ## 3. Vấn đề cần giải quyết
 
