@@ -40,6 +40,7 @@ data/*
 !data/seeds/
 !data/README.md
 !data/patients/README.md
+!data/patients/manifest.yaml
 !data/VERSION
 *.db
 *.sqlite3
