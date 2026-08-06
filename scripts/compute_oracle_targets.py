@@ -106,13 +106,11 @@ def compute_kcal_target_oracle(
     else:
         bmr = 10 * weight_kg + 6.25 * height_cm - 5 * age - 161
 
-    # Activity factors
+    # Activity factors (aligned with PatientProfile allowed values)
     activity_factors = {
         "sedentary": 1.2,
         "light": 1.375,
-        "lightly_active": 1.375,
         "moderate": 1.55,
-        "moderately_active": 1.55,
     }
     factor = activity_factors.get(activity_level, 1.2)
     tdee = bmr * factor

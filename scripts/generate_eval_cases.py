@@ -574,7 +574,7 @@ def generate_multi_case(
             stage = "G5"
         conditions.append(Condition(code="CKD", stage=stage, notes=f"CKD {stage}"))
 
-    if "gout" in [primary, secondary, tertiary]:
+    if "GOUT" in [primary, secondary, tertiary]:
         conditions.append(Condition(code="GOUT", stage="chronic", notes="Uric acid 8.5 mg/dL"))
         medications.append("allopurinol 300mg qd")
 
