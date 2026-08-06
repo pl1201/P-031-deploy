@@ -74,6 +74,7 @@ class ExpectedTargets(BaseModel, extra="forbid"):
 
 def compute_kcal_target_oracle(
     weight_kg: float,
+    height_cm: float,
     age: int,
     sex: str,
     activity_level: str,
@@ -89,11 +90,17 @@ def compute_kcal_target_oracle(
     - TDEE = BMR * activity_factor
     - Range = TDEE * (0.9, 1.1) for maintain
     - Deficit 500 kcal/day for lose, surplus 300 for gain
-    """
-    # Estimate height from BMI (reverse calculation, approximate)
-    height_cm = ((weight_kg / bmi) ** 0.5) * 100
 
-    # Mifflin-St Jeor BMR
+    FIX (PR review): Accept actual height_cm from patient profile instead of
+    reverse-calculating from BMI, which introduced approximation errors.
+    """
+    # Guard against invalid inputs
+    if bmi <= 0:
+        raise ValueError(f"Invalid BMI: {bmi} (must be > 0)")
+    if height_cm <= 0:
+        raise ValueError(f"Invalid height_cm: {height_cm} (must be > 0)")
+
+    # Mifflin-St Jeor BMR — uses actual height from patient profile (not approximated)
     if sex == "male":
         bmr = 10 * weight_kg + 6.25 * height_cm - 5 * age + 5
     else:
@@ -126,13 +133,13 @@ def compute_kcal_target_oracle(
     kcal_max = min(3000, kcal_max)
 
     metadata = OracleMetadata(
-        formula=f"Mifflin-St Jeor: BMR={'10W+6.25H-5A+5' if sex == 'male' else '10W+6.25H-5A-161'}, TDEE=BMR*{factor}, range=±10%",
+        formula=f"Mifflin-St Jeor: BMR={'10W+6.25H-5A+5' if sex == 'male' else '10W+6.25H-5A-161'}, H={height_cm}cm (actual), TDEE=BMR*{factor}, range=±10%",
         guideline_ref="Academy of Nutrition and Dietetics 2020",
         rule_version="1.0.0",
         review_status="draft",
         reviewed_by_role=None,
         reviewed_at=None,
-        notes=f"Weight goal: {weight_goal}",
+        notes=f"Weight goal: {weight_goal}. Height taken from patient profile (not reverse-calculated from BMI).",
     )
 
     return kcal_min, kcal_max, metadata
@@ -153,16 +160,31 @@ def compute_protein_target_oracle(
     - CKD G3a-G4: 0.6-0.8 g/kg/day (KDIGO 2022)
     - CKD G5: 0.6 g/kg/day
     """
-    if ckd_stage in ["G4", "G5"]:
+    if ckd_stage == "G4":
+        # KDIGO 2022: CKD G4 — restrict to 0.6-0.8 g/kg/day to slow progression
         protein_min = 0.6 * weight_kg
-        protein_max = 0.8 * weight_kg if ckd_stage == "G4" else 0.7 * weight_kg
+        protein_max = 0.8 * weight_kg
         ref = "KDIGO 2022 CKD Nutrition Guideline"
-        notes = f"CKD {ckd_stage}: protein restriction"
+        notes = (
+            f"CKD G4: KDIGO 2022 recommends 0.6-0.8 g/kg/day "
+            f"(= {protein_min:.1f}-{protein_max:.1f}g) to slow GFR decline. "
+            "Protein restriction target is 0.8 g/kg/day (upper bound)."
+        )
+    elif ckd_stage == "G5":
+        # KDIGO 2022: CKD G5 (pre-dialysis) — stricter restriction 0.6-0.7 g/kg/day
+        protein_min = 0.6 * weight_kg
+        protein_max = 0.7 * weight_kg
+        ref = "KDIGO 2022 CKD Nutrition Guideline"
+        notes = (
+            f"CKD G5 (pre-dialysis): KDIGO 2022 recommends 0.6-0.7 g/kg/day "
+            f"(= {protein_min:.1f}-{protein_max:.1f}g). Upper bound 0.7 g/kg/day "
+            "is STRICTER than G4 (0.8 g/kg/day) to minimize uremic toxin load."
+        )
     elif ckd_stage == "G3a" or ckd_stage == "G3b":
         protein_min = 0.6 * weight_kg
         protein_max = 0.8 * weight_kg
         ref = "KDIGO 2022 CKD Nutrition Guideline"
-        notes = f"CKD {ckd_stage}: moderate restriction"
+        notes = f"CKD {ckd_stage}: moderate protein restriction 0.6-0.8 g/kg/day (= {protein_min:.1f}-{protein_max:.1f}g)"
     elif frailty_sarcopenia or age >= 70:
         protein_min = 1.0 * weight_kg
         protein_max = 1.2 * weight_kg
@@ -347,8 +369,10 @@ def compute_expected_targets_oracle(case: dict[str, Any]) -> ExpectedTargets:
     ckd_stage = conditions["CKD"]["stage"] if has_ckd else None
 
     # Compute targets with oracle formulas
+    # FIX: Pass actual height_cm from profile instead of letting oracle reverse-calculate from BMI
+    height_cm = profile["height_cm"]
     kcal_min, kcal_max, kcal_meta = compute_kcal_target_oracle(
-        weight_kg, age, sex, activity, bmi, weight_goal="maintain"
+        weight_kg, height_cm, age, sex, activity, bmi, weight_goal="maintain"
     )
 
     protein_min, protein_max, protein_meta = compute_protein_target_oracle(weight_kg, age, ckd_stage, frailty)
