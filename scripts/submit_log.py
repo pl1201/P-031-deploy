@@ -15,9 +15,9 @@ import os
 import shutil
 import sys
 import time
-import urllib.request
 import urllib.error
-from datetime import datetime, timezone
+import urllib.request
+from datetime import UTC, datetime
 from pathlib import Path
 
 try:
@@ -25,23 +25,24 @@ try:
 
     load_dotenv()
 except ImportError:
-    # Keep the hook dependency-free on fresh Windows setups. The project
-    # already has a .env file, so load the small KEY=VALUE subset we need
-    # when python-dotenv is not installed.
+    # Git hooks may run with a system Python instead of the project venv.
+    # Keep submission dependency-free by loading only the logging settings
+    # we need. Resolve .env from the repository root because hooks may run
+    # with a different working directory. Existing environment values win.
     env_file = Path(__file__).resolve().parents[1] / ".env"
-    if env_file.exists():
+    if env_file.is_file():
         for raw_line in env_file.read_text(encoding="utf-8-sig").splitlines():
             line = raw_line.strip()
             if not line or line.startswith("#") or "=" not in line:
                 continue
             key, value = line.split("=", 1)
             key = key.strip()
-            value = value.strip()
-            if not key or key in os.environ:
+            if key not in {"AI_LOG_SERVER", "AI_LOG_API_KEY"}:
                 continue
-            if len(value) >= 2 and value[0] == value[-1] and value[0] in "\"'":
+            value = value.strip()
+            if len(value) >= 2 and value[0] == value[-1] and value[0] in {'"', "'"}:
                 value = value[1:-1]
-            os.environ[key] = value
+            os.environ.setdefault(key, value)
 
 SERVER_URL = os.environ.get("AI_LOG_SERVER", "")
 API_KEY = os.environ.get("AI_LOG_API_KEY", "")
@@ -60,7 +61,7 @@ def _archive(pending: Path) -> None:
     if not pending.exists() or pending.stat().st_size == 0:
         return
     ARCHIVE_DIR.mkdir(parents=True, exist_ok=True)
-    today = datetime.now(timezone.utc).strftime("%Y-%m-%d")
+    today = datetime.now(UTC).strftime("%Y-%m-%d")
     archive_file = ARCHIVE_DIR / f"{today}.jsonl"
     with open(pending, "rb") as src, open(archive_file, "ab") as dst:
         shutil.copyfileobj(src, dst)
