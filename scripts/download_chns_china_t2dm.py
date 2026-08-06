@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""
+r"""
 Download China Health and Nutrition Survey (CHNS) 2009 + 2015 biomarker data.
 
 CHNS is a longitudinal survey tracking health and nutrition in China since 1989.
@@ -33,14 +33,14 @@ CHNS_FILES_2009 = {
     "biomarker": "chns_2009_biomarker.dta",  # HbA1c, glucose, lipids
     "demographic": "chns_2009_demographic.dta",
     "dietary": "chns_2009_dietary_day1.dta",
-    "household": "chns_2009_household.dta"
+    "household": "chns_2009_household.dta",
 }
 
 CHNS_FILES_2015 = {
     "biomarker": "chns_2015_biomarker.dta",
     "demographic": "chns_2015_demographic.dta",
     "dietary": "chns_2015_dietary_day1.dta",
-    "household": "chns_2015_household.dta"
+    "household": "chns_2015_household.dta",
 }
 
 
@@ -100,10 +100,7 @@ def create_manifest_template() -> None:
         "files_2009": CHNS_FILES_2009,
         "files_2015": CHNS_FILES_2015,
         "note": "Manual download required. Fill in checksums after download.",
-        "checksums": {
-            "2009": {},
-            "2015": {}
-        }
+        "checksums": {"2009": {}, "2015": {}},
     }
 
     with open(manifest_path, "w", encoding="utf-8") as f:

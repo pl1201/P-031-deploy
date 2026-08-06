@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""
+r"""
 Download India NFHS-5 (2019-2021) biomarker data for T2DM analysis.
 
 NFHS-5 (National Family Health Survey) is part of the DHS Program.
@@ -97,7 +97,7 @@ def create_manifest_template() -> None:
             "biomarker": "IABR7EDT.dta",
             "household": "IAHR7EDT.dta",
             "women": "IAIR7EDT.dta",
-            "men": "IAMR7EDT.dta"
+            "men": "IAMR7EDT.dta",
         },
         "key_variables": {
             "glucose": "SH20B",
@@ -108,14 +108,11 @@ def create_manifest_template() -> None:
             "age": "HV105",
             "sex": "HV104",
             "diabetes_self_report": "SH130",
-            "diabetes_meds": "SH131"
+            "diabetes_meds": "SH131",
         },
-        "sample_size": {
-            "total_tested": 724000,
-            "estimated_t2dm": "50000-70000"
-        },
+        "sample_size": {"total_tested": 724000, "estimated_t2dm": "50000-70000"},
         "note": "Manual download after DHS registration approval (24-48h)",
-        "checksums": {}
+        "checksums": {},
     }
 
     with open(manifest_path, "w", encoding="utf-8") as f:

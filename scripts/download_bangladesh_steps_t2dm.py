@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""
+r"""
 Download Bangladesh STEPS Survey 2018 for T2DM analysis.
 
 WHO STEPS (STEPwise approach to NCD risk factor surveillance)
@@ -38,7 +38,7 @@ STEPS_FILES = {
     "data_spss": "BGD_2018_STEPS_v01_M_spss.zip",
     "questionnaire": "BGD_2018_STEPS_v01_M_questionnaire.pdf",
     "report": "BGD_2018_STEPS_v01_M_report.pdf",
-    "dictionary": "BGD_2018_STEPS_v01_M_dictionary.pdf"
+    "dictionary": "BGD_2018_STEPS_v01_M_dictionary.pdf",
 }
 
 
@@ -111,12 +111,7 @@ def create_manifest_template() -> None:
         "download_date": datetime.now().isoformat(),
         "survey_period": "2018-04 to 2018-10",
         "files_expected": STEPS_FILES,
-        "sample_size": {
-            "total": 7710,
-            "age_range": "18-69 years",
-            "response_rate": 0.954,
-            "estimated_t2dm": "700-800"
-        },
+        "sample_size": {"total": 7710, "age_range": "18-69 years", "response_rate": 0.954, "estimated_t2dm": "700-800"},
         "key_variables": {
             "age": "B1",
             "sex": "B4",
@@ -127,16 +122,16 @@ def create_manifest_template() -> None:
             "diabetes_diagnosed": "H7",
             "diabetes_meds": "H8",
             "sbp": "C1-C5 (average)",
-            "dbp": "C1-C5 (average)"
+            "dbp": "C1-C5 (average)",
         },
         "anthropometric_means": {
             "bmi": 23.4,
             "height_male": 163,
             "height_female": 152,
-            "note": "CLOSEST to Vietnamese population among Asian sources"
+            "note": "CLOSEST to Vietnamese population among Asian sources",
         },
         "note": "Instant download after online agreement",
-        "checksums": {}
+        "checksums": {},
     }
 
     with open(manifest_path, "w", encoding="utf-8") as f:
