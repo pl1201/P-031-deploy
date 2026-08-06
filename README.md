@@ -63,7 +63,7 @@ cp .env.example .env
 bash scripts/setup_hooks.sh
 
 # 6. Chạy thử không cần API key/DB (logic lâm sàng deterministic)
-make check          # ruff + validate-data + pytest, 51 test xanh
+make check          # ruff + validate-data + pytest, 112 test xanh
 
 # 7. Chạy server
 make run             # hoặc: uvicorn src.main:app --reload --port 8000
@@ -93,12 +93,17 @@ make run             # hoặc: uvicorn src.main:app --reload --port 8000
 
 ## API chính
 
+Chi tiết đầy đủ (input/output/ràng buộc/lỗi): [`docs/API_DESIGN.md`](docs/API_DESIGN.md).
+
 | Method | Path | Mô tả |
 |---|---|---|
-| GET | `/health` | Health check (dùng cho Docker/Render probe) |
-| GET | `/api/v1/health` | Health check dưới prefix API |
-| GET | `/api/v1/status` | Trạng thái agent |
-| POST | `/api/v1/chat` | *(chưa triển khai — chờ BE-06 nối `build_graph()` với DB thật)* |
+| GET | `/health`, `/api/v1/health`, `/api/v1/status` | Health check / trạng thái agent |
+| POST | `/api/v1/auth/register`, `/login`, `/refresh` | Đăng ký/đăng nhập (JWT + argon2id) |
+| POST/GET/PUT | `/api/v1/patients` | CRUD hồ sơ bệnh nhân |
+| POST | `/api/v1/targets/compute` | Tính định mức lâm sàng (không LLM) |
+| POST/GET | `/api/v1/meal-plans` | Sinh thực đơn (chạy graph nền, `202`) / xem thực đơn |
+| GET/POST | `/api/v1/reviews/pending`, `/{id}/approve`, `/{id}/reject` | Hàng chờ duyệt (HITL) |
+| POST | `/api/v1/chat` | *(chưa triển khai — chờ nối `build_graph()` với chat trực tiếp)* |
 
 ## Live URL
 
@@ -106,7 +111,18 @@ make run             # hoặc: uvicorn src.main:app --reload --port 8000
 
 ## Tài khoản demo
 
-*(Chưa có — sẽ tạo ở ticket `BE-05` khi có schema DB + seed dữ liệu mô phỏng.)*
+Chạy `make seed-demo-users` (sau `make seed`) để tạo — **toàn bộ dữ liệu mô phỏng, không phải bệnh nhân thật**:
+
+| Role | Email | Mật khẩu | Ghi chú |
+|---|---|---|---|
+| dietitian | `dietitian1@nutricare.demo` | `Demo1234` | |
+| dietitian | `dietitian2@nutricare.demo` | `Demo1234` | |
+| patient | `patient1@nutricare.demo` | `Demo1234` | ĐTĐ2 |
+| patient | `patient2@nutricare.demo` | `Demo1234` | THA |
+| patient | `patient3@nutricare.demo` | `Demo1234` | CKD G3b |
+| patient | `patient4@nutricare.demo` | `Demo1234` | Gout |
+| patient | `patient5@nutricare.demo` | `Demo1234` | ĐTĐ2 + THA |
+| patient | `patient6@nutricare.demo` | `Demo1234` | ĐTĐ2 + CKD G3b (ca đa bệnh lý) |
 
 ## Đội ngũ & vai trò
 

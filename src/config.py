@@ -53,6 +53,12 @@ class Settings(BaseSettings):
         ]
         return [k.strip() for k in keys if k and k.strip()]
 
+    # Auth (BE-02)
+    jwt_secret: str = "dev-only-insecure-secret-change-in-production"
+    jwt_algorithm: str = "HS256"
+    jwt_access_ttl_min: int = 15
+    jwt_refresh_ttl_days: int = 7
+
     # Database
     database_url: str = "sqlite:///./data/app.db"
 

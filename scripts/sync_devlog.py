@@ -57,6 +57,7 @@ def git_log() -> list[str]:
             cwd=ROOT,
             capture_output=True,
             text=True,
+            encoding="utf-8",
             check=True,
         )
         return out.stdout.strip().split("\n") if out.stdout.strip() else []
@@ -71,6 +72,7 @@ def git_stats() -> str:
             cwd=ROOT,
             capture_output=True,
             text=True,
+            encoding="utf-8",
             check=True,
         ).stdout.strip()
         if not authors:

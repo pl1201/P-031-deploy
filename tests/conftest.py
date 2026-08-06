@@ -8,6 +8,10 @@ Dữ liệu thật phải đến từ NIN hoặc USDA kèm source_ref có thật
 from __future__ import annotations
 
 import pytest
+from fastapi.testclient import TestClient
+from sqlalchemy import create_engine
+from sqlalchemy.orm import Session, sessionmaker
+from sqlalchemy.pool import StaticPool
 
 from src.clinical.models import (
     ActivityLevel,
@@ -118,6 +122,40 @@ def salty_menu() -> MenuDraft:
             ]
         }
     )
+
+
+@pytest.fixture
+def db_session():
+    """DB SQLite in-memory riêng cho mỗi test — không đụng `.env`/DATABASE_URL thật
+    (đúng testing.md: 'integration test dùng DB thật', ở mức API layer đây là
+    SQLite thật (không mock ORM), chỉ khác Postgres production ở driver)."""
+    from src.db import models  # noqa: F401  — đăng ký toàn bộ table với Base.metadata
+    from src.db.base import Base
+
+    engine = create_engine("sqlite:///:memory:", connect_args={"check_same_thread": False}, poolclass=StaticPool)
+    Base.metadata.create_all(engine)
+    session_local = sessionmaker(bind=engine, expire_on_commit=False)
+    session: Session = session_local()
+    try:
+        yield session
+    finally:
+        session.close()
+        engine.dispose()
+
+
+@pytest.fixture
+def client(db_session):
+    """`TestClient` với `get_db` override sang `db_session` — không chạm DB thật."""
+    from src.db.base import get_db
+    from src.main import app
+
+    def _override_get_db():
+        yield db_session
+
+    app.dependency_overrides[get_db] = _override_get_db
+    with TestClient(app) as c:
+        yield c
+    app.dependency_overrides.clear()
 
 
 @pytest.fixture
