@@ -357,6 +357,43 @@
 - **Còn lại:** `BE-07` (food logs), `BE-08` (audit log — đã ghi qua `AuditLog` trong HIT-02 nhưng chưa có `GET /audit` riêng), `BE-09` (security test tự động), `HIT-01` (LangGraph `interrupt()` thật — hiện graph chạy hết 1 lượt rồi API tự quản trạng thái `pending_review`/`approved` ở tầng DB, không dùng cơ chế pause/resume của LangGraph checkpointer). Deploy Render/Vercel/Neon thật vẫn chưa làm.
 - **Thời gian:** ~4h
 
+### 2026-08-06 (DEC-015): Hoàn tất research report NHANES + kế hoạch crawl châu Á
+
+**Tài liệu nghiên cứu:**
+- ✅ `docs/DATA_RESEARCH_REPORT.md` (730 dòng) - Báo cáo đầy đủ 3 nguồn hiện tại
+  - NHANES 2021-2023: 1,066 T2DM (US)
+  - NHANES VN-adapted: 840 T2DM (BMI 24.0 khớp Da Nang 24.2)
+  - Da Nang 2022: 103 T2DM (VN thật)
+  - Total ready: 943 bệnh nhân
+- ✅ `docs/DATA_SYNTHESIS.md` - Phương pháp adaptation NHANES → VN
+- ✅ `docs/ASIAN_T2DM_CRAWL_PLAN.md` - Kế hoạch crawl 3 nguồn châu Á (5 ngày)
+
+**Pipeline scripts NHANES (committed):**
+- `scripts/download_nhanes_2021_2023.py` - Tải XPT từ CDC với checksum
+- `scripts/build_nhanes_2021_2023_cohort.py` - Merge + filter probable T2DM
+- `scripts/analyze_nhanes_distributions.py` - Tính phân bố có survey weights
+- `scripts/convert_nhanes_to_json.py` - Chuyển sang PatientProfile schema
+- `scripts/adapt_nhanes_to_vietnam.py` - Điều chỉnh BMI/height theo chuẩn VN
+
+**Download instructions châu Á (committed):**
+- `scripts/download_bangladesh_steps_t2dm.py` - Bangladesh STEPS 2018 (~750, BMI 23.4 gần VN nhất)
+- `scripts/download_chns_china_t2dm.py` - China CHNS 2009+2015 (~4,500, có HbA1c)
+- `scripts/download_india_nfhs5_t2dm.py` - India NFHS-5 (~55,000, lean diabetes phenotype)
+
+**Validation results:**
+- BMI adapted: 32.9 → 24.0 kg/m² (match Da Nang: 24.2)
+- Height adapted: 166.0 → 161.7 cm (match VN norms)
+- HbA1c preserved: 7.5%, clinical correlations maintained
+
+**Compliance:** NCHS Data User Agreement tuân thủ, de-identification verified, provenance complete
+
+**Commits:**
+- `7f0b66b` - NHANES research report + pipeline (12 files, 2,168 insertions)
+- `64e6430` - Asian crawl plan + download scripts (4 files)
+
+**Next:** Submit CHNS/NFHS-5 registrations, download Bangladesh (instant), write build/adapt scripts
+**Thời gian:** ~6h
+
 ---
 
 ## 3. Quyết định kỹ thuật (Decision Log)
