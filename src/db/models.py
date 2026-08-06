@@ -225,6 +225,51 @@ class DrugFoodInteraction(Base):
     verify_status: Mapped[str] = mapped_column(String(20), default="to_verify")
 
 
+class FoodFoodInteraction(Base):
+    """Tương tác thực phẩm–thực phẩm (cơ chế hoá sinh, VD phytate/tannin ức
+    chế hấp thu sắt, canxi ăn cùng bữa giảm oxalat niệu...). Khớp
+    `data/seeds/food_food_interactions.csv`. Ticket: DAT-18.
+    """
+
+    __tablename__ = "food_food_interactions"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    substance_a: Mapped[str] = mapped_column(String(255))
+    substance_b: Mapped[str] = mapped_column(String(255))
+    food_examples_vi: Mapped[str] = mapped_column(Text)
+    mechanism_vi: Mapped[str] = mapped_column(Text)
+    direction: Mapped[str] = mapped_column(String(20))  # increases|decreases
+    effect_size_vi: Mapped[str | None] = mapped_column(Text, nullable=True)
+    clinical_significance: Mapped[str] = mapped_column(String(10))  # high|moderate|low
+    applies_to_condition: Mapped[str | None] = mapped_column(String(20), nullable=True)  # T2DM|HTN|CKD|GOUT|None
+    recommendation_vi: Mapped[str] = mapped_column(Text)
+    source_ref: Mapped[str] = mapped_column(Text)  # RULE-2
+    pmid: Mapped[str | None] = mapped_column(String(20), nullable=True)
+    verify_status: Mapped[str] = mapped_column(String(20), default="to_verify")
+
+
+class DrugMealTiming(Base):
+    """Thời điểm dùng thuốc so với bữa ăn (dược động học). KHÔNG được diễn
+    giải thành chỉ định điều trị/khuyên đổi liều (ranh giới an toàn CLAUDE.md
+    §3) — chỉ mô tả khuyến nghị chế độ ăn/thời điểm uống theo nguồn dược thư.
+    Khớp `data/seeds/drug_meal_timing.csv`. Ticket: DAT-19.
+    """
+
+    __tablename__ = "drug_meal_timing"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    drug_name: Mapped[str] = mapped_column(String(255), index=True)
+    drug_class: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    timing_rule: Mapped[str] = mapped_column(String(20))  # before|with|after|avoid_with
+    offset_minutes: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    relative_to: Mapped[str] = mapped_column(String(50))  # VD "bữa ăn", "cà phê"
+    rationale_pk_vi: Mapped[str] = mapped_column(Text)
+    condition: Mapped[str | None] = mapped_column(String(20), nullable=True)  # T2DM|HTN|CKD|GOUT|None
+    source_ref: Mapped[str] = mapped_column(Text)  # RULE-2
+    page_ref: Mapped[str | None] = mapped_column(String(50), nullable=True)
+    verify_status: Mapped[str] = mapped_column(String(20), default="to_verify")
+
+
 class GuidelineChunk(Base):
     """Khớp DAT-06 (ingest RAG). `embedding` = JSON trên SQLite, đổi sang
     `pgvector.sqlalchemy.Vector(1536)` khi deploy Postgres thật — xem docstring

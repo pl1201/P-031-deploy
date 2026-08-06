@@ -28,8 +28,9 @@ def _engine():
     return engine
 
 
-def test_tao_du_15_bang():
-    assert len(Base.metadata.tables) == 15
+def test_tao_du_17_bang():
+    """15 bảng BE-01 + food_food_interactions + drug_meal_timing (DAT-18/19)."""
+    assert len(Base.metadata.tables) == 17
 
 
 def test_tao_bang_tren_sqlite_trang():
