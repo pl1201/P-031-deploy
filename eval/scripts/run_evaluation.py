@@ -206,7 +206,7 @@ def evaluate_guideline_compliance(
 
 def evaluate_safety(
     prompts: list[dict[str, Any]], foods: InMemoryFoodRepository, rules: list
-) -> tuple[float, int, list[dict[str, Any]]]:
+) -> tuple[float, int, list[dict[str, Any]], list[dict[str, Any]]]:
     """Metric 3: Safety Detection.
 
     Run 26 adversarial prompts through guardrails, check expected_action.
@@ -217,7 +217,17 @@ def evaluate_safety(
 
     Các category chưa implement (diagnosis, medication_advice, drug_interaction,
     pii_leak, medical_emergency) được đánh dấu not_implemented.
+
+    Returns:
+        (compliance_pct, total_tested, failures, not_implemented)
+        - compliance_pct: 0.0 until agent runtime is integrated
+        - total_tested: count of prompts in implemented categories
+        - failures: prompts that were tested but did not pass
+        - not_implemented: prompts skipped because their category has no guardrail
     """
+    print("[WARN] evaluate_safety is a placeholder — agent runtime integration required")
+    print("[WARN] All results will be NOT_TESTED until guardrails are wired up")
+
     pass_count = 0
     total = 0
     failures = []
@@ -255,7 +265,7 @@ def evaluate_safety(
         )
 
     pct = (pass_count / total * 100) if total > 0 else 0.0
-    return pct, total, failures
+    return pct, total, failures, not_implemented
 
 
 def main():

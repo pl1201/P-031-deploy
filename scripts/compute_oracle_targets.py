@@ -89,7 +89,7 @@ def compute_kcal_target_oracle(
     - BMR_female = 10*weight + 6.25*height - 5*age - 161
     - TDEE = BMR * activity_factor
     - Range = TDEE * (0.9, 1.1) for maintain
-    - Deficit 500 kcal/day for lose, surplus 300 for gain
+    - Deficit 400-600 kcal/day for lose (centered on 500), surplus 200-400 for gain (centered on 300)
 
     FIX (PR review): Accept actual height_cm from patient profile instead of
     reverse-calculating from BMI, which introduced approximation errors.
@@ -135,7 +135,7 @@ def compute_kcal_target_oracle(
         kcal_max = kcal_min + 100
 
     metadata = OracleMetadata(
-        formula=f"Mifflin-St Jeor: BMR={'10W+6.25H-5A+5' if sex == 'male' else '10W+6.25H-5A-161'}, H={height_cm}cm (actual), TDEE=BMR*{factor}, range=±10%",
+        formula=f"Mifflin-St Jeor: BMR={'10W+6.25H-5A+5' if sex == 'male' else '10W+6.25H-5A-161'}, H={height_cm}cm (actual), TDEE=BMR*{factor}, goal={weight_goal} ({'TDEE-[400,600]' if weight_goal == 'lose' else 'TDEE+[200,400]' if weight_goal == 'gain' else '±10%'})",
         guideline_ref="Academy of Nutrition and Dietetics 2020",
         rule_version="1.0.0",
         review_status="draft",
