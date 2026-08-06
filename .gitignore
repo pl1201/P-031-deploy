@@ -42,6 +42,10 @@ data/*
 *.db
 *.sqlite3
 
+# Research data - NHANES and other public datasets (outside repo)
+# Downloaded to ~/data/research/, never committed
+# Only synthetic derivatives in data/seeds/ are committed
+
 # Logs & Caches
 logs/
 *.log

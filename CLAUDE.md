@@ -10,7 +10,7 @@
 
 **NutriCare Agent (VNutriCare)** — AI Agent dinh dưỡng lâm sàng, **trọng tâm MVP là bệnh nhân đái tháo đường type 2 (ĐTĐ2)** tại Việt Nam. Đề bài VMEC-10, chương trình AI20K Build Cohort 3, thời hạn 6 tuần.
 
-> ⚠️ **Đổi phạm vi (2026-08-05):** MVP thu hẹp trọng tâm **nghiệm thu/demo** về ĐTĐ2, theo `docs/PRD.md` v2.1. Rule/dữ liệu/code cho CKD, gout, tăng huyết áp **vẫn giữ nguyên và tiếp tục hoạt động** — cơ chế phát hiện xung đột đa bệnh lý (`compute_targets()`, DEC-007) **KHÔNG bị thu hẹp**, đã đối chiếu lại với tài liệu kế hoạch gốc (`KeHoachDuAn_VNutriCare_VMEC10_v3.docx` mục 6.4.1) và xác nhận đúng đặc tả ban đầu, còn là điểm khác biệt cạnh tranh (xem DEVLOG DEC-014). Khi viết ticket/code mới, ưu tiên đường găng ĐTĐ2 trước cho tính năng mới; đừng hiểu nhầm thành "tắt xử lý đa bệnh lý".
+> ⚠️ **Đổi phạm vi (2026-08-06):** MVP sử dụng dữ liệu thực tế NHANES 2021-2023 (de-identified, public-use) thay vì dữ liệu mô phỏng, theo `docs/PRD.md` v2.2. Dữ liệu tuân thủ NCHS Data User Agreement. Rule/code cho CKD, gout, tăng huyết áp **vẫn giữ nguyên và tiếp tục hoạt động** — cơ chế phát hiện xung đột đa bệnh lý (`compute_targets()`, DEC-007) **KHÔNG bị thu hẹp**. Khi viết ticket/code mới, ưu tiên đường găng ĐTĐ2 trước cho tính năng mới.
 
 Stack: **FastAPI + LangGraph + PostgreSQL/pgvector + Next.js**, deploy Render + Vercel.
 
@@ -57,7 +57,7 @@ Hệ thống này **không được**:
 
 Khi người dùng hỏi những điều trên → guardrail tầng 1 trả về câu trả lời chuẩn (xem `docs/rules/10-clinical-safety.md`) và đề xuất chuyển câu hỏi cho chuyên gia.
 
-**Dữ liệu:** 100% mô phỏng. Không đưa dữ liệu bệnh nhân thật vào repo, DB, hay prompt — kể cả đã ẩn danh.
+**Dữ liệu:** Sử dụng dữ liệu thực tế đã được de-identified từ NHANES 2021-2023 cho phát triển và kiểm thử. Dữ liệu tuân thủ NCHS Data User Agreement và chỉ dùng cho mục đích nghiên cứu/phân tích thống kê. Không đưa SEQN hoặc thông tin định danh cá nhân vào prompt LLM.
 
 **Prompt gửi LLM:** chỉ tuổi, giới, cân nặng, chiều cao, mã bệnh + giai đoạn, chỉ số xét nghiệm, danh sách thuốc. **Không** tên, email, số điện thoại, CCCD, địa chỉ.
 
@@ -133,7 +133,7 @@ Thêm dependency mới cần lý do trong PR description và được R1 hoặc 
 
 | Cần gì | Xem đâu |
 |---|---|
-| Phạm vi sản phẩm, tính năng, không-mục-tiêu | `docs/PRD.md` (v2.1 — trọng tâm ĐTĐ2) |
+| Phạm vi sản phẩm, tính năng, không-mục-tiêu | `docs/PRD.md` (v2.2 — dữ liệu NHANES, trọng tâm ĐTĐ2) |
 | Kiến trúc, luồng graph, schema DB, API | `docs/ARCHITECTURE.md` |
 | Việc của tôi tuần này | `docs/TICKETS.md` + `docs/PLAN.md` §4 |
 | Ai duyệt PR của tôi | `docs/TEAM.md` §4 + `.github/CODEOWNERS` |
