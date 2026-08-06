@@ -1,8 +1,10 @@
-.PHONY: run test lint format format-check type-check validate-data structure graph check seed seed-demo-users eval
+.PHONY: run test test-fast lint format format-check type-check validate-data structure graph check seed seed-demo-users eval
 run:
 	uvicorn src.main:app --reload --host 0.0.0.0 --port 8000
 test:
 	python3 -m pytest -q
+test-fast:
+	python3 -m pytest -q -m "not slow"
 lint:
 	python3 -m ruff check src/ tests/
 format:

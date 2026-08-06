@@ -325,6 +325,34 @@ erDiagram
         string source_ref
         string verify_status
     }
+    food_food_interactions {
+        int id PK
+        string substance_a
+        string substance_b
+        string food_examples_vi
+        string mechanism_vi
+        string direction "increases|decreases"
+        string effect_size_vi
+        string clinical_significance "high|moderate|low"
+        string applies_to_condition "T2DM|HTN|CKD|GOUT|null"
+        string recommendation_vi
+        string source_ref
+        string pmid
+        string verify_status
+    }
+    drug_meal_timing {
+        int id PK
+        string drug_name
+        string drug_class
+        string timing_rule "before|with|after|avoid_with"
+        int offset_minutes
+        string relative_to "VD bữa ăn, cà phê"
+        string rationale_pk_vi
+        string condition "T2DM|HTN|CKD|GOUT|null"
+        string source_ref
+        string page_ref
+        string verify_status
+    }
     guideline_chunks {
         string id PK "UUID"
         string source "VD ADA 2025, KDIGO 2024"
@@ -375,7 +403,7 @@ erDiagram
 
 ### Bảng bắt buộc có cột `source`
 
-`food_items`, `dishes`, `clinical_rules`, `drug_food_interactions`, `guideline_chunks`.
+`food_items`, `dishes`, `clinical_rules`, `drug_food_interactions`, `food_food_interactions`, `drug_meal_timing`, `guideline_chunks`.
 **CI có test chặn: không dòng nào được có `source IS NULL`.**
 
 ### Vì sao `dish_ingredients`/`meal_plan_items`/`food_logs` không tự tính dinh dưỡng

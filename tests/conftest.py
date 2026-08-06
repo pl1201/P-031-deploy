@@ -160,20 +160,23 @@ def client(db_session):
 
 @pytest.fixture
 def modest_menu() -> MenuDraft:
+    """Định lượng đã tăng 2026-08-06 (CLN-09: đổi BMR mặc định sang WHO/FAO/UNU
+    — định mức kcal/chất xơ cao hơn Mifflin-St Jeor trước đó, cần nhiều thức
+    ăn hơn để không rơi vào vi phạm 'thiếu')."""
     return MenuDraft(
         items={
-            MealSlot.BREAKFAST: [MenuItem(food_id=1, grams=200), MenuItem(food_id=8, grams=100)],
+            MealSlot.BREAKFAST: [MenuItem(food_id=1, grams=260), MenuItem(food_id=8, grams=120)],
             MealSlot.LUNCH: [
-                MenuItem(food_id=1, grams=300),
-                MenuItem(food_id=5, grams=120),
-                MenuItem(food_id=3, grams=200),
-                MenuItem(food_id=7, grams=8),
+                MenuItem(food_id=1, grams=380),
+                MenuItem(food_id=5, grams=150),
+                MenuItem(food_id=3, grams=280),
+                MenuItem(food_id=7, grams=10),
             ],
             MealSlot.DINNER: [
-                MenuItem(food_id=1, grams=250),
-                MenuItem(food_id=6, grams=150),
-                MenuItem(food_id=3, grams=150),
-                MenuItem(food_id=7, grams=5),
+                MenuItem(food_id=1, grams=320),
+                MenuItem(food_id=6, grams=180),
+                MenuItem(food_id=3, grams=220),
+                MenuItem(food_id=7, grams=7),
             ],
         }
     )

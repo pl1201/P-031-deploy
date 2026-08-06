@@ -60,13 +60,22 @@ Tài liệu tổng quan `data/Dữ liệu dinh dưỡng Việt Nam.md` (57 tríc
 
 ## Các file trong `data/seeds/`
 
+> Cập nhật 2026-08-06. Số dòng không kể header.
+
 | File | Dòng | Trạng thái | Ai phụ trách |
 |---|---|---|---|
+| `food_items.csv` | 7.315 | 🟢 file chính đang dùng — 7.293 có đủ số liệu, 22 còn trống. `category` phủ 96% (DAT-17), `purine_mg` phủ 51 món (DAT-14), `sugar_g` (đường tự do WHO) hầu như trống có chủ đích (DAT-15, xem lý do bên dưới) | R2 |
 | `food_items.template.csv` | 152 | ⬜ trống phần số liệu — cần nhập | cả 4 người, xem cột `assigned_to` |
-| `clinical_rules.csv` | 18 | 🟡 có ngưỡng + guideline_ref, `verify_status=to_verify` | R2 |
-| `drug_food_interactions.csv` | 30 | 🟡 có cơ chế + khuyến nghị, thiếu `source_ref` | R2 |
-| `gi_values.csv` | 28 | 🟢 7 món Việt (Chan 2001) + 21 staple/quả (Atkinson 2021 Suppl. Table 1, DAT-08/08b) | R2 |
 | `food_items.nin_draft.csv` | 152 | 🟡 **BẢN NHÁP** — 107 dòng có dữ liệu NIN thật, chờ R2 soát rồi promote (DAT-02) | R2 |
+| `clinical_rules.csv` | 21 | 🔴 có ngưỡng + guideline_ref nhưng **100% `verify_status=to_verify`** — research 2026-08-06 phát hiện nhiều rule lệch/sai trích dẫn, 2 rule `hard` có rủi ro an toàn thật (xem `CLN-11`, ưu tiên P0) | R2 |
+| `drug_food_interactions.csv` | 30 | 🟡 có cơ chế + khuyến nghị, 13/30 thiếu `source_ref`; research 2026-08-06 phát hiện thêm lỗi trích dẫn cụ thể ở các dòng đã có nguồn (xem `DAT-21`) | R2 |
+| `food_food_interactions.csv` | 9 | 🆕 **MỚI 2026-08-06** — tương tác thực phẩm-thực phẩm hoá sinh, PMID thật cho cả 9 dòng, `verify_status=to_verify` (xem `DAT-18`) | R2 |
+| `drug_meal_timing.csv` | 6 | 🆕 **MỚI 2026-08-06** — giờ dùng thuốc so với bữa ăn, `verify_status=to_verify` (xem `DAT-19`) | R2 |
+| `gi_values.csv` | 28 | 🟡 7 món Việt (Chan 2001) + 21 staple/quả (Atkinson 2021 Suppl. Table 1, DAT-08/08b) — **~39 giá trị mới đã tìm được nguồn nhưng CHƯA merge** (xem `DAT-20`) | R2 |
+| `purine_values.csv` | 19 | 🟡 bảng phụ trợ cũ (staging, không phải nguồn chính) — 32 món curated khác đã được gán `purine_mg` trực tiếp vào `food_items.csv` (không qua file này), xem `DAT-14` | R2 |
+| `purine_db_reference.csv` | 475 | 🆕 **MỚI 2026-08-06** — bảng tra cứu purine thô trích từ `PURINEDATABASEANDDATASOURCES2025.xlsx` (nguồn USDA/ODS-NIH R2.0), dùng làm nguồn cho `DAT-14`, còn dư địa map thêm | (tham chiếu, không phải bảng DB) |
+| `usda_sugar_coverage.csv` | 5.620 | 🆕 **MỚI 2026-08-06** — bảng tra cứu "Total Sugars" theo `fdc_id` từ USDA bulk, dùng nếu R2 chọn hướng thêm cột `total_sugar_g` (xem `DAT-15`) | (tham chiếu, không phải bảng DB) |
+| `serving_sizes.csv` | 174 | 🟢 5 dòng khẩu phần món Việt cụ thể (gốc) + 169 dòng `wweia_*` (trung vị khẩu phần thật theo 172 nhóm USDA WWEIA — **khẩu phần kiểu Mỹ, không phải VN**, dùng tham chiếu/dự phòng, xem `DAT-16`) | R2 |
 
 ### Về nguồn NIN qua API (DAT-02)
 
@@ -198,6 +207,52 @@ Sau khi nhập xong nhóm gia vị và món ăn, các con số sau phải tái l
 | Mì ăn liền 1 gói | 4,2–5,0 g muối | |
 
 Lệch xa các mốc này nghĩa là **công thức sai, không phải mốc sai**.
+
+---
+
+## Đợt 2026-08-06 — khai thác dữ liệu local + research bổ sung (DAT-14 → DAT-21)
+
+Theo yêu cầu Hưng ("nghiên cứu trên tạp chí y khoa, dinh dưỡng VN, thực đơn vùng miền, tương tác dược-thực phẩm, GI/purine, serving_sizes, USDA, viết lại README"). Chi tiết đầy đủ từng ticket ở `docs/TICKETS.md` (`DAT-14` đến `DAT-21`, `CLN-11`), quyết định + rationale đầy đủ ở `DEVLOG.md` các entry ngày 2026-08-06. Tóm tắt ở đây để người mới đọc nắm nhanh mà không phải lục cả DEVLOG.
+
+### Đã khai thác xong (từ file local sẵn có trong repo, không cần internet)
+
+| Việc | Nguồn | Kết quả | Ticket |
+|---|---|---|---|
+| Purine 32 món curated | `PURINEDATABASEANDDATASOURCES2025.xlsx` (USDA/ODS-NIH Purine DB R2.0, 2025) → `purine_db_reference.csv` (475 dòng) | `purine_mg` phủ 19 → 51 món; chỉ map khi chắc chắn cùng loài (bỏ qua match mơ hồ) | `DAT-14` |
+| `serving_sizes` 5 → 174 dòng | `food_portion.csv` (47.446 bản ghi USDA FNDDS) theo 172 nhóm **WWEIA** (NHANES) | 169 dòng mới = trung vị khẩu phần thật, ghi rõ là chuẩn Mỹ không phải VN | `DAT-16` |
+| `category` 2% → 96% | `food_category.csv` chính thức USDA (28 nhóm), dịch sang tiếng Việt | 6.870/7.315 dòng được gán nhãn | `DAT-17` |
+| `sugar_g` — khảo sát khả thi | `food_nutrient.csv` USDA bulk (1,78GB) | "Sugars, added" = 0% dữ liệu; "Total Sugars" = 81,9% nhưng khác nghĩa free-sugar WHO → KHÔNG lấp, ghi ticket cho R2 quyết schema | `DAT-15` |
+
+### Đã research xong, có nguồn thật (PMID/DOI), CHƯA merge vào CSV — cần R2 xác nhận trước
+
+| Việc | Kết quả chính | Ticket |
+|---|---|---|
+| Verify 21 `clinical_rules` | Chỉ 7/21 khớp đúng nguồn gốc (KDIGO 2024, KDOQI 2020, NIN 2016, ADA 2026 — đọc toàn văn). **2 rule `hard` có rủi ro an toàn thật**: `CKD-PRO-01` không phân biệt bệnh nhân lọc máu (G5D cần 1.0-1.2 g/kg, không phải trần 0.8 g/kg); 3 rule kali `CKD-K-01/02/03` trích dẫn sai mức chứng cứ KDOQI (thực tế chỉ ở mức OPINION) | `CLN-11` (P0) |
+| GI món Việt — 39 giá trị mới | Chan 2001 (PMID 11781674, đọc toàn văn), Atkinson 2008 (PMC2584181), Henry 2021 compendium 940 món châu Á (PMID 33414403). Phát hiện: Việt Nam KHÔNG có trong danh sách quốc gia của compendium — chưa có nghiên cứu GI đo trực tiếp trên người tại VN đạt chuẩn quốc tế | `DAT-20` |
+| Tương tác thực phẩm-thực phẩm | 9 cặp PMID thật — **đã seed** vào bảng DB mới `food_food_interactions` (xem dưới) | `DAT-18` |
+| Giờ dùng thuốc so với bữa ăn | 6 thuốc — **đã seed** vào bảng DB mới `drug_meal_timing` (xem dưới) | `DAT-19` |
+| Verify `drug_food_interactions.csv` hiện có | Phát hiện lỗi trích dẫn cụ thể ở 6+ dòng (gán sai chuyên luận, sai tên tác giả, severity không khớp mức bằng chứng) — CHƯA sửa, chờ R2 | `DAT-21` |
+| Thực đơn/mâm cơm 3 miền | Không có nghiên cứu ẩm thực học định lượng (chỉ nguồn báo/blog phổ thông). Đề xuất 20 món theo vùng. **Cảnh báo an toàn:** món đề xuất dùng khế (carambola) — y văn ghi nhận khế chứa caramboxin, chống chỉ định CKD | `DAT-04` (cập nhật) |
+
+### Bảng DB mới (schema + migration + seed — đã code xong 2026-08-06)
+
+- **`food_food_interactions`** — tương tác hoá sinh thực phẩm-thực phẩm (VD phytate/tannin ức chế hấp thu sắt, canxi ăn cùng bữa giảm nguy cơ sỏi thận do oxalat, fructose/rượu tăng acid uric liên quan gout). Model: `src/db/models.py::FoodFoodInteraction`.
+- **`drug_meal_timing`** — thời điểm uống thuốc so với bữa ăn theo dược động học (KHÔNG phải khuyên liều — chỉ mô tả timing theo dược thư). Model: `src/db/models.py::DrugMealTiming`.
+- Migration: `alembic/versions/5394cb31dc4e_food_food_interactions_drug_meal_.py`. ERD cập nhật trong `docs/ARCHITECTURE.md`.
+- **Chưa wiring vào agent/API/UI** — mới dừng ở tầng dữ liệu, cả 2 bảng 100% `verify_status=to_verify`.
+
+### Cách tái tạo (mọi bước đều có script, không sửa tay CSV)
+
+```
+python scripts/extract_purine_db.py              # DAT-14 bước 1: trích bảng purine thô
+python scripts/map_purine_to_food_items.py        # DAT-14 bước 2: map vào food_items.csv
+python scripts/scan_usda_sugar_coverage.py        # DAT-15: khảo sát độ phủ sugar (chỉ đọc, không ghi food_items.csv)
+python scripts/build_serving_sizes_wweia.py       # DAT-16: sinh bảng WWEIA reference
+python scripts/fill_category_from_usda.py         # DAT-17: lấp category
+python scripts/validate_data.py                   # kiểm tra tất cả — phải 0 lỗi trước khi commit
+```
+
+Mọi script đều có `--dry-run` và idempotent (chạy lại nhiều lần không nhân đôi dữ liệu).
 
 ---
 

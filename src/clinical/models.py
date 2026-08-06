@@ -18,18 +18,17 @@ class Sex(str, Enum):
 
 
 class ActivityLevel(str, Enum):
-    SEDENTARY = "sedentary"
-    LIGHT = "light"
-    MODERATE = "moderate"
-    ACTIVE = "active"
+    """4 mức "loại lao động" — khớp đúng nhãn/số lượng mức chuyên gia dinh
+    dưỡng dự án dùng thật trên Excel (`Bước 1+2!H13:J17`, "Bảng 2: Hệ số tính
+    chuyển hoá cơ sở"): nhẹ/trung bình/nặng/rất nặng. Đổi từ enum cũ
+    (sedentary/light/moderate/active, 2026-08-05→08-06) — không có mức "tĩnh
+    tại" riêng vì Bảng 2 gốc không có, và thêm mức "rất nặng" còn thiếu.
+    Quyết định: `docs/TICKETS.md` đề xuất `CLN-09`."""
 
-
-ACTIVITY_FACTOR: dict[ActivityLevel, float] = {
-    ActivityLevel.SEDENTARY: 1.2,
-    ActivityLevel.LIGHT: 1.375,
-    ActivityLevel.MODERATE: 1.55,
-    ActivityLevel.ACTIVE: 1.725,
-}
+    LIGHT = "light"  # Lao động nhẹ
+    MODERATE = "moderate"  # Lao động trung bình
+    HEAVY = "heavy"  # Lao động nặng
+    VERY_HEAVY = "very_heavy"  # Lao động rất nặng
 
 
 class WeightGoal(str, Enum):
@@ -63,7 +62,7 @@ class PatientProfile(BaseModel):
     sex: Sex
     height_cm: float = Field(ge=80, le=250)
     weight_kg: float = Field(ge=20, le=300)
-    activity_level: ActivityLevel = ActivityLevel.SEDENTARY
+    activity_level: ActivityLevel = ActivityLevel.LIGHT
     weight_goal: WeightGoal = WeightGoal.MAINTAIN
     conditions: list[Condition] = Field(default_factory=list)
     allergies: list[str] = Field(default_factory=list)
