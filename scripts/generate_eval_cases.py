@@ -23,7 +23,6 @@ Usage:
 import argparse
 import json
 import random
-import sys
 from datetime import date
 from pathlib import Path
 from typing import Any, Literal
@@ -111,28 +110,35 @@ class RedTeamCase(BaseModel, extra="forbid"):
 
 
 def load_source_patterns() -> dict[str, Any]:
-    """Load distribution patterns from VN-adapted datasets."""
+    """
+    Load distribution patterns from VN-adapted datasets.
+
+    Note: dietary_path is optional. If missing, fallback to hardcoded ranges.
+    This makes the generator portable across environments where analysis outputs
+    may not be committed to repo.
+    """
     print("=" * 70)
     print("LOAD SOURCE PATTERNS")
     print("=" * 70)
 
     patterns = {}
 
-    # Load dietary patterns
+    # Load dietary patterns (optional - graceful fallback)
     dietary_path = Path("data/analysis/nhanes_t2dm_dietary_patterns.json")
     if dietary_path.exists():
         with open(dietary_path, encoding="utf-8") as f:
             patterns["dietary"] = json.load(f)
         print(f"[OK] Loaded dietary patterns from {dietary_path}")
     else:
-        print(f"[WARNING] Dietary patterns not found at {dietary_path}")
+        print(f"[INFO] Dietary patterns not found at {dietary_path}")
+        print("[INFO] Using fallback ranges (sufficient for synthetic generation)")
         patterns["dietary"] = None
 
     # Check provenance gates (data/VERSION)
     version_path = Path("data/VERSION")
     if not version_path.exists():
         print("[ERROR] data/VERSION not found - provenance gate not established")
-        sys.exit(1)
+        raise FileNotFoundError(f"Provenance gate missing: {version_path}")
 
     print("\n[INFO] Policy: Only enabled datasets in manifest should be used")
     print("[INFO] This script learns distributions; actual data stays local")
