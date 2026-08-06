@@ -184,7 +184,9 @@ def compute_protein_target_oracle(
         protein_min = 0.6 * weight_kg
         protein_max = 0.8 * weight_kg
         ref = "KDIGO 2022 CKD Nutrition Guideline"
-        notes = f"CKD {ckd_stage}: moderate protein restriction 0.6-0.8 g/kg/day (= {protein_min:.1f}-{protein_max:.1f}g)"
+        notes = (
+            f"CKD {ckd_stage}: moderate protein restriction 0.6-0.8 g/kg/day (= {protein_min:.1f}-{protein_max:.1f}g)"
+        )
     elif frailty_sarcopenia or age >= 70:
         protein_min = 1.0 * weight_kg
         protein_max = 1.2 * weight_kg
