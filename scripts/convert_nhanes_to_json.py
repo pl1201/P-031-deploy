@@ -43,7 +43,6 @@ def convert_row_to_profile(row: pd.Series, index: int) -> dict[str, Any]:
     # Anthropometrics
     weight_kg = round(float(row["BMXWT"]), 1) if pd.notna(row["BMXWT"]) else None
     height_cm = round(float(row["BMXHT"]), 1) if pd.notna(row["BMXHT"]) else None
-    bmi = round(float(row["BMXBMI"]), 1) if pd.notna(row["BMXBMI"]) else None
 
     # Lab values
     hba1c_pct = round(float(row["LBXGH"]), 1) if pd.notna(row["LBXGH"]) else None
@@ -58,12 +57,7 @@ def convert_row_to_profile(row: pd.Series, index: int) -> dict[str, Any]:
 
     # T2DM condition
     if hba1c_pct is not None or glucose_mg_dl is not None:
-        t2dm_condition = {
-            "code": "E11",
-            "name": "Type 2 Diabetes Mellitus",
-            "stage": None,
-            "lab_values": {}
-        }
+        t2dm_condition = {"code": "E11", "name": "Type 2 Diabetes Mellitus", "stage": None, "lab_values": {}}
         if hba1c_pct is not None:
             t2dm_condition["lab_values"]["HbA1c_pct"] = hba1c_pct
         if glucose_mg_dl is not None:
@@ -73,15 +67,14 @@ def convert_row_to_profile(row: pd.Series, index: int) -> dict[str, Any]:
     # Hypertension (if SBP >= 140 or DBP >= 90)
     if sbp_mmhg is not None and dbp_mmhg is not None:
         if sbp_mmhg >= 140 or dbp_mmhg >= 90:
-            conditions.append({
-                "code": "I10",
-                "name": "Hypertension",
-                "stage": None,
-                "lab_values": {
-                    "SBP_mmHg": sbp_mmhg,
-                    "DBP_mmHg": dbp_mmhg
+            conditions.append(
+                {
+                    "code": "I10",
+                    "name": "Hypertension",
+                    "stage": None,
+                    "lab_values": {"SBP_mmHg": sbp_mmhg, "DBP_mmHg": dbp_mmhg},
                 }
-            })
+            )
 
     profile = {
         "patient_id": f"nhanes_t2dm_{index:04d}",
@@ -103,7 +96,7 @@ def convert_row_to_profile(row: pd.Series, index: int) -> dict[str, Any]:
         "_source_dataset": "NHANES_2021_2023",
         "_source_type": "de_identified_public_use",
         "_diabetes_heuristic": "probable_type2",
-        "_note": "Real de-identified patient data from NHANES 2021-2023"
+        "_note": "Real de-identified patient data from NHANES 2021-2023",
     }
 
     return profile
@@ -113,17 +106,9 @@ def main() -> None:
     """Convert NHANES CSV to JSON format."""
     parser = argparse.ArgumentParser(description="Convert NHANES cohort to JSON")
     parser.add_argument(
-        "--output",
-        type=str,
-        default="data/seeds/nhanes_t2dm_profiles.json",
-        help="Output JSON file path"
+        "--output", type=str, default="data/seeds/nhanes_t2dm_profiles.json", help="Output JSON file path"
     )
-    parser.add_argument(
-        "--limit",
-        type=int,
-        default=None,
-        help="Limit number of profiles (for testing)"
-    )
+    parser.add_argument("--limit", type=int, default=None, help="Limit number of profiles (for testing)")
     args = parser.parse_args()
 
     print("NHANES to JSON Converter")
@@ -171,13 +156,13 @@ def main() -> None:
     print(f"\n{'=' * 60}")
     print("Summary:")
     print(f"  Total profiles: {len(profiles):,}")
-    print(f"  Source: NHANES 2021-2023 (de-identified, public-use)")
-    print(f"  Heuristic: probable type 2 diabetes")
-    print(f"\nIMPORTANT:")
-    print(f"  This data is from NHANES and subject to NCHS Data User Agreement")
-    print(f"  - May be used for research and statistical reporting")
-    print(f"  - May NOT be used to re-identify participants")
-    print(f"  - See: https://www.cdc.gov/nchs/data_access/restrictions.htm")
+    print("  Source: NHANES 2021-2023 (de-identified, public-use)")
+    print("  Heuristic: probable type 2 diabetes")
+    print("\nIMPORTANT:")
+    print("  This data is from NHANES and subject to NCHS Data User Agreement")
+    print("  - May be used for research and statistical reporting")
+    print("  - May NOT be used to re-identify participants")
+    print("  - See: https://www.cdc.gov/nchs/data_access/restrictions.htm")
 
 
 if __name__ == "__main__":
