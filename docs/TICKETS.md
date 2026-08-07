@@ -140,7 +140,7 @@ Research 2026-08-06 (agent B2b) verify 30 dòng hiện có, phát hiện các l�
 **AC:** Mỗi sửa đổi phải dẫn lại đúng trang/mục Dược thư QGVN 2022 hoặc PMID thay thế · Không tự đổi severity mà không có căn cứ định lượng (đúng CLAUDE.md §6) · Sau khi sửa, đổi `verify_status` dòng đó thành `verified`.
 
 ### `DAT-22` ✅ Trích xuất Bảng TPTP VN 2017 (620 món, tr.23-152) — ĐÃ LÀM
-**Owner:** Claude (theo yêu cầu Hưng, 2026-08-07) · **P1** · **Deps:** DAT-13, DAT-14
+**Owner:** R2 · **P1** · **Deps:** DAT-13, DAT-14
 Trích `data/Bang-thanh-phan-dinh-duong-Thuc-pham-VN-2017-27-4-17.pdf` bằng `pdfplumber.extract_tables()` (không OCR) — 620/620 thực phẩm, không trùng mã (`scripts/extract_nin2017.py` → `scripts/nin2017_extracted.json`). Merge vào `data/seeds/food_items.csv` bằng `scripts/merge_nin2017_into_food_items.py` (chỉ khớp tên tuyệt đối, không fuzzy):
 - 82 dòng đã có trong CSV được bổ sung `source_ref` NIN 2017 khi đủ 8 trường lõi.
 - 348 dòng mới thêm dạng placeholder (chỉ tên + `source_ref`, số liệu để trống) vì PDF thiếu ≥1 trường lõi — không suy đoán (DEC-008), gộp vào phạm vi rà soát của `DAT-13`.
