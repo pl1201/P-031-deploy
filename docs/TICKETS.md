@@ -52,6 +52,10 @@ Render (backend, Docker) + Vercel (frontend) + Neon/Supabase Postgres có `pgvec
 **AC:** **Live URL công khai** trả `GET /api/v1/health` → 200 · Frontend hiển thị trang chủ gọi được API · URL ghi vào README.
 > ⚠️ Ticket quan trọng nhất tuần 1. Deploy sớm để tuần 6 không phải deploy lần đầu.
 
+**Cập nhật 2026-08-07 (DB):** Đã chọn Supabase (project `VNutriCare`, `tvnrvvkclqsuhnxnrcrn`, region ap-northeast-1) làm Postgres hosted — theo đúng ràng buộc ADR-008 (chỉ dùng hosted Postgres+pgvector thuần, KHÔNG dùng RLS/Auth/Supabase CLI migrations; Alembic vẫn là nguồn chân lý schema duy nhất). Đã kết nối MCP Supabase (read_only) cho việc kiểm tra, và chạy `alembic upgrade head` thành công qua Session Pooler (17 bảng khớp `src/db/models.py`, xem chi tiết dưới). `vector` extension chưa bật (chưa cần vì `guideline_chunks.embedding` còn ở dạng JSON, xem `src/db/base.py`) — bật khi làm `DAT-06`.
+- **Lưu ý kết nối quan trọng:** host "Direct connection" (`db.<ref>.supabase.co`) chỉ resolve ra IPv6 — mạng không có route IPv6 sẽ không kết nối được (`could not translate host name`). Phải dùng **Session Pooler** thay thế: `postgresql://postgres.<project-ref>:<password>@aws-0-<region>.pooler.supabase.com:5432/postgres` (có địa chỉ IPv4). Đã thêm `psycopg2-binary` vào `requirements.txt` (trước đó bị comment vì dự án chỉ chạy SQLite).
+- Advisor bảo mật chỉ báo RLS đang bật mặc định (do chính Supabase auto-enable trên bảng mới) nhưng chưa có policy — mức INFO, KHÔNG chặn app vì backend dùng kết nối Postgres trực tiếp, không qua PostgREST/anon key. Không cần xử lý theo phạm vi ADR-008.
+
 ### `SET-06` Khởi tạo tài liệu dự án
 **Owner:** R1 · **P1** · 3h · **Deps:** SET-01
 README từ `README_boilerplate.md`; copy bộ `docs/` này vào repo; tạo `DEVLOG.md`; tạo `CLAUDE.md` và `docs/rules/`.

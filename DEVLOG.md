@@ -502,6 +502,19 @@
 
 ---
 
+### [2026-08-07] · Claude (theo yêu cầu Hưng) · SET-05 — kết nối Supabase, alembic upgrade head thành công
+
+- Hưng tự tạo project Supabase (`VNutriCare`, `tvnrvvkclqsuhnxnrcrn`, ap-northeast-1) và kết nối MCP Supabase (read_only) qua `.mcp.json`.
+- Chạy `alembic upgrade head` thành công lên Supabase — 17 bảng khớp đúng `src/db/models.py` (xác nhận qua `list_tables` MCP, read-only).
+- **2 vấn đề kết nối gặp phải và cách xử lý:**
+  1. `DATABASE_URL` ban đầu dùng host "Direct connection" (`db.<ref>.supabase.co`) — chỉ resolve ra địa chỉ IPv6, mạng hiện tại không có route IPv6 nên `psycopg2.OperationalError: could not translate host name`. Đổi sang **Session Pooler** (`aws-0-ap-northeast-1.pooler.supabase.com`, có IPv4) thì kết nối được.
+  2. Thiếu driver `psycopg2` (dự án trước giờ chỉ chạy SQLite nên dòng `psycopg2-binary` trong `requirements.txt` bị comment) — bật lại và cài.
+- Advisor bảo mật Supabase báo RLS bật mặc định trên mọi bảng nhưng chưa có policy (mức INFO, do Supabase tự động, không phải mình tạo) — không xử lý vì backend dùng kết nối Postgres trực tiếp, không qua PostgREST/anon key, đúng phạm vi ADR-008.
+- `vector` extension chưa bật (chưa cần, `guideline_chunks.embedding` còn ở JSON) — để dành cho `DAT-06`.
+- **Thời gian:** ~20 phút.
+
+---
+
 ## 3. Quyết định kỹ thuật (Decision Log)
 
 | ID | Ngày | Quyết định | Người quyết | Chi tiết |
