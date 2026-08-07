@@ -77,8 +77,15 @@ def test_sau_khi_tra_ve_graph_da_chay_xong_va_ghi_ket_qua(client, dietitian, pro
     assert body["status"] == "pending_review", body
     assert len(body["items"]) > 0
     assert all(item["name_vi"] and item["source"] and item["source_ref"] for item in body["items"])
-    assert all(item["dish_id"] and item["food_id"] is None for item in body["items"])
-    assert all(item["ingredients"] for item in body["items"])
+    # CP-SAT (forced ở fixture _force_cpsat) tự khai triển "món hoàn chỉnh"
+    # thành food_id+grams nguyên liệu thô thật trước khi trả (RULE-1) — khác
+    # `gemini` thuần (chọn nguyên "food" tổng hợp theo món, item có dish_id).
+    # Sửa 2026-08-07: trước đó test này giả định sai là CP-SAT luôn trả
+    # dish_id — bug thật khiến CP-SAT dùng nhầm kho "food" tổng hợp theo món
+    # (mật độ dinh dưỡng pha loãng) làm nguồn nguyên liệu thô, ra thực đơn
+    # thiếu năng lượng nghiêm trọng mà không lỗi rõ ràng ở đâu (audit khi
+    # merge PR#57 dish-day-cap với PR#59 dish-repo).
+    assert all(item["food_id"] and item["dish_id"] is None for item in body["items"])
     assert body["computed_nutrition"]["kcal"] > 0
     assert body["targets"]["applied_rule_ids"]
 

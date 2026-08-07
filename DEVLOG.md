@@ -524,6 +524,21 @@
 
 ---
 
+### [2026-08-07] · R2 · Fix bug thật: CP-SAT sinh thực đơn thiếu năng lượng nghiêm trọng (merge PR#57 × PR#59)
+
+- Khi merge `main` vào `fix/AGT-11-cpsat-day-cap-and-vn-dishes` (PR #57), `tests/test_api_reviews.py::test_duyet_sua_gram_tinh_lai_dinh_duong` fail với thiếu hụt bất thường (335 kcal thay vì tối thiểu 2435 kcal chỉ sau khi sửa -20g một món) — điều tra sâu, không phải test giòn mà là **bug thật** do 2 hệ thống "dish" độc lập bị hợp nhất cơ học:
+  - PR #57 (`fix/AGT-11`): `DishCandidate` + cơ chế `dish_chosen` trong CP-SAT — món hoàn chỉnh được chọn NGUYÊN KHỐI rồi tự khai triển thành food_id+grams nguyên liệu thô thật trong `MenuDraft` (giữ RULE-1).
+  - `main` (PR #59): `DishFoodRepository` (`load_dish_food_repository()`) — biến MỖI món ăn thành một "food" tổng hợp (id âm, `kcal_100g` = mật độ trung bình pha loãng cả công thức).
+  - Sau merge, `src/api/routes/meal_plans.py` dùng `load_dish_food_repository()` làm kho nguyên liệu cho CẢ CP-SAT lẫn LLM — khiến CP-SAT chọn lượng nhỏ của một "food" tổng hợp (mật độ đã pha loãng, VD PHO-BO công thức thiếu ~105 kcal/100g do `dish_ingredients.csv` chỉ có 5 dòng, thiếu gia vị/nước dùng) như thể đó là nguyên liệu rời — ra thực đơn thiếu năng lượng nghiêm trọng mà CP-SAT vẫn báo khả thi (tự thoả mãn ràng buộc bằng chính dữ liệu sai).
+- **Fix** (`src/api/routes/meal_plans.py`): chọn kho thực phẩm theo generator — `load_food_repository()` (nguyên liệu thô thật) cho `cpsat`/`hybrid`, giữ `load_dish_food_repository()` cho `gemini` thuần (chọn nguyên món qua LLM). Khi lưu `MealPlanItem`: chỉ gán `dish_id` khi thật sự map được qua kho món-tổng-hợp; nếu không, lưu thẳng `food_id` (trước đó code cũ ép `raise ValueError` nếu không map được — assumption sai cho CP-SAT).
+- Cập nhật `tests/test_api_meal_plans.py::test_sau_khi_tra_ve_graph_da_chay_xong_va_ghi_ket_qua`: assertion cũ giả định sai "CP-SAT luôn trả `dish_id`, không bao giờ `food_id`" — sửa thành đúng hành vi RULE-1 (CP-SAT trả `food_id` thô, `dish_id=None`).
+- **Xác nhận:** `pytest` sạch toàn bộ sau fix (196 test, gồm cả `test_duyet_sua_gram_tinh_lai_dinh_duong` đã pass lại).
+- **Flaky residual (ghi rõ, không giấu):** `test_duyet_sua_gram_tinh_lai_dinh_duong` trừ cố định 20g từ món đầu tiên để test approve+edit — sau fix, margin phía trên ngưỡng tối thiểu đôi khi mỏng (CP-SAT không seed cố định, pure-feasibility không Minimize, xem docstring `optimizer.py`) khiến test fail ngẫu nhiên (~50% trong vài lần chạy thử). Giảm mức trừ xuống 1g → còn ~1/15 lần fail khi chạy riêng lẻ (ước lượng thô, không phải benchmark chính thức). Không redesign solver để seed cố định (ngoài phạm vi lần merge này) — chấp nhận rủi ro flaky nhỏ còn lại, ghi rõ để R1/R3 biết nếu CI báo fail ngẫu nhiên đúng test này trong tương lai.
+- **Chưa làm (ghi rõ):** chưa kiểm chứng lại đường `gemini` thuần (không có test ép generator này) — giữ nguyên hành vi cũ (`load_dish_food_repository()`), không đụng tới vì ngoài phạm vi bug đã xác nhận.
+- **Thời gian:** ~70 phút (điều tra + fix + cập nhật test + đo flaky).
+
+---
+
 ## 3. Quyết định kỹ thuật (Decision Log)
 
 | ID | Ngày | Quyết định | Người quyết | Chi tiết |

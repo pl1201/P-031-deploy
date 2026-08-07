@@ -10,6 +10,7 @@ from __future__ import annotations
 import src.agents.assembly as assembly
 from src.agents.hybrid import HybridMenuGenerator
 from src.agents.optimizer import CPSATMenuOptimizer
+from src.clinical.nutrition import InMemoryFoodRepository
 
 
 class _FakeSettings:
@@ -21,14 +22,20 @@ def _patch_choice(monkeypatch, choice: str) -> None:
     monkeypatch.setattr(assembly, "get_settings", lambda: _FakeSettings(choice))
 
 
+# Repo rỗng — đủ cho các test này (chỉ kiểm tra ĐÚNG LOẠI generator được dựng,
+# không cần dữ liệu thật). `_generator_from_settings` giờ cần `foods` để wire
+# dish repository cho CPSATMenuOptimizer (xem DEVLOG "hybrid dish + nguyên liệu").
+_EMPTY_FOODS = InMemoryFoodRepository([])
+
+
 def test_config_cpsat_tra_ve_cpsat(monkeypatch):
     _patch_choice(monkeypatch, "cpsat")
-    assert isinstance(assembly._generator_from_settings(), CPSATMenuOptimizer)
+    assert isinstance(assembly._generator_from_settings(_EMPTY_FOODS), CPSATMenuOptimizer)
 
 
 def test_config_hybrid_tra_ve_hybrid(monkeypatch):
     _patch_choice(monkeypatch, "hybrid")
-    assert isinstance(assembly._generator_from_settings(), HybridMenuGenerator)
+    assert isinstance(assembly._generator_from_settings(_EMPTY_FOODS), HybridMenuGenerator)
 
 
 def test_config_gemini_tra_ve_gemini(monkeypatch):
@@ -48,7 +55,7 @@ def test_config_gemini_tra_ve_gemini(monkeypatch):
 
     from src.services.llm import GeminiMenuGenerator
 
-    gen = assembly._generator_from_settings()
+    gen = assembly._generator_from_settings(_EMPTY_FOODS)
     assert isinstance(gen, GeminiMenuGenerator)
 
 

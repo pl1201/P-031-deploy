@@ -21,6 +21,8 @@ from src.api.clinical_bridge import to_clinical_profile
 from src.api.security import CurrentUser, get_current_user
 from src.clinical.dishes import load_dish_food_repository
 from src.clinical.models import PatientProfile as ClinicalPatientProfile
+from src.clinical.seeds import load_food_repository
+from src.config import get_settings
 from src.db.base import get_db, get_session_factory
 from src.db.models import Dish, DishIngredient, MealPlan, MealPlanItem
 from src.db.models import PatientProfile as DbPatientProfile
@@ -202,8 +204,22 @@ def _run_graph_and_persist(
         if dislikes:
             clinical_profile = clinical_profile.model_copy(update={"dislikes": dislikes})
 
+        # CP-SAT (và hybrid, dùng CP-SAT ở lượt đầu) có cơ chế "dish" RIÊNG
+        # (DishCandidate + dish_chosen trong optimizer.py) — món hoàn chỉnh
+        # được chọn NGUYÊN KHỐI rồi tự khai triển thành food_id+grams nguyên
+        # liệu thô thật trong MenuDraft (RULE-1). Kho "food" tổng hợp theo
+        # món (`load_dish_food_repository`, mỗi món = 1 "food" mật độ pha
+        # loãng cả công thức) chỉ đúng cho generator chọn NGUYÊN món qua LLM
+        # (`gemini` thuần). Trộn lẫn 2 kho — dùng kho món-tổng-hợp làm nguồn
+        # "nguyên liệu thô" cho CP-SAT — khiến CP-SAT chọn lượng nhỏ của một
+        # "food" có mật độ đã pha loãng như thể là nguyên liệu rời, ra thực
+        # đơn thiếu năng lượng nghiêm trọng dù CP-SAT báo khả thi (phát hiện
+        # audit 2026-08-07 khi merge PR#57 dish-day-cap với PR#59 dish-repo).
         dish_foods = load_dish_food_repository()
-        graph = build_nutricare_graph(profiles=_DbProfileRepository(session, clinical_profile), foods=dish_foods)
+        raw_foods = load_food_repository()
+        uses_raw_candidates = get_settings().menu_generator in ("cpsat", "hybrid")
+        foods = raw_foods if uses_raw_candidates else dish_foods
+        graph = build_nutricare_graph(profiles=_DbProfileRepository(session, clinical_profile), foods=foods)
         result = graph.invoke({"patient_id": clinical_profile.patient_id, "trace_id": plan_id})
 
         plan.status = result.get("status") or "failed"
@@ -221,12 +237,22 @@ def _run_graph_and_persist(
             session.query(MealPlanItem).filter(MealPlanItem.plan_id == plan_id).delete()
             for slot, menu_items in draft.items.items():
                 for menu_item in menu_items:
-                    dish = dish_foods.dish_for_food_id(menu_item.food_id)
-                    if dish is None:
-                        raise ValueError(f"Generator returned unknown dish candidate {menu_item.food_id}")
-                    session.add(
-                        MealPlanItem(plan_id=plan_id, slot=slot.value, dish_id=dish.dish_id, grams=menu_item.grams)
-                    )
+                    # `dish_foods` chỉ khớp khi generator thật sự chọn NGUYÊN
+                    # món qua kho món-tổng-hợp (gemini thuần); CP-SAT/hybrid
+                    # trả food_id nguyên liệu thô thật (xem ghi chú ở trên) —
+                    # KHÔNG cưỡng ép map dish, lưu thẳng food_id khi không map
+                    # được thay vì raise (raise chỉ đúng khi foods=dish_foods).
+                    dish = dish_foods.dish_for_food_id(menu_item.food_id) if not uses_raw_candidates else None
+                    if dish is not None:
+                        session.add(
+                            MealPlanItem(plan_id=plan_id, slot=slot.value, dish_id=dish.dish_id, grams=menu_item.grams)
+                        )
+                    else:
+                        session.add(
+                            MealPlanItem(
+                                plan_id=plan_id, slot=slot.value, food_id=menu_item.food_id, grams=menu_item.grams
+                            )
+                        )
         session.commit()
     except Exception:
         # Biên ngoài cùng của 1 background task fire-and-forget: không có request

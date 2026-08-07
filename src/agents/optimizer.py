@@ -41,7 +41,16 @@ import math
 
 from ortools.sat.python import cp_model  # type: ignore[import-not-found]  # chưa có type stub
 
-from src.clinical.models import ClinicalTargets, FoodItem, MealSlot, MenuDraft, MenuItem, PatientProfile
+from src.clinical.models import (
+    ClinicalTargets,
+    DishCandidate,
+    FoodItem,
+    MealSlot,
+    MenuDraft,
+    MenuItem,
+    PatientProfile,
+)
+from src.clinical.nutrition import FoodRepository
 
 logger = logging.getLogger(__name__)
 
@@ -77,6 +86,17 @@ MAX_GRAMS_PER_ITEM = 300
 MIN_ITEMS_PER_SLOT = 1
 MAX_ITEMS_PER_SLOT = 5
 SOLVE_TIME_LIMIT_SECONDS = 30.0
+
+# Bug đã audit thực tế (2026-08-07): KHÔNG có ràng buộc này, cùng một nguyên
+# liệu (VD gừng) có thể được chọn MAX_GRAMS_PER_ITEM ở CẢ 4 bữa/ngày = 1200 g/
+# ngày — hợp lệ về toán ràng buộc dinh dưỡng nhưng vô lý lâm sàng/ẩm thực. Trần
+# này áp cho NGUYÊN LIỆU THÔ được CP-SAT tự chọn (không áp cho gram bên trong
+# một món `DishCandidate` — công thức món đã là tổ hợp cố định, tự nó không bị
+# lỗi "chọn lặp" này).
+MAX_GRAMS_PER_FOOD_PER_DAY = 400
+
+# Tối đa 1 món hoàn chỉnh (DishCandidate) mỗi bữa — một bữa không ăn 2 tô phở.
+MAX_DISHES_PER_SLOT = 1
 
 # CP-SAT chỉ nhận hệ số nguyên, nên giá trị/100 g phải làm tròn về bội của
 # 1/VALUE_SCALE. Nhân với VALUE_SCALE rồi làm tròn CÓ HƯỚNG (xem `_try_solve`)
@@ -119,7 +139,21 @@ class CPSATMenuOptimizer:
     generator biết đọc feedback: xem `HybridMenuGenerator` trong
     `src/agents/hybrid.py`. Tham số `feedback` giữ lại để tương thích Protocol,
     không phải bị bỏ sót.
+
+    `dishes`/`foods` là optional (mặc định None = hành vi cũ hệt trước đây,
+    chỉ ghép nguyên liệu thô) — dishes cần một `FoodRepository` ĐẦY ĐỦ (không
+    phải `candidates` đã bị lọc còn ~150 dòng curated) vì nguyên liệu của món
+    (`dish_ingredients.csv`) phần lớn tham chiếu khối USDA bulk (id ≥
+    `USDA_BULK_ID_THRESHOLD`) bị `retrieve_context` loại khỏi `candidates`.
     """
+
+    def __init__(
+        self,
+        dishes: list[DishCandidate] | None = None,
+        foods: FoodRepository | None = None,
+    ) -> None:
+        self._dishes = dishes or []
+        self._foods = foods
 
     def generate(
         self,
@@ -128,7 +162,8 @@ class CPSATMenuOptimizer:
         candidates: list[FoodItem],
         feedback: str | None,
     ) -> MenuDraft:
-        return _solve_day(candidates, targets)
+        eligible_dishes = _eligible_dishes(self._dishes, self._foods, profile) if self._foods else []
+        return _solve_day(candidates, targets, eligible_dishes, self._foods)
 
 
 def _active_nutrient_bounds(targets: ClinicalTargets) -> dict[str, tuple[float | None, float | None]]:
@@ -175,7 +210,62 @@ def _narrow_energy(
     return narrowed
 
 
-def _solve_day(candidates: list[FoodItem], targets: ClinicalTargets) -> MenuDraft:
+def _eligible_dishes(
+    dishes: list[DishCandidate],
+    foods: FoodRepository | None,
+    profile: PatientProfile,
+) -> list[DishCandidate]:
+    """Loại món có nguyên liệu không tra được, chứa dị ứng, hoặc bị dislike.
+
+    Không đoán thay: nguyên liệu không tra được trong `foods` → loại cả món
+    (RULE-2), không coi thiếu số liệu = 0.
+    """
+    if foods is None or not dishes:
+        return []
+    eligible: list[DishCandidate] = []
+    for dish in dishes:
+        if dish.name_vi.strip().lower() in profile.dislikes:
+            continue
+        resolved = [foods.get(ing.food_id) for ing in dish.ingredients]
+        if any(r is None for r in resolved):
+            continue
+        if any(a.lower() in profile.allergies for r in resolved for a in r.contains_allergens):  # type: ignore[union-attr]
+            continue
+        eligible.append(dish)
+    return eligible
+
+
+def _dish_nutrient_totals(
+    dish: DishCandidate,
+    foods: FoodRepository,
+    bounds: dict[str, tuple[float | None, float | None]],
+) -> dict[str, float] | None:
+    """Tổng dinh dưỡng CẢ MÓN (không phải /100g) cho các field đang bị ràng buộc.
+
+    Trả None khi một nguyên liệu thiếu số liệu của field optional đang bị ràng
+    buộc (RULE-2/DEC-008, giống `_eligible_candidates`) — món đó bị loại khỏi
+    lần giải có ràng buộc trên chính chất đó.
+    """
+    totals: dict[str, float] = dict.fromkeys(bounds, 0.0)
+    for ing in dish.ingredients:
+        food = foods.get(ing.food_id)
+        if food is None:
+            return None
+        factor = ing.grams / 100.0
+        for field in bounds:
+            value = getattr(food, field)
+            if field in _OPTIONAL_FIELDS and value is None:
+                return None
+            totals[field] += (value or 0.0) * factor
+    return totals
+
+
+def _solve_day(
+    candidates: list[FoodItem],
+    targets: ClinicalTargets,
+    dishes: list[DishCandidate] | None = None,
+    foods: FoodRepository | None = None,
+) -> MenuDraft:
     """Giải cả 4 bữa trong MỘT model; ràng buộc dinh dưỡng đặt trên tổng ngày.
 
     Giải theo HAI PHA, cả hai đều là bài toán *khả thi* (feasibility) thuần —
@@ -208,6 +298,15 @@ def _solve_day(candidates: list[FoodItem], targets: ClinicalTargets) -> MenuDraf
     if not eligible:
         return MenuDraft()
 
+    # Tổng dinh dưỡng mỗi món hoàn chỉnh — tính MỘT LẦN (không đổi giữa 2 pha,
+    # vì `_narrow_energy` chỉ siết khoảng kcal, không đổi tập field bị ràng buộc).
+    dish_totals: list[tuple[DishCandidate, dict[str, float]]] = []
+    if foods is not None:
+        for dish in dishes or []:
+            totals = _dish_nutrient_totals(dish, foods, bounds)
+            if totals is not None:
+                dish_totals.append((dish, totals))
+
     attempts: list[dict[str, tuple[float | None, float | None]]] = []
     narrowed = _narrow_energy(bounds)
     if narrowed is not None:
@@ -215,7 +314,7 @@ def _solve_day(candidates: list[FoodItem], targets: ClinicalTargets) -> MenuDraf
     attempts.append(bounds)
 
     for attempt in attempts:
-        draft = _try_solve(eligible, attempt)
+        draft = _try_solve(eligible, attempt, dish_totals)
         if draft is not None:
             return draft
     return MenuDraft()
@@ -224,8 +323,10 @@ def _solve_day(candidates: list[FoodItem], targets: ClinicalTargets) -> MenuDraf
 def _try_solve(
     eligible: list[FoodItem],
     bounds: dict[str, tuple[float | None, float | None]],
+    dish_totals: list[tuple[DishCandidate, dict[str, float]]] | None = None,
 ) -> MenuDraft | None:
     """Một lần giải khả thi. Trả None khi vô nghiệm (để caller thử pha kế tiếp)."""
+    dish_totals = dish_totals or []
     model = cp_model.CpModel()
     max_units = MAX_GRAMS_PER_ITEM // GRAM_STEP
 
@@ -240,11 +341,33 @@ def _try_solve(
             model.add(units[key] > 0).only_enforce_if(chosen[key])
             model.add(units[key] == 0).only_enforce_if(chosen[key].negated())
 
-    # Số món mỗi bữa — ràng buộc DUY NHẤT còn theo bữa, để không dồn hết một chỗ.
+    # Biến cho từng cặp (bữa, món hoàn chỉnh): chọn cả món hay không — món là tổ
+    # hợp nguyên liệu CỐ ĐỊNH (không stepping theo GRAM_STEP như nguyên liệu thô).
+    dish_chosen: dict[tuple[MealSlot, str], cp_model.BoolVarT] = {}
+    for slot in _SLOTS:
+        for dish, _totals in dish_totals:
+            dish_chosen[(slot, dish.dish_id)] = model.new_bool_var(f"dish_{slot.value}_{dish.dish_id}")
+
+    # Số món mỗi bữa (nguyên liệu rời + món hoàn chỉnh cùng tính) — ràng buộc
+    # DUY NHẤT còn theo bữa, để không dồn hết một chỗ.
     for slot in _SLOTS:
         in_slot = [chosen[(slot, f.id)] for f in eligible]
+        in_slot += [dish_chosen[(slot, d.dish_id)] for d, _t in dish_totals]
         model.add(sum(in_slot) >= MIN_ITEMS_PER_SLOT)
         model.add(sum(in_slot) <= MAX_ITEMS_PER_SLOT)
+
+    # Tối đa 1 món hoàn chỉnh mỗi bữa — một bữa không ăn 2 tô phở.
+    for slot in _SLOTS:
+        if dish_totals:
+            model.add(sum(dish_chosen[(slot, d.dish_id)] for d, _t in dish_totals) <= MAX_DISHES_PER_SLOT)
+
+    # Trần tổng gram/ngày cho MỖI nguyên liệu thô (audit 2026-08-07: thiếu ràng
+    # buộc này khiến CP-SAT có thể chọn cùng 1 nguyên liệu ở cả 4 bữa, VD gừng
+    # 300g×4 = 1200g/ngày — hợp lệ về toán nhưng vô lý lâm sàng/ẩm thực). KHÔNG
+    # áp cho gram bên trong món hoàn chỉnh — công thức món đã là tổ hợp cố định.
+    max_food_units_per_day = MAX_GRAMS_PER_FOOD_PER_DAY // GRAM_STEP
+    for food in eligible:
+        model.add(sum(units[(slot, food.id)] for slot in _SLOTS) <= max_food_units_per_day)
 
     # Ràng buộc dinh dưỡng trên TỔNG cả ngày.
     # Tổng thật = Σ gram × (giá trị/100 g) / 100. Nhân cả hai vế với
@@ -258,6 +381,9 @@ def _try_solve(
     # Ngưỡng còn siết thêm SUMMARY_ROUND_MARGIN để bù việc compute_nutrition làm
     # tròn tổng về 2 chữ số. Nutrient có cả min lẫn max (carb, kcal) cần hai biểu
     # thức riêng vì hai hướng làm tròn khác nhau.
+    #
+    # Món hoàn chỉnh đóng góp CẢ TỔNG (không nhân gram/GRAM_STEP như nguyên
+    # liệu thô) vì `dish_chosen` là biến 0/1 trên toàn bộ công thức món.
     scale = 100 * VALUE_SCALE
     for field, (lo, hi) in bounds.items():
         if hi is not None:
@@ -266,12 +392,22 @@ def _try_solve(
                 for slot in _SLOTS
                 for f in eligible
             )
+            total_ceil += sum(
+                dish_chosen[(slot, d.dish_id)] * math.ceil(totals[field] * scale)
+                for slot in _SLOTS
+                for d, totals in dish_totals
+            )
             model.add(total_ceil <= math.floor((hi - SUMMARY_ROUND_MARGIN) * scale))
         if lo is not None:
             total_floor = sum(
                 units[(slot, f.id)] * GRAM_STEP * math.floor(getattr(f, field) * VALUE_SCALE)
                 for slot in _SLOTS
                 for f in eligible
+            )
+            total_floor += sum(
+                dish_chosen[(slot, d.dish_id)] * math.floor(totals[field] * scale)
+                for slot in _SLOTS
+                for d, totals in dish_totals
             )
             model.add(total_floor >= math.ceil((lo + SUMMARY_ROUND_MARGIN) * scale))
 
@@ -293,11 +429,17 @@ def _try_solve(
 
     items: dict[MealSlot, list[MenuItem]] = {}
     for slot in _SLOTS:
-        picked = [
-            MenuItem(food_id=f.id, grams=solver.Value(units[(slot, f.id)]) * GRAM_STEP)
-            for f in eligible
-            if solver.Value(units[(slot, f.id)]) > 0
-        ]
-        if picked:
-            items[slot] = picked
+        # gram theo food_id — gộp nguyên liệu thô + nguyên liệu bên trong món
+        # hoàn chỉnh cùng food_id (hiếm nhưng có thể xảy ra) thành một dòng.
+        grams_by_food: dict[int, float] = {}
+        for f in eligible:
+            g = solver.Value(units[(slot, f.id)]) * GRAM_STEP
+            if g > 0:
+                grams_by_food[f.id] = grams_by_food.get(f.id, 0.0) + g
+        for dish, _totals in dish_totals:
+            if solver.Value(dish_chosen[(slot, dish.dish_id)]):
+                for ing in dish.ingredients:
+                    grams_by_food[ing.food_id] = grams_by_food.get(ing.food_id, 0.0) + ing.grams
+        if grams_by_food:
+            items[slot] = [MenuItem(food_id=fid, grams=g) for fid, g in grams_by_food.items()]
     return MenuDraft(items=items)
