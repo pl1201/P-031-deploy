@@ -489,7 +489,7 @@ graph LR
 | Mã hoá | TLS trên đường truyền; cột nhạy cảm dùng `pgcrypto` hoặc mã hoá tầng ứng dụng |
 | Logging | Logger có filter tự động che PII; **cấm `print()`** |
 | Audit | `audit_log` append-only, không có endpoint DELETE |
-| Dữ liệu | **100% mô phỏng.** Seed script sinh dữ liệu giả, ghi rõ trong README |
+| Dữ liệu | NHANES 2021–2023 public-use, de-identified được phép cho dev/test; benchmark eval vẫn là synthetic; cấm SEQN/PII trong prompt và log |
 | Tuân thủ | Tham chiếu Nghị định 13/2023/NĐ-CP. **Không tuyên bố "HIPAA compliant"** — chỉ nói "thiết kế theo nguyên tắc tối thiểu hoá dữ liệu" |
 
 ---
@@ -601,7 +601,7 @@ graph TB
 - ❌ Không chẩn đoán bệnh
 - ❌ Không kê đơn, không điều chỉnh liều thuốc
 - ❌ Không thay thế bác sĩ hay chuyên gia dinh dưỡng
-- ❌ Không xử lý dữ liệu bệnh nhân thật ở phiên bản này
+- ❌ Không xử lý dữ liệu định danh hoặc dữ liệu bệnh nhân Việt Nam thật; NHANES public-use chỉ dùng trong phạm vi nghiên cứu/dev/test đã công bố
 - ❌ Không tự động phát hành thực đơn khi chưa có người duyệt
 
 > Liệt kê rõ ràng những gì mình *không* làm là dấu hiệu của một đội hiểu bài toán y tế. Đưa slide này vào pitch deck.

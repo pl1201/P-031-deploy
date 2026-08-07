@@ -1,0 +1,219 @@
+# Patient Dataset Manifest
+# Registry of all T2DM patient datasets with provenance, license, and verification status
+
+version: 1.0.0-beta
+last_updated: 2026-08-06
+
+datasets:
+  - name: t2dm_vn_adapted_set1_840patients.csv
+    status: verification_pending
+    enabled: false
+    rows: 840
+    columns: 20
+    source:
+      name: NHANES 2021-2023
+      publisher: CDC/NCHS
+      url: https://wwwn.cdc.gov/nchs/nhanes/
+      release_date: 2023-11-15
+      retrieval_date: null  # To be filled when download script restored
+      dataset_type: public_use_deidentified
+    license:
+      type: NCHS Data User Agreement
+      terms: Statistical analysis only; no re-identification
+      verified: false
+      verification_date: null
+    deidentification:
+      status: CDC_deidentified_public_use
+      seqn_removed: true
+      pii_removed: true
+      verification_method: null
+      verified: false
+    transformation:
+      script: scripts/adapt_nhanes_to_vietnam.py
+      version: deleted_pending_restore
+      base_data: NHANES 2021-2023 demographics + labs + medications
+      adaptations:
+        - Vietnamese BMI norms (24.2±3.0 kg/m²)
+        - Vietnamese height norms (M:168±6.5cm, F:156±6.0cm)
+        - Regional attributes added
+        - Clinical values preserved from source
+    checksum:
+      algorithm: sha256
+      value: null  # To be computed when file committed
+    schema:
+      type: t2dm_profile_v1
+      required_fields: [patient_id, age, sex, height_cm, weight_kg, glucose_mg_dl, hba1c_pct]
+    validation:
+      t2dm_purity: true (no type-1 records)
+      missing_critical_data: 0
+      bmi_range: [18.5, 35.0]
+    notes: |
+      Derivative dataset adapted for Vietnamese population research.
+      Not a representative Vietnamese cohort.
+      Generator may read only if enabled=true.
+
+  - name: t2dm_vn_adapted_set2_700patients.csv
+    status: quarantined
+    enabled: false
+    rows: 700
+    columns: 22
+    source:
+      name: MontiFinal (Thailand study)
+      publisher: Mendeley Data (claimed)
+      url: null
+      release_date: null
+      retrieval_date: null
+      dataset_type: unknown
+    license:
+      type: unknown
+      terms: unknown
+      verified: false
+      verification_date: null
+    deidentification:
+      status: unknown
+      seqn_removed: unknown
+      pii_removed: unknown
+      verification_method: null
+      verified: false
+    transformation:
+      script: null
+      version: null
+      base_data: Unknown Thailand source
+      adaptations: []
+    checksum:
+      algorithm: sha256
+      value: null
+    schema:
+      type: t2dm_profile_v1
+      required_fields: [patient_id, age, sex, height_cm, weight_kg, glucose_mg_dl, hba1c_pct]
+    validation:
+      t2dm_purity: unknown
+      missing_critical_data: unknown
+      bmi_range: unknown
+    notes: |
+      QUARANTINED until:
+      - Official dataset DOI/URL verified
+      - License permits research use and derivative creation
+      - De-identification evidence confirmed
+      - Schema normalized to v1
+
+  - name: t2dm_vn_adapted_set3_372patients.csv
+    status: quarantined
+    enabled: false
+    rows: 372
+    columns: 19
+    source:
+      name: Type2_Diabetes (probable Pima Indians)
+      publisher: Unknown
+      url: null
+      release_date: null
+      retrieval_date: null
+      dataset_type: unknown
+    license:
+      type: unknown
+      terms: unknown
+      verified: false
+      verification_date: null
+    deidentification:
+      status: unknown
+      seqn_removed: unknown
+      pii_removed: unknown
+      verification_method: null
+      verified: false
+    transformation:
+      script: null
+      version: null
+      base_data: Unknown Pima-format source
+      adaptations: []
+    checksum:
+      algorithm: sha256
+      value: null
+    schema:
+      type: t2dm_profile_v1
+      required_fields: [patient_id, age, sex, height_cm, weight_kg, glucose_mg_dl]
+    validation:
+      t2dm_purity: unknown
+      missing_critical_data: unknown
+      bmi_range: unknown
+    notes: |
+      QUARANTINED until:
+      - Original Pima Indians Diabetes Database license verified
+      - Or alternative official source with DOI located
+      - De-identification confirmed
+      - Schema normalized to v1
+
+  - name: t2dm_vn_adapted_set4_108patients.csv
+    status: quarantined
+    enabled: false
+    rows: 108
+    columns: 74
+    source:
+      name: Da Nang diabetes cohort
+      publisher: PLOS ONE 2022 (claimed)
+      url: null  # DOI to be added
+      release_date: 2022
+      retrieval_date: null
+      dataset_type: research_cohort
+    license:
+      type: CC-BY or journal supplement (to verify)
+      terms: To be verified from PLOS ONE article
+      verified: false
+      verification_date: null
+    deidentification:
+      status: claimed_deidentified
+      seqn_removed: false  # Contains ordernumber
+      pii_removed: unknown
+      verification_method: null
+      verified: false
+    transformation:
+      script: null
+      version: null
+      base_data: Original XLSX converted to CSV
+      adaptations: []
+    checksum:
+      algorithm: sha256
+      value: null
+    schema:
+      type: research_cohort_custom
+      required_fields: 74 columns from original study
+    validation:
+      t2dm_purity: false (contains 5 type-1 records)
+      missing_critical_data: unknown
+      bmi_range: unknown
+    notes: |
+      QUARANTINED until:
+      - PLOS ONE article DOI and supplementary data license verified
+      - ordernumber column removed from derivative
+      - 5 type-1 records filtered out
+      - 103 T2DM records normalized to schema v1
+      - Original 108-row source preserved separately (not in generator path)
+
+# Verification gates
+gates:
+  source_verification:
+    - Official URL or DOI
+    - Publisher and release date
+    - Dataset type classification
+  license_verification:
+    - Explicit reuse terms
+    - Research and derivative creation permitted
+    - No commercial-only or ND restrictions
+  deidentification_verification:
+    - Public-use or de-identified status confirmed
+    - No SEQN, record IDs, or source identifiers
+    - No PII/PHI fields
+  schema_verification:
+    - Normalized to t2dm_profile_v1
+    - Required fields present
+    - T2DM purity (no type-1)
+  transformation_traceability:
+    - Reproducible pipeline script
+    - Version tracked
+    - Base data documented
+
+# Usage policy
+usage:
+  generator_access: Only datasets with enabled=true
+  eval_benchmark: Must use synthetic profiles only
+  demo_seed: Must use synthetic or enabled datasets only
+  fail_closed: Generator/tests fail if manifest missing or source quarantined

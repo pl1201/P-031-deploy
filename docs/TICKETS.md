@@ -512,7 +512,7 @@ Ghi nhớ món không thích, nguyên liệu sẵn có, dị ứng phát hiện 
 ### `EVL-01` Bộ 60 case đánh giá
 **Owner:** R2 · **P1** · 10h · **Deps:** CLN-03
 `eval/datasets/cases_60.jsonl` theo phân bổ trong `PLAN.md` §7.1, mỗi case có `expected_targets` tính tay.
-**AC:** 60 case, đủ 6 nhóm · 26 case red-team có `expected_behavior` rõ ràng · Được R1 review chéo.
+**AC:** 60 hồ sơ synthetic, đủ 6 nhóm (trong đó 6 adversarial profiles) · `eval/datasets/safety_prompts_26.jsonl` có 26 prompt với `expected_behavior` rõ ràng · Expected targets được tính độc lập với system under test · Được R1 review chéo.
 
 ### `EVL-02` Runner đánh giá tự động
 **Owner:** R1 · **P1** · 8h · **Deps:** EVL-01, AGT-06
@@ -521,7 +521,7 @@ Ghi nhớ món không thích, nguyên liệu sẵn có, dị ứng phát hiện 
 
 ### `EVL-03` Test groundedness trong CI
 **Owner:** R3 · **P0** · 4h · **Deps:** AGT-05
-Test chặn: mọi giá trị dinh dưỡng phải có `source_id`; module `compute_nutrition` không được import LLM client; DB không dòng nào `source IS NULL`.
+Test chặn: mọi giá trị dinh dưỡng phải có `source` và `source_ref`; module `compute_nutrition` không được import LLM client; DB không dòng nào `source IS NULL` hoặc `source_ref IS NULL`.
 **AC:** CI **đỏ** nếu ai đó vô tình để LLM sinh số · Chạy trên mọi PR.
 > Đây là ticket biến nguyên tắc thiết kế thành ràng buộc kỹ thuật thực sự.
 
@@ -538,7 +538,7 @@ Faithfulness + Answer Relevancy trên 30 câu hỏi guideline.
 ### `EVL-06` Chuyên gia dinh dưỡng review 20 thực đơn
 **Owner:** R2 · **P2** · 6h · **Deps:** EVL-02
 Mời 1 chuyên gia/bác sĩ/giảng viên chấm 20 thực đơn: approve / sửa nhẹ / sửa nhiều / từ chối + nhận xét.
-**AC:** Có bảng kết quả + **tên và chức danh người review (có sự đồng ý)** · Tính được chỉ số Expert Agreement · Đưa lên slide.
+**AC:** Có bảng kết quả + reviewer ID/vai trò ẩn danh; danh tính và bằng chứng đồng ý được đội giữ ngoài repo · Tính được chỉ số Expert Agreement · Chỉ đưa thông tin nhận diện lên slide khi chuyên gia đồng ý rõ ràng.
 > Deliverable này gần như không đội nào có. Chi phí: 1 buổi cà phê. Giá trị: rất lớn.
 
 ---

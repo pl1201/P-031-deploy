@@ -193,7 +193,7 @@ Quy tắc: chỉ **1 ticket In Progress** mỗi người · vướng > 90 phút 
 | "Làm sao chống hallucination?" | R1 | Kiến trúc 4 tầng; LLM không sinh số |
 | "Số liệu dinh dưỡng lấy đâu?" | R2 | NIN + USDA, mỗi dòng có nguồn, món lạ gắn nhãn ước tính |
 | "Nếu AI sai thì sao?" | R1/R2 | Fail closed + HITL + audit log; nói rõ hệ thống KHÔNG làm gì |
-| "Dùng dữ liệu bệnh nhân thật không?" | R3 | Không, 100% mô phỏng |
+| "Dùng dữ liệu bệnh nhân thật không?" | R3 | Dev/test dùng NHANES public-use đã de-identify; eval là synthetic; không dùng dữ liệu định danh hay SEQN |
 | "Chi phí mỗi request?" | R3 | Số đo thật từ LangSmith |
 | "Scale 1000 user?" | R3 | Trả lời thật: chưa scale, nêu hướng (queue, cache, batch) |
 | "Sao chọn LangGraph mà không CrewAI?" | R1 | Cần state machine có interrupt để làm HITL |

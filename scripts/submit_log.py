@@ -106,7 +106,7 @@ def main():
 
     entries = []
     leftover_lines = []
-    with open(pending, encoding="utf-8") as f:
+    with open(pending, encoding="utf-8", errors="replace") as f:
         for line in f:
             stripped = line.strip()
             if not stripped:

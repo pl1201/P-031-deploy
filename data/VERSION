@@ -1,0 +1,48 @@
+# Data Version Manifest
+# Updated whenever patient datasets, seeds, or transformation scripts change
+
+version: 1.0.0-beta
+generated_at: 2026-08-06T18:30:00+07:00
+transformation_schema: v1
+
+# Patient datasets status
+patient_datasets:
+  t2dm_vn_adapted_set1_840patients.csv:
+    status: verification_pending
+    source: NHANES 2021-2023
+    rows: 840
+    enabled: false
+    notes: Provenance metadata incomplete; NCHS DUA verification pending
+
+  t2dm_vn_adapted_set2_700patients.csv:
+    status: quarantined
+    source: Thailand/Mendeley (unverified)
+    rows: 700
+    enabled: false
+    notes: License and de-identification not verified
+
+  t2dm_vn_adapted_set3_372patients.csv:
+    status: quarantined
+    source: Probable Pima Indians (unverified)
+    rows: 372
+    enabled: false
+    notes: No DOI or license found
+
+  t2dm_vn_adapted_set4_108patients.csv:
+    status: quarantined
+    source: Da Nang study (partial verification)
+    rows: 108
+    enabled: false
+    notes: Contains 5 type-1 records; normalization and DOI verification pending
+
+# Seed data version
+seeds:
+  food_items: v2.1 (7315 rows, 7293 with nutrition data)
+  clinical_rules: v1.0 (21 rules, all to_verify status)
+  drug_food_interactions: v1.0 (30 pairs)
+  gi_values: v1.0 (28 entries)
+  purine_values: v1.0 (19 entries)
+  usda_values: v1.0 (23 dishes)
+
+# Transformation scripts
+# When restoring reproducibility pipeline, list active scripts and their versions here

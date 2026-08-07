@@ -183,7 +183,7 @@ Tạo file `.github/CODEOWNERS`:
 | "Làm sao chống hallucination?" | R1 | Kiến trúc 4 tầng; LLM không sinh số |
 | "Số liệu dinh dưỡng lấy ở đâu?" | R2 | NIN + USDA, mỗi dòng có nguồn, món lạ gắn nhãn ước tính |
 | "Nếu AI sai thì sao?" | R1 hoặc R2 | Fail closed + HITL + audit log; và nói thẳng những gì hệ thống không làm |
-| "Có dùng dữ liệu bệnh nhân thật không?" | R3 | Không, 100% mô phỏng, thiết kế tối thiểu hoá dữ liệu |
+| "Có dùng dữ liệu bệnh nhân thật không?" | R3 | Dev/test dùng NHANES public-use đã de-identify; eval là synthetic; không dùng dữ liệu định danh hay SEQN |
 | "Chi phí mỗi request?" | R5 | Có số đo thật từ LangSmith |
 | "Scale 1000 user thì sao?" | R5 | Trả lời thật: hiện chưa scale, và nêu hướng (queue, cache targets, batch) |
 | "Tại sao LangGraph mà không CrewAI?" | R1 | Cần state machine có interrupt để làm HITL — đây đúng là điểm mạnh của LangGraph |

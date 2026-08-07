@@ -264,4 +264,22 @@ Mọi script đều có `--dry-run` và idempotent (chạy lại nhiều lần k
 
 ## Dữ liệu bệnh nhân
 
-**100% mô phỏng.** Không đưa dữ liệu bệnh nhân thật vào repo, DB hay prompt — kể cả đã ẩn danh, kể cả trong file test. Seed bệnh nhân dùng tên rõ ràng là giả (`BN-DEMO-01`) nhưng chỉ số lâm sàng phải hợp lý để demo thuyết phục. R2 chịu trách nhiệm về tính hợp lý này.
+PRD v2.2 cho phép dùng NHANES 2021–2023 public-use, de-identified cho phát triển và kiểm thử theo NCHS Data User Agreement. Không được tái định danh, không đưa SEQN/PII/PHI vào UI, DB ứng dụng, prompt hoặc log, và không tuyên bố NHANES đại diện dân số Việt Nam.
+
+Bộ benchmark trong `eval/datasets/` và demo seed bệnh nhân vẫn phải là dữ liệu mô phỏng, được đánh dấu rõ (`synthetic=true` hoặc ID `BN-DEMO-*`). Expected output của benchmark phải được tính và review độc lập với system under test.
+
+### Nguồn nghiên cứu cho hồ sơ mô phỏng ĐTĐ2
+
+Các hồ sơ mô phỏng trong `seeds/synthetic_t2dm_profiles_*.json` được sinh dựa trên **phân bố thống kê** học từ:
+
+- **NHANES August 2021–August 2023** (CDC/NCHS)
+- Phương pháp: Tải dữ liệu thật về máy local (ngoài repo) → phân tích phân bố có survey weights → sinh hồ sơ mô phỏng độc lập
+- Dữ liệu cấp bản ghi chỉ được lưu/commit khi nguồn, license, de-identification và phạm vi sử dụng đã được xác minh; SEQN và mã định danh nguồn không được phát hành. Eval chỉ lưu hồ sơ mô phỏng có `synthetic=true`.
+
+**Pipeline chi tiết:**
+1. `scripts/download_nhanes_2021_2023.py` — tải 8 file XPT với checksum
+2. `scripts/build_nhanes_2021_2023_cohort.py` — ghép files, lọc probable T2DM
+3. `scripts/analyze_nhanes_distributions.py` — tính phân bố có survey weights
+4. `scripts/generate_synthetic_t2dm_profiles.py` — sinh hồ sơ mô phỏng
+
+Xem `docs/DATA_SYNTHESIS.md` để biết chi tiết về nguồn dữ liệu, heuristic lọc T2DM, phương pháp sinh mô phỏng, và limitation.

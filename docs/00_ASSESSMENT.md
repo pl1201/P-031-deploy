@@ -121,7 +121,7 @@ Nghiên cứu trích dẫn nhiều số liệu ấn tượng. Trước khi đưa
 
 ## 7. Rủi ro pháp lý & đạo đức (phải nói rõ trong demo)
 
-1. **Dữ liệu bệnh nhân phải là dữ liệu mô phỏng 100%.** Không lấy hồ sơ thật, kể cả đã ẩn danh, kể cả từ người quen. Đề bài đã ghi "(mô phỏng)".
+1. **Ghi chú lịch sử:** đánh giá ngày 26/07 yêu cầu dữ liệu mô phỏng 100%. Chính sách hiện hành tại PRD v2.2 cho phép NHANES 2021–2023 public-use, de-identified cho dev/test; benchmark eval vẫn phải synthetic và không chứa SEQN/PII. Không dùng hồ sơ từ người quen hoặc dữ liệu định danh.
 2. **Không chẩn đoán, không kê chế độ điều trị.** Agent phải từ chối các câu như "tôi bị gì?", "có nên bỏ thuốc không?", "liều insulin bao nhiêu?" → chuyển hướng sang chuyên gia. Đây là guardrail bắt buộc, cần test case riêng.
 3. **Disclaimer hiển thị ở mọi nơi có thực đơn** (UI + PDF export + API response).
 4. **Nếu có chuyên gia dinh dưỡng thật tham gia review** → là điểm cộng cực lớn cho pitch. Nên chủ động mời 1 người (giảng viên/bác sĩ quen) review 20 thực đơn và ký xác nhận. Ticket EVL-06.

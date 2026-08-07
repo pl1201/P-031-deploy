@@ -1,8 +1,8 @@
 # Product Requirements Document (PRD) - VNutriCare
 
 > **Đề bài:** VMEC-10 - AI20K Build Cohort 3  
-> **Phiên bản:** 2.1  
-> **Phạm vi:** MVP 6 tuần, 100% hồ sơ bệnh nhân mô phỏng  
+> **Phiên bản:** 2.2  
+> **Phạm vi:** MVP 6 tuần, sử dụng dữ liệu thực tế từ nguồn công khai (NHANES 2021-2023) để phát triển và kiểm thử  
 > **Bệnh lý trọng tâm:** Đái tháo đường type 2 (ĐTĐ2)  
 > **Nguồn yêu cầu chính:** `KeHoachDuAn_VNutriCare_VMEC10_v3.docx`
 
@@ -10,7 +10,7 @@
 
 PRD này xác định sản phẩm sẽ làm gì trong MVP: danh sách tính năng, luồng dữ liệu, tiêu chí nghiệm thu, yêu cầu phi chức năng, ràng buộc an toàn và phần để lại cho các phiên bản sau.
 
-Đây không phải guideline điều trị và không thay thế quyết định của bác sĩ. MVP chỉ được đánh giá trên dữ liệu mô phỏng, không được tuyên bố hiệu quả lâm sàng trên bệnh nhân thật.
+Đây không phải guideline điều trị và không thay thế quyết định của bác sĩ. MVP sử dụng dữ liệu bệnh nhân thực tế đã được công khai (de-identified) từ nguồn nghiên cứu có uy tín để phát triển và kiểm thử hệ thống, nhưng không được tuyên bố hiệu quả lâm sàng trên bệnh nhân thật.
 
 ## 2. Tổng quan sản phẩm
 
@@ -27,12 +27,9 @@ PRD này xác định sản phẩm sẽ làm gì trong MVP: danh sách tính nă
 
 MVP **tập trung vào đái tháo đường type 2** với các rule carbohydrate, GI/GL, phân bổ bữa ăn và HbA1c trong phạm vi nghiệm thu.
 
-MVP không tự động lập phác đồ dinh dưỡng điều trị CKD, gout, tăng huyết áp nặng hoặc đa bệnh lý phức tạp. Nếu hồ sơ có bệnh đồng mắc hoặc dấu hiệu có thể làm thay đổi chế độ ĐTĐ2 thông thường, hệ thống phải:
+MVP không xây tính năng điều trị mới chuyên biệt cho CKD, gout, tăng huyết áp nặng hoặc đa bệnh lý phức tạp. Cơ chế đa bệnh lý hiện có vẫn áp dụng các rule đã được xác minh và chọn ngưỡng nghiêm ngặt hơn theo DEC-014; không gắn cờ chỉ vì hồ sơ có bệnh đồng mắc.
 
-1. gắn cờ `needs_expert_review`;
-2. không tự kết luận thực đơn an toàn;
-3. hiển thị lý do chuyển chuyên gia;
-4. không kích hoạt rule điều trị bệnh ngoài phạm vi.
+Hệ thống chỉ gắn `needs_expert_review`, không tự kết luận thực đơn an toàn và hiển thị rõ lý do khi rule thật sự xung đột (`min > max`, dải khả thi quá hẹp), rule bị vô hiệu bởi cờ an toàn, hoặc dữ liệu bắt buộc còn thiếu/chưa xác minh. Rule ngoài phạm vi chưa được xác minh không được kích hoạt như phác đồ điều trị.
 
 ## 3. Vấn đề cần giải quyết
 
@@ -59,7 +56,6 @@ LLM có thể tạo thực đơn tự nhiên nhưng không đủ tin cậy để
 - Không thay thế bác sĩ/chuyên gia dinh dưỡng.
 - Không điều trị tăng huyết áp nặng, CKD, gout hoặc đa bệnh lý phức tạp trong MVP.
 - Không chứng minh hệ thống làm giảm HbA1c hoặc biến chứng ĐTĐ2.
-- Không sử dụng dữ liệu bệnh nhân thật.
 - Không ước tính dinh dưỡng trực tiếp từ ảnh.
 - Không kết nối wearable, HealthKit, Health Connect, CGM hoặc bệnh án điện tử.
 - Không fine-tune mô hình từ đầu.
@@ -106,7 +102,11 @@ LLM có thể tạo thực đơn tự nhiên nhưng không đủ tin cậy để
 | Tương tác thuốc | Danh mục curated theo hoạt chất | Cảnh báo trước khi duyệt | Có nguồn, mức độ, cơ chế và hành động cho từng cặp |
 | Guideline văn bản | Tài liệu chính thống đã ingest | RAG để giải thích | Không dùng RAG để tính số dinh dưỡng |
 
-### 6.2. Hồ sơ bệnh nhân mô phỏng v1
+### 6.2. Hồ sơ bệnh nhân v1
+
+**Nguồn dữ liệu:** NHANES (National Health and Nutrition Examination Survey) 2021-2023, dữ liệu công khai đã được de-identified từ CDC/NCHS.
+
+**Cách sử dụng:** Dữ liệu thực tế được sử dụng để phát triển, kiểm thử và đánh giá hệ thống trong giai đoạn nghiên cứu. Dữ liệu này tuân thủ NCHS Data User Agreement và chỉ được dùng cho mục đích phân tích thống kê, không được tái định danh.
 
 Các trường cần thu thập:
 
@@ -146,9 +146,9 @@ Không hỏi tổng thu nhập gia đình. Sản phẩm chỉ cần ngân sách 
 - Chỉ chuyên gia được duyệt/từ chối.
 - Truy cập trái quyền trả lỗi phù hợp và có security log không chứa secret.
 
-### FR-02. Quản lý hồ sơ mô phỏng
+### FR-02. Quản lý hồ sơ
 
-**Mô tả:** chuyên gia tạo hồ sơ nền; bệnh nhân/người chăm sóc bổ sung sở thích trong phạm vi cho phép.
+**Mô tả:** chuyên gia tạo hồ sơ nền từ dữ liệu NHANES hoặc nhập thủ công; bệnh nhân/người chăm sóc bổ sung sở thích trong phạm vi cho phép.
 
 **Luồng:** form -> kiểm tra schema/đơn vị -> chuẩn hóa tên thuốc -> lưu phiên bản -> audit event.
 
@@ -158,7 +158,7 @@ Không hỏi tổng thu nhập gia đình. Sản phẩm chỉ cần ngân sách 
 - HbA1c/đường huyết có đơn vị, thời điểm và nguồn.
 - Biệt dược phải được ánh xạ sang hoạt chất và xác nhận; không ghép được thì chuyển review.
 - Hồ sơ có bệnh ngoài phạm vi được gắn `needs_expert_review`.
-- Mọi hồ sơ demo có nhãn `synthetic`, không chứa PII thật.
+- Hồ sơ từ NHANES giữ nguyên trạng thái de-identified, không chứa SEQN hoặc định danh cá nhân trong giao diện người dùng.
 
 ### FR-03. Tính định mức xác định
 
@@ -330,10 +330,11 @@ Không hỏi tổng thu nhập gia đình. Sản phẩm chỉ cần ngân sách 
 
 ### NFR-03. Bảo mật và riêng tư
 
-- MVP chỉ dùng dữ liệu mô phỏng; RBAC và least privilege.
+- MVP sử dụng dữ liệu NHANES đã được de-identified từ CDC/NCHS, tuân thủ NCHS Data User Agreement.
+- RBAC và least privilege cho mọi truy cập dữ liệu.
 - TLS khi truyền; secret qua biến môi trường/secret manager.
-- Không đưa thông tin định danh vào prompt/log.
-- Trước pilot dữ liệu thật phải có đồng ý, đánh giá đạo đức và tuân thủ Nghị định 13/2023/NĐ-CP.
+- Không đưa SEQN hoặc thông tin định danh vào prompt/log.
+- Trước pilot dữ liệu bệnh nhân thực tế tại Việt Nam phải có đồng ý, đánh giá đạo đức và tuân thủ Nghị định 13/2023/NĐ-CP.
 
 ### NFR-04. Hiệu năng và độ tin cậy
 
@@ -369,7 +370,7 @@ Kết quả thực tế phải ghi tại `eval/results/report.md`, gồm cỡ m�
 
 ### 11.1. V1 bắt buộc
 
-- Hồ sơ mô phỏng và RBAC.
+- Hồ sơ từ NHANES 2021-2023 và RBAC.
 - Clinical core ĐTĐ2 với rule carbohydrate, GI/GL và phân bổ bữa ăn.
 - Food DB có nguồn, ưu tiên carbohydrate/cơm/bún/phở/bánh.
 - Menu một ngày, compute, validate và retry.
@@ -395,7 +396,7 @@ Kết quả thực tế phải ghi tại `eval/results/report.md`, gồm cỡ m�
 
 | Tuần | Kết quả bắt buộc |
 |---|---|
-| 1 | Schema, nguồn, rule ĐTĐ2, seed mô phỏng, CI và health-check deploy |
+| 1 | Schema, nguồn, rule ĐTĐ2, dữ liệu NHANES, CI và health-check deploy |
 | 2 | Clinical core, validator, dữ liệu carbohydrate/GI, API hồ sơ/targets và unit test |
 | 3 | LangGraph, output ID + gram, compute, retry, guardrail và audit |
 | 4 | HITL, RBAC, nhật ký và demo end-to-end |
@@ -407,13 +408,14 @@ Kết quả thực tế phải ghi tại `eval/results/report.md`, gồm cỡ m�
 | Rủi ro | Biện pháp |
 |---|---|
 | Dữ liệu món Việt thiếu/sai carbohydrate và GI/GL | Ưu tiên cơm, bún, phở, bánh và nước ngọt; nguồn từng dòng; data/expert review |
+| Dữ liệu NHANES không đại diện dân số Việt Nam | Ghi rõ limitation; bổ sung sở thích món Việt và vùng miền; không tuyên bố đại diện |
 | Rule chưa xác minh | Chỉ kích hoạt rule verified; ghi phiên bản guideline; fail-closed |
 | LLM bịa số/ID | Schema chỉ ID + gram; reject ID lạ; mọi số do Python/SQL tính |
 | Ánh xạ sai tên thuốc | Xác nhận hoạt chất; không match thì review; bảng curated có nguồn |
 | Nguy cơ tăng kali do thuốc/bệnh thận | Không mặc định tăng kali; kiểm tra thuốc/renal flag; chuyển chuyên gia |
 | Cảnh báo quá nhiều | Severity có nghĩa, hành động cụ thể, interaction được curate |
 | Không đủ thời gian | Ưu tiên generate-compute-validate-review-publish; cắt stretch trước |
-| Tuyên bố quá mức | Chỉ báo cáo kết quả trên dữ liệu mô phỏng; không tuyên bố giảm HbA1c |
+| Tuyên bố quá mức | Chỉ báo cáo kết quả trên dữ liệu NHANES; không tuyên bố giảm HbA1c; ghi rõ không đại diện dân số Việt |
 
 ## 14. Definition of Done
 
@@ -427,6 +429,7 @@ MVP chỉ hoàn thành khi:
 - Eval có kết quả thật, case thất bại và giới hạn; không còn placeholder.
 - `make check` và data validation chạy thành công trong CI.
 - Backend/frontend deploy được, health check hoạt động và tài liệu demo phản ánh đúng phạm vi.
+- Dữ liệu NHANES được ghi rõ nguồn, ngày tải, và tuân thủ NCHS Data User Agreement.
 
 ## 15. Tài liệu liên quan
 

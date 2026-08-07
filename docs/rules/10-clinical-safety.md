@@ -91,8 +91,9 @@ Nội dung chuẩn:
 
 ## R10.9 — Dữ liệu bệnh nhân
 
-- v1 dùng **100% dữ liệu mô phỏng**. README phải ghi rõ điều này.
-- Không commit dữ liệu bệnh nhân thật vào repo, kể cả ẩn danh, kể cả trong file test.
+- v1 được dùng NHANES 2021–2023 public-use, de-identified cho phát triển và kiểm thử theo PRD v2.2 và NCHS Data User Agreement. Không được tái định danh hoặc tuyên bố dữ liệu này đại diện dân số Việt Nam.
+- Bộ benchmark trong `eval/datasets/` phải là dữ liệu mô phỏng; expected output phải được tính/review độc lập với system under test.
+- Không đưa SEQN, mã định danh nguồn hoặc PII/PHI vào UI, prompt hay log. Dataset ngoài NHANES chỉ được dùng sau khi license, provenance và trạng thái de-identification được xác minh.
 - Prompt gửi LLM: chỉ tuổi, giới, cân nặng, chiều cao, mã bệnh + giai đoạn, chỉ số xét nghiệm, danh sách thuốc. **Không định danh.**
 - Log không chứa PHI. Logger phải có filter che tự động.
 
