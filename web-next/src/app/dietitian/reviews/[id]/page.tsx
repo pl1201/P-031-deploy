@@ -168,7 +168,7 @@ export default function MealPlanReviewPage() {
     return acc
   }, {}) ?? {}
 
-  const targetKcal = plan?.targets?.kcal?.max_value
+  const targetKcal = plan?.targets?.kcal?.max_value ?? undefined
 
   if (loading) return (
     <div style={{ display: 'grid', placeItems: 'center', height: '60vh' }}>
@@ -257,11 +257,24 @@ export default function MealPlanReviewPage() {
                 <div className="card-body" style={{ padding: '12px 24px' }}>
                   {items.map(item => (
                     <div key={item.id} className="food-row">
-                      <div>
+                      <div className="dish-summary">
                         <div className="food-name">{item.name_vi}</div>
                         <div style={{ marginTop: 4 }}>
                           <SourcePopover item={item} />
                         </div>
+                        {item.ingredients.length > 0 && (
+                          <details className="ingredient-details">
+                            <summary>Thành phần · {item.ingredients.length} nguyên liệu</summary>
+                            <div className="ingredient-list">
+                              {item.ingredients.map(ingredient => (
+                                <div key={ingredient.food_id} className="ingredient-line">
+                                  <span>{ingredient.name_vi}</span>
+                                  <span>{ingredient.grams} g</span>
+                                </div>
+                              ))}
+                            </div>
+                          </details>
+                        )}
                       </div>
                       {/* Gram editor */}
                       {plan.status === 'pending_review' ? (

@@ -5,7 +5,7 @@ import Link from 'next/link'
 import { getSession, clearSession } from '@/lib/auth'
 
 const NAV = [
-  { href: '/dietitian', label: 'Hàng chờ duyệt', icon: '◎', exact: true },
+  { href: '/dietitian', label: 'Hàng chờ duyệt', icon: '◎', exact: true, badge: true },
   { href: '/dietitian/patients', label: 'Hồ sơ bệnh nhân', icon: '◈' },
   { href: '/eval', label: 'Báo cáo Eval', icon: '◫' },
 ]
