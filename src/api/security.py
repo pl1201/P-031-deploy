@@ -8,9 +8,7 @@ src/agents/nodes/validate.py, nhưng auth cũng không có lý do gì cần LLM)
 from __future__ import annotations
 
 from dataclasses import dataclass
-from datetime import datetime, timedelta, timezone
-
-UTC = timezone.utc
+from datetime import UTC, datetime, timedelta
 
 import jwt
 from fastapi import Depends, HTTPException, status

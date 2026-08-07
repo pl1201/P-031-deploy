@@ -5,9 +5,7 @@ LLM: NO.
 
 from __future__ import annotations
 
-from datetime import datetime, timezone
-
-UTC = timezone.utc
+from datetime import UTC, datetime
 
 from fastapi import APIRouter, Depends, HTTPException, status
 from pydantic import BaseModel, Field

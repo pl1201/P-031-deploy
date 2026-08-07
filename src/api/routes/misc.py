@@ -4,10 +4,9 @@
 from __future__ import annotations
 
 from fastapi import APIRouter
-from fastapi import status
 from fastapi.responses import JSONResponse
-from sqlalchemy import text
 from pydantic import BaseModel, Field
+from sqlalchemy import text
 
 from src.config import get_settings
 from src.db.base import get_engine
@@ -22,12 +21,26 @@ async def health() -> dict[str, str]:
     try:
         with get_engine().connect() as conn:
             conn.execute(text("SELECT 1"))
-            orphan_count = conn.execute(text("SELECT count(*) FROM meal_plan_items m LEFT JOIN food_items f ON f.id=m.food_id WHERE f.id IS NULL")).scalar_one()
+            orphan_count = conn.execute(
+                text(
+                    "SELECT count(*) FROM meal_plan_items m LEFT JOIN food_items f ON f.id=m.food_id WHERE f.id IS NULL"
+                )
+            ).scalar_one()
         if orphan_count:
-            return JSONResponse(status_code=503, content={"status": "degraded", "env": settings.app_env, "reason": "Dữ liệu thực phẩm tham chiếu bị thiếu"})
+            return JSONResponse(
+                status_code=503,
+                content={
+                    "status": "degraded",
+                    "env": settings.app_env,
+                    "reason": "Dữ liệu thực phẩm tham chiếu bị thiếu",
+                },
+            )
         return {"status": "ok", "env": settings.app_env}
     except Exception:
-        return JSONResponse(status_code=503, content={"status": "degraded", "env": settings.app_env, "reason": "Không kết nối được cơ sở dữ liệu"})
+        return JSONResponse(
+            status_code=503,
+            content={"status": "degraded", "env": settings.app_env, "reason": "Không kết nối được cơ sở dữ liệu"},
+        )
 
 
 class ChatRequest(BaseModel):

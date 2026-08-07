@@ -268,8 +268,17 @@ def seed_serving_sizes(session: Session, path: Path | None = None, preserve: boo
     n = 0
     with open(path or SEEDS / "serving_sizes.csv", newline="", encoding="utf-8") as f:
         for row in csv.DictReader(f):
-            values = {"category": row["category"], "serving_g": float(row["serving_g"]), "note": _opt_str(row.get("note")), "source": _opt_str(row.get("source"))}
-            existing = session.query(ServingSize).filter_by(category=values["category"], serving_g=values["serving_g"]).one_or_none()
+            values = {
+                "category": row["category"],
+                "serving_g": float(row["serving_g"]),
+                "note": _opt_str(row.get("note")),
+                "source": _opt_str(row.get("source")),
+            }
+            existing = (
+                session.query(ServingSize)
+                .filter_by(category=values["category"], serving_g=values["serving_g"])
+                .one_or_none()
+            )
             if existing is None:
                 session.add(ServingSize(**values))
             n += 1
