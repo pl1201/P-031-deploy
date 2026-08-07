@@ -25,6 +25,7 @@ export default function PatientsPage() {
   const [generating, setGenerating] = useState<string | null>(null)
   const [toast, setToast] = useState('')
   const [error, setError] = useState('')
+  const [query, setQuery] = useState('')
 
   const showToast = (msg: string) => {
     setToast(msg)
@@ -49,6 +50,7 @@ export default function PatientsPage() {
       showToast(`Đang sinh thực đơn cho ${patient.id.slice(0, 8)}... (plan: ${result.plan_id.slice(0, 8)})`)
       // Poll cho đến khi xong
       let attempts = 0
+      let failures = 0
       const poll = setInterval(async () => {
         attempts++
         try {
@@ -61,8 +63,8 @@ export default function PatientsPage() {
               router.push(`/dietitian/reviews/${plan.id}`)
             }
           }
-        } catch { /* ignore poll errors */ }
-        if (attempts > 30) { clearInterval(poll); setGenerating(null) }
+        } catch { failures++; if (failures >= 3) { clearInterval(poll); setGenerating(null); showToast('Không thể kiểm tra trạng thái thực đơn.') } }
+        if (attempts >= 30) { clearInterval(poll); setGenerating(null); showToast('Sinh thực đơn quá thời gian chờ.') }
       }, 2000)
     } catch (e: unknown) {
       const msg = e instanceof Error ? e.message : 'Lỗi không xác định'
@@ -83,6 +85,7 @@ export default function PatientsPage() {
       </div>
 
       <div className="page-body">
+        <input aria-label="Tìm hồ sơ hoặc bệnh lý" value={query} onChange={e => setQuery(e.target.value)} placeholder="Tìm theo mã hồ sơ hoặc bệnh lý" style={{ width: '100%', maxWidth: 420, marginBottom: 16 }} />
         {loading ? (
           <div style={{ display: 'grid', placeItems: 'center', height: '50vh' }}>
             <span className="spinner" style={{ width: 32, height: 32, color: 'var(--c-green)' }} />
@@ -91,9 +94,9 @@ export default function PatientsPage() {
           <div className="safety-strip safety-strip-error">{error}</div>
         ) : (
           <div style={{ display: 'grid', gap: 16 }}>
-            {patients.map(p => (
+            {patients.filter(p => `${p.id} ${p.conditions.map(c => c.code).join(' ')}`.toLowerCase().includes(query.toLowerCase())).map(p => (
               <div key={p.id} className="card">
-                <div style={{ display: 'grid', gridTemplateColumns: '56px 1fr auto', alignItems: 'center', gap: 20, padding: '20px 24px' }}>
+                <div className="patient-card-grid" style={{ display: 'grid', gridTemplateColumns: '56px 1fr auto', alignItems: 'center', gap: 20, padding: '20px 24px' }}>
                   {/* Avatar */}
                   <div style={{
                     width: 56, height: 56,

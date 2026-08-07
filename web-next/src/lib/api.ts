@@ -139,7 +139,9 @@ export function createApiClient(accessToken?: string) {
     headers.set('Content-Type', 'application/json')
     if (accessToken) headers.set('Authorization', `Bearer ${accessToken}`)
 
-    const res = await fetch(`${BASE_URL}${path}`, { ...init, headers })
+    let res: Response
+    try { res = await fetch(`${BASE_URL}${path}`, { ...init, headers }) }
+    catch { throw new ApiError(0, 'Không kết nối được máy chủ. Hãy kiểm tra Docker/backend rồi thử lại.') }
 
     if (!res.ok) {
       const body = await res.json().catch(() => null) as { detail?: string } | null

@@ -1,5 +1,3 @@
-version: "3.8"
-
 services:
   backend:
     build:
@@ -9,11 +7,40 @@ services:
       - "8000:8000"
     env_file:
       - .env
+    environment:
+      APP_ENV: production
+      CORS_ORIGINS: http://localhost:3000
+      DATABASE_URL: sqlite:////app/data/app.db
     volumes:
       - ./data:/app/data
+    command: >-
+      sh -c "alembic upgrade head &&
+      PRESERVE_DATA=1 python scripts/seed_db.py &&
+      python scripts/seed_demo_users.py &&
+      uvicorn src.main:app --host 0.0.0.0 --port 8000"
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')"]
       interval: 30s
       timeout: 10s
       retries: 3
+      start_period: 20s
+
+  frontend:
+    build:
+      context: ./web-next
+      dockerfile: Dockerfile
+      args:
+        NEXT_PUBLIC_API_BASE_URL: http://localhost:8000/api/v1
+    ports:
+      - "3000:3000"
+    depends_on:
+      backend:
+        condition: service_healthy
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://127.0.0.1:3000/"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 20s

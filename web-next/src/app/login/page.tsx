@@ -60,7 +60,7 @@ export default function LoginPage() {
             fontSize: 'clamp(40px,5vw,60px)',
             fontWeight: 400,
             lineHeight: .95,
-            letterSpacing: '-.04em',
+            letterSpacing: 0,
             marginBottom: 20,
           }}>
             Tư vấn<br />
@@ -104,7 +104,7 @@ export default function LoginPage() {
           <h2 style={{
             fontFamily: 'var(--f-serif)',
             fontSize: 32, fontWeight: 400,
-            letterSpacing: '-.02em',
+            letterSpacing: 0,
             marginBottom: 32,
           }}>
             Xin chào,<br />

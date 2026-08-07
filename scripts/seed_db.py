@@ -21,6 +21,7 @@ chủ đích — không seed dữ liệu rỗng/rác vào DB (RULE-2).
 from __future__ import annotations
 
 import csv
+import os
 import sys
 from pathlib import Path
 
@@ -260,26 +261,32 @@ def seed_drug_meal_timing(session: Session, path: Path | None = None) -> int:
     return n
 
 
-def seed_serving_sizes(session: Session, path: Path | None = None) -> int:
+def seed_serving_sizes(session: Session, path: Path | None = None, preserve: bool = False) -> int:
     """Không có khoá tự nhiên trong CSV — xoá hết rồi nạp lại cho idempotent."""
-    session.query(ServingSize).delete()
+    if not preserve:
+        session.query(ServingSize).delete()
     n = 0
     with open(path or SEEDS / "serving_sizes.csv", newline="", encoding="utf-8") as f:
         for row in csv.DictReader(f):
-            session.add(
-                ServingSize(
-                    category=row["category"],
-                    serving_g=float(row["serving_g"]),
-                    note=_opt_str(row.get("note")),
-                    source=_opt_str(row.get("source")),
-                )
+            values = {
+                "category": row["category"],
+                "serving_g": float(row["serving_g"]),
+                "note": _opt_str(row.get("note")),
+                "source": _opt_str(row.get("source")),
+            }
+            existing = (
+                session.query(ServingSize)
+                .filter_by(category=values["category"], serving_g=values["serving_g"])
+                .one_or_none()
             )
+            if existing is None:
+                session.add(ServingSize(**values))
             n += 1
     session.flush()
     return n
 
 
-def seed_all(session: Session) -> dict[str, int]:
+def seed_all(session: Session, preserve: bool = False) -> dict[str, int]:
     counts = {"food_items": seed_food_items(session)}
     counts["dishes"] = seed_dishes(session)
     counts["dish_ingredients"], skipped = seed_dish_ingredients(session)
@@ -288,7 +295,7 @@ def seed_all(session: Session) -> dict[str, int]:
     counts["drug_food_interactions"] = seed_drug_food_interactions(session)
     counts["food_food_interactions"] = seed_food_food_interactions(session)
     counts["drug_meal_timing"] = seed_drug_meal_timing(session)
-    counts["serving_sizes"] = seed_serving_sizes(session)
+    counts["serving_sizes"] = seed_serving_sizes(session, preserve=preserve)
     return counts
 
 
@@ -320,7 +327,7 @@ def main() -> int:
         session.commit()
         counts["drug_meal_timing"] = seed_drug_meal_timing(session)
         session.commit()
-        counts["serving_sizes"] = seed_serving_sizes(session)
+        counts["serving_sizes"] = seed_serving_sizes(session, preserve=os.getenv("PRESERVE_DATA", "0") == "1")
         session.commit()
 
     print("Đã nạp dữ liệu vào DB:")

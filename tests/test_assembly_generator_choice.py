@@ -63,4 +63,4 @@ def test_config_mac_dinh_la_hybrid():
     """Mặc định của Settings (không đụng .env) phải là hybrid — an toàn không cần key."""
     from src.config import Settings
 
-    assert Settings().menu_generator == "hybrid"
+    assert Settings(_env_file=None).menu_generator == "hybrid"
