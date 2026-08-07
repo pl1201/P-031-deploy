@@ -75,6 +75,17 @@ make run             # hoặc: uvicorn src.main:app --reload --port 8000
 # Swagger UI: http://localhost:8000/docs
 ```
 
+### E2E test frontend (Playwright)
+
+Cần backend đang chạy (bước 7) + `make seed && make seed-demo-users` trước. Key LLM đọc từ `.env` gốc (`GEMINI_API_KEY*`) — không cần tên khác.
+
+```bash
+cd web-next
+npm install
+npx playwright install chromium   # 1 lần
+npx playwright test               # tự khởi động `npm run dev`, dùng tài khoản demo trong .env
+```
+
 ## Cấu trúc dự án
 
 ```
