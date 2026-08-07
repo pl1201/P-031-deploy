@@ -158,6 +158,21 @@ Trích `data/Bang-thanh-phan-dinh-duong-Thuc-pham-VN-2017-27-4-17.pdf` bằng `p
 - `validate_data.py` (0 lỗi) và `pytest` sạch sau merge.
 **AC:** Không merge xung đột tự động (128 dòng trong `nin2017_conflicts.md` chờ R2) · Không merge purine tự động (chờ `DAT-23`) · Mọi dòng mới/bổ sung có `source_ref` trỏ đúng mã NIN 2017.
 
+### `DAT-23` ⏳ Merge purine từ Bảng TPTP VN 2017 (nhóm Thịt/Thủy sản) — CÓ DỮ LIỆU, CHƯA MERGE
+**Owner:** R2 · **P1** · **Deps:** DAT-22, DAT-14
+Đề xuất từ `DAT-22`: `scripts/nin2017_purine_findings.md` xác nhận bảng "Thành phần khác" (tr.219-248) có số liệu purine thật cho nhóm Thịt/Thủy sản, nhưng số cột mỗi dòng không cố định — rủi ro đọc nhầm cột Phytosterol thành Purine nếu merge tự động như các trường khác.
+**AC:** Đối chiếu số cột theo TỪNG dòng trước khi gán giá trị (không giả định layout cố định) · Giá trị merge vào `purine_mg` kèm `purine_source_ref="NIN 2017, mã {code}"` · Đối chiếu chéo với `purine_db_reference.csv`/`purine_values.csv` hiện có cho vài món trùng tên để xác nhận không lệch cột trước khi merge hàng loạt.
+
+### `DAT-24` Mở rộng `dishes.csv`/`dish_ingredients.csv` — 28 món dùng được là quá mỏng cho CP-SAT
+**Owner:** R2 · **P1** · **Deps:** DAT-22 (nguồn nguyên liệu 620 món), vn-food-data skill
+Audit 2026-08-08 (khi điều tra bug thực đơn thiếu năng lượng, xem DEVLOG cùng ngày): `dishes.csv` có 2678 dòng nhưng CP-SAT (`load_vn_dishes()`) chỉ dùng được **28 món** — 2632 dòng bị gán nhãn sai `"USDA FNDDS"` (không phải món Việt, đã biết từ trước), và 17/45 món curated còn lại tự ghi chú thiếu nguyên liệu (đã bị loại tạm trong `load_vn_dishes()`, xem commit cùng ngày). Tương tự, `food_items.csv` có 7375 dòng nhưng ứng viên nguyên liệu thô CP-SAT dùng được chỉ 439 dòng (cố ý loại khối USDA bulk id≥100000 — đây KHÔNG phải vấn đề, chỉ ghi chú để R2 hiểu rõ phạm vi).
+**Mục tiêu đề xuất (Hưng, 2026-08-08):** nâng số món dùng được thật lên **500-1000 món** — đây là việc thu thập/biên tập dữ liệu quy mô lớn, cần làm cẩn thận theo đúng RULE-1/2 (không bịa nguyên liệu/gram), gợi ý cách tiếp cận:
+1. Ưu tiên hoàn thiện 17 món đang bị loại tạm trước (đã có sẵn ~50-80% nguyên liệu, chỉ thiếu vài dòng — rẻ hơn làm món mới từ đầu).
+2. Dùng 620 thực phẩm NIN 2017 (`DAT-22`) làm nguồn nguyên liệu nền — nhiều món mới sẽ cần thực phẩm chưa có trong `food_items.csv` hiện tại.
+3. Nguồn công thức: ưu tiên tài liệu có bản quyền rõ ràng/cho phép (đã dùng vietnamesecookbook.com trước đó, xem `data/seeds/dishes.csv` dòng "-VCB"), hoặc tài liệu nội bộ chuyên gia dinh dưỡng dự án (như batch NIN nội bộ ở DAT-04).
+4. Mỗi món PHẢI qua R2 duyệt (`verified_by`) trước khi tính `is_reviewed=True` — không tự động coi món mới thêm là đã duyệt.
+**AC:** Không bịa gram/nguyên liệu khi không tra được nguồn (RULE-2/DEC-008) · Mỗi món có `source`/ghi chú nguồn công thức rõ ràng · `validate_data.py`/`pytest` sạch sau mỗi batch · Cập nhật tiến độ định kỳ trong ticket này (không phải 1 khối việc làm 1 lần).
+
 ### `DAT-06` Ingest guideline vào RAG — KHÔNG GIỚI HẠN TRÊN
 **Owner:** R2 · **P1** · 8h+ (mở) · **Deps:** SET-05
 Thu thập tài liệu (BYT, ADA, KDIGO, AHA/DASH, ACR, tài liệu Viện Dinh dưỡng — ~15 là điểm khởi đầu, không phải đích). Chunk 500–800 token, overlap 100, embed, lưu `guideline_chunks` (pgvector) kèm metadata `{source, title, page, condition}`.

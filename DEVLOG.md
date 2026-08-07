@@ -539,6 +539,16 @@
 
 ---
 
+### [2026-08-08] · R2 · Audit độ phủ candidate CP-SAT — chỉ 28 món/439 nguyên liệu dùng được thật
+
+- Hưng hỏi CP-SAT có tận dụng hết database không. Đo trực tiếp: `food_items` 7375 dòng nhưng ứng viên nguyên liệu thô CP-SAT dùng được chỉ **439 dòng** (cố ý loại khối USDA bulk id≥100000 — đúng thiết kế, không phải lỗi). `dishes.csv` 2678 dòng nhưng `load_vn_dishes()` chỉ trả về **45 món** (2632 dòng còn lại bị gán nhãn sai `"USDA FNDDS"`, đã biết từ trước) — và **cả 45 món đều `is_reviewed=False`**, trong đó 17 món tự ghi chú trong cột `note` là thiếu nguyên liệu quan trọng (chính là nhóm gây bug thực đơn thiếu năng lượng hôm qua — thiếu DÒNG nguyên liệu không bị RULE-2 bắt được vì đó không phải ô trống).
+- **Fix ngay:** `src/clinical/seeds.py::load_vn_dishes()` loại tạm 17 món có ghi chú "THIẾU"/"CHƯA GHÉP"/"R2 cần rà" khỏi candidate pool cho tới khi R2 rà xong — còn lại 28 món dùng được. `pytest` sạch sau fix.
+- **Ghi ticket cho R2:** `DAT-23` (chính thức hoá merge purine từ NIN 2017, đã đề xuất ở DAT-22) và `DAT-24` (mở rộng dishes.csv lên 500-1000 món theo yêu cầu Hưng — việc thu thập dữ liệu quy mô lớn, KHÔNG tự bịa công thức/nguyên liệu, chỉ lên kế hoạch + gợi ý cách tiếp cận trong ticket).
+- **Chưa làm:** chưa thực hiện DAT-24 (mở rộng 500-1000 món) — đây là việc nhiều phiên, cần nguồn công thức thật có bản quyền rõ ràng, không phải việc 1 lượt.
+- **Thời gian:** ~25 phút.
+
+---
+
 ## 3. Quyết định kỹ thuật (Decision Log)
 
 | ID | Ngày | Quyết định | Người quyết | Chi tiết |
