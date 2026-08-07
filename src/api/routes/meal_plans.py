@@ -104,7 +104,9 @@ class MealPlanOut(BaseModel):
             patient_id=plan.profile_id,
             plan_date=plan.plan_date,
             status=plan.status,
-            items=[cls._item_out(i) for i in sorted(plan.items, key=lambda i: (i.slot, i.dish_id or "", i.food_id or 0))],
+            items=[
+                cls._item_out(i) for i in sorted(plan.items, key=lambda i: (i.slot, i.dish_id or "", i.food_id or 0))
+            ],
             targets=plan.targets or {},
             computed_nutrition=plan.computed_nutrition or {},
             violations=plan.violations or [],
@@ -130,14 +132,25 @@ class MealPlanOut(BaseModel):
                 for part in item.dish.ingredients
             ]
             return MealPlanItemOut(
-                id=item.id, slot=item.slot, dish_id=item.dish_id, grams=item.grams,
-                name_vi=item.dish.name_vi, source="recipe", source_ref=f"dish:{item.dish_id}",
-                is_estimated=False, ingredients=ingredients,
+                id=item.id,
+                slot=item.slot,
+                dish_id=item.dish_id,
+                grams=item.grams,
+                name_vi=item.dish.name_vi,
+                source="recipe",
+                source_ref=f"dish:{item.dish_id}",
+                is_estimated=False,
+                ingredients=ingredients,
             )
         assert item.food is not None
         return MealPlanItemOut(
-            id=item.id, slot=item.slot, food_id=item.food_id, grams=item.grams,
-            name_vi=item.food.name_vi, source=item.food.source, source_ref=item.food.source_ref,
+            id=item.id,
+            slot=item.slot,
+            food_id=item.food_id,
+            grams=item.grams,
+            name_vi=item.food.name_vi,
+            source=item.food.source,
+            source_ref=item.food.source_ref,
             is_estimated=item.food.is_estimated,
         )
 
@@ -211,9 +224,9 @@ def _run_graph_and_persist(
                     dish = dish_foods.dish_for_food_id(menu_item.food_id)
                     if dish is None:
                         raise ValueError(f"Generator returned unknown dish candidate {menu_item.food_id}")
-                    session.add(MealPlanItem(
-                        plan_id=plan_id, slot=slot.value, dish_id=dish.dish_id, grams=menu_item.grams
-                    ))
+                    session.add(
+                        MealPlanItem(plan_id=plan_id, slot=slot.value, dish_id=dish.dish_id, grams=menu_item.grams)
+                    )
         session.commit()
     except Exception:
         # Biên ngoài cùng của 1 background task fire-and-forget: không có request
@@ -232,11 +245,7 @@ def _run_graph_and_persist(
 
 
 def _get_visible_plan(db: Session, plan_id: str, user: CurrentUser) -> MealPlan:
-    query = (
-        db.query(MealPlan)
-        .options(*meal_plan_load_options())
-        .filter(MealPlan.id == plan_id)
-    )
+    query = db.query(MealPlan).options(*meal_plan_load_options()).filter(MealPlan.id == plan_id)
     if user.role == "patient":
         query = query.join(DbPatientProfile).filter(DbPatientProfile.user_id == user.id, MealPlan.status == "approved")
     plan = query.first()
