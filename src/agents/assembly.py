@@ -11,7 +11,7 @@ from src.agents.nodes.core import FallbackMenuProvider, MenuGenerator, ProfileRe
 from src.clinical.models import MealSlot, MenuDraft, MenuItem, PatientProfile
 from src.clinical.nutrition import FoodRepository
 from src.clinical.rules import ClinicalRule
-from src.clinical.seeds import load_food_repository
+from src.clinical.seeds import load_food_repository, load_vn_dishes
 from src.config import get_settings
 
 
@@ -44,7 +44,7 @@ class SimpleFallbackProvider:
         return MenuDraft(items={MealSlot.LUNCH: items})
 
 
-def _generator_from_settings() -> MenuGenerator:
+def _generator_from_settings(foods: FoodRepository) -> MenuGenerator:
     """Dựng generator theo cấu hình (AGT-10). Import trễ để chỉ nạp thứ cần dùng.
 
     Riêng `gemini` mới bắt buộc có `GEMINI_API_KEY`; `cpsat` chạy được không cần
@@ -58,11 +58,12 @@ def _generator_from_settings() -> MenuGenerator:
     if choice == "cpsat":
         from src.agents.optimizer import CPSATMenuOptimizer
 
-        return CPSATMenuOptimizer()
+        return CPSATMenuOptimizer(dishes=load_vn_dishes(), foods=foods)
 
     from src.agents.hybrid import HybridMenuGenerator
+    from src.agents.optimizer import CPSATMenuOptimizer
 
-    return HybridMenuGenerator()
+    return HybridMenuGenerator(optimizer=CPSATMenuOptimizer(dishes=load_vn_dishes(), foods=foods))
 
 
 def build_nutricare_graph(
@@ -78,7 +79,7 @@ def build_nutricare_graph(
     """Dựng graph đầy đủ. `generator=None` → chọn theo `settings.menu_generator`."""
     foods = foods or load_food_repository()
     if generator is None:
-        generator = _generator_from_settings()
+        generator = _generator_from_settings(foods)
     return build_graph(
         profiles=profiles,
         foods=foods,

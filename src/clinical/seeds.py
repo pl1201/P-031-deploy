@@ -12,7 +12,7 @@ import csv
 from collections import defaultdict
 from pathlib import Path
 
-from .models import FoodItem, MealSlot, MenuDraft, MenuItem
+from .models import DishCandidate, FoodItem, MealSlot, MenuDraft, MenuItem
 from .nutrition import InMemoryFoodRepository
 
 SEEDS_DIR = Path(__file__).resolve().parents[2] / "data" / "seeds"
@@ -79,6 +79,47 @@ def load_dish_menus(path: Path | None = None) -> dict[str, MenuDraft]:
         for row in csv.DictReader(f):
             by_dish[row["dish_id"]].append(MenuItem(food_id=int(row["food_id"]), grams=float(row["grams"])))
     return {did: MenuDraft(items={MealSlot.LUNCH: items}) for did, items in by_dish.items()}
+
+
+def load_vn_dishes(path: Path | None = None, ingredients_path: Path | None = None) -> list[DishCandidate]:
+    """Nạp danh sách món ăn Việt Nam curated thật từ `dishes.csv`.
+
+    `dishes.csv` hiện lẫn 2 nhóm dưới cùng file: ~2600 dòng `verified_by`=
+    "USDA FNDDS (nguồn chính thức)" là khối import bulk khảo sát thực phẩm Mỹ
+    (tên kiểu "Milk, whole", "Crackers, wheat (Wheat Thins)") — KHÔNG phải món
+    Việt, bị loại ở đây. Chỉ ~30 dòng còn lại (Phở bò, Bún đậu mắm...) là món
+    Việt curated thật, nhưng `verified_by="pending"` — R2 CHƯA rà công thức,
+    nên trả về kèm `is_reviewed=False` để tầng trên cảnh báo, không tự ý coi
+    là đã duyệt.
+    """
+    path = path or SEEDS_DIR / "dishes.csv"
+    ingredients_path = ingredients_path or SEEDS_DIR / "dish_ingredients.csv"
+
+    ingredients_by_dish: dict[str, list[MenuItem]] = defaultdict(list)
+    with open(ingredients_path, newline="", encoding="utf-8") as f:
+        for row in csv.DictReader(f):
+            ingredients_by_dish[row["dish_id"]].append(MenuItem(food_id=int(row["food_id"]), grams=float(row["grams"])))
+
+    dishes: list[DishCandidate] = []
+    with open(path, newline="", encoding="utf-8") as f:
+        for row in csv.DictReader(f):
+            verified = (row.get("verified_by") or "").strip()
+            if verified.upper().startswith("USDA FNDDS"):
+                continue  # khối bulk Mỹ lẫn trong dishes.csv, không phải món Việt
+            items = ingredients_by_dish.get(row["dish_id"], [])
+            if not items:
+                continue  # món chưa có nguyên liệu — không đủ căn cứ dùng làm candidate
+            dishes.append(
+                DishCandidate(
+                    dish_id=row["dish_id"],
+                    name_vi=row["name_vi"],
+                    region=_opt_str(row.get("region")),
+                    is_reviewed=bool(verified) and verified.lower() != "pending",
+                    verified_by=_opt_str(row.get("verified_by")),
+                    ingredients=items,
+                )
+            )
+    return dishes
 
 
 def salt_equiv_g(na_mg: float) -> float:
