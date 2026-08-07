@@ -489,6 +489,15 @@
 - **CHƯA làm (ghi rõ trong ticket, không giả vờ xong):** chưa wiring 2 bảng này vào agent/API/UI — mới dừng ở tầng dữ liệu. R2 chưa xác nhận `verify_status`. Đặc biệt lưu ý ranh giới an toàn CLAUDE.md §3 khi wiring `drug_meal_timing`: chỉ mô tả thời điểm uống, tuyệt đối không diễn giải thành khuyên đổi liều/ngừng thuốc.
 - **Thời gian:** ~40 phút
 
+### [2026-08-07] · R2 · Research Supabase cho hosting DB + đồng bộ ERD team — ADR-008
+- **Bối cảnh:** Hưng muốn nghiên cứu dùng Supabase để đồng bộ team về DB/ERD. `docs/ARCHITECTURE.md` trước đó để mở "Neon free tier hoặc Supabase", chưa chốt hướng dùng.
+- **Đã xác minh trực tiếp** (doc/pricing chính thức Supabase, không suy đoán): pgvector hỗ trợ qua Dashboard (khớp ADR-001); Free tier 500MB DB, 2 project active, team member không giới hạn; **project free tự pause sau 1 tuần không hoạt động** (rủi ro thật cho demo); branching không có ở Free tier.
+- **Khảo sát code hiện tại:** Alembic là nguồn chân lý migration duy nhất (2 file, autogenerate rồi review tay); Auth JWT+argon2id tự xây trong FastAPI, phân quyền chặn ở tầng query (`_get_owned_profile` pattern); RACI schema DB thuộc R3.
+- **Quyết định (ADR-008):** nếu chọn Supabase thay Neon, **chỉ dùng làm Postgres hosted thuần** (đổi `DATABASE_URL`) — không dùng song song Supabase CLI migrations (tránh 2 nguồn chân lý cạnh tranh Alembic), không bật Row Level Security/Supabase Auth (tránh 2 tầng phân quyền phải đồng bộ tay, trùng lặp JWT+argon2id đã có). Lý do cân nhắc Supabase: Studio Table Editor cho cả đội (kể cả người không rành SQL) tự xem bảng/quan hệ khoá ngoại trực quan, đúng nhu cầu đồng bộ hiểu ERD.
+- **Cập nhật:** `docs/ARCHITECTURE.md` (thêm ADR-008, sửa dòng deploy DB), `docs/TICKETS.md` (`SET-05` bổ sung research + ràng buộc bắt buộc nếu R3 chọn Supabase).
+- **Chưa làm:** chưa tạo project Supabase thật, chưa đổi `DATABASE_URL` nào — đây vẫn là quyết định của R3 theo RACI, chỉ ghi lại nghiên cứu để R3 tham khảo khi quyết.
+- **Cập nhật cùng ngày — R3 đề xuất chuyển hẳn sang Supabase CLI migrations, đã phản biện và Hưng xác nhận GIỮ NGUYÊN ADR-008:** lý do từ chối full switch — (1) lợi ích ban đầu (Studio xem ERD trực quan cho team) đạt được ngay khi chỉ đổi hosting, không cần đổi migration tool; (2) Supabase CLI migration là SQL/DB-diff-first, không đọc SQLAlchemy models, chuyển hẳn sẽ tạo `models.py` và SQL migration thành 2 nguồn chân lý phải tự tay đồng bộ; (3) vi phạm rule tường minh `CLAUDE.md` §4 ("Đổi schema → luôn kèm Alembic migration"), phải sửa rule nếu đổi; (4) thêm dependency Docker cục bộ cho `supabase db diff` mà hiện tại không ai cần; (5) lợi ích thật của Supabase CLI migration (branching theo PR) không có ở Free tier. Cũng bác bỏ phương án "hybrid" (Alembic + sửa trực tiếp qua Supabase Studio tuỳ lúc) vì tạo schema drift âm thầm (`alembic_version` không biết về thay đổi qua UI). **Chốt: Alembic vẫn là công cụ DUY NHẤT ghi schema dù host ở đâu; Supabase (nếu dùng) chỉ đóng vai trò hosting + xem qua Studio, không ai sửa schema trực tiếp qua UI.** Không cần sửa `CLAUDE.md`.
+
 ---
 
 ### [2026-08-07] · R2 · DAT-22 — trích xuất Bảng TPTP VN 2017 (620 món)

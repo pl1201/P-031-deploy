@@ -49,7 +49,15 @@ GitHub Actions: `ruff check`, `ruff format --check`, `mypy`, `pytest`, `docker b
 ### `SET-05` Deploy hello-world lên cloud
 **Owner:** R3 · **P0** · 4h · **Deps:** SET-04
 Render (backend, Docker) + Vercel (frontend) + Neon/Supabase Postgres có `pgvector`. Cấu hình secrets trên platform.
-**AC:** **Live URL công khai** trả `GET /api/v1/health` → 200 · Frontend hiển thị trang chủ gọi được API · URL ghi vào README.
+
+**Research 2026-08-07 (R2) — Neon vs Supabase, nếu chọn Supabase thì dùng thế nào:** đã xác minh trực tiếp qua doc/pricing chính thức Supabase, không suy đoán.
+- **Free tier:** 500MB DB, tối đa 2 project active, 5GB egress, team member không giới hạn trên Dashboard, pgvector bật được qua Dashboard (khớp `ADR-001`).
+- **⚠️ Rủi ro thật:** project free **tự pause sau 1 tuần không hoạt động** — cần "warm up" trước demo giống lưu ý cold-start Render đã có sẵn ở §deploy.
+- **Branching (preview DB theo PR)** không có ở Free tier, tính phí theo giờ — không nên tính vào kế hoạch nếu không có ngân sách.
+- **Lý do có thể đáng chọn Supabase thay Neon:** Studio có Table Editor xem bảng/quan hệ khoá ngoại trực quan — giúp R1/R2/R4 (không rành SQL) tự xem schema thật mà không cần đọc `src/db/models.py`, đúng nhu cầu đồng bộ hiểu biết ERD cho cả đội.
+- **Ràng buộc bắt buộc nếu chọn Supabase (xem `ARCHITECTURE.md` ADR-008):** chỉ dùng làm Postgres hosted thuần (đổi `DATABASE_URL`) — **không** dùng song song Supabase CLI migrations (Alembic đã là nguồn chân lý duy nhất), **không** bật Row Level Security hay Supabase Auth (JWT+argon2id + chặn quyền tầng query trong FastAPI đã tự xây, thêm RLS tạo 2 tầng phân quyền phải đồng bộ tay).
+
+**AC:** **Live URL công khai** trả `GET /api/v1/health` → 200 · Frontend hiển thị trang chủ gọi được API · URL ghi vào README · Nếu chọn Supabase, R3 xác nhận đã đọc ràng buộc ADR-008 trước khi bật bất kỳ tính năng Supabase nào ngoài Postgres+pgvector thuần.
 > ⚠️ Ticket quan trọng nhất tuần 1. Deploy sớm để tuần 6 không phải deploy lần đầu.
 
 **Cập nhật 2026-08-07 (DB):** Đã chọn Supabase (project `VNutriCare`, `tvnrvvkclqsuhnxnrcrn`, region ap-northeast-1) làm Postgres hosted — theo đúng ràng buộc ADR-008 (chỉ dùng hosted Postgres+pgvector thuần, KHÔNG dùng RLS/Auth/Supabase CLI migrations; Alembic vẫn là nguồn chân lý schema duy nhất). Đã kết nối MCP Supabase (read_only) cho việc kiểm tra, và chạy `alembic upgrade head` thành công qua Session Pooler (17 bảng khớp `src/db/models.py`, xem chi tiết dưới). `vector` extension chưa bật (chưa cần vì `guideline_chunks.embedding` còn ở dạng JSON, xem `src/db/base.py`) — bật khi làm `DAT-06`.
