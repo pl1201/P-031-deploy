@@ -39,6 +39,8 @@ from src.db.models import (  # noqa: E402
     Dish,
     DishIngredient,
     DrugFoodInteraction,
+    DrugMealTiming,
+    FoodFoodInteraction,
     FoodItem,
     ServingSize,
 )
@@ -201,6 +203,57 @@ def seed_drug_food_interactions(session: Session, path: Path | None = None) -> i
     return n
 
 
+def seed_food_food_interactions(session: Session, path: Path | None = None) -> int:
+    n = 0
+    with open(path or SEEDS / "food_food_interactions.csv", newline="", encoding="utf-8") as f:
+        for row in csv.DictReader(f):
+            session.merge(
+                FoodFoodInteraction(
+                    id=int(row["id"]),
+                    substance_a=row["substance_a"],
+                    substance_b=row["substance_b"],
+                    food_examples_vi=row["food_examples_vi"],
+                    mechanism_vi=row["mechanism_vi"],
+                    direction=row["direction"],
+                    effect_size_vi=_opt_str(row.get("effect_size_vi")),
+                    clinical_significance=row["clinical_significance"],
+                    applies_to_condition=_opt_str(row.get("applies_to_condition")),
+                    recommendation_vi=row["recommendation_vi"],
+                    source_ref=row["source_ref"],
+                    pmid=_opt_str(row.get("pmid")),
+                    verify_status=_opt_str(row.get("verify_status")) or "to_verify",
+                )
+            )
+            n += 1
+    session.flush()
+    return n
+
+
+def seed_drug_meal_timing(session: Session, path: Path | None = None) -> int:
+    n = 0
+    with open(path or SEEDS / "drug_meal_timing.csv", newline="", encoding="utf-8") as f:
+        for row in csv.DictReader(f):
+            offset_raw = (row.get("offset_minutes") or "").strip()
+            session.merge(
+                DrugMealTiming(
+                    id=int(row["id"]),
+                    drug_name=row["drug_name"],
+                    drug_class=_opt_str(row.get("drug_class")),
+                    timing_rule=row["timing_rule"],
+                    offset_minutes=int(offset_raw) if offset_raw else None,
+                    relative_to=row["relative_to"],
+                    rationale_pk_vi=row["rationale_pk_vi"],
+                    condition=_opt_str(row.get("condition")),
+                    source_ref=row["source_ref"],
+                    page_ref=_opt_str(row.get("page_ref")),
+                    verify_status=_opt_str(row.get("verify_status")) or "to_verify",
+                )
+            )
+            n += 1
+    session.flush()
+    return n
+
+
 def seed_serving_sizes(session: Session, path: Path | None = None) -> int:
     """Không có khoá tự nhiên trong CSV — xoá hết rồi nạp lại cho idempotent."""
     session.query(ServingSize).delete()
@@ -227,6 +280,8 @@ def seed_all(session: Session) -> dict[str, int]:
     counts["dish_ingredients_skipped"] = skipped
     counts["clinical_rules"] = seed_clinical_rules(session)
     counts["drug_food_interactions"] = seed_drug_food_interactions(session)
+    counts["food_food_interactions"] = seed_food_food_interactions(session)
+    counts["drug_meal_timing"] = seed_drug_meal_timing(session)
     counts["serving_sizes"] = seed_serving_sizes(session)
     return counts
 

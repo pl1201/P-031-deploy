@@ -222,6 +222,54 @@ def check_drug_food(path: Path) -> None:
         warn(f"{path.name}: {missing_ref} cặp chưa có source_ref — phải điền trước khi lên slide")
 
 
+def check_food_food_interactions(path: Path) -> None:
+    if not path.exists():
+        warn(f"{path.name}: chưa có file")
+        return
+
+    with open(path, newline="", encoding="utf-8") as f:
+        rows = list(csv.DictReader(f))
+
+    to_verify = 0
+    for i, row in enumerate(rows, start=2):
+        loc = f"{path.name}:{i} [{row.get('substance_a')} x {row.get('substance_b')}]"
+        if row.get("direction") not in {"increases", "decreases"}:
+            err(f"{loc} direction không hợp lệ")
+        if row.get("clinical_significance") not in {"high", "moderate", "low"}:
+            err(f"{loc} clinical_significance không hợp lệ")
+        if not (row.get("source_ref") or "").strip():
+            err(f"{loc} thiếu source_ref (RULE-2)")
+        if (row.get("verify_status") or "to_verify") == "to_verify":
+            to_verify += 1
+
+    print(f"  {path.name}: {len(rows)} cặp tương tác thực phẩm-thực phẩm")
+    if to_verify:
+        warn(f"{path.name}: {to_verify} cặp ở trạng thái 'to_verify' — R2 cần đối chiếu trước Demo Day (DAT-18)")
+
+
+def check_drug_meal_timing(path: Path) -> None:
+    if not path.exists():
+        warn(f"{path.name}: chưa có file")
+        return
+
+    with open(path, newline="", encoding="utf-8") as f:
+        rows = list(csv.DictReader(f))
+
+    to_verify = 0
+    for i, row in enumerate(rows, start=2):
+        loc = f"{path.name}:{i} [{row.get('drug_name')}]"
+        if row.get("timing_rule") not in {"before", "with", "after", "avoid_with"}:
+            err(f"{loc} timing_rule không hợp lệ")
+        if not (row.get("source_ref") or "").strip():
+            err(f"{loc} thiếu source_ref (RULE-2)")
+        if (row.get("verify_status") or "to_verify") == "to_verify":
+            to_verify += 1
+
+    print(f"  {path.name}: {len(rows)} quy tắc giờ dùng thuốc")
+    if to_verify:
+        warn(f"{path.name}: {to_verify} quy tắc ở trạng thái 'to_verify' — R2 cần đối chiếu trước Demo Day (DAT-19)")
+
+
 def check_gi_values(path: Path) -> None:
     """Bảng GI tách riêng (DAT-07). GI có nguồn riêng, merge vào food_items khi nạp."""
     if not path.exists():
@@ -309,6 +357,8 @@ def main() -> int:
     check_food_items(SEEDS / "food_items.template.csv")
     check_clinical_rules(SEEDS / "clinical_rules.csv")
     check_drug_food(SEEDS / "drug_food_interactions.csv")
+    check_food_food_interactions(SEEDS / "food_food_interactions.csv")
+    check_drug_meal_timing(SEEDS / "drug_meal_timing.csv")
     check_gi_values(SEEDS / "gi_values.csv")
     check_purine_values(SEEDS / "purine_values.csv")
     check_usda_values(SEEDS / "usda_values.csv")
