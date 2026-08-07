@@ -89,7 +89,7 @@ def compute_kcal_target_oracle(
     - BMR_female = 10*weight + 6.25*height - 5*age - 161
     - TDEE = BMR * activity_factor
     - Range = TDEE * (0.9, 1.1) for maintain
-    - Deficit 500 kcal/day for lose, surplus 300 for gain
+    - Deficit 400-600 kcal/day for lose (centered on 500), surplus 200-400 for gain (centered on 300)
 
     FIX (PR review): Accept actual height_cm from patient profile instead of
     reverse-calculating from BMI, which introduced approximation errors.
@@ -106,13 +106,11 @@ def compute_kcal_target_oracle(
     else:
         bmr = 10 * weight_kg + 6.25 * height_cm - 5 * age - 161
 
-    # Activity factors
+    # Activity factors (aligned with PatientProfile allowed values)
     activity_factors = {
         "sedentary": 1.2,
         "light": 1.375,
-        "lightly_active": 1.375,
         "moderate": 1.55,
-        "moderately_active": 1.55,
     }
     factor = activity_factors.get(activity_level, 1.2)
     tdee = bmr * factor
@@ -132,8 +130,12 @@ def compute_kcal_target_oracle(
     kcal_min = max(1200, kcal_min)
     kcal_max = min(3000, kcal_max)
 
+    # Ensure min < max after clamping (avoid range collapse for low TDEE patients)
+    if kcal_min >= kcal_max:
+        kcal_max = kcal_min + 100
+
     metadata = OracleMetadata(
-        formula=f"Mifflin-St Jeor: BMR={'10W+6.25H-5A+5' if sex == 'male' else '10W+6.25H-5A-161'}, H={height_cm}cm (actual), TDEE=BMR*{factor}, range=±10%",
+        formula=f"Mifflin-St Jeor: BMR={'10W+6.25H-5A+5' if sex == 'male' else '10W+6.25H-5A-161'}, H={height_cm}cm (actual), TDEE=BMR*{factor}, goal={weight_goal} ({'TDEE-[400,600]' if weight_goal == 'lose' else 'TDEE+[200,400]' if weight_goal == 'gain' else '±10%'})",
         guideline_ref="Academy of Nutrition and Dietetics 2020",
         rule_version="1.0.0",
         review_status="draft",
@@ -357,10 +359,16 @@ def compute_expected_targets_oracle(case: dict[str, Any]) -> ExpectedTargets:
 
     # Extract key attributes
     weight_kg = profile["weight_kg"]
+    height_cm = profile["height_cm"]
     age = profile["age"]
     sex = profile["sex"]
     activity = profile.get("activity_level", "sedentary")
-    bmi = case["clinical_context"].get("bmi", weight_kg / ((profile["height_cm"] / 100) ** 2))
+
+    # Guard against invalid height before BMI calculation
+    if height_cm <= 0:
+        raise ValueError(f"Invalid height_cm: {height_cm} in case {case.get('case_id', 'unknown')}")
+
+    bmi = case["clinical_context"].get("bmi", weight_kg / ((height_cm / 100) ** 2))
     frailty = profile.get("frailty_sarcopenia", False)
     sodium_wasting = profile.get("sodium_wasting", False)
 

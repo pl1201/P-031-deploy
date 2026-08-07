@@ -223,6 +223,9 @@ def iter_user_inputs(brain_dirs: list[Path], cutoff: datetime | None, only_conv:
             if repo_root_n and not _conv_matches_repo(cwds, repo_root_n):
                 continue
 
+            # Track model per conversation (may change between steps)
+            current_model = "unknown"
+
             with open(transcript, encoding="utf-8") as f:
                 for line in f:
                     line = line.strip()
@@ -232,6 +235,16 @@ def iter_user_inputs(brain_dirs: list[Path], cutoff: datetime | None, only_conv:
                         entry = json.loads(line)
                     except json.JSONDecodeError:
                         continue
+
+                    # Extract model if present in entry metadata
+                    if "model" in entry:
+                        current_model = str(entry["model"])
+                    elif "model_id" in entry:
+                        current_model = str(entry["model_id"])
+                    elif "metadata" in entry and isinstance(entry["metadata"], dict):
+                        if "model" in entry["metadata"]:
+                            current_model = str(entry["metadata"]["model"])
+
                     if entry.get("type") != "USER_INPUT" or entry.get("source") != "USER_EXPLICIT":
                         continue
 
@@ -253,6 +266,7 @@ def iter_user_inputs(brain_dirs: list[Path], cutoff: datetime | None, only_conv:
                         "step_index": int(entry.get("step_index", 0)),
                         "timestamp": ts,
                         "text": text,
+                        "model": current_model,
                     }
 
 
@@ -275,7 +289,7 @@ def build_entry(msg: dict, repo: str, branch: str, commit: str, student: str) ->
         "event": "UserPrompt",
         "entry_id": f"antigravity-{msg['conv_id']}-{msg['step_index']:05d}",
         "session_id": msg["conv_id"],
-        "model": "gemini",
+        "model": msg.get("model", "unknown"),
         "repo": repo,
         "branch": branch,
         "commit": commit,

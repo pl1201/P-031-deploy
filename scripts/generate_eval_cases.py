@@ -563,18 +563,25 @@ def generate_multi_case(
         conditions.append(Condition(code="HTN", stage="stage2", notes="BP 145/90 mmHg"))
         medications.append("amlodipine 5mg qd")
 
-    if "CKD" in primary or "CKD" in str(secondary) or "CKD" in str(tertiary):
-        stage = "G3a"
-        all_codes = str([primary, secondary, tertiary])
-        if "G3b" in all_codes:
-            stage = "G3b"
-        elif "G4" in all_codes:
-            stage = "G4"
-        elif "G5" in all_codes:
-            stage = "G5"
+    # Collect all non-None condition codes for safe matching
+    all_codes = [c for c in (primary, secondary, tertiary) if c is not None]
+
+    if any("CKD" in c for c in all_codes):
+        # Match most severe stage first (G5 > G4 > G3b > G3a)
+        stage = "G3a"  # default
+        for code in all_codes:
+            if "G5" in code:
+                stage = "G5"
+                break
+            elif "G4" in code:
+                stage = "G4"
+                break
+            elif "G3b" in code:
+                stage = "G3b"
+                break
         conditions.append(Condition(code="CKD", stage=stage, notes=f"CKD {stage}"))
 
-    if "gout" in [primary, secondary, tertiary]:
+    if "GOUT" in [primary, secondary, tertiary]:
         conditions.append(Condition(code="GOUT", stage="chronic", notes="Uric acid 8.5 mg/dL"))
         medications.append("allopurinol 300mg qd")
 

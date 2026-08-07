@@ -85,7 +85,7 @@ def logged_keys(log_dir: Path) -> tuple[set[str], set[tuple[str, str]]]:
 def read_transcript(path: Path) -> tuple[set[str], list[dict]]:
     session_id = ""
     originator = "codex"
-    model = "codex"
+    model = "unknown"  # Will be extracted from thread_settings or model_metadata
     turn_id = ""
     cwds: set[str] = set()
     messages: list[dict] = []
