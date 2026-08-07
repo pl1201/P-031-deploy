@@ -15,7 +15,7 @@ router = APIRouter(tags=["misc"])
 
 
 @router.get("/health")
-async def health() -> dict[str, str]:
+async def health() -> dict[str, str] | JSONResponse:
     """Health check dưới prefix /api/v1 (AC của ticket SET-05)."""
     settings = get_settings()
     try:
