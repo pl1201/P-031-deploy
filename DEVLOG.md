@@ -491,7 +491,7 @@
 
 ---
 
-### [2026-08-07] · Claude (theo yêu cầu Hưng) · DAT-22 — trích xuất Bảng TPTP VN 2017 (620 món)
+### [2026-08-07] · R2 · DAT-22 — trích xuất Bảng TPTP VN 2017 (620 món)
 
 - Trích 620/620 thực phẩm (tr.23-152, khối macro+khoáng+vitamin) từ `data/Bang-thanh-phan-dinh-duong-Thuc-pham-VN-2017-27-4-17.pdf` bằng `pdfplumber.extract_tables()`, không OCR, không trùng mã. Script: `scripts/extract_nin2017.py` → `scripts/nin2017_extracted.json`.
 - Merge vào `data/seeds/food_items.csv` bằng `scripts/merge_nin2017_into_food_items.py` (chỉ khớp tên tuyệt đối, không fuzzy-match — bài học từ lần fuzzy-match sai "Hẹ"↔"Ghẹ" trước đó): 82 dòng cũ được bổ sung `source_ref` NIN 2017, 348 dòng mới thêm dạng placeholder (thiếu ≥1 trường lõi trong PDF, để trống thay vì đoán), 128 xung đột số liệu ghi vào `scripts/nin2017_conflicts.md` chờ R2 quyết định (không tự merge).
@@ -502,7 +502,7 @@
 
 ---
 
-### [2026-08-07] · Claude (theo yêu cầu Hưng) · SET-05 — kết nối Supabase, alembic upgrade head thành công
+### [2026-08-07] · R2 · SET-05 — kết nối Supabase, alembic upgrade head thành công
 
 - Hưng tự tạo project Supabase (`VNutriCare`, `tvnrvvkclqsuhnxnrcrn`, ap-northeast-1) và kết nối MCP Supabase (read_only) qua `.mcp.json`.
 - Chạy `alembic upgrade head` thành công lên Supabase — 17 bảng khớp đúng `src/db/models.py` (xác nhận qua `list_tables` MCP, read-only).
