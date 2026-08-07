@@ -1,24 +1,15 @@
 {
-  "version": "1.0",
+  "description": "Log Codex prompts for AI20K usage reporting.",
   "hooks": {
     "UserPromptSubmit": [
       {
         "hooks": [
           {
-            "name": "log-prompt",
-            "command": "bash scripts/_pyrun.sh scripts/log_hook.py --tool=codex",
-            "timeout": 10
-          }
-        ]
-      }
-    ],
-    "Stop": [
-      {
-        "hooks": [
-          {
-            "name": "log-stop",
-            "command": "bash scripts/_pyrun.sh scripts/log_hook.py --tool=codex",
-            "timeout": 10
+            "type": "command",
+            "command": "bash -lc 'root=\"$(git rev-parse --show-toplevel)\" && bash \"$root/scripts/_pyrun.sh\" \"$root/scripts/log_hook.py\" --tool=codex'",
+            "commandWindows": "cmd.exe /d /s /c \"call scripts\\_pyrun.cmd scripts\\log_hook.py --tool=codex\"",
+            "timeout": 10,
+            "statusMessage": "Logging AI20K Codex prompt"
           }
         ]
       }

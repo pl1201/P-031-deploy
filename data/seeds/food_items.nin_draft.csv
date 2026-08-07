@@ -1,0 +1,153 @@
+id,name_vi,aliases,category,kcal_100g,protein_g,carb_g,fat_g,fiber_g,sugar_g,na_mg,k_mg,p_mg,purine_mg,purine_source_ref,gi_index,gi_source,gi_source_ref,contains_allergens,source,source_ref,is_estimated,match_confidence,nin_name
+1,Gạo tẻ (sống),gạo trắng,ngũ cốc,347,8.1,75.7,1.3,0.7,,5,202,108,,,,,,,NIN,NIN Bảng TPTP VN (mã 1003),FALSE,subset,"Gạo, trắng, tẻ, giã tay, sống"
+2,Cơm tẻ,cơm trắng,ngũ cốc,133.46,3.12,29.12,0.5,0.27,,1.92,77.69,41.54,,,109,Chan2001_VN,"Chan HMS et al. 2001, Eur J Clin Nutr 55:1076-1083, Table 2 — Jasmine rice long grain; glucose=100, n=12",,estimated,Cơm chín ước tính từ gạo tẻ sống (NIN 1003) × 1/2.6 (hệ số nở khi nấu),TRUE,estimated,"(ước tính từ Gạo, trắng, tẻ, giã tay, sống)"
+3,Gạo lứt,gạo nâu,ngũ cốc,359,7.5,76.18,2.68,3.4,,5,202,246,,,65,Atkinson2021,"Atkinson FS et al. 2021, Am J Clin Nutr 114:1625-1632, tr.1629 — trung bình brown rice = 65; glucose=100",,NIN,NIN Bảng TPTP VN (mã 1005),FALSE,subset,"Gạo, tẻ, chưa xát (gạo lứt), sống"
+4,Bún tươi,,ngũ cốc,110,2.0,25.0,0.2,0.5,,5,10,30,,,40,Chan2001_VN,"Chan HMS et al. 2001, Eur J Clin Nutr 55:1076-1083, Table 2 — Rice noodles, fresh; glucose=100, n=12",,estimated,"Ước tính bún gạo tươi (tham chiếu USDA 'Rice noodles, cooked')",TRUE,manual,
+5,Bánh phở tươi,,ngũ cốc,110,2.0,25.0,0.2,0.5,,5,10,30,,,40,Chan2001_VN,"Chan HMS et al. 2001, Eur J Clin Nutr 55:1076-1083, Table 2 — Rice noodles, fresh; glucose=100, n=12",,estimated,"Ước tính bánh phở gạo tươi (tham chiếu USDA 'Rice noodles, cooked')",TRUE,manual,
+6,Miến dong,,ngũ cốc,,,,,,,,,,,,39,estimated,Ước tính từ Chan HMS et al. 2001 (Mung bean noodles GI 39),,,,FALSE,subset-nin-thiếu-khoáng,"Miến dong, khô"
+7,Bánh mì,,ngũ cốc,,,,,,,,,,,,59,Atkinson2021,"Atkinson et al. 2021, AJCN Suppl. Table 1 (#235-236) — White bread, UK/USA 2006-2011, GI 59-60; glucose=100",gluten,,,FALSE,subset-nin-thiếu-khoáng,"Bánh mì, vuông, ngọt"
+8,Mì ăn liền,mì tôm,ngũ cốc,,,,,,,,,,,,,,,gluten,,,FALSE,override-nin-thiếu-khoáng,"Mỳ  ăn liền, lúa mì "
+9,Bánh cuốn,,ngũ cốc,,,,,,,,,,,,,,,,,,FALSE,exact-nin-thiếu-khoáng,Bánh cuốn
+10,Xôi trắng,,ngũ cốc,183.16,4.53,39.53,0.79,0.32,,1.58,148.42,51.58,,,94,Chan2001_VN,"Chan HMS et al. 2001, Eur J Clin Nutr 55:1076-1083, Table 2 — Glutinous rice; glucose=100, n=12",,estimated,Xôi ước tính từ gạo nếp sống (NIN 1001) × 1/1.9 (nở ít hơn cơm),TRUE,estimated,"(ước tính từ Gạo, trắng, nếp cái, sống)"
+11,Khoai lang,,ngũ cốc,124,0.8,29.8,0.2,1.3,,31,210,49.4,,,77,Atkinson2021,"Atkinson et al. 2021, AJCN Suppl. Table 1 — Sweet potato (kumara), cooking method NS, New Zealand 2000, GI 77±12; glucose=100",,NIN,NIN Bảng TPTP VN (mã 2008),FALSE,subset,"Khoai lang, tươi"
+12,Khoai tây,,ngũ cốc,96,2,21.93,0.07,1,,7,396,50,,,73,Atkinson2021,"Atkinson FS et al. 2021, Am J Clin Nutr 114:1625-1632, tr.1628 — boiled potatoes = 73; glucose=100",,NIN,NIN Bảng TPTP VN (mã 2014),FALSE,subset,"Khoai tây, tươi"
+13,Khoai môn,,ngũ cốc,,,,,,,,,,,,,,,,,,FALSE,subset-nin-thiếu-khoáng,"Khoai môn, tươi"
+14,Sắn luộc,khoai mì,ngũ cốc,,,,,,,,,,,,,,,,,,FALSE,MISS,
+15,Ngô luộc,bắp,ngũ cốc,,,,,,,,,,,,52,Atkinson2021,"Atkinson et al. 2021, AJCN Suppl. Table 1 (#558-559) — Sweet corn, cooked, trung bình (51 AUS / 55 CHN); glucose=100",,,,FALSE,subset-nin-thiếu-khoáng,"Ngô, cả bắp, nếp, luộc"
+16,Bột mì,,ngũ cốc,347,11,73.2,1.1,0.3,,4,186,132,,,,,,gluten,NIN,NIN Bảng TPTP VN (mã 1018),FALSE,subset,"Bột mì, trắng "
+17,Yến mạch,,ngũ cốc,,,,,,,,,,,,55,Atkinson2021,"Atkinson FS et al. 2021, Am J Clin Nutr 114:1625-1632, tr.1629 — sản phẩm yến mạch/oat flakes trung bình 55; glucose=100",gluten,,,FALSE,MISS,
+18,Cháo trắng,,ngũ cốc,49.57,1.16,10.81,0.19,0.1,,0.71,28.86,15.43,,,,,,,estimated,Cháo trắng ước tính từ gạo tẻ sống (NIN 1003) × 1/7 (loãng),TRUE,estimated,"(ước tính từ Gạo, trắng, tẻ, giã tay, sống)"
+19,Thịt lợn nạc,thịt heo nạc,thịt,139,19,0,7,0,,76,341,190,237.2,"USDA/ODS-NIH Purine DB R2.0 (2025) — Pork loin, boneless, skinless, raw [USA]",,,,,NIN,NIN Bảng TPTP VN (mã 7017),FALSE,subset,"Thịt lợn, nạc, tươi"
+20,Thịt lợn ba chỉ,thịt heo ba rọi,thịt,,,,,,,,,,,,,,,,,,FALSE,MISS,
+21,Thịt bò thăn,,thịt,118,21,0,3.8,0,,83,378,226,156.6,"USDA/ODS-NIH Purine DB R2.0 (2025) — Beef chuck roast, boneless, choice, raw [USA]",,,,,NIN,NIN Bảng TPTP VN (mã 7003),FALSE,override,"Thịt bò, loại I, tươi"
+22,Thịt bò bắp,,thịt,122,21.75,0,3.85,0,,63,387,204,,,,,,,NIN,NIN Bảng TPTP VN (mã 7094),FALSE,subset,"Thịt bò, bắp, sống"
+23,"Thịt gà (ức, bỏ da)",,thịt,,,,,,,,,,174.9,"USDA/ODS-NIH Purine DB R2.0 (2025) — Chicken breast, raw [USA]",,,,,,,FALSE,MISS,
+24,"Thịt gà (đùi, có da)",,thịt,,,,,,,,,,,,,,,,,,FALSE,MISS,
+25,Thịt vịt,,thịt,267,17.8,0,21.8,0,,63,209,145,,,,,,,NIN,NIN Bảng TPTP VN (mã 7028),FALSE,subset,"Thịt vịt, tươi"
+26,Gan lợn,gan heo,thịt,116,18.8,2,3.6,0,,110,447,353,289,"USDA/ODS-NIH Purine DB R2.0 (2025) — Pork, liver, raw [USA]",,,,,NIN,NIN Bảng TPTP VN (mã 7041),FALSE,subset,"Gan lợn, tươi"
+27,Lòng lợn,,thịt,,,,,,,,,,,,,,,,,,FALSE,subset-nin-thiếu-khoáng,"Lòng lợn (ruột già), tươi"
+28,Tim lợn,,thịt,94,15.1,1.2,3.2,0,,56,294,213,,,,,,,NIN,NIN Bảng TPTP VN (mã 7057),FALSE,subset,"Tim lợn, tươi"
+29,Giò lụa,chả lụa,thịt,,,,,,,,,,,,,,,,,,FALSE,subset-nin-thiếu-khoáng,"Giò lụa, chín"
+30,Chả quế,,thịt,,,,,,,,,,,,,,,,,,FALSE,exact-nin-thiếu-khoáng,Chả quế
+31,Nem chua,,thịt,125,20.7,3.2,3.3,0,,476,194,78,,,,,,,NIN,NIN Bảng TPTP VN (mã 7073),FALSE,exact,Nem chua
+32,Xúc xích,,thịt,535,27.2,0,47.4,0,,287,219,139,,,,,,,NIN,NIN Bảng TPTP VN (mã 7077),FALSE,exact,Xúc xích
+33,Trứng gà,,trứng,150,12.96,1.25,10.33,0,0.77,158,176,210,,,,,,trứng,NIN,NIN Bảng TPTP VN (mã 9001),FALSE,subset,Trứng gà ta
+34,Trứng vịt,,trứng,172,13.02,2.94,12.02,0,0.93,191,258,210,,,,,,trứng,NIN,NIN Bảng TPTP VN (mã 9004),FALSE,exact,Trứng vịt
+35,Trứng vịt lộn,,trứng,182,13.6,4,12.4,0,,94,131,212,,,,,,trứng,NIN,NIN Bảng TPTP VN (mã 9010),FALSE,exact,Trứng vịt lộn
+36,Trứng cút,,trứng,157,12.78,2.89,10.47,0,0.41,141,132,226,,,,,,trứng,NIN,NIN Bảng TPTP VN (mã 9007),FALSE,subset,Trứng chim cút
+37,Cá lóc,cá quả|cá chuối,thủy sản,,,,,,,,,,,,,,,cá,,,FALSE,alias-subset-nin-thiếu-khoáng,"Cá quả, tươi"
+38,Cá rô phi,,thủy sản,96.0,20.1,0.0,1.7,0.0,0.0,52.0,302,170,,,,,,cá,USDA,USDA FDC fdcId:175176,FALSE,usda,"Fish, tilapia, raw"
+39,Cá chép,,thủy sản,96,16,0,3.6,0,,49,397,184,,,,,,cá,NIN,NIN Bảng TPTP VN (mã 8003),FALSE,subset,"Cá chép, tươi"
+40,Cá basa,cá tra,thủy sản,119,15.2,0,5.94,0,,98,302,204,,,,,,cá,NIN,NIN Bảng TPTP VN (mã 8092),FALSE,subset,"Cá basa, tươi"
+41,Cá thu,,thủy sản,166,18.2,0,10.3,0,,110,486,90,194,"USDA/ODS-NIH Purine DB R2.0 (2025) — Mackerel, raw (unspecified) [USA]",,,,cá,NIN,NIN Bảng TPTP VN (mã 8026),FALSE,subset,"Cá thu, tươi"
+42,Cá ngừ,,thủy sản,87,21,0,0.3,0,,78,518,206,157.2,"USDA/ODS-NIH Purine DB R2.0 (2025) — Tuna, raw (unspecified) [Japan]",,,,cá,NIN,NIN Bảng TPTP VN (mã 8019),FALSE,subset,"Cá ngừ, tươi"
+43,Cá nục,,thủy sản,111,20.2,0,3.3,0,,104,383,160,,,,,,cá,NIN,NIN Bảng TPTP VN (mã 8020),FALSE,subset,"Cá nục, tươi"
+44,Cá trích,,thủy sản,166,17.7,0,10.6,0,,160,423,174,139.2,"USDA/ODS-NIH Purine DB R2.0 (2025) — Herring, raw [Japan]",,,,cá,NIN,NIN Bảng TPTP VN (mã 8031),FALSE,subset,"Cá trích, tươi"
+45,Cá hồi,,thủy sản,136,22,0,5.3,0,,46,423,230,250,"USDA/ODS-NIH Purine DB R2.0 (2025) — Salmon, mixed species, raw [USA]",,,,cá,NIN,NIN Bảng TPTP VN (mã 8011),FALSE,subset,"Cá hồi, tươi"
+46,Cá bống,,thủy sản,,,,,,,,,,,,,,,cá,,,FALSE,subset-nin-thiếu-khoáng,"Cá bống, tươi"
+47,Tôm biển,,thủy sản,82,17.6,0.9,0.9,0,,148,185,184,166.5,"USDA/ODS-NIH Purine DB R2.0 (2025) — Shrimp, raw (unspecified) [Japan]",,,,hải sản,NIN,NIN Bảng TPTP VN (mã 8051),FALSE,subset,"Tôm biển, tươi"
+48,Tôm sú,,thủy sản,,,,,,,,,,166.5,"USDA/ODS-NIH Purine DB R2.0 (2025) — Shrimp, raw (unspecified) [Japan]",,,,hải sản,,,FALSE,MISS,
+49,Cua đồng,,thủy sản,87,12.3,2,3.3,0,,1484,27,171,136.5,"USDA/ODS-NIH Purine DB R2.0 (2025) — Crab, snow, raw [Japan]",,,,hải sản,NIN,NIN Bảng TPTP VN (mã 8034),FALSE,subset,"Cua đồng, tươi"
+50,Ghẹ,,thủy sản,54,11.9,0,0.7,0,,293,329,229,136.5,"USDA/ODS-NIH Purine DB R2.0 (2025) — Crab, snow, raw [Japan]",,,,hải sản,NIN,NIN Bảng TPTP VN (mã 8035),FALSE,override,"Cua ghẹ, tươi"
+51,Mực tươi,,thủy sản,73,16.3,0,0.9,0,,44,273,150,135,"USDA/ODS-NIH Purine DB R2.0 (2025) — Squid, raw (unspecified) [USA]",,,,hải sản,NIN,NIN Bảng TPTP VN (mã 8040),FALSE,subset,"Mực, tươi"
+52,Ngao,nghêu,thủy sản,86.0,14.7,3.57,0.96,0.0,0.0,601,46.0,198,136,"USDA/ODS-NIH Purine DB R2.0 (2025) — Clams, raw [USA]",,,,hải sản,USDA,USDA FDC fdcId:174214,FALSE,usda,"Mollusks, clam, mixed species, raw"
+53,Hến,,thủy sản,45,4.5,5.1,0.7,0,,86,54,86,,,,,,hải sản,NIN,NIN Bảng TPTP VN (mã 8037),FALSE,subset,"Hến, tươi"
+54,Cá khô,,thủy sản,,,,,,,,,,,,,,,cá,,,FALSE,subset-nin-thiếu-khoáng,"Cá khô (chim, thu, nụ, đé), sống"
+55,Đậu phụ,đậu hũ|tàu hũ,đậu,97,10.9,1.1,5.4,0.4,,7,121,85,31.1,"USDA/ODS-NIH Purine DB R2.0 (2025) — Tofu, raw (nigari) [Japan]",,,,đậu nành,NIN,NIN Bảng TPTP VN (mã 3025),FALSE,subset,"Đậu phụ, sống"
+56,Đậu phụ chiên,,đậu,,,,,,,,,,,,,,,đậu nành,,,FALSE,MISS,
+57,Sữa đậu nành,,đậu,29,3.1,0.5,1.6,0.1,,55,124,36,,,,,,đậu nành,NIN,NIN Bảng TPTP VN (mã 3032),FALSE,subset,Sữa đậu nành (100g đậu/lít)
+58,Đậu xanh,,đậu,346,23.4,57.8,2.4,4.7,,6,1132,377,,,42,Atkinson2021,"Atkinson et al. 2021, AJCN Suppl. Table 1 (#1302) — Mung bean, pressure cooked, Australia 1998, GI 42±5; glucose=100",,NIN,NIN Bảng TPTP VN (mã 3010),FALSE,subset,"Đậu xanh (đậu tắt), hạt, khô"
+59,Đậu đen,,đậu,341,21.6,62.4,1.42,15.5,2.12,5.0,1480.0,352,,,,,,,USDA,USDA FDC fdcId:173734,FALSE,usda,"Beans, black, mature seeds, raw"
+60,Đậu đỏ,,đậu,329,19.9,62.9,0.53,12.7,,5.0,1250.0,381,,,,,,,USDA,USDA FDC fdcId:173727,FALSE,usda,"Beans, adzuki, mature seeds, raw"
+61,Đậu tương hạt,đậu nành hạt,đậu,418,34,29.1,18.4,4.5,,2,1504,690,172.5,"USDA/ODS-NIH Purine DB R2.0 (2025) — Soybeans, dried, raw [Japan]",,,,đậu nành,NIN,NIN Bảng TPTP VN (mã 3007),FALSE,subset,"Đậu tương, đậu nành, hạt khô"
+62,Giá đỗ,giá,đậu,82,7.7,8.7,1.8,0.7,,14,484,58,,,25,Atkinson2021,"Atkinson et al. 2021, AJCN Suppl. Table 1 (#1301) — Mung bean, germinated, Australia 1998, GI 25±4; glucose=100",,NIN,NIN Bảng TPTP VN (mã 4035),FALSE,alias-subset,"Giá đậu tương, tươi"
+63,Chao,,đậu,,,,,,,,,,,,,,,đậu nành,,,FALSE,subset-nin-thiếu-khoáng,Cháo lòng
+64,Tương hột,,đậu,,,,,,,,,,,,,,,đậu nành,,,FALSE,MISS,
+65,Rau muống,,rau lá,28,3.2,3.26,0.24,1,,37.4,330.5,37,,,,,,,NIN,NIN Bảng TPTP VN (mã 4083),FALSE,subset,"Rau muống,  tươi"
+66,Rau ngót,bồ ngót,rau lá,,,,,,,,,,,,,,,,,,FALSE,subset-nin-thiếu-khoáng,"Rau ngót, tươi"
+67,Rau dền,,rau lá,23.0,2.46,4.02,0.33,0,,20.0,611,50.0,,,,,,,USDA,USDA FDC fdcId:168385,FALSE,usda,"Amaranth leaves, raw"
+68,Rau cải ngọt,,rau lá,,,,,,,,,,,,,,,,,,FALSE,subset-nin-thiếu-khoáng,"Rau cải ngọt, tươi"
+69,Cải xanh,cải bẹ xanh,rau lá,23,1.7,3.76,0.14,1.8,1.6,28.6,220.8,13.5,,,,,,,NIN,NIN Bảng TPTP VN (mã 4016),FALSE,subset,"Cải xanh, tươi"
+70,Cải thảo,,rau lá,,,,,,,,,,,,,,,,,,FALSE,subset-nin-thiếu-khoáng,"Cải thảo, luộc"
+71,Cải bắp,bắp cải,rau lá,41,1.96,7.61,0.33,1.74,3.89,30.76,205.98,33.7,,,,,,,NIN,NIN Bảng TPTP VN (mã 4010002),FALSE,subset,"Cải bắp, luộc"
+72,Cải cúc,tần ô,rau lá,,,,,,,,,,,,,,,,,,FALSE,subset-nin-thiếu-khoáng,"Cải cúc, tươi"
+73,Rau mồng tơi,,rau lá,,,,,,,,,,,,,,,,,,FALSE,subset-nin-thiếu-khoáng,"Rau mồng tơi, tươi"
+74,Rau đay,,rau lá,31,2.8,4.52,0.18,1.5,,16.12,417,57.3,,,,,,,NIN,NIN Bảng TPTP VN (mã 4070),FALSE,subset,"Rau đay, tươi"
+75,Rau lang,đọt lang,rau lá,28,2.6,3.99,0.21,1.4,,19.01,498.02,54,,,,,,,NIN,NIN Bảng TPTP VN (mã 4076),FALSE,subset,"Rau khoai lang, tươi"
+76,Xà lách,,rau lá,15.0,1.36,2.87,0.15,1.3,0.78,28.0,194,29.0,,,,,,,USDA,USDA FDC fdcId:169249,FALSE,usda,"Lettuce, green leaf, raw"
+77,Rau má,,rau lá,,,,,,,,,,,,,,,,,,FALSE,subset-nin-thiếu-khoáng,"Rau má rừng, tươi"
+78,Rau mùi,ngò rí|ngò,rau lá,22,2.6,2.17,0.33,1.8,0.87,46,521,80,,,,,,,NIN,NIN Bảng TPTP VN (mã 4081),FALSE,subset,"Rau mùi, tươi"
+79,Hành lá,hành hoa,rau lá,,,,,,,,,,,,,,,,,,FALSE,subset-nin-thiếu-khoáng,"Hành lá (hành hoa), tươi"
+80,Tía tô,,rau lá,,,,,,,,,,,,,,,,,,FALSE,subset-nin-thiếu-khoáng,"Tía tô, tươi"
+81,Kinh giới,,rau lá,,,,,,,,,,,,,,,,,,FALSE,MISS,
+82,Thì là,thìa là,rau lá,47,2.6,6.94,0.96,5,,48,360.6,12.2,,,,,,,NIN,NIN Bảng TPTP VN (mã 4101),FALSE,alias-subset,"Thìa là, tươi"
+83,Rau răm,,rau lá,,,,,,,,,,,,,,,,,,FALSE,subset-nin-thiếu-khoáng,"Rau răm, tươi"
+84,Súp lơ xanh,bông cải xanh,rau lá,39,2.95,6.08,0.3,3.2,3.03,23,300,62,,,,,,,NIN,NIN Bảng TPTP VN (mã 4100),FALSE,subset,"Súp lơ xanh, tươi"
+85,Cà chua,,rau củ,18.0,0.88,3.89,0.2,1.2,2.63,5.0,237,24.0,,,22,Atkinson2021,"Atkinson FS et al. 2021, Am J Clin Nutr 114:1625-1632, tr.1630 — whole tomatoes GI 22; glucose=100",,USDA,USDA FDC fdcId:170457,FALSE,usda,"Tomatoes, red, ripe, raw, year round average"
+86,Cà rốt,,rau củ,47,1.6,9.79,0.21,1.28,4.83,55.32,282.45,41.49,,,,,,,NIN,NIN Bảng TPTP VN (mã 4007002),FALSE,subset,"Cà rốt (củ đỏ, vàng), luộc"
+87,Củ cải trắng,,rau củ,27,1.5,5.11,0.09,1.5,2.5,10,242,41,,,,,,,NIN,NIN Bảng TPTP VN (mã 4021),FALSE,subset,"Củ cải trắng, tươi"
+88,Su hào,,rau củ,27.0,1.7,6.2,0.1,3.6,2.6,20.0,350,46.0,,,,,,,USDA,USDA FDC fdcId:168424,FALSE,usda,"Kohlrabi, raw"
+89,Su su,,rau củ,19.0,0.82,4.51,0.13,1.7,1.66,2.0,125,18.0,,,,,,,USDA,USDA FDC fdcId:170402,FALSE,usda,"Chayote, fruit, raw"
+90,Bí đao,bí xanh,rau củ,,,,,,,,,,,,,,,,,,FALSE,subset-nin-thiếu-khoáng,"Bí đao (bí xanh), luộc"
+91,Bí đỏ,bí ngô,rau củ,35,0.34,7.75,0.34,0.79,,9.44,391.57,17.98,,,,,,,NIN,NIN Bảng TPTP VN (mã 4003002),FALSE,alias-subset,"Bí ngô, luộc"
+92,Bầu,,rau củ,,,,,,,,,,,,,,,,,,FALSE,subset-nin-thiếu-khoáng,"Bầu, luộc"
+93,Mướp,,rau củ,18,0.9,3.36,0.14,0.5,,3,139,45,,,,,,,NIN,NIN Bảng TPTP VN (mã 4054),FALSE,subset,"Mướp, tươi"
+94,Mướp đắng,khổ qua,rau củ,17.0,1.0,3.7,0.17,2.8,,5.0,296,31.0,,,,,,,USDA,USDA FDC fdcId:168393,FALSE,usda,"Balsam-pear (bitter gourd), pods, raw"
+95,Dưa chuột,dưa leo,rau củ,19,0.3,4.16,0.14,0.7,1.06,154.38,2.94,16,,,,,,,NIN,NIN Bảng TPTP VN (mã 11002),FALSE,subset,Dưa chuột hộp
+96,Đậu cove,đậu que,rau củ,,,,,,,,,,,,,,,,,,FALSE,MISS,
+97,Đậu bắp,,rau củ,33.0,1.93,7.45,0.19,3.2,1.48,7.0,299,61.0,,,,,,,USDA,USDA FDC fdcId:169260,FALSE,usda,"Okra, raw"
+98,Cà tím,,rau củ,25.0,0.98,5.88,0.18,3.0,3.53,2.0,229,24.0,,,,,,,USDA,USDA FDC fdcId:169228,FALSE,usda,"Eggplant, raw"
+99,Măng tươi,,rau củ,24,2.2,3.36,0.14,2.3,1.88,2,202,6.2,47.2,"USDA/ODS-NIH Purine DB R2.0 (2025) — Bamboo shoots, raw [Japan]",,,,,NIN,NIN Bảng TPTP VN (mã 4052),FALSE,subset,"Măng tây, tươi"
+100,Nấm rơm,,rau củ,32.0,3.83,4.64,0.68,2.5,,384,78.0,61.0,46.9,"USDA/ODS-NIH Purine DB R2.0 (2025) — Mushrooms (not further specified), raw [Canada]",,,,,USDA,USDA FDC fdcId:168582,FALSE,usda,"Mushrooms, straw, canned, drained solids"
+101,Nấm hương,nấm đông cô,rau củ,,,,,,,,,,23.1,"USDA/ODS-NIH Purine DB R2.0 (2025) — Mushrooms, shiitake, raw [Japan]",,,,,,,FALSE,subset-nin-thiếu-khoáng,"Nấm hương, khô"
+102,Hành tây,,rau củ,45,1.8,9.29,0.11,1.1,4.28,7.5,220.7,58,,,,,,,NIN,NIN Bảng TPTP VN (mã 4039),FALSE,subset,"Hành tây, tươi"
+103,Chuối tiêu,chuối già,trái cây,100,1.5,23,0.2,0.8,,19.3,329.4,28,,,47,Atkinson2021,"Atkinson et al. 2021, AJCN Suppl. Table 1 (#1088) — Banana, raw, Australia 2008, GI 47±5; glucose=100",,NIN,NIN Bảng TPTP VN (mã 5007),FALSE,subset,"Chuối tiêu, tươi"
+104,Cam sành,,trái cây,47.0,0.94,11.8,0.12,2.4,9.35,0.0,181,14.0,,,45,Atkinson2021,"Atkinson et al. 2021, AJCN Suppl. Table 1 — Oranges, navel, Australia 2020, GI 45±5; glucose=100",,USDA,USDA FDC fdcId:169097,FALSE,usda,"Oranges, raw, all commercial varieties"
+105,Quýt,,trái cây,53.0,0.81,13.3,0.31,1.8,10.6,2.0,166,20.0,,,52,Atkinson2021,"Atkinson et al. 2021, AJCN Suppl. Table 1 (#1140) — Mandarin orange (Citrus reticulata), Italy 2004, GI 52±8; glucose=100",,USDA,USDA FDC fdcId:169105,FALSE,usda,"Tangerines, (mandarin oranges), raw"
+106,Bưởi,,trái cây,38.0,0.76,9.62,0.04,1.0,,1.0,216,17.0,,,,,,,USDA,USDA FDC fdcId:167754,FALSE,usda,"Pummelo, raw"
+107,Táo,bom,trái cây,46,3.8,4.7,1.2,0.2,,33,85,150,,,44,Atkinson2021,"Atkinson et al. 2021, AJCN Suppl. Table 1 — Apples, raw, Australia 2020, GI 44±5; glucose=100",,NIN,NIN Bảng TPTP VN (mã 3033),FALSE,subset,Tào phớ
+108,Lê,,trái cây,48,0.7,10.8,0.2,0.6,9.8,5,88.4,16,,,33,Atkinson2021,"Atkinson et al. 2021, AJCN Suppl. Table 1 (#1161) — Pear, Williams, raw, ripe/soft, Australia 2015, GI 33±4; glucose=100",,NIN,NIN Bảng TPTP VN (mã 5023),FALSE,subset,"Lê, tươi"
+109,Xoài chín,,trái cây,69,0.6,15.9,0.3,0,14.8,2.1,114.1,13,,,48,Atkinson2021,"Atkinson et al. 2021, AJCN Suppl. Table 1 (#1142) — Mango, raw (Chin-Hwang), Taiwan 2010, GI 48; glucose=100",,NIN,NIN Bảng TPTP VN (mã 5055),FALSE,subset,"Xoài chín, tươi"
+110,Đu đủ chín,,trái cây,38,1,8.19,0.11,0.6,5.9,4.3,220.5,32,,,38,Atkinson2021,"Atkinson et al. 2021, AJCN Suppl. Table 1 (#1153) — Papaya/paw paw, raw, Singapore 2017, GI 38±2; glucose=100",,NIN,NIN Bảng TPTP VN (mã 5017),FALSE,subset,"Đu đủ chín, tươi"
+111,Dứa,thơm|khóm,trái cây,57,0.3,13.84,0.06,0.2,12.65,1,105,12,,,82,Atkinson2021,"Atkinson et al. 2021, AJCN Suppl. Table 1 (#1164) — Pineapple, raw (Ananas comosa), Malaysia 2008, GI 82±4; glucose=100",,NIN,NIN Bảng TPTP VN (mã 11003),FALSE,subset,Dứa hộp
+112,Dưa hấu,,trái cây,18,1.2,2.8,0.2,0.5,,4.5,187.2,13,,,51,Atkinson2021,"Atkinson et al. 2021, AJCN Suppl. Table 1 (#1147) — Watermelon, raw, red-fleshed, seedless, Malaysia 2017, GI 51±2; glucose=100",,NIN,NIN Bảng TPTP VN (mã 5011),FALSE,subset,"Dưa hấu, tươi"
+113,Nhãn,,trái cây,60.0,1.31,15.1,0.1,1.1,,0.0,266,21.0,,,,,,,USDA,USDA FDC fdcId:169089,FALSE,usda,"Longans, raw"
+114,Vải,,trái cây,49,0.7,10.75,0.35,1.1,,1,171,34,,,57,Atkinson2021,"Atkinson et al. 2021, AJCN Suppl. Table 1 (#1138) — Lychee, fresh, Australia 2009, GI 57±3; glucose=100",,NIN,NIN Bảng TPTP VN (mã 5052),FALSE,subset,"Vải, tươi   "
+115,Ổi,,trái cây,61,0.6,12.94,0.76,6,8.92,4,291,16,,,29,Atkinson2021,"Atkinson et al. 2021, AJCN Suppl. Table 1 (#1131) — Guava, raw, Singapore 2017, GI 29±4; glucose=100",,NIN,NIN Bảng TPTP VN (mã 5040),FALSE,subset,"Ổi, quả chín, tươi"
+116,Thanh long,,trái cây,,,,,,,,,,,,,,,,,,FALSE,override-nin-thiếu-khoáng,"Quả thanh long, tươi"
+117,Na,mãng cầu ta,trái cây,69,1.6,15.1,0.2,0.8,,22.3,259.5,45,,,58,Chan2001_VN,"Chan HMS et al. 2001, Eur J Clin Nutr 55:1076-1083, Table 2 — Custard apple, fresh; glucose=100, n=12",,NIN,NIN Bảng TPTP VN (mã 5034),FALSE,subset,"Na, tươi"
+118,Sầu riêng,,trái cây,138,2.5,28.3,1.6,1.4,,1,601,63,,,,,,,NIN,NIN Bảng TPTP VN (mã 5048),FALSE,subset,"Sầu riêng, tươi"
+119,Bơ,trái bơ,trái cây,756,0.5,0.5,83.5,0,,11,24,12,,,,,,,NIN,NIN Bảng TPTP VN (mã 6001),FALSE,exact,Bơ
+120,Nho,,trái cây,71,0.4,16.99,0.11,0.6,15.48,2,191,22,,,54,Atkinson2021,"Atkinson et al. 2021, AJCN Suppl. Table 1 (#1133-1135) — Grapes, trung bình 3 mẫu (Crimson 50/green 54/black 59); glucose=100",,NIN,NIN Bảng TPTP VN (mã 5037),FALSE,subset,"Nho ngọt, tươi"
+121,Chanh,,trái cây,29,0.9,5.96,0.14,1.3,,3,145,22,,,,,,,NIN,NIN Bảng TPTP VN (mã 5003),FALSE,subset,"Chanh, tươi"
+122,Dừa (nước),nước dừa,trái cây,41,0.3,9.74,0.06,0.4,,2,130,12,,,,,,,NIN,NIN Bảng TPTP VN (mã 11013),FALSE,alias-subset,Nước dứa hộp
+123,Sữa tươi không đường,,sữa,60.0,3.27,4.63,3.2,0,,38.0,150,101,,,,,,sữa,USDA,USDA FDC fdcId:746782,FALSE,usda,"Milk, whole, 3.25% milkfat, with added vitamin D"
+124,Sữa tươi có đường,,sữa,,,,,,,,,,,,,,,sữa,,,FALSE,MISS,
+125,Sữa đặc có đường,,sữa,65,3.3,4.66,3.7,0,4.66,46,155,95,,,61,Chan2001_VN,"Chan HMS et al. 2001, Eur J Clin Nutr 55:1076-1083, Table 2 — Milk, full-cream condensed, sweetened; glucose=100, n=12",sữa,NIN,NIN Bảng TPTP VN (mã 10035),FALSE,subset,"Sữa chua, đặc, có đường"
+126,Sữa chua,yaourt|da ua,sữa,61,3.3,3.6,3.7,0,,46,155,95,,,,,,sữa,NIN,NIN Bảng TPTP VN (mã 10004),FALSE,exact,Sữa chua
+127,Phô mai,pho mát,sữa,380,25.5,0,30.9,0,,621,98,424,,,,,,sữa,NIN,NIN Bảng TPTP VN (mã 10009),FALSE,alias-exact,Phó mát
+128,Sữa bột nguyên kem,,sữa,494,27,38,26,0,,371,1330,790,,,,,,sữa,NIN,NIN Bảng TPTP VN (mã 10006),FALSE,override,Sữa bột toàn phần
+129,Dầu ăn thực vật,,dầu mỡ,884,0.0,0.0,100,0.0,0.0,0.0,0.0,0.0,,,,,,,USDA,USDA FDC fdcId:171411,FALSE,usda,"Oil, soybean, salad or cooking"
+130,Mỡ lợn,mỡ heo,dầu mỡ,902,0.0,0.0,100,0.0,0.0,0.0,0.0,0.0,,,,,,,USDA,USDA FDC fdcId:171401,FALSE,usda,Lard
+131,Bơ động vật,,dầu mỡ,717,0.85,0.06,81.1,0.0,0.06,643,24.0,24.0,,,,,,sữa,USDA,USDA FDC fdcId:173410,FALSE,usda,"Butter, salted"
+132,Lạc rang,đậu phộng rang,hạt,587,24.4,21.3,49.7,8.4,4.9,410,634,363,,,,,,lạc,USDA,USDA FDC fdcId:174262,FALSE,usda,"Peanuts, all types, dry-roasted, with salt"
+133,Vừng,mè,hạt,607,20.94,21.98,48.33,3.65,0.31,11.46,487.5,655.21,,,,,,vừng,NIN,NIN Bảng TPTP VN (mã 3020011),FALSE,subset,Vừng rang
+134,Hạt điều,,hạt,608,18.4,29.3,46.3,0.6,5.91,12,660,462,,,,,,hạt cây,NIN,NIN Bảng TPTP VN (mã 3015),FALSE,subset,"Hạt điều, khô "
+135,Hạt sen,,hạt,164,9.5,30.3,0.5,0.8,,1,367,164,,,,,,,NIN,NIN Bảng TPTP VN (mã 4040),FALSE,subset,"Hạt sen, tươi"
+136,Nước cốt dừa,,dầu mỡ,,,,,,,,,,,,,,,,,,FALSE,MISS,
+137,Nước mắm,,gia vị,35,5.06,3.64,0.01,0,,7720,288,7,,,,,,cá,NIN,NIN Bảng TPTP VN (mã 13017),FALSE,subset,Nước mắm cá
+138,Nước mắm giảm mặn,,gia vị,20,4.0,2.0,0,0,,4000,150,20,,,,,,cá,estimated,Ước tính nước mắm giảm mặn (~1/2 nước mắm thường) — Na ~4.000 mg/100 g,TRUE,manual,
+139,Muối ăn,,gia vị,0,0,0,0,0,0,38758,8,0,,,,,,,curated,"USDA FDC 'Salt, table' — Na 38758 mg/100 g (NaCl)",FALSE,manual,
+140,Bột canh,,gia vị,0,0,0,0,0,0,33000,0,0,,,,,,,estimated,Ước tính bột canh (~85% muối + MSG) — Na ~33.000 mg/100 g; cần đối chiếu nhãn,TRUE,manual,
+141,Hạt nêm,,gia vị,5,1.0,1.0,0,0,,17000,20,10,,,,,,,estimated,Ước tính hạt nêm (muối + MSG + chiết xuất) — Na ~17.000 mg/100 g; cần đối chiếu nhãn,TRUE,manual,
+142,Mì chính,bột ngọt,gia vị,0,0,0,0,0,0,12280,0,0,,,,,,,curated,"Mì chính = MSG (NaC5H8NO4) — natri hoá học 12,28% khối lượng",FALSE,manual,
+143,Nước tương,xì dầu,gia vị,55,6.3,7.46,0.04,0.8,1.7,5637,217,125,,,,,,đậu nành|gluten,NIN,NIN Bảng TPTP VN (mã 13022),FALSE,alias-exact,Xì dầu
+144,Mắm tôm,,gia vị,73,14.8,3.6,1.5,0,,4054,200,100,,,,,,hải sản,estimated,Na 4054 từ NIN 'Mắm tôm đặc' (mã 13011); macro ước tính từ mắm tôm đặc,TRUE,manual,
+145,Mắm nêm,,gia vị,,,,,,,,,,,,,,,cá,,,FALSE,MISS,
+146,Mắm ruốc,,gia vị,,,,,,,,,,,,,,,hải sản,,,FALSE,MISS,
+147,Tương ớt,,gia vị,41,0.5,8.5,0.5,0.9,2.55,25,564,16,,,,,,,NIN,NIN Bảng TPTP VN (mã 13021),FALSE,exact,Tương ớt
+148,Dầu hào,,gia vị,73,2.9,14.7,0.3,0,,3379,74,32,,,,,,hải sản,NIN,NIN Bảng TPTP VN (mã 13027),FALSE,exact,Dầu hào
+149,Đường trắng,,gia vị,385,0.0,99.6,0.32,0,,1.0,2.0,0.0,,,,,,,USDA,USDA FDC fdcId:746784,FALSE,usda,"Sugars, granulated"
+150,Đường thốt nốt,,gia vị,,,,,,,,,,,,,,,,,,FALSE,MISS,
+151,Tỏi,,gia vị,126,6,24.65,0.35,1.5,1,18,373,181,,,,,,,NIN,NIN Bảng TPTP VN (mã 4103),FALSE,subset,"Tỏi ta, tươi"
+152,Gừng,,gia vị,41,0.4,8.59,0.51,3.3,1.7,7,316,8,,,,,,,NIN,NIN Bảng TPTP VN (mã 13003),FALSE,subset,Gừng tươi
