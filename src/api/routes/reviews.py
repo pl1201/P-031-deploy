@@ -5,7 +5,7 @@ LLM: NO.
 
 from __future__ import annotations
 
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 from fastapi import APIRouter, Depends, HTTPException, status
 from pydantic import BaseModel, Field
@@ -113,7 +113,7 @@ def approve_review(
     plan.reviewer_notes = payload.notes
 
     after = {"items": [{"id": i.id, "grams": i.grams} for i in plan.items], "status": plan.status}
-    db.add(AuditLog(at=datetime.now(timezone.utc), actor_id=user.id, action="approve", before=before, after=after))
+    db.add(AuditLog(at=datetime.now(UTC), actor_id=user.id, action="approve", before=before, after=after))
     db.commit()
     db.refresh(plan)
     return MealPlanOut.from_model(plan)
@@ -135,7 +135,7 @@ def reject_review(
 
     db.add(
         AuditLog(
-            at=datetime.now(timezone.utc),
+            at=datetime.now(UTC),
             actor_id=user.id,
             action="reject",
             before=before,
