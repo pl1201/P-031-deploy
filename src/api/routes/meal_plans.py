@@ -88,10 +88,10 @@ class MealPlanOut(BaseModel):
                     slot=i.slot,
                     food_id=i.food_id,
                     grams=i.grams,
-                    name_vi=i.food.name_vi,
-                    source=i.food.source,
-                    source_ref=i.food.source_ref,
-                    is_estimated=i.food.is_estimated,
+                    name_vi=i.food.name_vi if i.food else f"Thực phẩm #{i.food_id} (thiếu dữ liệu)",
+                    source=i.food.source if i.food else "unknown",
+                    source_ref=i.food.source_ref if i.food else "",
+                    is_estimated=i.food.is_estimated if i.food else True,
                 )
                 for i in sorted(plan.items, key=lambda i: (i.slot, i.food_id))
             ],
