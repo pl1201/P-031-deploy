@@ -1,0 +1,61 @@
+food_id,name_vi,kcal_food_items_csv,source_food_items_csv,xlsx_sheet,kcal_xlsx,diff
+3008,Đậu hà lan,342.0,NIN,Bảng TP có phospho,70.0,-272.0
+125,Sữa đặc có đường,65.0,NIN,Bảng TP có phospho,336.0,271.0
+141,Hạt nêm,5.0,estimated,Bảng TP,198.0,193.0
+136,Nước cốt dừa,230.0,USDA,Bảng TP,169.6,-60.4
+43,Cá nục,111.0,NIN,Bảng TP có phospho,74.9,-36.1
+5,Bánh phở tươi,110.0,estimated,Bảng TP,141.2,31.2
+100,Nấm rơm,32.0,USDA,Bảng TP,61.2,29.2
+115,Ổi,61.0,NIN,Bảng TP có phospho,33.0,-28.0
+116,Thanh long,68.0,USDA,Bảng TP có phospho,40.0,-28.0
+143,Nước tương,55.0,NIN,Bảng TP,35.4,-19.6
+58,Đậu xanh,346.0,NIN,Bảng TP có phospho,328.0,-18.0
+7,Bánh mì,267.0,USDA,Bảng TP,250.0,-17.0
+3024,Măng chua,11.0,NIN,Bảng TP,27.6,16.6
+59,Đậu đen,341.0,USDA,Bảng TP có phospho,325.0,-16.0
+33,Trứng gà,150.0,NIN,Bảng TP có phospho,166.0,16.0
+105,Quýt,53.0,USDA,Bảng TP có phospho,38.0,-15.0
+3010,Quả cọ tươi,178.0,NIN,Bảng TP,192.2,14.2
+71,Cải bắp,41.0,NIN,Bảng TP có phospho,29.0,-12.0
+113,Nhãn,60.0,USDA,Bảng TP có phospho,48.0,-12.0
+31,Nem chua,125.0,NIN,Bảng TP có phospho,137.0,12.0
+34,Trứng vịt,172.0,NIN,Bảng TP có phospho,184.0,12.0
+3023,Lá lốt,39.0,NIN,Bảng TP,48.8,9.8
+86,Cà rốt,47.0,NIN,Bảng TP có phospho,38.0,-9.0
+88,Su hào,27.0,USDA,Bảng TP có phospho,36.0,9.0
+72,Cải cúc,22.0,NIN,Bảng TP có phospho,14.0,-8.0
+69,Cải xanh,23.0,NIN,Bảng TP có phospho,15.0,-8.0
+106,Bưởi,38.0,USDA,Bảng TP có phospho,30.0,-8.0
+48,Tôm sú,90.0,USDA,Bảng TP,82.1,-7.9
+3026,Rau bí,18.0,NIN,Bảng TP,25.8,7.8
+3020,Đu đủ xanh,22.0,NIN,Bảng TP,29.6,7.6
+3017,Cần tây,47.0,NIN,Bảng TP,54.0,7.0
+3014,Cà pháo,20.0,NIN,Bảng TP,26.8,6.8
+97,Đậu bắp,33.0,USDA,Bảng TP,39.23,6.2
+3032,Cam,37.0,NIN,Bảng TP,43.1,6.1
+6,Miến dong,338.0,NIN,Bảng TP có phospho,332.0,-6.0
+87,Củ cải trắng,27.0,NIN,Bảng TP có phospho,21.0,-6.0
+121,Chanh,29.0,NIN,Bảng TP có phospho,23.0,-6.0
+114,Vải,49.0,NIN,Bảng TP có phospho,43.0,-6.0
+3037,Mít dai,48.0,NIN,Bảng TP,53.75,5.8
+85,Cà chua,18.0,USDA,Bảng TP,23.55,5.6
+11,Khoai lang,124.0,NIN,Bảng TP có phospho,119.0,-5.0
+102,Hành tây,45.0,NIN,Bảng TP có phospho,40.0,-5.0
+65,Rau muống,28.0,NIN,Bảng TP có phospho,23.0,-5.0
+117,Na,69.0,NIN,Bảng TP có phospho,64.0,-5.0
+28,Tim lợn,94.0,NIN,Bảng TP có phospho,89.0,-5.0
+123,Sữa tươi không đường,60.0,USDA,Bảng TP,65.0,5.0
+3006,Khoai sọ,114.0,NIN,Bảng TP,118.9,4.9
+13,Khoai môn,113.0,NIN,Bảng TP có phospho,109.0,-4.0
+12,Khoai tây,96.0,NIN,Bảng TP có phospho,92.0,-4.0
+92,Bầu,18.0,NIN,Bảng TP có phospho,14.0,-4.0
+95,Dưa chuột,19.0,NIN,Bảng TP có phospho,15.0,-4.0
+38,Cá rô phi,96.0,USDA,Bảng TP có phospho,100.0,4.0
+98,Cà tím,25.0,USDA,Bảng TP có phospho,22.0,-3.0
+103,Chuối tiêu,100.0,NIN,Bảng TP có phospho,97.0,-3.0
+110,Đu đủ chín,38.0,NIN,Bảng TP có phospho,35.0,-3.0
+2070,Dưa hồng,19.0,NIN,Bảng TP có phospho,16.0,-3.0
+108,Lê,48.0,NIN,Bảng TP có phospho,45.0,-3.0
+3002,Gạo tẻ giã,344.0,NIN,Bảng TP,346.9,2.9
+3027,Rau diếp,13.0,NIN,Bảng TP,15.35,2.3
+3000,Gạo nếp cái,346.0,NIN,Bảng TP,348.3,2.3

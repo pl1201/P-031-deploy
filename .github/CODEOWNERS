@@ -1,0 +1,18 @@
+# CODEOWNERS — xem docs/TEAM.md §4 để biết quy tắc phân quyền đầy đủ
+# Cập nhật handle GitHub thật khi đội chốt danh sách thành viên.
+
+*                       @r1-tech-lead
+
+# Lâm sàng — nơi sai sót gây hại thật
+/src/clinical/          @r2-clinical @r1-tech-lead
+/data/seeds/             @r2-clinical
+/eval/                   @r2-clinical
+
+/src/agents/             @r1-tech-lead
+/src/api/                @r3-backend
+/src/db/                 @r3-backend
+/.github/                @r3-backend
+/Dockerfile              @r3-backend
+/web/                    @r4-frontend
+/docs/                   @r1-tech-lead
+README.md                @r4-frontend

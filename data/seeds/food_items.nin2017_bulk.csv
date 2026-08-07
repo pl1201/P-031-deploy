@@ -1,0 +1,168 @@
+id,name_vi,aliases,category,kcal_100g,protein_g,carb_g,fat_g,fiber_g,sugar_g,na_mg,k_mg,p_mg,purine_mg,purine_source_ref,gi_index,gi_source,gi_source_ref,contains_allergens,source,source_ref,is_estimated
+2000,"Gạo nếp cái Glutinous raw rice, milled,",,,348,8.6,75.1,1.5,0.6,,3,282,98,,,,,,,NIN,"Bảng TPTP VN 2017, mã 01001, tr.24",FALSE
+2001,"Gạo (loại nếp thường) Glutinous raw rice, milled,",,,350,8.4,75.4,1.6,0.5,,3,282,130,,,,,,,NIN,"Bảng TPTP VN 2017, mã 01002, tr.24",FALSE
+2002,"Gạo tẻ máy Ordinary raw polished rice,",,,346,7.9,76.3,1,0.4,,5,241,104,,,,,,,NIN,"Bảng TPTP VN 2017, mã 01004, tr.24",FALSE
+2003,"Kê Foxtail millet, raw",,,345,7,72.4,3,3.4,,7,249,290,,,,,,,NIN,"Bảng TPTP VN 2017, mã 01006, tr.24",FALSE
+2004,"Ngô bắp tươi Corn seeds, fresh, raw",,,200,4.1,40.8,2.3,1.2,,3,306,187,,,,,,,NIN,"Bảng TPTP VN 2017, mã 01007, tr.24",FALSE
+2005,"Ngô hạt khô vàng Yellow corn seed, dried",,,362,8.6,71.4,4.7,2,,35,287,190,,,,,,,NIN,"Bảng TPTP VN 2017, mã 01008, tr.24",FALSE
+2006,Bỏng ngô Corn flakes,,,386,8.6,84.2,1.6,3.4,,346,609,47,,,,,,,NIN,"Bảng TPTP VN 2017, mã 01015, tr.26",FALSE
+2007,Bột gạo nếp Glutinous rice flour,,,365,8.2,79.4,1.6,0.6,,3,293,148,,,,,,,NIN,"Bảng TPTP VN 2017, mã 01016, tr.26",FALSE
+2008,Bột gạo tẻ Rice flour,,,360,6.6,82.6,0.4,0.4,,0,76,135,,,,,,,NIN,"Bảng TPTP VN 2017, mã 01017, tr.26",FALSE
+2009,Bột ngô vàng Yellow maize flour,,,367,8.3,74.5,4,1.5,,5,315,170,,,,,,,NIN,"Bảng TPTP VN 2017, mã 01019, tr.26",FALSE
+2010,"Củ cái Winged yam yam, purple",,,134,3.1,30.18,0.12,1.8,,12,397,32,,,,,,,NIN,"Bảng TPTP VN 2017, mã 02002, tr.30",FALSE
+2011,"Củ sắn Cassava, manioc, raw",,,158,1.1,37.9,0.2,1.5,,2,394,30,,,,,,,NIN,"Bảng TPTP VN 2017, mã 02004, tr.30",FALSE
+2012,"Khoai lang nghệ Sweet raw potato, yellow,",,,119,1.2,27.9,0.3,0.8,,350,107,56,,,,,,,NIN,"Bảng TPTP VN 2017, mã 02009, tr.30",FALSE
+2013,"Khoai sọ Taro tuber, raw",,,119,1.8,27.7,0.1,1.2,,10,448,75,,,,,,,NIN,"Bảng TPTP VN 2017, mã 02013, tr.30",FALSE
+2014,"Khoai lang khô Sweet potato, dried",,,348,2.2,83.6,0.5,3.6,,86,584,137,,,,,,,NIN,"Bảng TPTP VN 2017, mã 02022, tr.32",FALSE
+2015,"Khoai tây khô White potato, dried",,,343,6.6,78.5,0.3,3.4,,25,1410,180,,,,,,,NIN,"Bảng TPTP VN 2017, mã 02023, tr.32",FALSE
+2016,"Cùi dừa già Coconut raw meat, mature,",,,385,4.8,10.4,36,4.2,,7,555,154,,,,,,,NIN,"Bảng TPTP VN 2017, mã 03001, tr.36",FALSE
+2017,"Cùi dừa non Coconut immature, meat, raw",,,54,3.5,6.1,1.7,3.5,,141,454,53,,,,,,,NIN,"Bảng TPTP VN 2017, mã 03002, tr.36",FALSE
+2018,"Đậu Hà lan (hạt) Field peas, seed, dried",,,342,22.2,60.1,1.4,6,,9,135,303,,,,,,,NIN,"Bảng TPTP VN 2017, mã 03006, tr.36",FALSE
+2019,"Lạc hạt Peanut, dried",,,583,27.5,18,44.5,2.5,,4,421,420,,,,,,,NIN,"Bảng TPTP VN 2017, mã 03017, tr.38",FALSE
+2020,"Quả cọ tươi Palm fruit, fresh",,,192,2.3,15.6,13.4,3.5,,14,1806,34,,,,,,,NIN,"Bảng TPTP VN 2017, mã 03018, tr.38",FALSE
+2021,"Vừng (đen, trắng) Sesame black or seeds, white dried,",,,582,20.1,21.1,46.4,3.5,,11,468,629,,,,,,,NIN,"Bảng TPTP VN 2017, mã 03020, tr.38",FALSE
+2022,"Bột đã (đậu loại đậu nành) béo tương Soybeans flour, defatted",,,331,49,31.5,1,2.5,,20,2384,602,,,,,,,NIN,"Bảng TPTP VN 2017, mã 03021, tr.38",FALSE
+2023,Bột đậu xanh Mungo bean flour,,,363,24.6,60.4,2.5,3.9,,6,1185,100,,,,,,,NIN,"Bảng TPTP VN 2017, mã 03023, tr.38",FALSE
+2024,Bột lạc Peanut flour,,,583,27.5,17.1,45,2.1,,4,414,380,,,,,,,NIN,"Bảng TPTP VN 2017, mã 03024, tr.38",FALSE
+2025,"Hạt bí đỏ rang Pumpkin seeds, fried",,,528,35.1,25.3,31.8,2.3,,172,383,900,,,,,,,NIN,"Bảng TPTP VN 2017, mã 03028, tr.38",FALSE
+2026,"Bí ngô Pumpkin squash, raw",,,29,0.3,6.83,0.07,0.7,,8,349,16,,,,,,,NIN,"Bảng TPTP VN 2017, mã 04003, tr.44",FALSE
+2027,"Cà bát Egg raw plant, large round,",,,28,1.2,5.57,0.13,1.5,,2,230,16,,,,,,,NIN,"Bảng TPTP VN 2017, mã 04004, tr.44",FALSE
+2028,"Cà chua Tomato, raw",,,24,0.6,4.77,0.23,0.8,,12,275,26,,,,,,,NIN,"Bảng TPTP VN 2017, mã 04005, tr.44",FALSE
+2029,"Cà (củ rốt đỏ, vàng) Carrots, all variety, raw",,,44,1.5,9.03,0.17,1.2,,52,266,39,,,,,,,NIN,"Bảng TPTP VN 2017, mã 04007, tr.44",FALSE
+2030,"Cải bắp Cabbage, common, raw",,,36,1.8,6.91,0.09,1.6,,28,190,31,,,,,,,NIN,"Bảng TPTP VN 2017, mã 04010, tr.44",FALSE
+2031,"Cải bắp đỏ Cabbage, red, raw",,,61,1.9,13,0.2,4,,27,243,42,,,,,,,NIN,"Bảng TPTP VN 2017, mã 04011, tr.44",FALSE
+2032,"Cải soong Water cress, raw",,,22,2.1,3.33,0.07,2,,85,211,28,,,,,,,NIN,"Bảng TPTP VN 2017, mã 04014, tr.44",FALSE
+2033,"Cải (cải thìa trắng) Chinese cabbage, raw",,,24,1.4,4.26,0.14,1.8,,25,200,30,,,,,,,NIN,"Bảng TPTP VN 2017, mã 04015, tr.44",FALSE
+2034,"Cần tây Celery, raw",,,54,3.7,9.44,0.16,1.5,,96,326,128,,,,,,,NIN,"Bảng TPTP VN 2017, mã 04018, tr.46",FALSE
+2035,"Chuối xanh Banana varieties, common unripe",,,78,1.2,17.48,0.32,1,,13,256,27,,,,,,,NIN,"Bảng TPTP VN 2017, mã 04019, tr.46",FALSE
+2036,"Củ cải trắng khô White radish, dried",,,290,17.6,51.6,1.5,17.7,,278,3494,204,,,,,,,NIN,"Bảng TPTP VN 2017, mã 04022, tr.46",FALSE
+2037,Dưa chuột Cucumber,,,18,0.8,3.61,0.09,0.7,,13,169,27,,,,,,,NIN,"Bảng TPTP VN 2017, mã 04027, tr.46",FALSE
+2038,"Đậu đũa Yardlong bean, raw",,,67,6,9.99,0.31,2,,5,194,16,,,,,,,NIN,"Bảng TPTP VN 2017, mã 04030, tr.46",FALSE
+2039,"Đậu Hà Lan Green raw peas; field pea,",,,75,6.5,11.71,0.29,1,,5,244,43,,,,,,,NIN,"Bảng TPTP VN 2017, mã 04031, tr.46",FALSE
+2040,Giá đậu xanh Mungobean sprouts,,,52,5.5,7.17,0.13,2,,23,164,91,,,,,,,NIN,"Bảng TPTP VN 2017, mã 04036, tr.48",FALSE
+2041,"Hành củ tươi Onion, bulb onion, raw",,,29,1.3,5.22,0.28,0.7,,17,212,49,,,,,,,NIN,"Bảng TPTP VN 2017, mã 04037, tr.48",FALSE
+2042,Hạt sen khô Dried lotus seed,,,342,20,60.2,2.4,2.2,,5,1368,285,,,,,,,NIN,"Bảng TPTP VN 2017, mã 04041, tr.48",FALSE
+2043,"Hẹ lá Onion, leek, raw fragrant, Chinese",,,21,2.2,2.49,0.21,0.9,,6,234,45,,,,,,,NIN,"Bảng TPTP VN 2017, mã 04042, tr.48",FALSE
+2044,"Khế Carambola; raw Star fruit,",,,26,0.6,5.47,0.23,2.6,,2,133,8,,,,,,,NIN,"Bảng TPTP VN 2017, mã 04045, tr.48",FALSE
+2045,"Măng tre Bamboo shoots, raw",,,31,1.7,5.59,0.21,4.1,,4,533,58,,,,,,,NIN,"Bảng TPTP VN 2017, mã 04053, tr.50",FALSE
+2046,"Ngải cứu Mugwort, raw wormwood,",,,33,3.8,4.4,0,2,,98,612,45,,,,,,,NIN,"Bảng TPTP VN 2017, mã 04057, tr.50",FALSE
+2047,"Ngó sen Lotus, underground, stem raw",,,65,1,15.13,0.07,1.2,,40,556,51,,,,,,,NIN,"Bảng TPTP VN 2017, mã 04059, tr.50",FALSE
+2048,"Ớt đỏ to Peppers, red, raw",,,31,0.99,6.04,0.3,2,,2,211,26,,,,,,,NIN,"Bảng TPTP VN 2017, mã 04061, tr.50",FALSE
+2049,"Ớt xanh to Peppers, green, raw",,,31,1.3,6.07,0.13,1.5,,3,175,25,,,,,,,NIN,"Bảng TPTP VN 2017, mã 04063, tr.50",FALSE
+2050,"Rau bí Pumpkin leaves, raw",,,26,2.7,3.12,0.28,1.7,,17,390,26,,,,,,,NIN,"Bảng TPTP VN 2017, mã 04066, tr.52",FALSE
+2051,Rau câu khô Dried seaweed,,,281,11.2,56.6,1.1,20.8,,102,1125,124,,,,,,,NIN,"Bảng TPTP VN 2017, mã 04067, tr.52",FALSE
+2052,"Rau câu tươi Seaweed, fresh",,,45,1.9,9.1,0.1,5,,9,226,34,,,,,,,NIN,"Bảng TPTP VN 2017, mã 04068, tr.52",FALSE
+2053,"Rau diếp Lettuce, garden, raw",,,15,1.2,2.39,0.11,0.5,,14,254,37,,,,,,,NIN,"Bảng TPTP VN 2017, mã 04069, tr.52",FALSE
+2054,"Rau giền cơm Amaranth, raw spineless,",,,27,3.4,2.69,0.31,1.6,,20,611,76,,,,,,,NIN,"Bảng TPTP VN 2017, mã 04072, tr.52",FALSE
+2055,"Rau giền đỏ Amaranth, sp. Red, raw",,,47,3.3,7.79,0.31,1.6,,56,476,123,,,,,,,NIN,"Bảng TPTP VN 2017, mã 04073, tr.52",FALSE
+2056,Rau húng Basil sweet leaves raw,,,34,2.2,5.08,0.52,3.5,,91,148,83,,,,,,,NIN,"Bảng TPTP VN 2017, mã 04075, tr.52",FALSE
+2057,"Rau mùi tàu Parsley, curley, raw",,,30,2.1,4.25,0.55,1.6,,39,237,30,,,,,,,NIN,"Bảng TPTP VN 2017, mã 04082, tr.52",FALSE
+2058,"Rau sà lách Lettuce, asparagus, garden raw",,,18,1.5,2.43,0.27,0.5,,59,333,34,,,,,,,NIN,"Bảng TPTP VN 2017, mã 04090, tr.54",FALSE
+2059,"Su hào Kohlrabi, cabbage, turnip raw",,,44,2.8,7.93,0.07,1.7,,53,321,50,,,,,,,NIN,"Bảng TPTP VN 2017, mã 04096, tr.54",FALSE
+2060,"Su su Chayote, fruit raw",,,23,0.8,4.6,0.1,1,,2,125,14,,,,,,,NIN,"Bảng TPTP VN 2017, mã 04098, tr.54",FALSE
+2061,"Súp lơ trắng Cauliflower, raw",,,34,2.5,5.65,0.15,0.9,,20,349,51,,,,,,,NIN,"Bảng TPTP VN 2017, mã 04099, tr.54",FALSE
+2062,"Dưa chuột muối Cucumber, salt pickled with",,,17,0.8,3.06,0.14,0.7,,1208,23,20,,,,,,,NIN,"Bảng TPTP VN 2017, mã 04118, tr.58",FALSE
+2063,"Mộc nhĩ Jew’s Tender ear, variety, Wood-ear, dried",,,332,10.6,72,0.2,7,,70,708,201,,,,,,,NIN,"Bảng TPTP VN 2017, mã 04125, tr.60",FALSE
+2064,"Nấm (Nấm mỡ tây) Common table mushroom, mushroom, raw",,,37,4,4.5,0.3,1.1,,12,322,80,,,,,,,NIN,"Bảng TPTP VN 2017, mã 04128, tr.60",FALSE
+2065,"Nấm tươi thường Gilled meadow raw mushroom, mushroom,",,,48,4.6,5.7,0.8,3.5,,5,318,59,,,,,,,NIN,"Bảng TPTP VN 2017, mã 04130, tr.60",FALSE
+2066,Cam Orange,,,43,0.9,9.74,0.06,1.4,,4,108,23,,,,,,,NIN,"Bảng TPTP VN 2017, mã 05002, tr.64",FALSE
+2067,Chôm chôm Rambutan,,,77,1.5,17.7,0,1.3,,94,69,15,,,,,,,NIN,"Bảng TPTP VN 2017, mã 05004, tr.64",FALSE
+2068,Dâu tây Strawberry,,,59,1.8,12.1,0.4,4,,37,292,23,,,,,,,NIN,"Bảng TPTP VN 2017, mã 05009, tr.64",FALSE
+2069,"Dưa bở Musk melon, melon, Cantaloupe Spanish",,,21,0.5,4.3,0.2,0.7,,0,201,36,,,,,,,NIN,"Bảng TPTP VN 2017, mã 05010, tr.64",FALSE
+2070,Dưa hồng,,,19,0.3,4.1,0.1,0.4,,18,228,12,,,,,,,NIN,"Bảng TPTP VN 2017, mã 05012, tr.64",FALSE
+2071,Dứa tây Pineapple,,,40,0.5,9.23,0.07,0.4,,1,115,11,,,,,,,NIN,"Bảng TPTP VN 2017, mã 05015, tr.64",FALSE
+2072,Đào Peach,,,37,0.9,7.8,0.2,1.5,,0,190,34,,,,,,,NIN,"Bảng TPTP VN 2017, mã 05016, tr.66",FALSE
+2073,Hồng đỏ Persimmon type ripe kaki soft,,,38,0.7,8.6,0.1,2.5,,4,214,19,,,,,,,NIN,"Bảng TPTP VN 2017, mã 05020, tr.66",FALSE
+2074,"Hồng xiêm Sapodilla, ponderosa sapota",,,58,0.5,12.5,0.7,2.5,,12,193,24,,,,,,,NIN,"Bảng TPTP VN 2017, mã 05022, tr.66",FALSE
+2075,Lựu Pome granate,,,79,0.6,18.85,0.15,2.5,,3,259,23,,,,,,,NIN,"Bảng TPTP VN 2017, mã 05024, tr.66",FALSE
+2076,"Mận tím Japanese, plum",,,23,0.6,4.6,0.2,0.7,,0,157,20,,,,,,,NIN,"Bảng TPTP VN 2017, mã 05027, tr.66",FALSE
+2077,"Mít dai Jackfruit, mature",,,54,0.6,12.41,0.19,1.2,,3,368,28,,,,,,,NIN,"Bảng TPTP VN 2017, mã 05028, tr.66",FALSE
+2078,"Mơ Apricot, Apricot nectar",,,50,0.9,11.03,0.27,0.8,,1,259,26,,,,,,,NIN,"Bảng TPTP VN 2017, mã 05031, tr.68",FALSE
+2079,Mơ khô Apricot fured dried unsul-,,,290,3,66.9,1.1,4.1,,10,1162,106,,,,,,,NIN,"Bảng TPTP VN 2017, mã 05032, tr.68",FALSE
+2080,"Quả bơ vỏ xanh Avocado, Alligator Pear",,,103,1.9,2.8,9.4,0.5,,2,351,85,,,,,,,NIN,"Bảng TPTP VN 2017, mã 05042, tr.68",FALSE
+2081,"Táo tây Apple domestic common,",,,50,0.5,11.71,0.09,0.6,,15,102,13,,,,,,,NIN,"Bảng TPTP VN 2017, mã 05051, tr.70",FALSE
+2082,"Vải khô Litchi, dried with shells",,,264,3,58.6,1.9,1,,3,1110,58,,,,,,,NIN,"Bảng TPTP VN 2017, mã 05053, tr.70",FALSE
+2083,"Quả kiwi Kiwifruit, gooseberry Chinese",,,68,1.14,14.66,0.52,3,,3,312,34,,,,,,,NIN,"Bảng TPTP VN 2017, mã 05056, tr.70",FALSE
+2084,"Bơ thực vật Butter-margarine stick, unsalted blend,",,,729,0.5,0.1,80.7,0,,2,25,13,,,,,,,NIN,"Bảng TPTP VN 2017, mã 06005, tr.74",FALSE
+2085,"Dầu oliu Olive cooking oil, salad or",,,900,0,0,100,0,,2,1,0.56,,,,,,,NIN,"Bảng TPTP VN 2017, mã 06014, tr.74",FALSE
+2086,"Thịt bê mỡ Veal meat, lean and fat",,,144,19,0,7.5,0,,76,329,188,,,,,,,NIN,"Bảng TPTP VN 2017, mã 07001, tr.78",FALSE
+2087,"Thịt bê nạc Veal meat, lean only",,,85,20,0,0.5,0,,80,348,176,,,,,,,NIN,"Bảng TPTP VN 2017, mã 07002, tr.78",FALSE
+2088,"Thịt nạc bò, lưng, seperable trimmed to lean 1/8” only, fat,",,,121,23.07,0.1,3.16,0,,57,361,214,,,,,,,NIN,"Bảng TPTP VN 2017, mã 07005, tr.78",FALSE
+2089,"Thịt nạc và bò, mỡ lưng, seperable trimmed to lean 1/4” only, fat,",,,174,21.53,0.7,9.49,0,,59,349,185,,,,,,,NIN,"Bảng TPTP VN 2017, mã 07006, tr.78",FALSE
+2090,Thịt ràng bồ câu ra Pigeon skin and young giblets bird flesh,,,340,17.5,0,30,0,,54,199,217,,,,,,,NIN,"Bảng TPTP VN 2017, mã 07007, tr.78",FALSE
+2091,Thịt chó sấn Dog meat,,,338,16,0,30.4,0,,20,255,43,,,,,,,NIN,"Bảng TPTP VN 2017, mã 07008, tr.78",FALSE
+2092,"Thịt chó vai Dog, shoulder",,,230,18,0,17.6,0,,32,176,36,,,,,,,NIN,"Bảng TPTP VN 2017, mã 07009, tr.78",FALSE
+2093,"Thịt cừu, nạc Mutton meat, lean",,,219,16.4,0,17,0,,91,256,177,,,,,,,NIN,"Bảng TPTP VN 2017, mã 07010, tr.78",FALSE
+2094,"Thịt dê, nạc Goat, meat, lean",,,122,20.7,0,4.3,0,,82,385,129,,,,,,,NIN,"Bảng TPTP VN 2017, mã 07011, tr.78",FALSE
+2095,"Thịt gà ta Chicken meat, average",,,199,20.3,0,13.1,0,,70,189,200,,,,,,,NIN,"Bảng TPTP VN 2017, mã 07013, tr.80",FALSE
+2096,"Thịt gà tây Turkey, raw flesh",,,218,20.06,0.04,15.3,0,,66,236,320,,,,,,,NIN,"Bảng TPTP VN 2017, mã 07014, tr.80",FALSE
+2097,Thịt hươu Deer meat,,,94,19,0,2,0,,51,318,205,,,,,,,NIN,"Bảng TPTP VN 2017, mã 07015, tr.80",FALSE
+2098,Thịt lợn mỡ Pork fat,,,394,14.5,0,37.3,0,,42,253,156,,,,,,,NIN,"Bảng TPTP VN 2017, mã 07016, tr.80",FALSE
+2099,"Thịt nửa mỡ lợn nửa nạc, Pork medium fat",,,260,16.5,0,21.5,0,,55,285,178,,,,,,,NIN,"Bảng TPTP VN 2017, mã 07018, tr.80",FALSE
+2100,Thịt ngỗng Goose meat,,,409,14,0,39.2,0,,73,308,210,,,,,,,NIN,"Bảng TPTP VN 2017, mã 07019, tr.80",FALSE
+2101,Thịt ngựa Horse meat,,,176,21.5,0,10,0,,62,291,200,,,,,,,NIN,"Bảng TPTP VN 2017, mã 07020, tr.80",FALSE
+2102,Thịt thỏ nhà Rabbit meat raw,,,158,21.5,0,8,0,,41,330,224,,,,,,,NIN,"Bảng TPTP VN 2017, mã 07021, tr.80",FALSE
+2103,Thịt thỏ rừng Hare wild) rabbit (field or,,,103,23.5,0,1,0,,50,378,226,,,,,,,NIN,"Bảng TPTP VN 2017, mã 07022, tr.80",FALSE
+2104,"Thịt trâu Buffalo meat, average",,,97,20.39,0.89,1.37,0,,53,297,197,,,,,,,NIN,"Bảng TPTP VN 2017, mã 07023, tr.80",FALSE
+2105,"Bầu dục bò Beef, kidney",,,67,12.5,0.3,1.8,0,,200,262,219,,,,,,,NIN,"Bảng TPTP VN 2017, mã 07029, tr.82",FALSE
+2106,"Bầu dục lợn Pork, kidney",,,81,13,0.3,3.1,0,,121,390,223,,,,,,,NIN,"Bảng TPTP VN 2017, mã 07030, tr.82",FALSE
+2107,"Chân giò lợn Pork, leg",,,230,15.7,0,18.6,0,,47,315,106,,,,,,,NIN,"Bảng TPTP VN 2017, mã 07032, tr.82",FALSE
+2108,"Dạ dày bò Stomach, beef",,,97,14.8,0,4.2,0,,97,67,85,,,,,,,NIN,"Bảng TPTP VN 2017, mã 07033, tr.82",FALSE
+2109,"Dạ dày lợn Stomach, hog",,,85,14.6,0,2.9,0,,75,140,144,,,,,,,NIN,"Bảng TPTP VN 2017, mã 07034, tr.82",FALSE
+2110,"Đuôi lợn Hog, tail",,,467,10.8,0,47.1,0,,21,114,50,,,,,,,NIN,"Bảng TPTP VN 2017, mã 07038, tr.82",FALSE
+2111,"Gan bò Beef, liver",,,110,17.4,3,3.1,0,,110,213,340,,,,,,,NIN,"Bảng TPTP VN 2017, mã 07039, tr.82",FALSE
+2112,Gan gà Chicken liver,,,111,18.2,2,3.4,0,,71,335,260,,,,,,,NIN,"Bảng TPTP VN 2017, mã 07040, tr.82",FALSE
+2113,Gan vịt Duck liver,,,122,17.1,2.8,4.7,0,,140,230,177,,,,,,,NIN,"Bảng TPTP VN 2017, mã 07042, tr.82",FALSE
+2114,Lưỡi bò Beef tongue,,,164,13.6,0.2,12.1,0,,69,315,162,,,,,,,NIN,"Bảng TPTP VN 2017, mã 07044, tr.82",FALSE
+2115,"Lưỡi lợn Hog, tongue",,,178,14.2,1.4,12.8,0,,110,243,118,,,,,,,NIN,"Bảng TPTP VN 2017, mã 07045, tr.82",FALSE
+2116,Mề gà Chicken gizzard,,,99,21.3,0.6,1.3,0,,69,237,150,,,,,,,NIN,"Bảng TPTP VN 2017, mã 07048, tr.84",FALSE
+2117,óc bò Brain beef,,,124,9,0.5,9.5,0,,126,274,311,,,,,,,NIN,"Bảng TPTP VN 2017, mã 07049, tr.84",FALSE
+2118,óc lợn Hog brain,,,123,9,0.4,9.5,0,,120,258,311,,,,,,,NIN,"Bảng TPTP VN 2017, mã 07050, tr.84",FALSE
+2119,"Phổi bò Beef, lung",,,103,15.2,0,4.7,0,,198,340,195,,,,,,,NIN,"Bảng TPTP VN 2017, mã 07051, tr.84",FALSE
+2120,Phổi lợn Hog lung raw,,,92,14.8,0,3.6,0,,153,303,230,,,,,,,NIN,"Bảng TPTP VN 2017, mã 07052, tr.84",FALSE
+2121,"Sườn lợn Pork, ribs",,,187,17.9,0,12.8,0,,60,200,160,,,,,,,NIN,"Bảng TPTP VN 2017, mã 07053, tr.84",FALSE
+2122,Tai lợn Hog ears,,,126,21,1.3,4.1,0,,191,55,41,,,,,,,NIN,"Bảng TPTP VN 2017, mã 07054, tr.84",FALSE
+2123,"Tim bò Beef, heart",,,89,15,0.6,3,0,,98,287,185,,,,,,,NIN,"Bảng TPTP VN 2017, mã 07055, tr.84",FALSE
+2124,Tim gà Chicken heart,,,114,16,0,5.5,0,,74,176,177,,,,,,,NIN,"Bảng TPTP VN 2017, mã 07056, tr.84",FALSE
+2125,Tiết lợn luộc Hog boiled blood,,,44,10.7,0,0.1,0,,343,131,12,,,,,,,NIN,"Bảng TPTP VN 2017, mã 07059, tr.84",FALSE
+2126,Ba tê Pate,,,326,10.8,15.4,24.6,0,,95,166,88,,,,,,,NIN,"Bảng TPTP VN 2017, mã 07063, tr.86",FALSE
+2127,"Chả lợn Pork, grilled mince fat meat",,,517,10.8,5.1,50.4,0,,339,407,100,,,,,,,NIN,"Bảng TPTP VN 2017, mã 07064, tr.86",FALSE
+2128,Nem chạo Roll pork with meat pork skin and,,,116,12.1,13.35,1.6,0.3,,70,38,25,,,,,,,NIN,"Bảng TPTP VN 2017, mã 07072, tr.86",FALSE
+2129,Ruốc thịt lợn Salted shredded pork,,,369,46.6,0,20.3,0,,1472,371,16,,,,,,,NIN,"Bảng TPTP VN 2017, mã 07074, tr.86",FALSE
+2130,Thịt bò khô Dried beef,,,239,51,5.2,1.6,0,,312,135,476,,,,,,,NIN,"Bảng TPTP VN 2017, mã 07075, tr.88",FALSE
+2131,Ếch (thịt đùi) Frog,,,90,20,0,1.1,0,,58,285,147,,,,,,,NIN,"Bảng TPTP VN 2017, mã 07080, tr.88",FALSE
+2132,Lòng gà (cả bộ) Chicken giblets,,,119,17.88,1.79,4.47,0,,77,228,197,,,,,,,NIN,"Bảng TPTP VN 2017, mã 07082, tr.88",FALSE
+2133,"Cá diếc Mullet, harder",,,87,17.7,0,1.8,0,,35,271,152,,,,,,,NIN,"Bảng TPTP VN 2017, mã 08006, tr.94",FALSE
+2134,Cá đối Flathead grey mullet,,,108,19.5,0,3.3,0,,65,357,224,,,,,,,NIN,"Bảng TPTP VN 2017, mã 08009, tr.94",FALSE
+2135,Cá mè Silver carp,,,144,15.4,0,9.1,0,,31,319,215,,,,,,,NIN,"Bảng TPTP VN 2017, mã 08014, tr.94",FALSE
+2136,Cá thu đao Pacific saury,,,156,20,0,8.4,0,,86,406,190,,,,,,,NIN,"Bảng TPTP VN 2017, mã 08027, tr.96",FALSE
+2137,Cá trắm cỏ Grass carp,,,91,17,0,2.6,0,,26,305,145,,,,,,,NIN,"Bảng TPTP VN 2017, mã 08029, tr.96",FALSE
+2138,Cá trê Catfish,,,173,16.5,0,11.9,0,,53,299,210,,,,,,,NIN,"Bảng TPTP VN 2017, mã 08030, tr.96",FALSE
+2139,Cá trôi Mrigal carp,,,127,18.8,0,5.7,0,,14,314,185,,,,,,,NIN,"Bảng TPTP VN 2017, mã 08032, tr.98",FALSE
+2140,Cua bể Crab sea water,,,103,17.5,7,0.6,0,,316,322,191,,,,,,,NIN,"Bảng TPTP VN 2017, mã 08033, tr.98",FALSE
+2141,"Lươn Eel, silver - pike",,,130,18.4,10.7,1.5,0,,51,272,164,,,,,,,NIN,"Bảng TPTP VN 2017, mã 08038, tr.98",FALSE
+2142,Mực khô Dried cuttle fish squid,,,291,60.1,2.5,4.5,0,,445,1368,287,,,,,,,NIN,"Bảng TPTP VN 2017, mã 08039, tr.98",FALSE
+2143,Sò Oyster,,,51,8.8,3,0.4,0,,380,223,82,,,,,,,NIN,"Bảng TPTP VN 2017, mã 08048, tr.100",FALSE
+2144,"Tôm đồng Shrimp, fresh water",,,90,18.4,0,1.8,0,,418,316,150,,,,,,,NIN,"Bảng TPTP VN 2017, mã 08052, tr.100",FALSE
+2145,Trai Mussel fresh water,,,38,4.6,2.5,1.1,0,,56,314,107,,,,,,,NIN,"Bảng TPTP VN 2017, mã 08054, tr.100",FALSE
+2146,Bánh tôm sống phồng Raw shrimp chips,,,381,3.4,75.3,7.4,0,,418,195,50,,,,,,,NIN,"Bảng TPTP VN 2017, mã 08056, tr.100",FALSE
+2147,"Lòng trứng đỏ gà Hen egg, yolk",,,327,13.6,1,29.8,0,,108,169,532,,,,,,,NIN,"Bảng TPTP VN 2017, mã 09002, tr.106",FALSE
+2148,"Lòng trứng trắng gà Hen egg, white",,,46,10.3,1,0.1,0,,215,172,16,,,,,,,NIN,"Bảng TPTP VN 2017, mã 09003, tr.106",FALSE
+2149,"Trứng cá muối Fish red, granule caviar, black and",,,274,24.6,3.5,17.9,0,,1500,181,356,,,,,,,NIN,"Bảng TPTP VN 2017, mã 09009, tr.106",FALSE
+2150,"Sữa bò tươi Milk cow, fresh (Fluid)",,,74,3.9,4.8,4.4,0,,380,143,95,,,,,,,NIN,"Bảng TPTP VN 2017, mã 10001, tr.110",FALSE
+2151,Sữa dê tươi Milk goat’s whole,,,69,3.5,4.5,4.1,0,,50,204,126,,,,,,,NIN,"Bảng TPTP VN 2017, mã 10002, tr.110",FALSE
+2152,"Sữa (sữa mẹ người) Breast man, fluid, milk whole). (Milk hu-",,,61,1.5,7,3,0,,15,41,15,,,,,,,NIN,"Bảng TPTP VN 2017, mã 10003, tr.110",FALSE
+2153,Sữa vớt béo chua Yogurt (Skimmed milk),,,26,3.4,3.1,0,0,,135,339,109,,,,,,,NIN,"Bảng TPTP VN 2017, mã 10005, tr.110",FALSE
+2154,Sữa tách bột béo Skimmed milk powder,,,357,35,52,1,0,,535,1794,980,,,,,,,NIN,"Bảng TPTP VN 2017, mã 10007, tr.110",FALSE
+2155,"Mận đường nước Plum, ened canned sweet-",,,62,0.3,14.9,0.1,1.8,,20,93,15,,,,,,,NIN,"Bảng TPTP VN 2017, mã 11006, tr.114",FALSE
+2156,Bột ca cao Cocoa powder,,,423,23.3,44.2,17,4.6,,21,1524,734,,,,,,,NIN,"Bảng TPTP VN 2017, mã 12012, tr.120",FALSE
+2157,Mật ong Honey,,,327,0.4,81.3,0,0,,4,52,16,,,,,,,NIN,"Bảng TPTP VN 2017, mã 12026, tr.122",FALSE
+2158,Muối Table salt,,,0,0,0,0,0,,38758,4,70,,,,,,,NIN,"Bảng TPTP VN 2017, mã 13005, tr.126",FALSE
+2159,"Nghệ tươi Turmeric, rhizome, fresh",,,377,0,82.5,5.2,0.9,,5,356,22,,,,,,,NIN,"Bảng TPTP VN 2017, mã 13007, tr.126",FALSE
+2160,Magi Soybean sauce,,,65,10,6.1,0.1,0,,5586,212,130,,,,,,,NIN,"Bảng TPTP VN 2017, mã 13010, tr.126",FALSE
+2161,Sốt mayonnaise Mayonnaise,,,701,0,0.1,77.8,0,,486,14,25,,,,,,,NIN,"Bảng TPTP VN 2017, mã 13023, tr.128",FALSE
+2162,"Bia (cồn: 4,5 g) Beer hol) light (4,5 % Alco-",,,43,0.5,2.3,0,0,,4,27,26,,,,,,,NIN,"Bảng TPTP VN 2017, mã 14001, tr.132",FALSE
+2163,"Nước ép cà chua Tomato salt added juice, without",,,21,0.8,3,0.6,0.4,,10,229,13,,,,,,,NIN,"Bảng TPTP VN 2017, mã 14007, tr.132",FALSE
+2164,Nước quít tươi Mandarins juice (fresh),,,25,0.4,5.3,0.2,0.2,,1,178,24,,,,,,,NIN,"Bảng TPTP VN 2017, mã 14009, tr.132",FALSE
+2165,"Rượu (cồn 9,5 vang g) trắng White alcohol) wine (9.5%",,,66,0.1,0.2,0,0,,4,61,6,,,,,,,NIN,"Bảng TPTP VN 2017, mã 14014, tr.134",FALSE
+2166,"Rượu trắng 10.2 g) vang ngọt (cồn White (10.2% wine, alcohol) sweet",,,96,0.2,5.9,0,0,,13,110,13,,,,,,,NIN,"Bảng TPTP VN 2017, mã 14015, tr.134",FALSE

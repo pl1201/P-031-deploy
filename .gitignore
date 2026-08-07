@@ -12,14 +12,21 @@ venv/
 .venv/
 env/
 
-# Environment variables
+# Environment variables & secrets
 .env
 .env.local
 .env.production
+*.pem
+*.key
 
-# IDE
+# IDE & Local Agent Runtime
 .vscode/
 .idea/
+.cursor/
+.codex/*
+!.codex/hooks.json
+.gemini/
+.agents/
 *.swp
 *.swo
 *~
@@ -28,14 +35,26 @@ env/
 .DS_Store
 Thumbs.db
 
-# Data (never commit large data)
-data/
+# Data (ignore raw/large data files, but commit seeds)
+data/*
+!data/seeds/
+!data/README.md
+!data/patients/README.md
+!data/patients/manifest.yaml
+!data/VERSION
 *.db
 *.sqlite3
 
-# Logs
+# Research data - NHANES and other public datasets (outside repo)
+# Downloaded to ~/data/research/, never committed
+# Only synthetic derivatives in data/seeds/ are committed
+
+# Logs & Caches
 logs/
 *.log
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
 
 # Test coverage
 htmlcov/
@@ -58,3 +77,8 @@ out/
 # AI logs — tracked structure, ignored content
 .ai-log/*.jsonl
 .ai-log/archive/
+mnt/
+home/
+files.zip
+.temp_extracted/
+data/cache/

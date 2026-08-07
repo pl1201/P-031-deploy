@@ -1,0 +1,13 @@
+dish_id,name_vi,region,serving_g,verified_by,note
+VN-PHO-GA,Phở gà,Bắc,285,pending,"LLM soạn nháp — thiếu nước dùng (không có food_item nước dùng), chỉ tính phần cái. CẦN R2 duyệt gram + bổ sung nước dùng."
+VN-BUN-CHA,Bún chả,Bắc,355,pending,LLM soạn nháp — CẦN R2 duyệt gram.
+VN-CANH-CHUA-CA,Canh chua cá,Nam,240,pending,"LLM soạn nháp — thiếu dứa/me (không có food_item), CẦN R2 duyệt và bổ sung."
+VN-RAU-MUONG-XAO-TOI,Rau muống xào tỏi,Chung,215,pending,LLM soạn nháp — CẦN R2 duyệt gram.
+VN-DAU-PHU-SOT-CA,Đậu phụ sốt cà chua,Chung,320,pending,LLM soạn nháp — CẦN R2 duyệt gram.
+VN-CA-KHO-TO,Cá kho tộ,Nam,225,pending,"LLM soạn nháp — thiếu đường/nước hàng (không có food_item), CẦN R2 duyệt."
+VN-GA-KHO-GUNG,Gà kho gừng,Chung,235,pending,LLM soạn nháp — CẦN R2 duyệt gram.
+VN-CANH-CAI-TOM,Canh cải nấu tôm,Chung,210,pending,LLM soạn nháp — CẦN R2 duyệt gram.
+VN-SUON-XAO-CHUA-NGOT,Sườn xào chua ngọt,Chung,280,pending,"LLM soạn nháp — thiếu đường/dấm (không có food_item), CẦN R2 duyệt."
+VN-TRUNG-CHIEN,Trứng chiên hành,Chung,140,pending,LLM soạn nháp — CẦN R2 duyệt gram.
+VN-CANH-SU-HAO,Canh su hào cà rốt thịt băm,Chung,250,pending,LLM soạn nháp — CẦN R2 duyệt gram.
+VN-NAM-XAO-THIT-BO,Nấm hương xào thịt bò,Chung,165,pending,LLM soạn nháp — CẦN R2 duyệt gram.
