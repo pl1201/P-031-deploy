@@ -135,6 +135,17 @@ Research 2026-08-06 (agent B2b) verify 30 dòng hiện có, phát hiện các l�
 - **Dòng 30 (canxi+oxalat):** khuyến nghị hiện tại mâu thuẫn với chính bằng chứng trích trong dòng (Curhan 1997 cho thấy canxi ăn CÙNG bữa làm GIẢM nguy cơ sỏi, không phải nên tránh).
 **AC:** Mỗi sửa đổi phải dẫn lại đúng trang/mục Dược thư QGVN 2022 hoặc PMID thay thế · Không tự đổi severity mà không có căn cứ định lượng (đúng CLAUDE.md §6) · Sau khi sửa, đổi `verify_status` dòng đó thành `verified`.
 
+### `DAT-22` ✅ Trích xuất Bảng TPTP VN 2017 (620 món, tr.23-152) — ĐÃ LÀM
+**Owner:** Claude (theo yêu cầu Hưng, 2026-08-07) · **P1** · **Deps:** DAT-13, DAT-14
+Trích `data/Bang-thanh-phan-dinh-duong-Thuc-pham-VN-2017-27-4-17.pdf` bằng `pdfplumber.extract_tables()` (không OCR) — 620/620 thực phẩm, không trùng mã (`scripts/extract_nin2017.py` → `scripts/nin2017_extracted.json`). Merge vào `data/seeds/food_items.csv` bằng `scripts/merge_nin2017_into_food_items.py` (chỉ khớp tên tuyệt đối, không fuzzy):
+- 82 dòng đã có trong CSV được bổ sung `source_ref` NIN 2017 khi đủ 8 trường lõi.
+- 348 dòng mới thêm dạng placeholder (chỉ tên + `source_ref`, số liệu để trống) vì PDF thiếu ≥1 trường lõi — không suy đoán (DEC-008), gộp vào phạm vi rà soát của `DAT-13`.
+- 128 xung đột số liệu giữa CSV hiện có và PDF 2017 ghi vào `scripts/nin2017_conflicts.md`, **chưa tự merge** — cần R2 quyết định giá trị đúng.
+- **Purine (tr.219-248):** xác nhận CÓ số liệu purine thật cho nhóm Thịt/Thủy sản (VD gan lợn 515mg, gan gà 243mg — khớp tham chiếu đã biết) nhưng **chưa merge vào `purine_mg`** vì số cột/dòng trong bảng đó không cố định, rủi ro đọc nhầm cột Phytosterol thành Purine. Xem `scripts/nin2017_purine_findings.md`. Đề xuất ticket `DAT-23` để merge cẩn thận với đối chiếu số cột theo từng dòng trước khi dùng cho luật gout.
+- Sửa 1 bug thật trong `scripts/validate_data.py`: công thức tổng đa chất cộng trùng `fiber_g` (đã nằm trong `carb_g` của NIN 2017), gây báo lỗi giả cho món khô/nhiều xơ.
+- `validate_data.py` (0 lỗi) và `pytest` sạch sau merge.
+**AC:** Không merge xung đột tự động (128 dòng trong `nin2017_conflicts.md` chờ R2) · Không merge purine tự động (chờ `DAT-23`) · Mọi dòng mới/bổ sung có `source_ref` trỏ đúng mã NIN 2017.
+
 ### `DAT-06` Ingest guideline vào RAG — KHÔNG GIỚI HẠN TRÊN
 **Owner:** R2 · **P1** · 8h+ (mở) · **Deps:** SET-05
 Thu thập tài liệu (BYT, ADA, KDIGO, AHA/DASH, ACR, tài liệu Viện Dinh dưỡng — ~15 là điểm khởi đầu, không phải đích). Chunk 500–800 token, overlap 100, embed, lưu `guideline_chunks` (pgvector) kèm metadata `{source, title, page, condition}`.

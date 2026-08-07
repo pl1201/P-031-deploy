@@ -491,6 +491,17 @@
 
 ---
 
+### [2026-08-07] · Claude (theo yêu cầu Hưng) · DAT-22 — trích xuất Bảng TPTP VN 2017 (620 món)
+
+- Trích 620/620 thực phẩm (tr.23-152, khối macro+khoáng+vitamin) từ `data/Bang-thanh-phan-dinh-duong-Thuc-pham-VN-2017-27-4-17.pdf` bằng `pdfplumber.extract_tables()`, không OCR, không trùng mã. Script: `scripts/extract_nin2017.py` → `scripts/nin2017_extracted.json`.
+- Merge vào `data/seeds/food_items.csv` bằng `scripts/merge_nin2017_into_food_items.py` (chỉ khớp tên tuyệt đối, không fuzzy-match — bài học từ lần fuzzy-match sai "Hẹ"↔"Ghẹ" trước đó): 82 dòng cũ được bổ sung `source_ref` NIN 2017, 348 dòng mới thêm dạng placeholder (thiếu ≥1 trường lõi trong PDF, để trống thay vì đoán), 128 xung đột số liệu ghi vào `scripts/nin2017_conflicts.md` chờ R2 quyết định (không tự merge).
+- Xác nhận Purine (tr.219-248) CÓ số liệu thật cho nhóm Thịt/Thủy sản nhưng chưa merge do rủi ro lệch cột — đề xuất `DAT-23` làm riêng, cẩn thận hơn. Xem `scripts/nin2017_purine_findings.md`.
+- Sửa 1 bug thật phát hiện khi merge: `validate_data.py` cộng trùng `fiber_g` vào tổng đa chất (đã nằm trong `carb_g` theo NIN 2017), gây báo lỗi giả cho món khô/nhiều xơ (Măng khô, Hạt tiêu).
+- **Lưu ý kỹ thuật:** việc trích xuất được chạy đầu tiên trong 1 background agent dùng git worktree — worktree đó vô tình được tạo từ một commit cũ (trước khi `food_items.csv` được mở rộng lên 7316 dòng qua nhiều PR khác), nên kết quả merge ban đầu (183/364/53) bị tính trên dữ liệu cũ. Đã phát hiện qua kiểm tra `wc -l`/`git log` trước khi push, không dùng kết quả đó — chỉ giữ lại phần trích xuất thô (`nin2017_extracted.json`, độc lập với CSV nền) và script, chạy lại `merge_nin2017_into_food_items.py` trên `food_items.csv` thật hiện tại của `main`, ra số liệu đúng (82/348/128 ở trên). `validate_data.py` (0 lỗi) và `pytest` sạch sau khi chạy lại.
+- **Thời gian:** ~30 phút (không tính thời gian chạy nền của background agent).
+
+---
+
 ## 3. Quyết định kỹ thuật (Decision Log)
 
 | ID | Ngày | Quyết định | Người quyết | Chi tiết |
