@@ -34,12 +34,22 @@ export interface PatientProfile {
 export interface MealPlanItem {
   id: string
   slot: 'breakfast' | 'lunch' | 'dinner' | 'snack'
-  food_id: number
+  dish_id?: string | null
+  food_id?: number | null
   grams: number
   name_vi: string
   source: string
   source_ref: string
   is_estimated: boolean
+  ingredients: MealPlanIngredient[]
+}
+
+export interface MealPlanIngredient {
+  food_id: number
+  name_vi: string
+  grams: number
+  source: string
+  source_ref: string
 }
 
 export interface NutrientTarget {

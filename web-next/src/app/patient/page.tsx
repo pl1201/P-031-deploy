@@ -86,12 +86,25 @@ export default function PatientDashboard() {
                     <div className="card-body" style={{ padding: '12px 24px' }}>
                       {items.map(item => (
                         <div key={item.id} className="food-row">
-                          <div>
+                          <div className="dish-summary">
                             <div className="food-name">{item.name_vi}</div>
                             {item.is_estimated && (
                               <span className="badge badge-estimated" style={{ marginTop: 4, display: 'inline-block' }}>
                                 Dữ liệu ước tính
                               </span>
+                            )}
+                            {item.ingredients.length > 0 && (
+                              <details className="ingredient-details">
+                                <summary>Xem {item.ingredients.length} nguyên liệu</summary>
+                                <div className="ingredient-list">
+                                  {item.ingredients.map(ingredient => (
+                                    <div key={ingredient.food_id} className="ingredient-line">
+                                      <span>{ingredient.name_vi}</span>
+                                      <span>{ingredient.grams} g</span>
+                                    </div>
+                                  ))}
+                                </div>
+                              </details>
                             )}
                           </div>
                           <span className="food-grams">{item.grams} g</span>

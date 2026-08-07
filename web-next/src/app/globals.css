@@ -346,6 +346,13 @@ input, textarea, select { font: inherit; color: inherit; }
 .food-row:last-child { border-bottom: none; }
 .food-name { font-size: 14px; font-weight: 500; }
 .food-grams { font-family: var(--f-mono); font-size: 13px; color: var(--c-ink2); }
+.dish-summary { min-width: 0; flex: 1; }
+.ingredient-details { margin-top: 8px; font-size: 12px; color: var(--c-muted); }
+.ingredient-details summary { cursor: pointer; width: fit-content; color: var(--c-green); font-weight: 600; }
+.ingredient-details summary:hover { text-decoration: underline; }
+.ingredient-list { margin-top: 8px; padding: 8px 12px; border-left: 2px solid var(--c-border2); display: grid; gap: 5px; }
+.ingredient-line { display: flex; justify-content: space-between; gap: 20px; max-width: 420px; }
+.ingredient-line span:last-child { font-family: var(--f-mono); color: var(--c-ink2); white-space: nowrap; }
 
 /* ─── Form ─── */
 .form-group { display: grid; gap: 6px; }

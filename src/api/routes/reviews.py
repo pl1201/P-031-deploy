@@ -11,16 +11,17 @@ UTC = timezone.utc
 
 from fastapi import APIRouter, Depends, HTTPException, status
 from pydantic import BaseModel, Field
-from sqlalchemy.orm import Session, selectinload
+from sqlalchemy.orm import Session
 
-from src.api.routes.meal_plans import MealPlanOut
+from src.api.routes.meal_plans import MealPlanOut, meal_plan_load_options
 from src.api.security import CurrentUser, require_role
+from src.clinical.dishes import load_dish_food_repository
 from src.clinical.models import ClinicalTargets, MealSlot, MenuDraft, MenuItem
 from src.clinical.nutrition import compute_nutrition
 from src.clinical.seeds import load_food_repository
 from src.clinical.validator import has_blocking, validate_menu
 from src.db.base import get_db
-from src.db.models import AuditLog, MealPlan, MealPlanItem
+from src.db.models import AuditLog, MealPlan
 
 router = APIRouter(prefix="/reviews", tags=["reviews"])
 
@@ -37,12 +38,7 @@ def list_pending_reviews(
     db: Session = Depends(get_db),
     _user: CurrentUser = Depends(require_role("dietitian")),
 ) -> list[MealPlanOut]:
-    plans = (
-        db.query(MealPlan)
-        .options(selectinload(MealPlan.items).selectinload(MealPlanItem.food))
-        .filter(MealPlan.status == "pending_review")
-        .all()
-    )
+    plans = db.query(MealPlan).options(*meal_plan_load_options()).filter(MealPlan.status == "pending_review").all()
     plans.sort(key=_severity_sort_key)
     return [MealPlanOut.from_model(p) for p in plans]
 
@@ -91,11 +87,15 @@ def approve_review(
 
         # RULE-1: không tin số gram do reviewer gửi để tính lại dinh dưỡng — luôn
         # gọi lại compute_nutrition/validate_menu trên server từ food_id+grams.
-        foods = load_food_repository()
+        dish_foods = load_dish_food_repository()
+        legacy_foods = load_food_repository()
         draft = MenuDraft()
         for item in plan.items:
-            draft.items.setdefault(MealSlot(item.slot), []).append(MenuItem(food_id=item.food_id, grams=item.grams))
-        nutrition = compute_nutrition(draft, foods)
+            candidate_id = dish_foods.food_id_for_dish(item.dish_id) if item.dish_id else item.food_id
+            if candidate_id is None:
+                raise HTTPException(status.HTTP_422_UNPROCESSABLE_ENTITY, "Món ăn không còn trong dữ liệu công thức")
+            draft.items.setdefault(MealSlot(item.slot), []).append(MenuItem(food_id=candidate_id, grams=item.grams))
+        nutrition = compute_nutrition(draft, dish_foods if all(i.dish_id for i in plan.items) else legacy_foods)
         targets = ClinicalTargets.model_validate(plan.targets)
         violations = validate_menu(nutrition, targets)
 
