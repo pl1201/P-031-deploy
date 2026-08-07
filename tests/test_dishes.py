@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import pytest
 
+from src.clinical.dishes import load_dish_food_repository
 from src.clinical.nutrition import compute_nutrition
 from src.clinical.seeds import load_dish_menus, load_food_repository, salt_equiv_g
 
@@ -20,6 +21,17 @@ def repo():
 @pytest.fixture(scope="module")
 def dishes():
     return load_dish_menus()
+
+
+def test_agent_repository_tra_mon_an_thay_vi_nguyen_lieu():
+    candidates = load_dish_food_repository()
+    pho = next(item for item in candidates.all() if item.name_vi == "Phở bò")
+    dish = candidates.dish_for_food_id(pho.id)
+
+    assert dish is not None
+    assert dish.dish_id == "PHO-BO"
+    assert len(dish.ingredients) >= 3
+    assert pho.kcal_100g > 0
 
 
 def test_pho_bo_muoi_trong_khoang_nghien_cuu(repo, dishes):
