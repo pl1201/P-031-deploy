@@ -140,9 +140,11 @@ def db_session():
         # API graph dùng kho thực phẩm seed thật để chọn food_id. Seed cùng dữ
         # liệu vào SQLite test để response có thể truy vết nguồn (RULE-2), thay
         # vì để MealPlanItem trỏ tới một bản ghi thực phẩm không tồn tại.
-        from scripts.seed_db import seed_food_items
+        from scripts.seed_db import seed_dish_ingredients, seed_dishes, seed_food_items
 
         seed_food_items(session)
+        seed_dishes(session)
+        seed_dish_ingredients(session)
         session.commit()
         yield session
     finally:

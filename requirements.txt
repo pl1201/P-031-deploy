@@ -22,7 +22,7 @@ sqlalchemy>=2.0.0
 alembic>=1.14.0
 # psycopg2-binary bắt buộc khi deploy Postgres thật; SQLite (mặc định dev/test)
 # không cần driver rời, dùng thẳng sqlite3 built-in của Python.
-# psycopg2-binary>=2.9.0
+psycopg2-binary>=2.9.0
 
 # Vector Store (uncomment as needed)
 # chromadb>=0.5.0

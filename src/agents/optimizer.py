@@ -283,6 +283,13 @@ def _solve_day(
     lâm sàng mà nhanh hơn ~1000 lần và tất định.
     """
     bounds = _active_nutrient_bounds(targets)
+    # A bound on an optional nutrient is not solvable when the repository has
+    # too few complete candidates to compose a varied day. Degrade to the
+    # validator's incomplete-data warning instead of making the whole menu
+    # infeasible or treating unknown values as zero.
+    for field in _OPTIONAL_FIELDS:
+        if field in bounds and sum(getattr(food, field) is not None for food in candidates) < len(_SLOTS):
+            bounds.pop(field)
     if not bounds:
         # Không ràng buộc nào áp dụng được — không đủ căn cứ để chọn món.
         return MenuDraft()

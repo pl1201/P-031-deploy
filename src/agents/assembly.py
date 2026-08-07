@@ -8,10 +8,11 @@ from __future__ import annotations
 
 from src.agents.graph import build_graph
 from src.agents.nodes.core import FallbackMenuProvider, MenuGenerator, ProfileRepository
+from src.clinical.dishes import load_dish_food_repository
 from src.clinical.models import MealSlot, MenuDraft, MenuItem, PatientProfile
 from src.clinical.nutrition import FoodRepository
 from src.clinical.rules import ClinicalRule
-from src.clinical.seeds import load_food_repository, load_vn_dishes
+from src.clinical.seeds import load_vn_dishes
 from src.config import get_settings
 
 
@@ -39,6 +40,10 @@ class SimpleFallbackProvider:
 
     def get(self, profile: PatientProfile) -> MenuDraft | None:
         items = [MenuItem(food_id=fid, grams=g) for fid, g in self._SAFE if self._foods.get(fid)]
+        if not items and hasattr(self._foods, "all"):
+            # Dish repositories use synthetic IDs. Keep fallback at dish level
+            # instead of silently returning to standalone ingredients.
+            items = [MenuItem(food_id=food.id, grams=150.0) for food in self._foods.all()[:3]]
         if not items:
             return None
         return MenuDraft(items={MealSlot.LUNCH: items})
@@ -77,7 +82,9 @@ def build_nutricare_graph(
     checkpointer=None,
 ):
     """Dựng graph đầy đủ. `generator=None` → chọn theo `settings.menu_generator`."""
-    foods = foods or load_food_repository()
+    # The production path selects prepared dishes. Explicitly injected repos
+    # remain supported for focused clinical/unit tests.
+    foods = foods or load_dish_food_repository()
     if generator is None:
         generator = _generator_from_settings(foods)
     return build_graph(
