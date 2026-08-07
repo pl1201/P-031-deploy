@@ -50,7 +50,7 @@ GitHub Actions: `ruff check`, `ruff format --check`, `mypy`, `pytest`, `docker b
 **Owner:** R3 · **P0** · 4h · **Deps:** SET-04
 Render (backend, Docker) + Vercel (frontend) + Neon/Supabase Postgres có `pgvector`. Cấu hình secrets trên platform.
 
-**Research 2026-08-07 (Claude, theo yêu cầu Hưng) — Neon vs Supabase, nếu chọn Supabase thì dùng thế nào:** đã xác minh trực tiếp qua doc/pricing chính thức Supabase, không suy đoán.
+**Research 2026-08-07 (R2) — Neon vs Supabase, nếu chọn Supabase thì dùng thế nào:** đã xác minh trực tiếp qua doc/pricing chính thức Supabase, không suy đoán.
 - **Free tier:** 500MB DB, tối đa 2 project active, 5GB egress, team member không giới hạn trên Dashboard, pgvector bật được qua Dashboard (khớp `ADR-001`).
 - **⚠️ Rủi ro thật:** project free **tự pause sau 1 tuần không hoạt động** — cần "warm up" trước demo giống lưu ý cold-start Render đã có sẵn ở §deploy.
 - **Branching (preview DB theo PR)** không có ở Free tier, tính phí theo giờ — không nên tính vào kế hoạch nếu không có ngân sách.
