@@ -5478,3 +5478,106 @@ VN-NAM-XAO-THIT-BO,101,50,Nấm hương
 VN-NAM-XAO-THIT-BO,21,100,Thịt bò thăn
 VN-NAM-XAO-THIT-BO,151,5,Tỏi
 VN-NAM-XAO-THIT-BO,129,10,Dầu ăn thực vật
+PHO-BO-VCB,102,400,"Ước lượng quy đổi từ đơn vị bếp (chưa cân đo thật), nguồn: vietnamesecookbook.com"
+PHO-BO-VCB,152,100,Nguồn: vietnamesecookbook.com
+PHO-BO-VCB,137,60.0,Nguồn: vietnamesecookbook.com
+PHO-BO-VCB,102,100,"Ước lượng quy đổi từ đơn vị bếp (chưa cân đo thật), nguồn: vietnamesecookbook.com"
+PHO-BO-VCB,79,40,"Ước lượng quy đổi từ đơn vị bếp (chưa cân đo thật), nguồn: vietnamesecookbook.com"
+PHO-BO-VCB,78,20,"Ước lượng quy đổi từ đơn vị bếp (chưa cân đo thật), nguồn: vietnamesecookbook.com"
+BANH-MI-THIT-VCB,4056,250,Nguồn: vietnamesecookbook.com
+BANH-MI-THIT-VCB,131,100,Nguồn: vietnamesecookbook.com
+BANH-MI-THIT-VCB,137,15,Nguồn: vietnamesecookbook.com
+BANH-MI-THIT-VCB,2161,60,Nguồn: vietnamesecookbook.com
+BANH-MI-THIT-VCB,95,150,"Ước lượng quy đổi từ đơn vị bếp (chưa cân đo thật), nguồn: vietnamesecookbook.com"
+BANH-MI-THIT-VCB,78,20,"Ước lượng quy đổi từ đơn vị bếp (chưa cân đo thật), nguồn: vietnamesecookbook.com"
+BANH-MI-THIT-VCB,143,15,"Ước lượng quy đổi từ đơn vị bếp (chưa cân đo thật), nguồn: vietnamesecookbook.com"
+BUN-BO-HUE-VCB,22,1000,Nguồn: vietnamesecookbook.com
+BUN-BO-HUE-VCB,4054,800,Nguồn: vietnamesecookbook.com
+BUN-BO-HUE-VCB,102,150,Nguồn: vietnamesecookbook.com
+BUN-BO-HUE-VCB,137,45,"Ước lượng quy đổi từ đơn vị bếp (chưa cân đo thật), nguồn: vietnamesecookbook.com"
+BUN-BO-HUE-VCB,129,60,Nguồn: vietnamesecookbook.com
+BUN-BO-HUE-VCB,4,800,Nguồn: vietnamesecookbook.com
+CA-PHE-SUA-DA-VCB,125,35,Nguồn: vietnamesecookbook.com
+BANH-XEO-VCB,4003,250,Nguồn: vietnamesecookbook.com
+BANH-XEO-VCB,136,200,Nguồn: vietnamesecookbook.com
+BANH-XEO-VCB,139,5,Nguồn: vietnamesecookbook.com
+BANH-XEO-VCB,79,20,"Ước lượng quy đổi từ đơn vị bếp (chưa cân đo thật), nguồn: vietnamesecookbook.com"
+BANH-XEO-VCB,20,200,Nguồn: vietnamesecookbook.com
+BANH-XEO-VCB,47,200,Nguồn: vietnamesecookbook.com
+BANH-XEO-VCB,102,150,Nguồn: vietnamesecookbook.com
+BANH-XEO-VCB,62,250,Nguồn: vietnamesecookbook.com
+BANH-XEO-VCB,129,90,Nguồn: vietnamesecookbook.com
+BANH-XEO-VCB,76,100,"Ước lượng quy đổi từ đơn vị bếp (chưa cân đo thật), nguồn: vietnamesecookbook.com"
+CA-KHO-TO-VCB,137,30,Nguồn: vietnamesecookbook.com
+CA-KHO-TO-VCB,149,12,Nguồn: vietnamesecookbook.com
+CA-KHO-TO-VCB,151,15,"Ước lượng quy đổi từ đơn vị bếp (chưa cân đo thật), nguồn: vietnamesecookbook.com"
+CA-KHO-TO-VCB,137,30,Nguồn: vietnamesecookbook.com
+CA-KHO-TO-VCB,122,150,Nguồn: vietnamesecookbook.com
+CA-KHO-TO-VCB,129,15,Nguồn: vietnamesecookbook.com
+CA-KHO-TO-VCB,79,20,"Ước lượng quy đổi từ đơn vị bếp (chưa cân đo thật), nguồn: vietnamesecookbook.com"
+GOI-CUON-VCB,20,350,Nguồn: vietnamesecookbook.com
+GOI-CUON-VCB,47,350,Nguồn: vietnamesecookbook.com
+GOI-CUON-VCB,4,100,Nguồn: vietnamesecookbook.com
+GOI-CUON-VCB,76,120,"Ước lượng quy đổi từ đơn vị bếp (chưa cân đo thật), nguồn: vietnamesecookbook.com"
+GOI-CUON-VCB,151,5,"Ước lượng quy đổi từ đơn vị bếp (chưa cân đo thật), nguồn: vietnamesecookbook.com"
+GOI-CUON-VCB,132,30,"Ước lượng quy đổi từ đơn vị bếp (chưa cân đo thật), nguồn: vietnamesecookbook.com"
+CANH-CHUA-CA-VCB,137,45,Nguồn: vietnamesecookbook.com
+CANH-CHUA-CA-VCB,149,25,Nguồn: vietnamesecookbook.com
+CANH-CHUA-CA-VCB,151,15,"Ước lượng quy đổi từ đơn vị bếp (chưa cân đo thật), nguồn: vietnamesecookbook.com"
+CANH-CHUA-CA-VCB,111,200,Nguồn: vietnamesecookbook.com
+CANH-CHUA-CA-VCB,85,240,"Ước lượng quy đổi từ đơn vị bếp (chưa cân đo thật), nguồn: vietnamesecookbook.com"
+CANH-CHUA-CA-VCB,97,90,"Ước lượng quy đổi từ đơn vị bếp (chưa cân đo thật), nguồn: vietnamesecookbook.com"
+CANH-CHUA-CA-VCB,62,100,Nguồn: vietnamesecookbook.com
+CANH-CHUA-CA-VCB,129,30,"Ước lượng quy đổi từ đơn vị bếp (chưa cân đo thật), nguồn: vietnamesecookbook.com"
+COM-TAM-VCB,151,15,"Ước lượng quy đổi từ đơn vị bếp (chưa cân đo thật), nguồn: vietnamesecookbook.com"
+COM-TAM-VCB,137,45,Nguồn: vietnamesecookbook.com
+COM-TAM-VCB,4076,40,Nguồn: vietnamesecookbook.com
+COM-TAM-VCB,149,12,Nguồn: vietnamesecookbook.com
+COM-TAM-VCB,129,30,Nguồn: vietnamesecookbook.com
+COM-TAM-VCB,79,40,"Ước lượng quy đổi từ đơn vị bếp (chưa cân đo thật), nguồn: vietnamesecookbook.com"
+COM-TAM-VCB,129,60,Nguồn: vietnamesecookbook.com
+COM-TAM-VCB,33,200,"Ước lượng quy đổi từ đơn vị bếp (chưa cân đo thật), nguồn: vietnamesecookbook.com"
+BUN-CHA-VCB,20,400,Nguồn: vietnamesecookbook.com
+BUN-CHA-VCB,151,15,"Ước lượng quy đổi từ đơn vị bếp (chưa cân đo thật), nguồn: vietnamesecookbook.com"
+BUN-CHA-VCB,137,45,"Ước lượng quy đổi từ đơn vị bếp (chưa cân đo thật), nguồn: vietnamesecookbook.com"
+BUN-CHA-VCB,149,30,"Ước lượng quy đổi từ đơn vị bếp (chưa cân đo thật), nguồn: vietnamesecookbook.com"
+BUN-CHA-VCB,148,15,Nguồn: vietnamesecookbook.com
+BUN-CHA-VCB,137,80,Nguồn: vietnamesecookbook.com
+BUN-CHA-VCB,149,60,Nguồn: vietnamesecookbook.com
+BUN-CHA-VCB,3020,200,Nguồn: vietnamesecookbook.com
+BUN-CHA-VCB,86,100,"Ước lượng quy đổi từ đơn vị bếp (chưa cân đo thật), nguồn: vietnamesecookbook.com"
+BUN-CHA-VCB,139,5,Nguồn: vietnamesecookbook.com
+BUN-CHA-VCB,4,600,Nguồn: vietnamesecookbook.com
+BUN-CHA-VCB,76,100,"Ước lượng quy đổi từ đơn vị bếp (chưa cân đo thật), nguồn: vietnamesecookbook.com"
+MI-QUANG-VCB,47,300,Nguồn: vietnamesecookbook.com
+MI-QUANG-VCB,2159,30,"Ước lượng quy đổi từ đơn vị bếp (chưa cân đo thật), nguồn: vietnamesecookbook.com"
+MI-QUANG-VCB,151,20,"Ước lượng quy đổi từ đơn vị bếp (chưa cân đo thật), nguồn: vietnamesecookbook.com"
+MI-QUANG-VCB,137,30,Nguồn: vietnamesecookbook.com
+MI-QUANG-VCB,36,54,"Ước lượng quy đổi từ đơn vị bếp (chưa cân đo thật), nguồn: vietnamesecookbook.com"
+MI-QUANG-VCB,132,60,Nguồn: vietnamesecookbook.com
+MI-QUANG-VCB,121,60,"Ước lượng quy đổi từ đơn vị bếp (chưa cân đo thật), nguồn: vietnamesecookbook.com"
+NUOC-CHAM-VCB,137,60,Nguồn: vietnamesecookbook.com
+NUOC-CHAM-VCB,121,60,Nguồn: vietnamesecookbook.com
+NUOC-CHAM-VCB,149,50,Nguồn: vietnamesecookbook.com
+NUOC-CHAM-VCB,151,10,"Ước lượng quy đổi từ đơn vị bếp (chưa cân đo thật), nguồn: vietnamesecookbook.com"
+THIT-KHO-TRUNG-VCB,20,1000,Nguồn: vietnamesecookbook.com
+THIT-KHO-TRUNG-VCB,33,500,"Ước lượng quy đổi từ đơn vị bếp (chưa cân đo thật), nguồn: vietnamesecookbook.com"
+THIT-KHO-TRUNG-VCB,122,500,Nguồn: vietnamesecookbook.com
+THIT-KHO-TRUNG-VCB,137,60,Nguồn: vietnamesecookbook.com
+THIT-KHO-TRUNG-VCB,149,20,Nguồn: vietnamesecookbook.com
+THIT-KHO-TRUNG-VCB,151,15,"Ước lượng quy đổi từ đơn vị bếp (chưa cân đo thật), nguồn: vietnamesecookbook.com"
+BUN-RIEU-VCB,33,150,"Ước lượng quy đổi từ đơn vị bếp (chưa cân đo thật), nguồn: vietnamesecookbook.com"
+BUN-RIEU-VCB,85,600,"Ước lượng quy đổi từ đơn vị bếp (chưa cân đo thật), nguồn: vietnamesecookbook.com"
+BUN-RIEU-VCB,144,15,Nguồn: vietnamesecookbook.com
+BUN-RIEU-VCB,137,30,Nguồn: vietnamesecookbook.com
+BUN-RIEU-VCB,4,400,Nguồn: vietnamesecookbook.com
+BUN-RIEU-VCB,55,300,Nguồn: vietnamesecookbook.com
+BUN-RIEU-VCB,65,100,"Ước lượng quy đổi từ đơn vị bếp (chưa cân đo thật), nguồn: vietnamesecookbook.com"
+BUN-RIEU-VCB,121,60,"Ước lượng quy đổi từ đơn vị bếp (chưa cân đo thật), nguồn: vietnamesecookbook.com"
+PHO-GA-VCB,152,80,Nguồn: vietnamesecookbook.com
+PHO-GA-VCB,137,30,Nguồn: vietnamesecookbook.com
+PHO-GA-VCB,79,30,"Ước lượng quy đổi từ đơn vị bếp (chưa cân đo thật), nguồn: vietnamesecookbook.com"
+PHO-GA-VCB,78,20,"Ước lượng quy đổi từ đơn vị bếp (chưa cân đo thật), nguồn: vietnamesecookbook.com"
+PHO-GA-VCB,121,60,"Ước lượng quy đổi từ đơn vị bếp (chưa cân đo thật), nguồn: vietnamesecookbook.com"
+BANH-MI-THIT-VCB,7,80,"Nguồn: vietnamesecookbook.com — 4 ổ/4 người, ước lượng 80g/ổ (bánh mì Việt Nam thường nhẹ hơn bánh mì Âu)"
+COM-TAM-VCB,4060,300,"Nguồn: vietnamesecookbook.com — 4 miếng sườn cốt lết/4 người, ước lượng 75g/miếng"
