@@ -6,9 +6,9 @@ Reads JSON from stdin, normalizes to common format, appends to .ai-log/session.j
 
 import json
 import os
-import sys
 import subprocess
-from datetime import datetime, timezone, timedelta
+import sys
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
 VN_TZ = timezone(timedelta(hours=7))
@@ -51,6 +51,32 @@ def detect_tool(data: dict) -> str:
     return "unknown"
 
 
+def configured_model(data: dict) -> str:
+    """Use the hook model when provided, otherwise read local AI log config."""
+    payload_model = str(data.get("model") or "").strip()
+    if payload_model:
+        return payload_model
+
+    env_model = os.environ.get("AI_LOG_MODEL", "").strip()
+    if env_model:
+        return env_model
+
+    env_file = Path(__file__).resolve().parents[1] / ".env"
+    try:
+        lines = env_file.read_text(encoding="utf-8-sig").splitlines()
+    except OSError:
+        return ""
+
+    for raw_line in lines:
+        line = raw_line.strip()
+        if not line or line.startswith("#") or "=" not in line:
+            continue
+        key, value = line.split("=", 1)
+        if key.strip() == "AI_LOG_MODEL":
+            return value.strip().strip("\"'")
+    return ""
+
+
 def normalize(data: dict, tool: str) -> dict | None:
     """Normalize tool-specific payload to common log entry."""
     event = data.get("hook_event_name") or data.get("event", "")
@@ -72,7 +98,7 @@ def normalize(data: dict, tool: str) -> dict | None:
         "tool": tool,
         "event": event,
         "session_id": (data.get("session_id") or data.get("conversation_id") or data.get("generation_id") or ""),
-        "model": data.get("model", ""),
+        "model": configured_model(data),
         "repo": repo,
         "branch": git("git rev-parse --abbrev-ref HEAD"),
         "commit": git("git rev-parse --short HEAD"),
@@ -150,10 +176,10 @@ def normalize(data: dict, tool: str) -> dict | None:
     # this only checked `prompt`, which dropped Claude Bash/Edit events (their
     # tool_input has `command` / `file_path`, not `prompt` or `content`) and
     # any Gemini/Cursor/Copilot turn that carried context but no plain prompt.
-    _PAYLOAD_KEYS = ("prompt", "tool_input", "response_summary", "tool_response", "tool_args", "files_context")
-    _LIFECYCLE_EVENTS = ("Stop", "stop", "SessionEnd", "sessionEnd", "AfterModel")
-    has_payload = any(base.get(k) for k in _PAYLOAD_KEYS)
-    if not has_payload and event not in _LIFECYCLE_EVENTS:
+    payload_keys = ("prompt", "tool_input", "response_summary", "tool_response", "tool_args", "files_context")
+    lifecycle_events = ("Stop", "stop", "SessionEnd", "sessionEnd", "AfterModel")
+    has_payload = any(base.get(k) for k in payload_keys)
+    if not has_payload and event not in lifecycle_events:
         return None
 
     return base

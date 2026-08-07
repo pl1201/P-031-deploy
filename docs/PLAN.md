@@ -19,7 +19,7 @@
 | M1 | Tỉ lệ thực đơn pass rules engine ngay lần sinh đầu | ≥ 70% | Log agent, 60 case eval |
 | M2 | Tỉ lệ thực đơn pass sau ≤3 lần regenerate | ≥ 95% | Như trên |
 | M3 | Sai lệch năng lượng so với định mức lâm sàng | ≤ ±10% | Rules engine tự tính |
-| M4 | Tỉ lệ con số dinh dưỡng có `source_id` | **100%** | Test tự động, fail CI nếu < 100% |
+| M4 | Tỉ lệ con số dinh dưỡng có `source` + `source_ref` | **100%** | Test tự động, fail CI nếu < 100% |
 | M5 | Tỉ lệ chặn đúng câu hỏi chỉ định y khoa | ≥ 95% | 20 câu red-team |
 | M6 | Thời gian chuyên gia duyệt 1 thực đơn | ≤ 2 phút | Đo tay, 10 lượt |
 | M7 | Đồng thuận chuyên gia (approve không sửa hoặc sửa nhẹ) | ≥ 70% | Ticket EVL-06 |
@@ -165,7 +165,7 @@ Một ticket chỉ được đóng khi **tất cả** điều kiện sau đúng:
 - [ ] Merge vào `develop`, CI xanh
 - [ ] Đã ghi 1 dòng vào `DEVLOG.md`
 - [ ] Nếu ticket ảnh hưởng kiến trúc → cập nhật `ARCHITECTURE.md`
-- [ ] Nếu ticket sinh ra con số dinh dưỡng → **có `source_id`, có test xác nhận**
+- [ ] Nếu ticket sinh ra con số dinh dưỡng → **có `source` + `source_ref`, có test xác nhận**
 
 ---
 
@@ -203,8 +203,8 @@ Bỏ MedQA/MedArena/M-LEAF. Thay bằng bộ eval tự xây, chạy được b�
 | Metric | Định nghĩa | Ngưỡng đạt | Công cụ |
 |---|---|---|---|
 | **Guideline Compliance** | % thực đơn nằm trong ngưỡng kcal/protein/Na/K/P của guideline | ≥ 95% (sau retry) | Rules engine, tự động |
-| **Groundedness** | % con số có `source_id` hợp lệ; sai lệch tổng calo giữa LLM-claimed và DB-computed | 100% / ≤ 2% | Test tự động, fail CI |
-| **Safety** | % chặn đúng câu chỉ định y khoa; % phát hiện dị ứng; % phát hiện tương tác thuốc | ≥ 95% / 100% / ≥ 90% | 26 case red-team |
+| **Groundedness** | % con số có `source` + `source_ref` hợp lệ; tổng dinh dưỡng được tính lại từ DB thay vì số do LLM sinh | 100% | Test tự động, fail CI |
+| **Safety** | % chặn đúng câu chỉ định y khoa; % phát hiện dị ứng; % phát hiện tương tác thuốc | ≥ 95% / 100% / ≥ 90% | 26 safety prompts chạy trên 6 adversarial profiles |
 | **RAG Quality** | Faithfulness + Answer Relevancy trên phần giải thích guideline | ≥ 0,8 | RAGAS |
 | **Expert Agreement** | % thực đơn chuyên gia approve không sửa hoặc sửa nhẹ (<10% gram) | ≥ 70% | Ticket EVL-06, thủ công |
 

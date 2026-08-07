@@ -147,6 +147,19 @@
 - **Làm:** R1 tải `data/PURINEDATABASEANDDATASOURCES2025.xlsx` (436 món, cột "Total of 4 Purines" mg/100g). Trích + map tay 19 món template (nội tạng/thịt/cá/tôm/cua/mực/ngao/nấm/đậu) → `data/seeds/purine_values.csv`
 - **Provenance:** thêm cột `purine_source_ref` (nguồn RIÊNG, khác NIN — RULE-2); model FoodItem + validate_data ép mỗi trị purine phải dẫn nguồn USDA + mô tả món gốc
 - **Kết quả:** gan lợn 289, cá thu 194, tôm 166.5, đậu phụ 31.1… merge vào food_items.csv. 70 test xanh, validate sạch (19 trị purine). Nấm hương ghi rõ trị TƯƠI 23.1 (khô cao gấp ~13 lần)
+
+### [2026-08-06] · R2 (Claude) · Nghiên cứu nguồn dữ liệu T2DM châu Á
+- **Làm:** Tìm kiếm dữ liệu bệnh nhân đái tháo đường type 2 từ các quốc gia châu Á có đặc điểm nhân trắc gần Việt Nam (BMI thấp hơn phương Tây, "lean diabetes" phenotype). Ưu tiên Đông Nam Á (Thailand, Philippines, Indonesia, Malaysia, Singapore) và Đông/Nam Á (China, Korea, Japan, India, Bangladesh, Pakistan)
+- **Kết quả:** Xác định được **5 nguồn có thể download ngay** với tổng ~60,000 bệnh nhân T2DM: (1) **China CHNS 2009+2015** (4k-5k T2DM, public download, biomarker đầy đủ), (2) **India NFHS-5 2019-21** (50k+ T2DM, free registration DHS Program, sample size lớn nhất), (3) **Bangladesh STEPS 2018** (700-800 T2DM, public WHO microdata, đặc điểm nhân trắc gần VN nhất: BMI 23-24, height 163/152cm), (4) Korea KNHANES 2018-21 (4k-5k T2DM, public, dietary data chi tiết), (5) Pakistan STEPS 2013-14 (1.2k-1.5k T2DM, public WHO)
+- **Đặc điểm so sánh:** Bangladesh (BMI 23-24, height 163/152cm) và India (BMI 23-25, "lean diabetes") gần VN nhất về nhân trắc; China/Korea cao hơn một chút nhưng vẫn thấp hơn Western (~28-30). Thailand (mục tiêu top priority vì gần văn hóa ẩm thực) **không tìm thấy public microdata** — NHES reports có nhưng individual-level data cần request riêng
+- **Deliverable:** `data/raw/asian_t2dm_sources/` với 4 files markdown: (1) `RESEARCH_REPORT.md` (báo cáo chi tiết 8 nguồn + so sánh nhân trắc), (2) `download_instructions.md` (hướng dẫn từng bước download mỗi nguồn), (3) `citations.md` (citation requirements + DUA summary), (4) `QUICKREF.md` (quick reference), (5) `README.md` (tổng quan + structure), (6) `.gitignore` (chặn raw .dta/.sav không commit), (7) `scripts/download_asian_t2dm_data.py` (script download tự động cho Bangladesh/Pakistan/China — India cần manual registration)
+- **Mục đích:** So sánh thuật toán VNutriCare với "lean diabetes" phenotype (BMI thấp mà vẫn T2DM — đặc thù châu Á), validate clinical targets (BMI 18.5-23 cho ĐTĐ2 VN có phù hợp không), benchmark với NHANES (phương Tây), phân tích dietary patterns các nước có văn hóa ẩm thực gần VN
+- **Variables có sẵn:** Tất cả nguồn đều có age/sex/BMI/height/weight/fasting glucose/diabetes diagnosis. CHNS+KNHANES có HbA1c+lipids+dietary intake (24h recall). NFHS-5 có biomarker nhưng subset có HbA1c. WHO STEPS có BP+behavioral risk factors
+- **Estimated size:** ~1.5 GB total (NFHS-5 chiếm 700MB, CHNS 250MB, KNHANES 400MB, Bangladesh+Pakistan <150MB)
+- **Data governance:** Tuân thủ DUA (không re-identify, không redistribute raw, cite nguồn, chỉ dùng statistical analysis). Raw files không commit git (có .gitignore). Processed aggregates OK để commit
+- **Tiếp theo:** (1) Download Bangladesh STEPS ngay (2 phút, WHO microdata public), (2) Đăng ký DHS account cho NFHS-5 (approval 1-2 ngày), (3) Download CHNS (public, không cần approval), (4) Viết `scripts/process_asian_t2dm_data.py` (filter T2DM, standardize schema, convert units), (5) EDA notebook so sánh với NHANES
+- **Liên quan ticket:** Không có ticket cụ thể (nghiên cứu tự do), nhưng hỗ trợ validation cho DEC-014 (multi-disease, MVP focus T2DM nhưng cơ chế đa bệnh lý giữ nguyên) — dữ liệu này chứng minh clinical targets VN có phù hợp với "lean diabetes" châu Á không
+- **Thời gian:** 4h (search + verify sources + download instruction research + write documentation)
 - **Tiếp theo:** dishes.csv cần khẩu phần chuẩn (đang tìm nghiên cứu VN/Mỹ)
 
 ### [2026-08-02] · R2 Clinical & Data · DAT-04 (probe) — API món ăn NIN
@@ -344,6 +357,54 @@
 - **Còn lại:** `BE-07` (food logs), `BE-08` (audit log — đã ghi qua `AuditLog` trong HIT-02 nhưng chưa có `GET /audit` riêng), `BE-09` (security test tự động), `HIT-01` (LangGraph `interrupt()` thật — hiện graph chạy hết 1 lượt rồi API tự quản trạng thái `pending_review`/`approved` ở tầng DB, không dùng cơ chế pause/resume của LangGraph checkpointer). Deploy Render/Vercel/Neon thật vẫn chưa làm.
 - **Thời gian:** ~4h
 
+### 2026-08-06 (DEC-015): Hoàn tất research report NHANES + kế hoạch crawl châu Á
+
+**Tài liệu nghiên cứu:**
+- ✅ `docs/DATA_RESEARCH_REPORT.md` (730 dòng) - Báo cáo đầy đủ 3 nguồn hiện tại
+  - NHANES 2021-2023: 1,066 T2DM (US)
+  - NHANES VN-adapted: 840 T2DM (BMI 24.0 khớp Da Nang 24.2)
+  - Da Nang 2022: 103 T2DM (VN thật)
+  - Total ready: 943 bệnh nhân
+- ✅ `docs/DATA_SYNTHESIS.md` - Phương pháp adaptation NHANES → VN
+- ✅ `docs/ASIAN_T2DM_CRAWL_PLAN.md` - Kế hoạch crawl 3 nguồn châu Á (5 ngày)
+
+**Pipeline scripts NHANES (committed):**
+- `scripts/download_nhanes_2021_2023.py` - Tải XPT từ CDC với checksum
+- `scripts/build_nhanes_2021_2023_cohort.py` - Merge + filter probable T2DM
+- `scripts/analyze_nhanes_distributions.py` - Tính phân bố có survey weights
+- `scripts/convert_nhanes_to_json.py` - Chuyển sang PatientProfile schema
+- `scripts/adapt_nhanes_to_vietnam.py` - Điều chỉnh BMI/height theo chuẩn VN
+
+**Download instructions châu Á (committed):**
+- `scripts/download_bangladesh_steps_t2dm.py` - Bangladesh STEPS 2018 (~750, BMI 23.4 gần VN nhất)
+- `scripts/download_chns_china_t2dm.py` - China CHNS 2009+2015 (~4,500, có HbA1c)
+- `scripts/download_india_nfhs5_t2dm.py` - India NFHS-5 (~55,000, lean diabetes phenotype)
+
+**Validation results:**
+- BMI adapted: 32.9 → 24.0 kg/m² (match Da Nang: 24.2)
+- Height adapted: 166.0 → 161.7 cm (match VN norms)
+- HbA1c preserved: 7.5%, clinical correlations maintained
+
+**Compliance:** NCHS Data User Agreement tuân thủ, de-identification verified, provenance complete
+
+**Commits:**
+- `7f0b66b` - NHANES research report + pipeline (12 files, 2,168 insertions)
+- `64e6430` - Asian crawl plan + download scripts (4 files)
+
+**Next:** Submit CHNS/NFHS-5 registrations, download Bangladesh (instant), write build/adapt scripts
+**Thời gian:** ~6h
+
+---
+
+### [2026-08-06] · Claude (theo yêu cầu Hưng) · Đề xuất HIT-06/HIT-07/EVL-07 — chuyên gia tự xây/chấm thực đơn + thu thập dữ liệu cải tiến (CHƯA DUYỆT, đang chờ đội bàn)
+- **Bối cảnh:** Hưng yêu cầu đề xuất tính năng cho chuyên gia dinh dưỡng chấm/chỉnh sửa thực đơn "phù hợp" hơn (không chỉ approve/sửa gram/từ chối như HIT-02 hiện tại), tự xây thực đơn trực tiếp có tính toán ngay, và lưu lại dữ liệu này để sau này thử "học tăng cường hoặc các phương pháp cải tiến model".
+- **Đã thêm 3 ticket ĐỀ XUẤT vào `docs/TICKETS.md`** (đánh dấu rõ "CẦN ĐỘI DUYỆT", chưa gán sprint/giờ):
+  - `HIT-06` — API cho chuyên gia tự tạo/`fork` 1 thực đơn từ bản AI rồi sửa tự do (thêm/xoá món), mỗi thao tác gọi lại `compute_nutrition()`/`validate_menu()` NGAY trên server (đúng RULE-1 — chuyên gia chỉ chọn `food_id`+`grams`, không tự nhập số dinh dưỡng, khác hẳn "để LLM/chuyên gia tự gõ số"). Cần thêm 2 cột `origin` + `source_plan_id` vào `MealPlan` để biết bản nào từ AI, bản nào chuyên gia tự xây, và liên kết cặp gốc↔sửa.
+  - `HIT-07` — chấm điểm có cấu trúc (đa chiều: đa dạng/khẩu vị/khả thi nấu) thay vì chỉ approve/reject nhị phân — phần tuân thủ dinh dưỡng máy đã tự chấm được (`violations[]`), chỉ cần chuyên gia chấm phần máy không đánh giá được.
+  - `EVL-07` — script export cặp (bản AI, bản chuyên gia sửa) + diff + điểm thành `eval/datasets/expert_corrections.jsonl`, dùng cho few-shot prompt/phân tích lỗi phổ biến/số liệu báo cáo EVL-05 — **KHÔNG phải tự xây pipeline RL/fine-tune thật** (ngoài phạm vi 6 tuần), chỉ là bước thu thập dữ liệu có cấu trúc để mở đường, ghi rõ trong ticket để không ai lỡ hứa trên pitch điều chưa làm.
+- **Vì sao KHÔNG tự code luôn:** đây là quyết định mở rộng phạm vi (thêm 1 luồng authoring song song với luồng AI hiện có), ảnh hưởng schema DB (`MealPlan` thêm cột) và UI (R4 cần thêm màn hình). Đúng tinh thần `CLAUDE.md` §6 "phát hiện yêu cầu mâu thuẫn/mở rộng phạm vi thì nói thẳng, đừng lặng lẽ làm theo" — ở đây không mâu thuẫn nhưng là quyết định đội nên bàn trước (đặc biệt việc RL có đáng làm trong 6 tuần hay không), Hưng đã xác nhận sẽ bàn thêm với đồng đội trước khi giao việc.
+- **Thời gian:** ~20 phút
+
 ---
 
 ### [2026-08-06] · Claude (theo yêu cầu Hưng) · Đọc trực tiếp Excel chuyên gia — 3 khoảng cách công thức, đề xuất CLN-09/CLN-10/AGT-11
@@ -427,6 +488,10 @@
 - **Xác nhận:** seed thử trên SQLite scratch DB thành công (9 + 6 dòng), `pytest -q` 165/165 pass (đã sửa `test_tao_du_15_bang` → `test_tao_du_17_bang`), `ruff`/`mypy` sạch, `validate_data.py` 0 lỗi (2 cảnh báo mới: cả 2 bảng đều 100% `to_verify`, đúng dự kiến vì chưa R2 xác nhận).
 - **CHƯA làm (ghi rõ trong ticket, không giả vờ xong):** chưa wiring 2 bảng này vào agent/API/UI — mới dừng ở tầng dữ liệu. R2 chưa xác nhận `verify_status`. Đặc biệt lưu ý ranh giới an toàn CLAUDE.md §3 khi wiring `drug_meal_timing`: chỉ mô tả thời điểm uống, tuyệt đối không diễn giải thành khuyên đổi liều/ngừng thuốc.
 - **Thời gian:** ~40 phút
+
+---
+
+## 3. Quyết định kỹ thuật (Decision Log)
 
 | ID | Ngày | Quyết định | Người quyết | Chi tiết |
 |---|---|---|---|---|

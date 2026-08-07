@@ -42,7 +42,7 @@ REQUIRED_DIRS = [
 DELIVERABLES = [
     (1, "Source Code", "src", True),
     (2, "README.md", "README.md", True),
-    (3, "Architecture Diagram", "docs/architecture_diagram.md", True),
+    (3, "Architecture Diagram", "docs/ARCHITECTURE.md", True),
     (4, "AI Logs", ".ai-log", False),
     (5, "Live URL", None, False),  # kiểm tra trong README
     (6, "Video Demo", None, False),  # link trong README
@@ -97,10 +97,12 @@ def check_forbidden(files: list[str]) -> None:
 
 
 def check_dirs(files: list[str]) -> None:
-    present = {str(Path(f).parent) for f in files}
-    present |= {str(p) for f in files for p in Path(f).parents}
+    # Normalize all paths to forward slashes for cross-platform comparison
+    present = {str(Path(f).parent).replace("\\", "/") for f in files}
+    present |= {str(p).replace("\\", "/") for f in files for p in Path(f).parents}
     for d, purpose in REQUIRED_DIRS:
-        if d not in present:
+        normalized_d = d.replace("\\", "/")
+        if normalized_d not in present:
             missing.append(f"Thiếu thư mục `{d}/` ({purpose})")
 
 

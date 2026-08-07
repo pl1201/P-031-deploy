@@ -10,9 +10,8 @@ import json
 import os
 import subprocess
 import sys
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta, timezone
 from pathlib import Path
-
 
 VN_TZ = timezone(timedelta(hours=7))
 CODEX_SESSIONS = Path.home() / ".codex" / "sessions"
@@ -65,7 +64,7 @@ def logged_keys(log_dir: Path) -> tuple[set[str], set[tuple[str, str]]]:
         if not path.exists():
             continue
         try:
-            with open(path, encoding="utf-8-sig") as stream:
+            with open(path, encoding="utf-8-sig", errors="replace") as stream:
                 for line in stream:
                     try:
                         entry = json.loads(line)
@@ -86,7 +85,7 @@ def logged_keys(log_dir: Path) -> tuple[set[str], set[tuple[str, str]]]:
 def read_transcript(path: Path) -> tuple[set[str], list[dict]]:
     session_id = ""
     originator = "codex"
-    model = "codex"
+    model = "unknown"  # Will be extracted from thread_settings or model_metadata
     turn_id = ""
     cwds: set[str] = set()
     messages: list[dict] = []
@@ -184,7 +183,7 @@ def main() -> None:
     repo_root = normalize_path(str(Path.cwd()))
     cutoff = None
     if not args.all:
-        cutoff = datetime.now(timezone.utc) - timedelta(hours=args.hours)
+        cutoff = datetime.now(UTC) - timedelta(hours=args.hours)
 
     log_dir = Path(os.environ.get("AI_LOG_DIR", ".ai-log"))
     log_dir.mkdir(exist_ok=True)
@@ -200,7 +199,7 @@ def main() -> None:
     new_entries: list[dict] = []
     for transcript in CODEX_SESSIONS.rglob("rollout-*.jsonl"):
         if cutoff:
-            modified = datetime.fromtimestamp(transcript.stat().st_mtime, timezone.utc)
+            modified = datetime.fromtimestamp(transcript.stat().st_mtime, UTC)
             if modified < cutoff:
                 continue
 

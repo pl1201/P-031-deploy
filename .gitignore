@@ -14,7 +14,6 @@ env/
 
 # Environment variables & secrets
 .env
-.env.example
 .env.local
 .env.production
 *.pem
@@ -40,8 +39,15 @@ Thumbs.db
 data/*
 !data/seeds/
 !data/README.md
+!data/patients/README.md
+!data/patients/manifest.yaml
+!data/VERSION
 *.db
 *.sqlite3
+
+# Research data - NHANES and other public datasets (outside repo)
+# Downloaded to ~/data/research/, never committed
+# Only synthetic derivatives in data/seeds/ are committed
 
 # Logs & Caches
 logs/

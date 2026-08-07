@@ -1,0 +1,33 @@
+{
+  "run_id": "20260807_004844",
+  "run_date": "2026-08-07T00:48:44.189272",
+  "seed": 42,
+  "git_sha": "6f50794",
+  "data_version": "# Data Version Manifest\n# Updated whenever patient datasets, seeds, or transformation scripts change\n\nversion: 1.0.0-beta\ngenerated_at: 2026-08-06T18:30:00+07:00\ntransformation_schema: v1\n\n# Patient datasets status\npatient_datasets:\n  t2dm_vn_adapted_set1_840patients.csv:\n    status: verification_pending\n    source: NHANES 2021-2023\n    rows: 840\n    enabled: false\n    notes: Provenance metadata incomplete; NCHS DUA verification pending\n\n  t2dm_vn_adapted_set2_700patients.csv:\n    status: quarantined\n    source: Thailand/Mendeley (unverified)\n    rows: 700\n    enabled: false\n    notes: License and de-identification not verified\n\n  t2dm_vn_adapted_set3_372patients.csv:\n    status: quarantined\n    source: Probable Pima Indians (unverified)\n    rows: 372\n    enabled: false\n    notes: No DOI or license found\n\n  t2dm_vn_adapted_set4_108patients.csv:\n    status: quarantined\n    source: Da Nang study (partial verification)\n    rows: 108\n    enabled: false\n    notes: Contains 5 type-1 records; normalization and DOI verification pending\n\n# Seed data version\nseeds:\n  food_items: v2.1 (7315 rows, 7293 with nutrition data)\n  clinical_rules: v1.0 (21 rules, all to_verify status)\n  drug_food_interactions: v1.0 (30 pairs)\n  gi_values: v1.0 (28 entries)\n  purine_values: v1.0 (19 entries)\n  usda_values: v1.0 (23 dishes)\n\n# Transformation scripts\n# When restoring reproducibility pipeline, list active scripts and their versions here",
+  "rule_version": "1.0.0",
+  "python_version": "3.13.14",
+  "cases_evaluated": 60,
+  "metrics": {
+    "guideline_compliance_pct": 20.0,
+    "groundedness_pct": 100.0,
+    "safety_detection_pct": null,
+    "rag_faithfulness": null,
+    "rag_answer_relevancy": null,
+    "expert_agreement_pct": null,
+    "denominator": {
+      "guideline_compliance": 60,
+      "groundedness": 5
+    },
+    "status": {
+      "guideline_compliance": "evaluated",
+      "groundedness": "evaluated",
+      "safety": "not_evaluated",
+      "rag_faithfulness": "not_evaluated",
+      "rag_answer_relevancy": "not_evaluated",
+      "expert_agreement": "not_evaluated"
+    }
+  },
+  "per_case_results": [],
+  "errors": [],
+  "abstentions": []
+}
