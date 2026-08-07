@@ -36,12 +36,7 @@ def list_pending_reviews(
     db: Session = Depends(get_db),
     _user: CurrentUser = Depends(require_role("dietitian")),
 ) -> list[MealPlanOut]:
-    plans = (
-        db.query(MealPlan)
-        .options(*meal_plan_load_options())
-        .filter(MealPlan.status == "pending_review")
-        .all()
-    )
+    plans = db.query(MealPlan).options(*meal_plan_load_options()).filter(MealPlan.status == "pending_review").all()
     plans.sort(key=_severity_sort_key)
     return [MealPlanOut.from_model(p) for p in plans]
 

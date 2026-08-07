@@ -83,26 +83,27 @@ def load_dish_food_repository(
             region=(row.get("region") or "").strip() or None,
             serving_g=float(row.get("serving_g") or total_g),
             ingredients=tuple(
-                DishIngredientView(food.id, food.name_vi, grams, food.source, food.source_ref)
-                for food, grams in typed
+                DishIngredientView(food.id, food.name_vi, grams, food.source, food.source_ref) for food, grams in typed
             ),
         )
-        items.append(FoodItem(
-            id=synthetic_id,
-            name_vi=row["name_vi"],
-            kcal_100g=per_100("kcal_100g"),
-            protein_g=per_100("protein_g"),
-            carb_g=per_100("carb_g"),
-            fat_g=per_100("fat_g"),
-            fiber_g=per_100("fiber_g"),
-            sugar_g=per_100("sugar_g") if sugar_complete else None,
-            na_mg=per_100("na_mg"),
-            k_mg=per_100("k_mg"),
-            p_mg=per_100("p_mg"),
-            purine_mg=per_100("purine_mg") if purine_complete else None,
-            contains_allergens=sorted({a for food, _ in typed for a in food.contains_allergens}),
-            source="curated",
-            source_ref=f"recipe:{row['dish_id']};ingredients:" + ",".join(str(food.id) for food, _ in typed),
-            is_estimated=any(food.is_estimated for food, _ in typed),
-        ))
+        items.append(
+            FoodItem(
+                id=synthetic_id,
+                name_vi=row["name_vi"],
+                kcal_100g=per_100("kcal_100g"),
+                protein_g=per_100("protein_g"),
+                carb_g=per_100("carb_g"),
+                fat_g=per_100("fat_g"),
+                fiber_g=per_100("fiber_g"),
+                sugar_g=per_100("sugar_g") if sugar_complete else None,
+                na_mg=per_100("na_mg"),
+                k_mg=per_100("k_mg"),
+                p_mg=per_100("p_mg"),
+                purine_mg=per_100("purine_mg") if purine_complete else None,
+                contains_allergens=sorted({a for food, _ in typed for a in food.contains_allergens}),
+                source="curated",
+                source_ref=f"recipe:{row['dish_id']};ingredients:" + ",".join(str(food.id) for food, _ in typed),
+                is_estimated=any(food.is_estimated for food, _ in typed),
+            )
+        )
     return DishFoodRepository(items, dish_views)
