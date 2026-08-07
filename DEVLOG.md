@@ -396,6 +396,17 @@
 
 ---
 
+### [2026-08-06] · Claude (theo yêu cầu Hưng) · Đề xuất HIT-06/HIT-07/EVL-07 — chuyên gia tự xây/chấm thực đơn + thu thập dữ liệu cải tiến (CHƯA DUYỆT, đang chờ đội bàn)
+- **Bối cảnh:** Hưng yêu cầu đề xuất tính năng cho chuyên gia dinh dưỡng chấm/chỉnh sửa thực đơn "phù hợp" hơn (không chỉ approve/sửa gram/từ chối như HIT-02 hiện tại), tự xây thực đơn trực tiếp có tính toán ngay, và lưu lại dữ liệu này để sau này thử "học tăng cường hoặc các phương pháp cải tiến model".
+- **Đã thêm 3 ticket ĐỀ XUẤT vào `docs/TICKETS.md`** (đánh dấu rõ "CẦN ĐỘI DUYỆT", chưa gán sprint/giờ):
+  - `HIT-06` — API cho chuyên gia tự tạo/`fork` 1 thực đơn từ bản AI rồi sửa tự do (thêm/xoá món), mỗi thao tác gọi lại `compute_nutrition()`/`validate_menu()` NGAY trên server (đúng RULE-1 — chuyên gia chỉ chọn `food_id`+`grams`, không tự nhập số dinh dưỡng, khác hẳn "để LLM/chuyên gia tự gõ số"). Cần thêm 2 cột `origin` + `source_plan_id` vào `MealPlan` để biết bản nào từ AI, bản nào chuyên gia tự xây, và liên kết cặp gốc↔sửa.
+  - `HIT-07` — chấm điểm có cấu trúc (đa chiều: đa dạng/khẩu vị/khả thi nấu) thay vì chỉ approve/reject nhị phân — phần tuân thủ dinh dưỡng máy đã tự chấm được (`violations[]`), chỉ cần chuyên gia chấm phần máy không đánh giá được.
+  - `EVL-07` — script export cặp (bản AI, bản chuyên gia sửa) + diff + điểm thành `eval/datasets/expert_corrections.jsonl`, dùng cho few-shot prompt/phân tích lỗi phổ biến/số liệu báo cáo EVL-05 — **KHÔNG phải tự xây pipeline RL/fine-tune thật** (ngoài phạm vi 6 tuần), chỉ là bước thu thập dữ liệu có cấu trúc để mở đường, ghi rõ trong ticket để không ai lỡ hứa trên pitch điều chưa làm.
+- **Vì sao KHÔNG tự code luôn:** đây là quyết định mở rộng phạm vi (thêm 1 luồng authoring song song với luồng AI hiện có), ảnh hưởng schema DB (`MealPlan` thêm cột) và UI (R4 cần thêm màn hình). Đúng tinh thần `CLAUDE.md` §6 "phát hiện yêu cầu mâu thuẫn/mở rộng phạm vi thì nói thẳng, đừng lặng lẽ làm theo" — ở đây không mâu thuẫn nhưng là quyết định đội nên bàn trước (đặc biệt việc RL có đáng làm trong 6 tuần hay không), Hưng đã xác nhận sẽ bàn thêm với đồng đội trước khi giao việc.
+- **Thời gian:** ~20 phút
+
+---
+
 ### [2026-08-06] · Claude (theo yêu cầu Hưng) · Đọc trực tiếp Excel chuyên gia — 3 khoảng cách công thức, đề xuất CLN-09/CLN-10/AGT-11
 - **Bối cảnh:** Hưng gửi ảnh chụp 4 khối trong `data/Bảng xác định nhu cầu dinh dưỡng + thực đơn.xlsx` (sheet "Bước 1+2" + "4. Tính toán trên Excel" ở các sheet `tđ*`/`TĐ*`) — form thật chuyên gia dinh dưỡng dự án dùng để tính nhu cầu/chia bữa/lập thực đơn. Đọc trực tiếp formula (không suy đoán từ ảnh) bằng `openpyxl` (`data_only=False`) để trích đúng công thức, không phải giá trị đã tính sẵn.
 - **Phát hiện 1 — công thức BMR khác hẳn:** hệ thống dùng Mifflin-St Jeor; Excel chuyên gia dùng **WHO/FAO/UNU (1985)**, bảng tuyến tính theo (nhóm tuổi × giới), hệ số W (cân nặng) không có số hạng chiều cao (`Bước 1+2!H2:J10`, VD nhóm 30-60 tuổi: Nam = 11,6×W + 879). PAL (hệ số lao động, `H12:J17`) cũng khác `ACTIVITY_FACTOR` hiện có: 4 mức nhẹ/TB/nặng/rất nặng = 1.6/1.7/2.1/2.4 (nam), so với Mifflin đang dùng 1.2/1.375/1.55/1.725. Hai công thức KHÔNG tương đương, cho TDEE khác nhau đáng kể trên cùng 1 hồ sơ.
@@ -477,6 +488,10 @@
 - **Xác nhận:** seed thử trên SQLite scratch DB thành công (9 + 6 dòng), `pytest -q` 165/165 pass (đã sửa `test_tao_du_15_bang` → `test_tao_du_17_bang`), `ruff`/`mypy` sạch, `validate_data.py` 0 lỗi (2 cảnh báo mới: cả 2 bảng đều 100% `to_verify`, đúng dự kiến vì chưa R2 xác nhận).
 - **CHƯA làm (ghi rõ trong ticket, không giả vờ xong):** chưa wiring 2 bảng này vào agent/API/UI — mới dừng ở tầng dữ liệu. R2 chưa xác nhận `verify_status`. Đặc biệt lưu ý ranh giới an toàn CLAUDE.md §3 khi wiring `drug_meal_timing`: chỉ mô tả thời điểm uống, tuyệt đối không diễn giải thành khuyên đổi liều/ngừng thuốc.
 - **Thời gian:** ~40 phút
+
+---
+
+## 3. Quyết định kỹ thuật (Decision Log)
 
 | ID | Ngày | Quyết định | Người quyết | Chi tiết |
 |---|---|---|---|---|

@@ -431,6 +431,29 @@ Lý do từ chối của chuyên gia được đưa vào `feedback` và agent si
 
 ---
 
+> ❓ **ĐỀ XUẤT (2026-08-06, Claude theo yêu cầu Hưng — CẦN ĐỘI DUYỆT TRƯỚC KHI COI LÀ TICKET CHÍNH THỨC, chưa gán sprint/giờ):** 3 ticket dưới đây xuất phát từ ý tưởng "chuyên gia tự xây/chấm thực đơn trực tiếp, lưu lại để cải tiến model sau này". Bối cảnh & lý do kỹ thuật ghi trong `DEVLOG.md` entry cùng ngày — đọc trước khi bàn.
+
+### `HIT-06` API xây dựng thực đơn thủ công (chuyên gia tự chọn món) — ĐỀ XUẤT
+**Owner:** R3 (API) · **P2?** · **Deps:** HIT-02, BE-06
+Cho chuyên gia tạo 1 `MealPlan` từ tay (không qua AI), hoặc "tách nhánh" từ 1 bản AI đã sinh để sửa tự do thay vì chỉ sửa gram từng item như HIT-02 hiện tại.
+- `POST /meal-plans/manual` — tạo plan trống, `origin=expert_authored`.
+- `POST /meal-plans/{id}/fork` — copy toàn bộ item từ 1 plan AI đã có sang plan mới editable, `origin=expert_edited`, `source_plan_id` trỏ về bản gốc (cần thêm 2 cột này vào `MealPlan`).
+- `POST /meal-plans/{id}/items`, `DELETE /meal-plans/{id}/items/{item_id}` — thêm/xoá món, mỗi lần gọi lại `compute_nutrition()`/`validate_menu()` trên server (RULE-1: chuyên gia chỉ chọn `food_id`+`grams`, không tự nhập số dinh dưỡng), trả về tổng dinh dưỡng + so với định mức NGAY để chuyên gia thấy trực tiếp trong lúc xây, không phải chờ duyệt xong mới biết.
+**AC:** Không có route/field nào nhận số dinh dưỡng trực tiếp từ chuyên gia (test tự động kiểm, giống RULE-1 test hiện có cho `AGT-04`) · Plan xây thủ công đi qua đúng luồng duyệt HIT-02 như plan AI · Có test `origin`/`source_plan_id` gán đúng.
+
+### `HIT-07` Chấm điểm có cấu trúc (structured scoring) — ĐỀ XUẤT
+**Owner:** R3 (API) + R2 (thiết kế thang điểm) · **P2?** · **Deps:** HIT-02
+Mở rộng `POST /reviews/{id}/approve` (và có thể cả reject) để nhận điểm theo nhiều chiều thay vì chỉ approve/sửa/từ chối nhị phân — VD `variety` (đa dạng món), `palatability` (hợp khẩu vị), `feasibility` (khả thi nấu ăn thực tế) mỗi chiều thang 1-5, cộng free text. Ngưỡng tuân thủ dinh dưỡng (Guideline Compliance) đã tự động có sẵn từ `violations[]`, KHÔNG cần chuyên gia chấm lại — chỉ chấm phần máy không tự đánh giá được.
+**AC:** Bảng/cột lưu điểm truy vấn được riêng (không chôn trong `reviewer_notes` dạng text tự do) · Thang điểm cụ thể do R2 đề xuất, đội duyệt trước khi code (đừng tự bịa thang điểm).
+
+### `EVL-07` Thu thập cặp (bản AI, bản chuyên gia sửa) để phân tích/cải tiến sau — ĐỀ XUẤT
+**Owner:** R2 · **P3?** · **Deps:** HIT-06, HIT-07
+Script export `scripts/export_expert_corrections.py`: với mọi `MealPlan` có `origin=expert_edited`, join sang bản AI gốc qua `source_plan_id`, tính diff (món thêm/bớt/đổi gram), gộp cùng hồ sơ bệnh nhân + định mức + điểm chấm (HIT-07) → `eval/datasets/expert_corrections.jsonl`.
+**Quan trọng — phạm vi thực tế cho 6 tuần:** đây là bước THU THẬP dữ liệu, không phải tự xây pipeline RL/fine-tune (việc đó tốn nhiều tuần, ngoài phạm vi MVP). Dùng được ngay cho: (a) làm ví dụ few-shot bổ sung vào prompt Gemini, (b) phân tích lỗi phổ biến chuyên gia hay sửa → cân nhắc thêm thành `clinical_rules`/ràng buộc CP-SAT mới thay vì chờ model học, (c) tự nó là 1 phần dữ liệu hay cho báo cáo eval (EVL-05) — "chuyên gia sửa trung bình bao nhiêu %, sửa gì nhiều nhất". Đừng hứa "học tăng cường" trên pitch nếu chưa thực sự chạy — nói đúng những gì đã làm (thu thập dữ liệu có cấu trúc, sẵn sàng cho bước tiếp theo).
+**AC:** 100% dữ liệu mô phỏng (đúng `CLAUDE.md` §3, không có bệnh nhân thật) · File output có schema ổn định, ghi rõ trong `eval/README.md` hoặc tương đương · Không tự ý claim đã "huấn luyện lại model" nếu chỉ mới thu thập dữ liệu.
+
+---
+
 ## EPIC 6 — FRONTEND (S4–S5) — *Owner chính: R4*
 
 ### `FE-01` Khung app + Auth UI
