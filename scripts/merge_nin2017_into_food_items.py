@@ -14,6 +14,7 @@ data/seeds/food_items.csv theo dung quy tac RULE-2 / DEC-008 cua du an:
   id tang dan tu id lon nhat hien co. Cac truong PDF khong co (sugar_g,
   purine_mg, gi_index...) de TRONG, khong dien 0.
 """
+
 from __future__ import annotations
 
 import csv
@@ -26,10 +27,27 @@ JSON_PATH = ROOT / "scripts" / "nin2017_extracted.json"
 CONFLICTS_PATH = ROOT / "scripts" / "nin2017_conflicts.md"
 
 FIELDNAMES = [
-    "id", "name_vi", "aliases", "category", "kcal_100g", "protein_g",
-    "carb_g", "fat_g", "fiber_g", "sugar_g", "na_mg", "k_mg", "p_mg",
-    "purine_mg", "purine_source_ref", "gi_index", "gi_source",
-    "gi_source_ref", "contains_allergens", "source", "source_ref",
+    "id",
+    "name_vi",
+    "aliases",
+    "category",
+    "kcal_100g",
+    "protein_g",
+    "carb_g",
+    "fat_g",
+    "fiber_g",
+    "sugar_g",
+    "na_mg",
+    "k_mg",
+    "p_mg",
+    "purine_mg",
+    "purine_source_ref",
+    "gi_index",
+    "gi_source",
+    "gi_source_ref",
+    "contains_allergens",
+    "source",
+    "source_ref",
     "is_estimated",
 ]
 

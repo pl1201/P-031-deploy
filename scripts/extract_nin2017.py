@@ -13,6 +13,7 @@ Output: data ghi ra scripts/nin2017_extracted.json - danh sach dict
 moi thuc pham voi cac truong tho theo dung PDF (khong tinh toan/suy dien).
 Cot trong PDF -> gia tri None neu o do trong that (khong suy doan).
 """
+
 from __future__ import annotations
 
 import json
@@ -20,8 +21,8 @@ from pathlib import Path
 
 import pdfplumber
 
-PDF_PATH = Path(__file__).resolve().parent.parent / "data" / (
-    "Bang-thanh-phan-dinh-duong-Thuc-pham-VN-2017-27-4-17.pdf"
+PDF_PATH = (
+    Path(__file__).resolve().parent.parent / "data" / ("Bang-thanh-phan-dinh-duong-Thuc-pham-VN-2017-27-4-17.pdf")
 )
 OUT_PATH = Path(__file__).resolve().parent / "nin2017_extracted.json"
 
@@ -59,9 +60,7 @@ LAST_PAGE = 152  # 1-indexed, trang cuoi khoi (a)
 
 def is_left_macro_table(table: list[list[str | None]]) -> bool:
     """Header cua bang trai chua ENERC/WATER/PROCNT (khong phai vitamin)."""
-    header_text = " ".join(
-        str(c) for row in table[:4] for c in row if c
-    )
+    header_text = " ".join(str(c) for row in table[:4] for c in row if c)
     return "ENERC" in header_text and "WATER" in header_text
 
 
@@ -130,9 +129,7 @@ def main() -> None:
     print(f"So trang khong tim thay bang macro (trang phai/vitamin/bia nhom): {len(skipped_pages)}")
     print(f"Danh sach trang bo qua: {skipped_pages}")
 
-    OUT_PATH.write_text(
-        json.dumps(all_items, ensure_ascii=False, indent=1), encoding="utf-8"
-    )
+    OUT_PATH.write_text(json.dumps(all_items, ensure_ascii=False, indent=1), encoding="utf-8")
     print(f"Da ghi {OUT_PATH}")
 
 
