@@ -436,7 +436,7 @@ MVP chỉ hoàn thành khi:
 - `KeHoachDuAn_VNutriCare_VMEC10_v3.docx`: bối cảnh, luồng đối tượng/dữ liệu, RQ, bằng chứng và lộ trình.
 - `brief.md`: định vị ĐTĐ2 và phạm vi cắt gọn.
 - `docs/ARCHITECTURE.md`: kiến trúc và hợp đồng kỹ thuật.
-- `docs/NGHIEN_CUU_BO_SUNG.md`, `docs/NGHIEN_CUU_BO_SUNG_v2.md`: bằng chứng, dataset và điểm cần xác minh.
+- `docs/archive/LEGACY_RESEARCH_AND_PLANNING.md`: bằng chứng, dataset và điểm cần xác minh (bản nghiên cứu gốc, đã hấp thụ vào PRD/ARCHITECTURE/TICKETS hiện hành).
 - `data/README.md`: trạng thái dữ liệu, nguồn và quy trình nhập.
 - `docs/TICKETS.md`: backlog triển khai.
 - `UI_flow.md`: luồng màn hình; cần cập nhật riêng nếu không còn khớp PRD này.

@@ -156,6 +156,7 @@ class Dish(Base):
     note: Mapped[str | None] = mapped_column(Text, nullable=True)
 
     ingredients: Mapped[list[DishIngredient]] = relationship(back_populates="dish")
+    meal_plan_items: Mapped[list[MealPlanItem]] = relationship(back_populates="dish")
 
 
 class DishIngredient(Base):
@@ -319,11 +320,15 @@ class MealPlanItem(Base):
     id: Mapped[str] = mapped_column(String(36), primary_key=True, default=_uuid)
     plan_id: Mapped[str] = mapped_column(ForeignKey("meal_plans.id"), index=True)
     slot: Mapped[str] = mapped_column(String(20))  # breakfast|lunch|dinner|snack
-    food_id: Mapped[int] = mapped_column(ForeignKey("food_items.id"))
+    # New rows point to a prepared dish. food_id remains nullable so existing
+    # development databases and historical ingredient-level plans still load.
+    food_id: Mapped[int | None] = mapped_column(ForeignKey("food_items.id"), nullable=True)
+    dish_id: Mapped[str | None] = mapped_column(ForeignKey("dishes.dish_id"), nullable=True, index=True)
     grams: Mapped[float] = mapped_column(Float)
 
     plan: Mapped[MealPlan] = relationship(back_populates="items")
-    food: Mapped[FoodItem] = relationship(back_populates="meal_plan_items")
+    food: Mapped[FoodItem | None] = relationship(back_populates="meal_plan_items")
+    dish: Mapped[Dish | None] = relationship(back_populates="meal_plan_items")
 
 
 class FoodLog(Base):

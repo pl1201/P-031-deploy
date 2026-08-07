@@ -19,9 +19,10 @@ from sqlalchemy.orm import Session, selectinload
 from src.agents.assembly import build_nutricare_graph
 from src.api.clinical_bridge import to_clinical_profile
 from src.api.security import CurrentUser, get_current_user
+from src.clinical.dishes import load_dish_food_repository
 from src.clinical.models import PatientProfile as ClinicalPatientProfile
 from src.db.base import get_db, get_session_factory
-from src.db.models import MealPlan, MealPlanItem
+from src.db.models import Dish, DishIngredient, MealPlan, MealPlanItem
 from src.db.models import PatientProfile as DbPatientProfile
 
 logger = logging.getLogger(__name__)
@@ -46,17 +47,38 @@ class CreateMealPlanResponse(BaseModel):
     status: str
 
 
+class MealPlanIngredientOut(BaseModel):
+    food_id: int
+    name_vi: str
+    grams: float
+    source: str
+    source_ref: str
+
+
 class MealPlanItemOut(BaseModel):
     id: str
     slot: str
-    food_id: int
+    dish_id: str | None = None
+    food_id: int | None = None
     grams: float
     name_vi: str
     source: str
     source_ref: str
     is_estimated: bool
+    ingredients: list[MealPlanIngredientOut] = Field(default_factory=list)
 
     model_config = {"from_attributes": True}
+
+
+def meal_plan_load_options():
+    """Eager-load both new dish rows and legacy food rows."""
+    return (
+        selectinload(MealPlan.items).selectinload(MealPlanItem.food),
+        selectinload(MealPlan.items)
+        .selectinload(MealPlanItem.dish)
+        .selectinload(Dish.ingredients)
+        .selectinload(DishIngredient.food),
+    )
 
 
 class MealPlanOut(BaseModel):
@@ -83,17 +105,7 @@ class MealPlanOut(BaseModel):
             plan_date=plan.plan_date,
             status=plan.status,
             items=[
-                MealPlanItemOut(
-                    id=i.id,
-                    slot=i.slot,
-                    food_id=i.food_id,
-                    grams=i.grams,
-                    name_vi=i.food.name_vi,
-                    source=i.food.source,
-                    source_ref=i.food.source_ref,
-                    is_estimated=i.food.is_estimated,
-                )
-                for i in sorted(plan.items, key=lambda i: (i.slot, i.food_id))
+                cls._item_out(i) for i in sorted(plan.items, key=lambda i: (i.slot, i.dish_id or "", i.food_id or 0))
             ],
             targets=plan.targets or {},
             computed_nutrition=plan.computed_nutrition or {},
@@ -102,6 +114,44 @@ class MealPlanOut(BaseModel):
             reviewer_id=plan.reviewer_id,
             reviewer_notes=plan.reviewer_notes,
             created_at=plan.created_at,
+        )
+
+    @staticmethod
+    def _item_out(item: MealPlanItem) -> MealPlanItemOut:
+        if item.dish is not None:
+            recipe_g = sum(part.grams for part in item.dish.ingredients) or item.dish.serving_g or item.grams
+            scale = item.grams / recipe_g
+            ingredients = [
+                MealPlanIngredientOut(
+                    food_id=part.food_id,
+                    name_vi=part.food.name_vi,
+                    grams=round(part.grams * scale, 1),
+                    source=part.food.source,
+                    source_ref=part.food.source_ref,
+                )
+                for part in item.dish.ingredients
+            ]
+            return MealPlanItemOut(
+                id=item.id,
+                slot=item.slot,
+                dish_id=item.dish_id,
+                grams=item.grams,
+                name_vi=item.dish.name_vi,
+                source="recipe",
+                source_ref=f"dish:{item.dish_id}",
+                is_estimated=False,
+                ingredients=ingredients,
+            )
+        assert item.food is not None
+        return MealPlanItemOut(
+            id=item.id,
+            slot=item.slot,
+            food_id=item.food_id,
+            grams=item.grams,
+            name_vi=item.food.name_vi,
+            source=item.food.source,
+            source_ref=item.food.source_ref,
+            is_estimated=item.food.is_estimated,
         )
 
 
@@ -152,7 +202,8 @@ def _run_graph_and_persist(
         if dislikes:
             clinical_profile = clinical_profile.model_copy(update={"dislikes": dislikes})
 
-        graph = build_nutricare_graph(profiles=_DbProfileRepository(session, clinical_profile))
+        dish_foods = load_dish_food_repository()
+        graph = build_nutricare_graph(profiles=_DbProfileRepository(session, clinical_profile), foods=dish_foods)
         result = graph.invoke({"patient_id": clinical_profile.patient_id, "trace_id": plan_id})
 
         plan.status = result.get("status") or "failed"
@@ -170,8 +221,11 @@ def _run_graph_and_persist(
             session.query(MealPlanItem).filter(MealPlanItem.plan_id == plan_id).delete()
             for slot, menu_items in draft.items.items():
                 for menu_item in menu_items:
+                    dish = dish_foods.dish_for_food_id(menu_item.food_id)
+                    if dish is None:
+                        raise ValueError(f"Generator returned unknown dish candidate {menu_item.food_id}")
                     session.add(
-                        MealPlanItem(plan_id=plan_id, slot=slot.value, food_id=menu_item.food_id, grams=menu_item.grams)
+                        MealPlanItem(plan_id=plan_id, slot=slot.value, dish_id=dish.dish_id, grams=menu_item.grams)
                     )
         session.commit()
     except Exception:
@@ -191,11 +245,7 @@ def _run_graph_and_persist(
 
 
 def _get_visible_plan(db: Session, plan_id: str, user: CurrentUser) -> MealPlan:
-    query = (
-        db.query(MealPlan)
-        .options(selectinload(MealPlan.items).selectinload(MealPlanItem.food))
-        .filter(MealPlan.id == plan_id)
-    )
+    query = db.query(MealPlan).options(*meal_plan_load_options()).filter(MealPlan.id == plan_id)
     if user.role == "patient":
         query = query.join(DbPatientProfile).filter(DbPatientProfile.user_id == user.id, MealPlan.status == "approved")
     plan = query.first()
@@ -264,7 +314,7 @@ def list_meal_plans(
     db: Session = Depends(get_db),
     user: CurrentUser = Depends(get_current_user),
 ) -> MealPlanListOut:
-    query = db.query(MealPlan).options(selectinload(MealPlan.items).selectinload(MealPlanItem.food))
+    query = db.query(MealPlan).options(*meal_plan_load_options())
     if user.role == "patient":
         query = query.join(DbPatientProfile).filter(DbPatientProfile.user_id == user.id, MealPlan.status == "approved")
     elif patient_id is not None:

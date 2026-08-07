@@ -62,7 +62,11 @@ def _opt_str(raw: str | None) -> str | None:
     return raw or None
 
 
-def seed_food_items(session: Session, path: Path | None = None) -> int:
+def seed_food_items(session: Session, path: Path | None = None, commit_every: int = 500) -> int:
+    """`commit_every`: commit theo lô để tránh 1 transaction quá dài bị
+    connection pooler (VD Supabase Session Pooler) đóng kết nối giữa chừng
+    trên bảng lớn (~7000+ dòng). merge() theo khoá chính nên idempotent,
+    commit dở dang không gây trùng lặp khi chạy lại."""
     n = 0
     with open(path or SEEDS / "food_items.csv", newline="", encoding="utf-8") as f:
         for row in csv.DictReader(f):
@@ -95,6 +99,8 @@ def seed_food_items(session: Session, path: Path | None = None) -> int:
                 )
             )
             n += 1
+            if commit_every and n % commit_every == 0:
+                session.commit()
     session.flush()
     return n
 
@@ -287,10 +293,34 @@ def seed_all(session: Session) -> dict[str, int]:
 
 
 def main() -> int:
+    """Nạp dữ liệu, commit sau MỖI bảng (không phải 1 transaction khổng lồ).
+
+    Với Postgres qua connection pooler (VD Supabase Session Pooler), một
+    transaction dài ~7000+ dòng dễ bị pooler đóng kết nối giữa chừng
+    (`server closed the connection unexpectedly`) trước khi kịp commit,
+    làm mất toàn bộ tiến trình. Commit theo từng bảng giới hạn thiệt hại
+    khi rớt kết nối giữa chừng — vì mọi seed_* đều idempotent (merge() theo
+    khoá chính), chạy lại kịch bản này nhiều lần là an toàn.
+    """
     engine = get_engine()
     Base.metadata.create_all(engine)  # no-op nếu bảng đã tồn tại (đã chạy alembic)
+    counts: dict[str, int] = {}
     with Session(engine) as session:
-        counts = seed_all(session)
+        counts["food_items"] = seed_food_items(session)
+        session.commit()
+        counts["dishes"] = seed_dishes(session)
+        session.commit()
+        counts["dish_ingredients"], counts["dish_ingredients_skipped"] = seed_dish_ingredients(session)
+        session.commit()
+        counts["clinical_rules"] = seed_clinical_rules(session)
+        session.commit()
+        counts["drug_food_interactions"] = seed_drug_food_interactions(session)
+        session.commit()
+        counts["food_food_interactions"] = seed_food_food_interactions(session)
+        session.commit()
+        counts["drug_meal_timing"] = seed_drug_meal_timing(session)
+        session.commit()
+        counts["serving_sizes"] = seed_serving_sizes(session)
         session.commit()
 
     print("Đã nạp dữ liệu vào DB:")

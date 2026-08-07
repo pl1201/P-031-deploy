@@ -49,8 +49,20 @@ GitHub Actions: `ruff check`, `ruff format --check`, `mypy`, `pytest`, `docker b
 ### `SET-05` Deploy hello-world lên cloud
 **Owner:** R3 · **P0** · 4h · **Deps:** SET-04
 Render (backend, Docker) + Vercel (frontend) + Neon/Supabase Postgres có `pgvector`. Cấu hình secrets trên platform.
-**AC:** **Live URL công khai** trả `GET /api/v1/health` → 200 · Frontend hiển thị trang chủ gọi được API · URL ghi vào README.
+
+**Research 2026-08-07 (R2) — Neon vs Supabase, nếu chọn Supabase thì dùng thế nào:** đã xác minh trực tiếp qua doc/pricing chính thức Supabase, không suy đoán.
+- **Free tier:** 500MB DB, tối đa 2 project active, 5GB egress, team member không giới hạn trên Dashboard, pgvector bật được qua Dashboard (khớp `ADR-001`).
+- **⚠️ Rủi ro thật:** project free **tự pause sau 1 tuần không hoạt động** — cần "warm up" trước demo giống lưu ý cold-start Render đã có sẵn ở §deploy.
+- **Branching (preview DB theo PR)** không có ở Free tier, tính phí theo giờ — không nên tính vào kế hoạch nếu không có ngân sách.
+- **Lý do có thể đáng chọn Supabase thay Neon:** Studio có Table Editor xem bảng/quan hệ khoá ngoại trực quan — giúp R1/R2/R4 (không rành SQL) tự xem schema thật mà không cần đọc `src/db/models.py`, đúng nhu cầu đồng bộ hiểu biết ERD cho cả đội.
+- **Ràng buộc bắt buộc nếu chọn Supabase (xem `ARCHITECTURE.md` ADR-008):** chỉ dùng làm Postgres hosted thuần (đổi `DATABASE_URL`) — **không** dùng song song Supabase CLI migrations (Alembic đã là nguồn chân lý duy nhất), **không** bật Row Level Security hay Supabase Auth (JWT+argon2id + chặn quyền tầng query trong FastAPI đã tự xây, thêm RLS tạo 2 tầng phân quyền phải đồng bộ tay).
+
+**AC:** **Live URL công khai** trả `GET /api/v1/health` → 200 · Frontend hiển thị trang chủ gọi được API · URL ghi vào README · Nếu chọn Supabase, R3 xác nhận đã đọc ràng buộc ADR-008 trước khi bật bất kỳ tính năng Supabase nào ngoài Postgres+pgvector thuần.
 > ⚠️ Ticket quan trọng nhất tuần 1. Deploy sớm để tuần 6 không phải deploy lần đầu.
+
+**Cập nhật 2026-08-07 (DB):** Đã chọn Supabase (project `VNutriCare`, `tvnrvvkclqsuhnxnrcrn`, region ap-northeast-1) làm Postgres hosted — theo đúng ràng buộc ADR-008 (chỉ dùng hosted Postgres+pgvector thuần, KHÔNG dùng RLS/Auth/Supabase CLI migrations; Alembic vẫn là nguồn chân lý schema duy nhất). Đã kết nối MCP Supabase (read_only) cho việc kiểm tra, và chạy `alembic upgrade head` thành công qua Session Pooler (17 bảng khớp `src/db/models.py`, xem chi tiết dưới). `vector` extension chưa bật (chưa cần vì `guideline_chunks.embedding` còn ở dạng JSON, xem `src/db/base.py`) — bật khi làm `DAT-06`.
+- **Lưu ý kết nối quan trọng:** host "Direct connection" (`db.<ref>.supabase.co`) chỉ resolve ra IPv6 — mạng không có route IPv6 sẽ không kết nối được (`could not translate host name`). Phải dùng **Session Pooler** thay thế: `postgresql://postgres.<project-ref>:<password>@aws-0-<region>.pooler.supabase.com:5432/postgres` (có địa chỉ IPv4). Đã thêm `psycopg2-binary` vào `requirements.txt` (trước đó bị comment vì dự án chỉ chạy SQLite).
+- Advisor bảo mật chỉ báo RLS đang bật mặc định (do chính Supabase auto-enable trên bảng mới) nhưng chưa có policy — mức INFO, KHÔNG chặn app vì backend dùng kết nối Postgres trực tiếp, không qua PostgREST/anon key. Không cần xử lý theo phạm vi ADR-008.
 
 ### `SET-06` Khởi tạo tài liệu dự án
 **Owner:** R1 · **P1** · 3h · **Deps:** SET-01
@@ -135,6 +147,17 @@ Research 2026-08-06 (agent B2b) verify 30 dòng hiện có, phát hiện các l�
 - **Dòng 30 (canxi+oxalat):** khuyến nghị hiện tại mâu thuẫn với chính bằng chứng trích trong dòng (Curhan 1997 cho thấy canxi ăn CÙNG bữa làm GIẢM nguy cơ sỏi, không phải nên tránh).
 **AC:** Mỗi sửa đổi phải dẫn lại đúng trang/mục Dược thư QGVN 2022 hoặc PMID thay thế · Không tự đổi severity mà không có căn cứ định lượng (đúng CLAUDE.md §6) · Sau khi sửa, đổi `verify_status` dòng đó thành `verified`.
 
+### `DAT-22` ✅ Trích xuất Bảng TPTP VN 2017 (620 món, tr.23-152) — ĐÃ LÀM
+**Owner:** R2 · **P1** · **Deps:** DAT-13, DAT-14
+Trích `data/Bang-thanh-phan-dinh-duong-Thuc-pham-VN-2017-27-4-17.pdf` bằng `pdfplumber.extract_tables()` (không OCR) — 620/620 thực phẩm, không trùng mã (`scripts/extract_nin2017.py` → `scripts/nin2017_extracted.json`). Merge vào `data/seeds/food_items.csv` bằng `scripts/merge_nin2017_into_food_items.py` (chỉ khớp tên tuyệt đối, không fuzzy):
+- 82 dòng đã có trong CSV được bổ sung `source_ref` NIN 2017 khi đủ 8 trường lõi.
+- 348 dòng mới thêm dạng placeholder (chỉ tên + `source_ref`, số liệu để trống) vì PDF thiếu ≥1 trường lõi — không suy đoán (DEC-008), gộp vào phạm vi rà soát của `DAT-13`.
+- 128 xung đột số liệu giữa CSV hiện có và PDF 2017 ghi vào `scripts/nin2017_conflicts.md`, **chưa tự merge** — cần R2 quyết định giá trị đúng.
+- **Purine (tr.219-248):** xác nhận CÓ số liệu purine thật cho nhóm Thịt/Thủy sản (VD gan lợn 515mg, gan gà 243mg — khớp tham chiếu đã biết) nhưng **chưa merge vào `purine_mg`** vì số cột/dòng trong bảng đó không cố định, rủi ro đọc nhầm cột Phytosterol thành Purine. Xem `scripts/nin2017_purine_findings.md`. Đề xuất ticket `DAT-23` để merge cẩn thận với đối chiếu số cột theo từng dòng trước khi dùng cho luật gout.
+- Sửa 1 bug thật trong `scripts/validate_data.py`: công thức tổng đa chất cộng trùng `fiber_g` (đã nằm trong `carb_g` của NIN 2017), gây báo lỗi giả cho món khô/nhiều xơ.
+- `validate_data.py` (0 lỗi) và `pytest` sạch sau merge.
+**AC:** Không merge xung đột tự động (128 dòng trong `nin2017_conflicts.md` chờ R2) · Không merge purine tự động (chờ `DAT-23`) · Mọi dòng mới/bổ sung có `source_ref` trỏ đúng mã NIN 2017.
+
 ### `DAT-06` Ingest guideline vào RAG — KHÔNG GIỚI HẠN TRÊN
 **Owner:** R2 · **P1** · 8h+ (mở) · **Deps:** SET-05
 Thu thập tài liệu (BYT, ADA, KDIGO, AHA/DASH, ACR, tài liệu Viện Dinh dưỡng — ~15 là điểm khởi đầu, không phải đích). Chunk 500–800 token, overlap 100, embed, lưu `guideline_chunks` (pgvector) kèm metadata `{source, title, page, condition}`.
@@ -157,7 +180,7 @@ Sau batch 48 nguyên liệu NIN nội bộ (2026-08-06), vẫn còn khoảng tr�
 **AC:** Không tự gắn giá trị 0/trace cho Na/K/P mà không có `source_ref` cụ thể (mã NIN, FDC ID, hoặc lý giải khoa học rõ ràng cho nhóm "trace") · Mỗi batch chạy `validate_data.py` + `pytest` sạch trước khi commit · `docs/PLAN_DAT-13-fill-data-gaps.md` cập nhật tiến độ theo từng mục §2.
 
 ### `DAT-14` ✅ Mở rộng `purine_mg` từ Purine DB 2025 — ĐÃ LÀM (32 dòng mới, curated 1-152)
-**Owner:** Claude (theo yêu cầu Hưng) · **Trạng thái:** Đã merge phần curated, còn phần NIN bulk (id 2000+) chưa làm
+**Owner:** R2 · **Trạng thái:** Đã merge phần curated, còn phần NIN bulk (id 2000+) chưa làm
 `data/PURINEDATABASEANDDATASOURCES2025.xlsx` ("USDA and ODS-NIH Database for the Purine Content of Common Foods" R2.0, 2025, 608 dòng NAm+nonNAm+alcohol) đã được trích thành `data/seeds/purine_db_reference.csv` (`scripts/extract_purine_db.py`, 475 dòng có số + trích dẫn `Table6`). Đã map thủ công (có review từng dòng, KHÔNG tự động) 32/366 dòng curated còn thiếu `purine_mg` — chỉ nhận match cùng loài/loại rõ ràng, bỏ qua match mơ hồ (VD "cải xanh" bị bỏ vì các dòng gần giống trong bảng nguồn thực ra khác loài thực vật). Script: `scripts/map_purine_to_food_items.py` (idempotent, có `--dry-run`).
 **Còn lại:** 334 dòng curated không match được (không có trong 475 dòng nguồn, hoặc match quá mơ hồ để tin) · Toàn bộ dải id 2000-4077 (NIN2017 bulk extract, tên món lẫn text tiếng Anh OCR) chưa được thử map — cần làm sạch tên món trước (tách phần tiếng Anh OCR khỏi `name_vi`) rồi mới map được, việc riêng.
 **AC nếu làm tiếp:** Giữ nguyên tắc "chỉ map khi chắc chắn cùng loài", không hạ chuẩn để tăng số lượng.
@@ -168,17 +191,17 @@ Research 2026-08-06: quét toàn bộ `food_nutrient.csv` của USDA FDC bulk (s
 - **"Sugars, added" (nutrient 1235, gần nghĩa free sugars nhất): 0/6.861 dòng có dữ liệu (0%)** — bộ SR Legacy/Foundation Foods dự án dùng KHÔNG có trường này.
 - **"Total Sugars" (nutrient 2000/1063): 5.620/6.861 dòng (81.9%)** — có dữ liệu thật nhưng **khác nghĩa** `sugar_g` mà DAT-07 định nghĩa (đường tự do theo WHO, loại trừ đường tự nhiên trong sữa/trái cây nguyên quả).
 **Vì sao KHÔNG tự lấp:** đổ "Total Sugars" vào `sugar_g` rồi để `T2DM-SUG-01` (đường ≤10%E) áp ngưỡng sẽ gắn cờ SAI cho bệnh nhân ăn trái cây/sữa nguyên chất — vi phạm RULE-2 kiểu ngược (đúng số, sai ngữ nghĩa trường). `scripts/extract_usda_bulk.py` đã cố ý để trống vì lý do này từ trước, quyết định này giữ nguyên.
-**Đề xuất (cần R2 chốt, không phải Claude tự quyết schema):** (1) Thêm cột MỚI `total_sugar_g` tách biệt khỏi `sugar_g`, dùng cho hiển thị thông tin/không áp ngưỡng free-sugar, kèm Alembic migration — 81.9% dữ liệu đã sẵn sàng ở `usda_sugar_coverage.csv`; hoặc (2) không thêm gì, chờ có nguồn added-sugar/free-sugar thật (VD USDA Branded Foods có nhãn dinh dưỡng, hoặc tính tay cho món chế biến có công thức biết trước lượng đường thêm).
+**Đề xuất (cần R2 chốt, không phải AI tự quyết schema):** (1) Thêm cột MỚI `total_sugar_g` tách biệt khỏi `sugar_g`, dùng cho hiển thị thông tin/không áp ngưỡng free-sugar, kèm Alembic migration — 81.9% dữ liệu đã sẵn sàng ở `usda_sugar_coverage.csv`; hoặc (2) không thêm gì, chờ có nguồn added-sugar/free-sugar thật (VD USDA Branded Foods có nhãn dinh dưỡng, hoặc tính tay cho món chế biến có công thức biết trước lượng đường thêm).
 **AC:** Không tự thêm cột vào schema production khi chưa R2 duyệt hướng semantics · Nếu chọn hướng (1), migration phải đi kèm cùng PR (CLAUDE.md §4).
 
 ### `DAT-16` ✅ Mở rộng `serving_sizes.csv` 5 → 174 dòng (WWEIA reference) — ĐÃ LÀM
-**Owner:** Claude (theo yêu cầu Hưng) · **Trạng thái:** Xong, cần R2 xác nhận cách dùng
+**Owner:** R2 · **Trạng thái:** Xong, cần R2 xác nhận cách dùng
 Không có khảo sát khẩu phần món Việt quy mô lớn công khai để mở rộng 5 dòng gốc lên 100-200 mà vẫn giữ nguồn thật. Thay vào đó: tính TRUNG VỊ khẩu phần thật từ `food_portion.csv` (47.446 bản ghi khẩu phần USDA) theo 172 nhóm thực phẩm chính thức **WWEIA** (What We Eat In America — hệ phân loại dùng trong khảo sát NHANES), lấy nhóm có ≥5 mẫu (169/172 nhóm đạt). Script: `scripts/build_serving_sizes_wweia.py`. 5 dòng gốc (khớp món Việt cụ thể: bát phở, bát cơm...) giữ nguyên, không ghi đè — 169 dòng mới thêm với tiền tố `category=wweia_<mã>` để phân biệt rõ.
 **⚠️ Giới hạn phải đọc trước khi dùng:** đây là khẩu phần theo THÓI QUEN ĂN UỐNG MỸ (khảo sát NHANES), KHÔNG PHẢI khẩu phần người Việt — dùng làm tham chiếu/dự phòng khi không có nguồn khẩu phần Việt Nam cụ thể, đã ghi rõ trong cột `source` từng dòng.
 **AC nếu dùng tiếp:** R2 xác nhận UI/menu engine có phân biệt được 2 loại nguồn (VN cụ thể vs WWEIA tham chiếu) trước khi hiển thị cho chuyên gia/bệnh nhân.
 
 ### `DAT-17` ✅ Lấp `category` cho food_items nguồn USDA — ĐÃ LÀM (2% → 96%)
-**Owner:** Claude (theo yêu cầu Hưng) · **Trạng thái:** Xong
+**Owner:** R2 · **Trạng thái:** Xong
 Dịch trực tiếp phân loại chính thức `food_category` của USDA FoodData Central (28 nhóm, `food_category.csv` trong bulk download) sang nhãn tiếng Việt, join qua `fdc_id` (script `scripts/fill_category_from_usda.py`, có `--dry-run`). Đây là gán nhãn phân loại/tổ chức dữ liệu, KHÔNG phải giá trị lâm sàng — không thuộc phạm vi RULE-2 (không cần `source_ref` riêng cho `category`). Kết quả: 6.870 dòng được gán, độ phủ `category` 2% → 96% (7.022/7.315).
 **Còn lại:** 293 dòng không có `category` — gồm 22 dòng thiếu số liệu hoàn toàn (đã biết từ trước) + phần còn lại là dòng NIN/curated chưa từng có `category` và không thuộc phạm vi script này (script chỉ xử lý `source=USDA`).
 
@@ -240,7 +263,7 @@ Thêm rule `T2DM-SUG-01` (đường tự do < 10% năng lượng, WHO 2015) dùn
 
 ---
 
-> ❓ **ĐỀ XUẤT (2026-08-06, Claude theo yêu cầu Hưng — CẦN R2/ĐỘI DUYỆT, chưa gán sprint/giờ).** Đọc trực tiếp công thức trong `data/Bảng xác định nhu cầu dinh dưỡng + thực đơn.xlsx` (sheet "Bước 1+2" — chính file chuyên gia dinh dưỡng dự án đang dùng thật trên Excel), phát hiện 3 khoảng cách giữa công thức hệ thống hiện tại và thực hành chuyên gia. Chi tiết cell/formula trích dẫn trong `DEVLOG.md` entry cùng ngày.
+> ❓ **ĐỀ XUẤT (2026-08-06, R2 — CẦN R2/ĐỘI DUYỆT, chưa gán sprint/giờ).** Đọc trực tiếp công thức trong `data/Bảng xác định nhu cầu dinh dưỡng + thực đơn.xlsx` (sheet "Bước 1+2" — chính file chuyên gia dinh dưỡng dự án đang dùng thật trên Excel), phát hiện 3 khoảng cách giữa công thức hệ thống hiện tại và thực hành chuyên gia. Chi tiết cell/formula trích dẫn trong `DEVLOG.md` entry cùng ngày.
 
 ### `CLN-09` Đối chiếu công thức BMR/TDEE với thực hành chuyên gia thật — **ĐÃ CHỐT** (WHO/FAO/UNU là mặc định hệ thống)
 **Owner:** R2 · **P1?** · **Deps:** CLN-01
@@ -428,6 +451,29 @@ Bệnh nhân thấy trạng thái "Đang chờ chuyên gia duyệt" (không th�
 **Owner:** R1 · **P2** · 5h · **Deps:** HIT-01
 Lý do từ chối của chuyên gia được đưa vào `feedback` và agent sinh lại.
 **AC:** Từ chối "quá nhiều tinh bột buổi tối" → bản sinh lại giảm carb bữa tối, có test · Lịch sử các phiên bản được lưu.
+
+---
+
+> ❓ **ĐỀ XUẤT (2026-08-06, R2 — CẦN ĐỘI DUYỆT TRƯỚC KHI COI LÀ TICKET CHÍNH THỨC, chưa gán sprint/giờ):** 3 ticket dưới đây xuất phát từ ý tưởng "chuyên gia tự xây/chấm thực đơn trực tiếp, lưu lại để cải tiến model sau này". Bối cảnh & lý do kỹ thuật ghi trong `DEVLOG.md` entry cùng ngày — đọc trước khi bàn.
+
+### `HIT-06` API xây dựng thực đơn thủ công (chuyên gia tự chọn món) — ĐỀ XUẤT
+**Owner:** R3 (API) · **P2?** · **Deps:** HIT-02, BE-06
+Cho chuyên gia tạo 1 `MealPlan` từ tay (không qua AI), hoặc "tách nhánh" từ 1 bản AI đã sinh để sửa tự do thay vì chỉ sửa gram từng item như HIT-02 hiện tại.
+- `POST /meal-plans/manual` — tạo plan trống, `origin=expert_authored`.
+- `POST /meal-plans/{id}/fork` — copy toàn bộ item từ 1 plan AI đã có sang plan mới editable, `origin=expert_edited`, `source_plan_id` trỏ về bản gốc (cần thêm 2 cột này vào `MealPlan`).
+- `POST /meal-plans/{id}/items`, `DELETE /meal-plans/{id}/items/{item_id}` — thêm/xoá món, mỗi lần gọi lại `compute_nutrition()`/`validate_menu()` trên server (RULE-1: chuyên gia chỉ chọn `food_id`+`grams`, không tự nhập số dinh dưỡng), trả về tổng dinh dưỡng + so với định mức NGAY để chuyên gia thấy trực tiếp trong lúc xây, không phải chờ duyệt xong mới biết.
+**AC:** Không có route/field nào nhận số dinh dưỡng trực tiếp từ chuyên gia (test tự động kiểm, giống RULE-1 test hiện có cho `AGT-04`) · Plan xây thủ công đi qua đúng luồng duyệt HIT-02 như plan AI · Có test `origin`/`source_plan_id` gán đúng.
+
+### `HIT-07` Chấm điểm có cấu trúc (structured scoring) — ĐỀ XUẤT
+**Owner:** R3 (API) + R2 (thiết kế thang điểm) · **P2?** · **Deps:** HIT-02
+Mở rộng `POST /reviews/{id}/approve` (và có thể cả reject) để nhận điểm theo nhiều chiều thay vì chỉ approve/sửa/từ chối nhị phân — VD `variety` (đa dạng món), `palatability` (hợp khẩu vị), `feasibility` (khả thi nấu ăn thực tế) mỗi chiều thang 1-5, cộng free text. Ngưỡng tuân thủ dinh dưỡng (Guideline Compliance) đã tự động có sẵn từ `violations[]`, KHÔNG cần chuyên gia chấm lại — chỉ chấm phần máy không tự đánh giá được.
+**AC:** Bảng/cột lưu điểm truy vấn được riêng (không chôn trong `reviewer_notes` dạng text tự do) · Thang điểm cụ thể do R2 đề xuất, đội duyệt trước khi code (đừng tự bịa thang điểm).
+
+### `EVL-07` Thu thập cặp (bản AI, bản chuyên gia sửa) để phân tích/cải tiến sau — ĐỀ XUẤT
+**Owner:** R2 · **P3?** · **Deps:** HIT-06, HIT-07
+Script export `scripts/export_expert_corrections.py`: với mọi `MealPlan` có `origin=expert_edited`, join sang bản AI gốc qua `source_plan_id`, tính diff (món thêm/bớt/đổi gram), gộp cùng hồ sơ bệnh nhân + định mức + điểm chấm (HIT-07) → `eval/datasets/expert_corrections.jsonl`.
+**Quan trọng — phạm vi thực tế cho 6 tuần:** đây là bước THU THẬP dữ liệu, không phải tự xây pipeline RL/fine-tune (việc đó tốn nhiều tuần, ngoài phạm vi MVP). Dùng được ngay cho: (a) làm ví dụ few-shot bổ sung vào prompt Gemini, (b) phân tích lỗi phổ biến chuyên gia hay sửa → cân nhắc thêm thành `clinical_rules`/ràng buộc CP-SAT mới thay vì chờ model học, (c) tự nó là 1 phần dữ liệu hay cho báo cáo eval (EVL-05) — "chuyên gia sửa trung bình bao nhiêu %, sửa gì nhiều nhất". Đừng hứa "học tăng cường" trên pitch nếu chưa thực sự chạy — nói đúng những gì đã làm (thu thập dữ liệu có cấu trúc, sẵn sàng cho bước tiếp theo).
+**AC:** 100% dữ liệu mô phỏng (đúng `CLAUDE.md` §3, không có bệnh nhân thật) · File output có schema ổn định, ghi rõ trong `eval/README.md` hoặc tương đương · Không tự ý claim đã "huấn luyện lại model" nếu chỉ mới thu thập dữ liệu.
 
 ---
 
