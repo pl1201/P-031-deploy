@@ -140,6 +140,7 @@ class FoodItem(Base):
     is_estimated: Mapped[bool] = mapped_column(Boolean, default=False)
 
     dish_ingredients: Mapped[list[DishIngredient]] = relationship(back_populates="food")
+    meal_plan_items: Mapped[list[MealPlanItem]] = relationship(back_populates="food")
 
 
 class Dish(Base):
@@ -322,6 +323,7 @@ class MealPlanItem(Base):
     grams: Mapped[float] = mapped_column(Float)
 
     plan: Mapped[MealPlan] = relationship(back_populates="items")
+    food: Mapped[FoodItem] = relationship(back_populates="meal_plan_items")
 
 
 class FoodLog(Base):

@@ -76,6 +76,7 @@ def test_sau_khi_tra_ve_graph_da_chay_xong_va_ghi_ket_qua(client, dietitian, pro
     body = r.json()
     assert body["status"] == "pending_review", body
     assert len(body["items"]) > 0
+    assert all(item["name_vi"] and item["source"] and item["source_ref"] for item in body["items"])
     assert body["computed_nutrition"]["kcal"] > 0
     assert body["targets"]["applied_rule_ids"]
 
