@@ -22,7 +22,7 @@ NutriCare Agent dùng LangGraph để sinh thực đơn cá thể hoá, nhưng t
 2. **RULE-2** — Không con số nào không có nguồn. Mỗi giá trị dinh dưỡng hiển thị cho người dùng đều kèm `source` (NIN/USDA/estimated) + `source_ref`.
 3. **RULE-3** — Không có đường tắt tới bệnh nhân. Thực đơn luôn dừng ở trạng thái chờ chuyên gia duyệt (HITL) trước khi đến tay bệnh nhân.
 
-Chi tiết kiến trúc kỹ thuật (luồng graph, ví dụ xung đột ADA/KDIGO đã xử lý ra sao): xem [`docs/KHUNG_CODE.md`](docs/KHUNG_CODE.md) và [`docs/architecture_diagram.md`](docs/architecture_diagram.md).
+Chi tiết kiến trúc kỹ thuật (luồng graph, ví dụ xung đột ADA/KDIGO đã xử lý ra sao): xem [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) (bản nháp ban đầu được lưu trong [`docs/archive/LEGACY_RESEARCH_AND_PLANNING.md`](docs/archive/LEGACY_RESEARCH_AND_PLANNING.md)).
 
 ## Đối tượng sử dụng
 
@@ -35,7 +35,7 @@ Chi tiết kiến trúc kỹ thuật (luồng graph, ví dụ xung đột ADA/KD
 |---|---|
 | AI Agent | LangGraph + LangChain (OpenAI) |
 | Backend | FastAPI + Python 3.11+, Pydantic |
-| Frontend | Next.js *(chưa triển khai — xem EPIC 6 trong `docs/TICKETS.md`)* |
+| Frontend | Next.js App Router (`web-next/`) — login, dashboard bệnh nhân/chuyên gia, trang duyệt thực đơn |
 | Database | PostgreSQL + pgvector (prod) / SQLite (dev) |
 | DevOps | Docker (multi-stage) + GitHub Actions (`ruff`, `mypy`, `pytest`, `docker build`) |
 | Deploy | Render (backend, Docker) + Vercel (frontend) + Neon/Supabase (Postgres) |
@@ -63,7 +63,7 @@ cp .env.example .env
 bash scripts/setup_hooks.sh
 
 # 6. Chạy thử không cần API key/DB (logic lâm sàng deterministic)
-make check          # ruff + validate-data + pytest, 112 test xanh
+make check          # ruff + validate-data + pytest, 190 test xanh
 
 # 7. Chạy server
 make run             # hoặc: uvicorn src.main:app --reload --port 8000
@@ -83,6 +83,7 @@ make run             # hoặc: uvicorn src.main:app --reload --port 8000
 │   └── main.py             # App entry point
 ├── data/seeds/            # clinical_rules.csv, drug_food_interactions.csv, food_items.csv
 ├── tests/                 # pytest suite
+├── web-next/              # Frontend Next.js App Router (login, dietitian/, patient/, eval/)
 ├── docs/                  # Tài liệu dự án + rules cho AI coding agent (xem CLAUDE.md)
 ├── eval/                  # Bộ đánh giá + báo cáo
 ├── presentation/          # Slide, video demo
@@ -93,7 +94,7 @@ make run             # hoặc: uvicorn src.main:app --reload --port 8000
 
 ## API chính
 
-Chi tiết đầy đủ (input/output/ràng buộc/lỗi): [`docs/API_DESIGN.md`](docs/API_DESIGN.md).
+Chi tiết đầy đủ (input/output/ràng buộc/lỗi): [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) (bản thiết kế API ban đầu được lưu trong [`docs/archive/LEGACY_RESEARCH_AND_PLANNING.md`](docs/archive/LEGACY_RESEARCH_AND_PLANNING.md)).
 
 | Method | Path | Mô tả |
 |---|---|---|
@@ -103,7 +104,7 @@ Chi tiết đầy đủ (input/output/ràng buộc/lỗi): [`docs/API_DESIGN.md`
 | POST | `/api/v1/targets/compute` | Tính định mức lâm sàng (không LLM) |
 | POST/GET | `/api/v1/meal-plans` | Sinh thực đơn (chạy graph nền, `202`) / xem thực đơn |
 | GET/POST | `/api/v1/reviews/pending`, `/{id}/approve`, `/{id}/reject` | Hàng chờ duyệt (HITL) |
-| POST | `/api/v1/chat` | *(chưa triển khai — chờ nối `build_graph()` với chat trực tiếp)* |
+| POST | `/api/v1/chat` | Chat guardrail 2 tầng (regex + LLM classifier, AGT-07) — chặn câu hỏi chỉ định y khoa |
 
 ## Live URL
 
@@ -141,7 +142,7 @@ Chi tiết RACI + phân quyền: [`docs/TEAM.md`](docs/TEAM.md).
 |---|---|:-:|---|
 | 1 | Source Code | 🟡 | `src/` |
 | 2 | README.md | ✅ | file này |
-| 3 | Architecture Diagram | 🟡 | `docs/architecture_diagram.md` |
+| 3 | Architecture Diagram | 🟡 | `docs/ARCHITECTURE.md` |
 | 4 | AI Logs | ✅ | `.ai-log/` + LangSmith |
 | 5 | Live URL | ⬜ | Render + Vercel — đang triển khai |
 | 6 | Video Demo | ⬜ | `presentation/` |

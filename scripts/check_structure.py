@@ -42,7 +42,7 @@ REQUIRED_DIRS = [
 DELIVERABLES = [
     (1, "Source Code", "src", True),
     (2, "README.md", "README.md", True),
-    (3, "Architecture Diagram", "docs/architecture_diagram.md", True),
+    (3, "Architecture Diagram", "docs/ARCHITECTURE.md", True),
     (4, "AI Logs", ".ai-log", False),
     (5, "Live URL", None, False),  # kiểm tra trong README
     (6, "Video Demo", None, False),  # link trong README
