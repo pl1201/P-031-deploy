@@ -1,5 +1,6 @@
-import { useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import '../styles.css'
+import { ApiError, type AuthSession, createApiClient } from './api'
 
 type Patient = {
   id: number
@@ -27,6 +28,53 @@ const initialMeals = [
   { time: '12:00', label: 'BỮA TRƯA', title: 'Cơm gạo lứt · gà áp chảo', description: 'Gạo lứt 65 g · ức gà 110 g · cải thìa 120 g · canh bí xanh', kcal: 632, carb: 68, protein: 42, source: 'NIN + USDA FDC' },
   { time: '18:30', label: 'BỮA TỐI', title: 'Cá thu sốt cà · rau luộc', description: 'Cá thu 90 g · cơm trắng 55 g · rau muống 120 g · bưởi 100 g', kcal: 541, carb: 56, protein: 34, source: 'NIN + dữ liệu món Việt' },
 ]
+
+function ApiConnector() {
+  const [session, setSession] = useState<AuthSession | null>(null)
+  const [online, setOnline] = useState<boolean | null>(null)
+  const [message, setMessage] = useState('Chưa kết nối backend')
+  const [pendingPlans, setPendingPlans] = useState<Array<{ id: string; items: Array<{ name_vi?: string; grams: number; source?: string; source_ref?: string }> }>>([])
+  const api = useMemo(() => createApiClient(session?.accessToken), [session?.accessToken])
+
+  useEffect(() => {
+    createApiClient().health().then(() => setOnline(true)).catch(() => setOnline(false))
+  }, [])
+
+  const login = async () => {
+    const email = window.prompt('Email tài khoản demo:', 'dietitian1@nutricare.demo')
+    if (!email) return
+    const password = window.prompt('Mật khẩu tài khoản demo:')
+    if (!password) return
+    try {
+      const next = await createApiClient().login(email, password)
+      setSession(next)
+      setMessage(`Đã đăng nhập với vai trò ${next.role}`)
+      if (next.role === 'dietitian') {
+        const plans = await createApiClient(next.accessToken).listPendingReviews()
+        setPendingPlans(plans)
+      }
+    } catch (error) {
+      setMessage(error instanceof ApiError ? error.message : 'Không thể đăng nhập.')
+    }
+  }
+
+  const verify = async () => {
+    if (!session) return login()
+    try {
+      await api.health()
+      setMessage('Backend sẵn sàng. Các endpoint MVP đã có thể được gọi.')
+    } catch {
+      setMessage('Không thể gọi backend. Hãy chạy make run trước.')
+    }
+  }
+
+  return <div className={`api-connector ${online === false ? 'api-offline' : ''}`} role="status">
+    <span className="api-dot" aria-hidden="true" />
+    <span>{message}</span>
+    <button type="button" onClick={session ? verify : login}>{session ? 'Kiểm tra API' : 'Kết nối API'}</button>
+    {pendingPlans.length > 0 && <details className="live-plans"><summary>{pendingPlans.length} thực đơn chờ duyệt</summary>{pendingPlans.map((plan) => <div key={plan.id}><strong>#{plan.id.slice(0, 8)}</strong>{plan.items.slice(0, 3).map((item, index) => <small key={`${item.name_vi}-${index}`}>{item.name_vi} · {item.grams}g · {item.source}: {item.source_ref}</small>)}</div>)}</details>}
+  </div>
+}
 
 function App() {
   const [patient, setPatient] = useState(patients[0])
@@ -69,6 +117,7 @@ function App() {
 
   return (
     <>
+      <ApiConnector />
       <a className="skip-link" href="#main-content">Bỏ qua điều hướng</a>
       <div className="app-shell">
         <aside className={`sidebar ${menuOpen ? 'open' : ''}`} aria-label="Điều hướng chính">

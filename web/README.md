@@ -1,4 +1,4 @@
-# VNUTRICARE UI prototype
+# NutriCare web MVP
 
 Prototype UI thuần HTML/CSS/JavaScript, chỉ dùng mock data và chưa gọi backend.
 

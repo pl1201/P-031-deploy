@@ -9,7 +9,7 @@ from datetime import UTC, datetime
 
 from fastapi import APIRouter, Depends, HTTPException, status
 from pydantic import BaseModel, Field
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, selectinload
 
 from src.api.routes.meal_plans import MealPlanOut
 from src.api.security import CurrentUser, require_role
@@ -18,7 +18,7 @@ from src.clinical.nutrition import compute_nutrition
 from src.clinical.seeds import load_food_repository
 from src.clinical.validator import has_blocking, validate_menu
 from src.db.base import get_db
-from src.db.models import AuditLog, MealPlan
+from src.db.models import AuditLog, MealPlan, MealPlanItem
 
 router = APIRouter(prefix="/reviews", tags=["reviews"])
 
@@ -35,7 +35,12 @@ def list_pending_reviews(
     db: Session = Depends(get_db),
     _user: CurrentUser = Depends(require_role("dietitian")),
 ) -> list[MealPlanOut]:
-    plans = db.query(MealPlan).filter(MealPlan.status == "pending_review").all()
+    plans = (
+        db.query(MealPlan)
+        .options(selectinload(MealPlan.items).selectinload(MealPlanItem.food))
+        .filter(MealPlan.status == "pending_review")
+        .all()
+    )
     plans.sort(key=_severity_sort_key)
     return [MealPlanOut.from_model(p) for p in plans]
 
