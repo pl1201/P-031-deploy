@@ -53,7 +53,7 @@
 
 <!-- Entry mới thêm vào CUỐI mục này, theo thứ tự thời gian -->
 
-### [2026-08-05] · R2 (Claude) · Nghiên cứu bổ sung nguồn dữ liệu từ tài liệu tổng quan
+### [2026-08-05] · R2 · Nghiên cứu bổ sung nguồn dữ liệu từ tài liệu tổng quan
 - **Làm:** Đối chiếu `data/Dữ liệu dinh dưỡng Việt Nam.md` (báo cáo tổng quan, 57 trích dẫn) với trạng thái thật của repo — xác nhận cả 8 nguồn đề xuất (Open Food Facts, uFiSh1.0, PhyFoodComp1.0, eBASIS, ASEANFOODS, WikiFCD/FoodOn, QĐ 5948/QĐ-BYT, Dược thư QGVN) chưa được dùng ở bất kỳ đâu trong repo. Tự xác minh từng nguồn qua WebSearch/WebFetch (không chép nguyên claim từ tài liệu)
 - **Kết quả:** 2 nguồn xác nhận dùng được ngay (Open Food Facts — free API/ODbL; Dược thư QGVN 2022 — nguồn `source_ref` cho DAT-05), 1 nguồn cần thêm bước xác minh (uFiSh1.0 — link FAO không tải được lúc kiểm tra), 4 nguồn loại có lý do (PhyFoodComp ngoài scope lâm sàng, eBASIS license không rõ, ASEANFOODS trùng lặp VFCT 2017 đã đối chiếu chéo sẵn, WikiFCD/FoodOn over-engineering cho MVP)
 - **Phát hiện quan trọng:** QĐ 5948/QĐ-BYT (2021, 633+68 cặp) mọi mô tả tìm được đều chỉ nói đây là danh mục tương tác **thuốc-thuốc**, KHÔNG có xác nhận nó phủ cặp thuốc-thực phẩm như tài liệu tổng quan ngụ ý — đã ghi rõ trong `docs/TICKETS.md` DAT-05 để R2 không suy đoán nhầm khi làm ticket
@@ -148,7 +148,7 @@
 - **Provenance:** thêm cột `purine_source_ref` (nguồn RIÊNG, khác NIN — RULE-2); model FoodItem + validate_data ép mỗi trị purine phải dẫn nguồn USDA + mô tả món gốc
 - **Kết quả:** gan lợn 289, cá thu 194, tôm 166.5, đậu phụ 31.1… merge vào food_items.csv. 70 test xanh, validate sạch (19 trị purine). Nấm hương ghi rõ trị TƯƠI 23.1 (khô cao gấp ~13 lần)
 
-### [2026-08-06] · R2 (Claude) · Nghiên cứu nguồn dữ liệu T2DM châu Á
+### [2026-08-06] · R2 · Nghiên cứu nguồn dữ liệu T2DM châu Á
 - **Làm:** Tìm kiếm dữ liệu bệnh nhân đái tháo đường type 2 từ các quốc gia châu Á có đặc điểm nhân trắc gần Việt Nam (BMI thấp hơn phương Tây, "lean diabetes" phenotype). Ưu tiên Đông Nam Á (Thailand, Philippines, Indonesia, Malaysia, Singapore) và Đông/Nam Á (China, Korea, Japan, India, Bangladesh, Pakistan)
 - **Kết quả:** Xác định được **5 nguồn có thể download ngay** với tổng ~60,000 bệnh nhân T2DM: (1) **China CHNS 2009+2015** (4k-5k T2DM, public download, biomarker đầy đủ), (2) **India NFHS-5 2019-21** (50k+ T2DM, free registration DHS Program, sample size lớn nhất), (3) **Bangladesh STEPS 2018** (700-800 T2DM, public WHO microdata, đặc điểm nhân trắc gần VN nhất: BMI 23-24, height 163/152cm), (4) Korea KNHANES 2018-21 (4k-5k T2DM, public, dietary data chi tiết), (5) Pakistan STEPS 2013-14 (1.2k-1.5k T2DM, public WHO)
 - **Đặc điểm so sánh:** Bangladesh (BMI 23-24, height 163/152cm) và India (BMI 23-25, "lean diabetes") gần VN nhất về nhân trắc; China/Korea cao hơn một chút nhưng vẫn thấp hơn Western (~28-30). Thailand (mục tiêu top priority vì gần văn hóa ẩm thực) **không tìm thấy public microdata** — NHES reports có nhưng individual-level data cần request riêng
@@ -205,7 +205,7 @@
 - **Tiếp theo:** SET-01 đến SET-06 và DAT-00, DAT-01 trong tuần 1
 - **Thời gian:** —
 
-### [2026-07-27] · Claude (thay R3) · SET-03 + SET-04
+### [2026-07-27] · R3 · SET-03 + SET-04
 - **Làm:** SET-03 — `.github/CODEOWNERS` (theo mẫu `TEAM.md` §4), `pull_request_template.md`, issue template feature + bug. SET-04 — bổ sung `ruff format --check`, `mypy`, job `docker-build` vào `ci.yml`
 - **Kết quả:** `make check` xanh (51 test), `mypy src/` sạch, `docker build` + chạy container xác nhận `GET /health` trả 200
 - **Phát hiện (ngoài phạm vi ticket nhưng chặn CI mới):**
@@ -218,7 +218,7 @@
 - **Tiếp theo:** SET-05 (deploy) cần thông tin tài khoản Render/Vercel/Neon từ R3; SET-01/SET-02/SET-06 cần xác nhận đã hoàn tất hay chưa
 - **Thời gian:** ~2h
 
-### [2026-07-27] · Claude (thay R3) · SET-01 bootstrap
+### [2026-07-27] · R3 · SET-01 bootstrap
 - **Làm:** Rà lại toàn bộ EPIC 0 và phát hiện nhiều phần trước đó *chưa thực sự* đạt AC dù trông như đã xong. Sửa: thêm `pyproject.toml` (không tồn tại), thêm target `make run`/`lint`/`format` vào `Makefile` (AC "cả 5 người chạy `make run`" trước đó chắc chắn fail vì không có target), bổ sung biến thiếu trong `.env.example` (`APP_NAME`, `MODEL_NAME`, `LLM_TEMPERATURE`), redact `AI_LOG_API_KEY` thật khỏi `.env.example` (đã từng bị redact bởi Đinh Lê Quỳnh Phương rồi bị commit đè lại bằng key thật). Tạo branch `develop` trên repo đội thật (`AI20K-Build-Phase-Cohort-3/P-031`) — trước đó chỉ có `main`
 - **Kết quả:** PR #3 (SET-01) + PR #2 (SET-03/SET-04, xem entry trước) mở trên repo đội thật
 - **Phát hiện quan trọng:** repo đội thật là `AI20K-Build-Phase-Cohort-3/P-031`, không phải `hwngkm/VMEC10_P31` (repo cá nhân) — công việc trước đó (bao gồm cả PR đầu của phiên này) từng nhắm nhầm repo
@@ -226,7 +226,7 @@
 - **Tiếp theo:** merge PR #2 + PR #3, sau đó bật branch protection, điền tên thật vào TEAM.md/CODEOWNERS, xác nhận SET-02 đã chạy trên máy cả 4 người, viết lại README theo đúng AC SET-06 (hiện là README kỹ thuật cho khung code, thiếu phần giới thiệu dự án/Live URL/thành viên)
 - **Thời gian:** ~1h
 
-### [2026-07-27] · Claude (thay R3) · Gộp lên nhánh hung + SET-05/SET-06
+### [2026-07-27] · R3 · Gộp lên nhánh hung + SET-05/SET-06
 - **Làm:** Theo yêu cầu Hưng — vì admin repo là BTC (không phải đội), gộp PR #2 + PR #3 vào một nhánh và đẩy thẳng lên `hung` (nhánh cá nhân trên repo đội) thay vì chờ merge qua `develop`/`main`. Trong lúc gộp: phát hiện + fix bug BOM khiến `.git/hooks/pre-push` không chạy được trên Windows (`cannot spawn ... No such file or directory`) — sửa gốc trong `scripts/setup_hooks.sh`. Thêm `GET /api/v1/health` (AC SET-05 yêu cầu đúng path này, code cũ chỉ có `/health` ở root). Thêm `render.yaml` blueprint cho backend. Viết lại `README.md` theo `docs/templates/README_boilerplate.md` cho đúng AC SET-06 (nội dung kỹ thuật cũ chuyển sang `docs/KHUNG_CODE.md`)
 - **Kết quả:** nhánh `hung` trên `AI20K-Build-Phase-Cohort-3/P-031` có đầy đủ SET-01, SET-02 (hook), SET-03, SET-04, phần code của SET-05, và SET-06 (được duyệt, bảng thành viên/tài khoản demo còn để trống chờ đội tự điền)
 - **Phát hiện:** working tree có sẵn thay đổi dở từ phiên làm việc khác (không phải tôi) — `src/agents/graph.py` được thêm một `agent` object "backward-compat" xung đột với cách tôi đã sửa `routes.py` trong PR #2 (bỏ `/chat` cũ). Đã `git stash` (không mất), **chưa quyết định** giữ cách nào — cần Hưng xem lại trước khi áp dụng
@@ -234,7 +234,7 @@
 - **Tiếp theo:** hướng dẫn Hưng các bước Render + Neon cụ thể; quyết định xử lý stash graph.py; đội tự điền TEAM.md/README khi có tên thật
 - **Thời gian:** ~1.5h
 
-### [2026-08-05] · Claude (tiếp quản HANDOFF_2026-08-05.md) · Merge chuỗi 6 PR (CI self-hosted, DAT-09/10, AGT-09/10, nghiên cứu ĐTĐ) + 2 sự cố phát sinh
+### [2026-08-05] · R2 · Merge chuỗi 6 PR (CI self-hosted, DAT-09/10, AGT-09/10, nghiên cứu ĐTĐ) + 2 sự cố phát sinh
 - **Làm:** Tiếp quản `HANDOFF_2026-08-05.md` từ phiên trước (worktree `vmec10-architecture-audit-253205`), merge theo đúng thứ tự phụ thuộc #18 → #20 → #21 → #24 → #22 → #23 vào `develop`. Trước khi merge từng PR, verify **thật** (không chỉ tin CI đã báo, vì `.venv` dùng chung thiếu `ortools` nên CI/agent trước không chạy được test CP-SAT thật): cài `ortools` + `google-genai`, chạy lại `make check` trên từng nhánh.
 - **Kết quả xác minh:** claim "0 vi phạm sau khi sửa làm tròn có hướng" trong handoff **CONFIRMED thật** — 13/13 test `test_cpsat_optimizer.py` pass (gồm 6 hồ sơ `_AUDIT_PROFILES`), không chỉ đọc code tĩnh như agent trước.
 - **2 phát hiện mới (không có trong handoff gốc):**
@@ -247,7 +247,7 @@
 - **Tiếp theo:** EVL-01/EVL-02 (bộ eval + runner) hoặc DEL-03 (video demo, MVP demo được ngay không cần API key nhờ hybrid CP-SAT mặc định) — theo gợi ý ưu tiên trong handoff §7.
 - **Thời gian:** ~2h
 
-### [2026-08-05] · Claude (theo yêu cầu Hưng) · Đồng bộ tài liệu theo PRD v2.1 + rà lại quyết định needs_expert_review đa bệnh lý
+### [2026-08-05] · R2 · Đồng bộ tài liệu theo PRD v2.1 + rà lại quyết định needs_expert_review đa bệnh lý
 - **Làm:** Sau khi merge PRD v2.1 (Đinh Lê Quỳnh Phương, thu hẹp trọng tâm MVP về ĐTĐ2) vào `develop`, cập nhật `CLAUDE.md`, `docs/TICKETS.md`, `docs/rules/10-clinical-safety.md`, `docs/00_ASSESSMENT.md`, `docs/PLAN.md`, `docs/ARCHITECTURE.md` để nhất quán với PRD mới — không xoá nội dung đa bệnh lý, chỉ chú thích ưu tiên nghiệm thu.
 - **Câu hỏi mở ra:** PRD v2.1 §2.2 đọc theo nghĩa đen có thể hiểu là MỌI hồ sơ có bệnh đồng mắc ngoài ĐTĐ2 phải bắt buộc `needs_expert_review` — khác hành vi hiện tại của `compute_targets()` (chỉ gắn cờ khi rule thật sự xung đột, DEC-007). Ban đầu định sửa code theo hướng này nhưng dừng lại vì đây là ngưỡng lâm sàng thật, đúng tinh thần `CLAUDE.md` §6 "không chắc thì hỏi, đừng tự đặt".
 - **Research trước khi quyết:** đọc lại `KeHoachDuAn_VNutriCare_VMEC10_v3.docx` (chính PRD.md v2.1 ghi là "Nguồn yêu cầu chính") — mục 6.4.1 "Bốn tình huống kiểm chứng" đặc tả **chính xác** hành vi hiện tại: ca ĐTĐ2+CKD chỉ chuyển chuyên gia khi dải ngưỡng ADA/KDIGO hẹp bằng 0 (xung đột số thật), KHÔNG phải vì có 2 bệnh — trích nguyên văn tài liệu: "Một hệ thống kém sẽ âm thầm chọn một bên. Hệ thống này phát hiện [xung đột] và chuyển cho chuyên gia quyết định." Mục 1.1 của cùng tài liệu còn nói thẳng đồng mắc "bắt buộc hệ thống phải xử lý được, không thể thiết kế cho từng bệnh riêng lẻ". `docs/NGHIEN_CUU_DAI_THAO_DUONG_2026.md` (merge cùng ngày) liệt kê cơ chế phát hiện xung đột này là **điểm khác biệt cạnh tranh** so với app đối thủ (không app nào xử lý đa bệnh lý đồng thời).
@@ -255,14 +255,14 @@
 - **Bài học:** một dòng tóm tắt trong PRD (viết bởi 1 thành viên, không trích tài liệu gốc) có thể đọc sai nghĩa nếu không đối chiếu lại nguồn chính — nhất là khi nó đảo ngược một quyết định đã kiểm chứng bằng test. Luôn tìm "nguồn yêu cầu chính" thật trước khi sửa code lâm sàng.
 - **Thời gian:** ~30 phút (research + sửa tài liệu)
 
-### [2026-08-06] · R2 (Claude, theo yêu cầu Hưng) · DAT-04 — thêm 48 nguyên liệu Việt từ bảng NIN nội bộ chuyên gia
+### [2026-08-06] · R2 · DAT-04 — thêm 48 nguyên liệu Việt từ bảng NIN nội bộ chuyên gia
 - **Làm:** Hưng chỉ ra 2 sheet "Bảng TP" (841 dòng) và "Bảng TP có phospho" (397 dòng) trong `data/Bảng xác định nhu cầu dinh dưỡng + thực đơn.xlsx` — xác nhận đây là bảng thành phần dinh dưỡng gốc từ NIN, do chính chuyên gia dinh dưỡng dự án biên soạn/dùng (không phải LLM sáng tác)
 - **Đối chiếu trước khi tin dùng:** so khớp tên với `food_items.csv` hiện có — phát hiện 21/80 dòng trùng tên có kcal lệch >2 so với NIN/USDA đã cite (VD Cà rốt NIN=47 vs bảng này=43.65) → **không ghi đè** dữ liệu đã xác minh trước, chỉ thêm dòng MỚI (đúng DEC-008)
 - **Ràng buộc kỹ thuật phát hiện khi trích:** `validate_data.py` bắt buộc `na_mg`/`k_mg`/`p_mg` phải có giá trị khi `kcal_100g` đã điền (không nằm trong `OPTIONAL_NUMERIC_COLS`) — sheet "Bảng TP" (841 dòng, nhiều tên hơn) KHÔNG có 3 cột này nên không dùng được để tạo dòng mới; chỉ sheet "Bảng TP có phospho" đủ điều kiện, và trong đó vẫn còn 309/387 dòng thiếu Na hoặc K thật trong bảng gốc (không suy đoán để lấp)
 - **Kết quả:** viết `scripts/extract_menu_xlsx_composition.py`, thêm **48 nguyên liệu mới** (id 3000-3047, `source=NIN`) đầy đủ kcal/protein/carb/fat/fiber/na/k/p. `validate_data.py` 0 lỗi, `pytest` 112/112 pass
 - **Khoảng trống còn lại:** 309 nguyên liệu trong bảng nội bộ (đa số ngũ cốc/tinh bột) thiếu Na hoặc K — cần R2 tự tra bổ sung hoặc chấp nhận để trống vĩnh viễn cho nhóm này; 21 dòng lệch số liệu với NIN/USDA hiện tại cần R2 đối chiếu ấn bản NIN nào đúng hơn trước khi quyết định có sửa dữ liệu cũ hay không
 
-### [2026-08-05] · R2/R3 (Claude) · Bỏ trần số lượng EPIC 1/2 + fill thêm data + BE-01 (schema DB thật + ERD)
+### [2026-08-05] · R2/R3 · Bỏ trần số lượng EPIC 1/2 + fill thêm data + BE-01 (schema DB thật + ERD)
 - **Làm (3 việc song song theo yêu cầu):**
   1. **Bỏ trần EPIC 1/2:** `DAT-02` (150 món), `DAT-04` (80 món ăn), `DAT-05` (80 cặp thuốc-thực phẩm), `DAT-06` (~15 tài liệu guideline), `CLN-02` (40 rule) — đổi AC từ "≥N là đích" sang "≥N là SÀN, không phải trần", ghi rõ trạng thái thật hiện tại của từng ticket (VD `dishes.csv` mới 3/80, cần ưu tiên trước khi mở rộng thêm).
   2. **Fill thêm data thật:** `drug_food_interactions.csv` — điền `source_ref` cho 17/30 cặp (Warfarin, Digoxin, Enalapril, Atorvastatin, Hydrochlorothiazide, Colchicin, Allopurinol, Ciprofloxacin, Amlodipin, Gliclazide, Insulin) sau khi xác minh từng dược chất có chuyên luận riêng trên Dược thư Quốc gia VN 2022 (`trungtamthuoc.com/hoat-chat/<tên>`). 13 cặp còn lại (Losartan, Simvastatin, Metformin, Levothyroxine, Furosemide, Spironolactone, Phenelzine, Tetracycline, Sắt, Canxi) **cố ý để trống** — không xác nhận được có chuyên luận riêng qua tìm kiếm, không suy đoán (DEC-008).
@@ -272,7 +272,7 @@
 - **Còn lại (ghi vào ticket `BE-10` mới):** chưa có script nạp `data/seeds/*.csv` vào DB thật (`scripts/seed_db.py`) — DB schema đã build xong nhưng vẫn trống, mọi thứ vẫn chạy qua CSV loader hiện có (`src/clinical/seeds.py`) cho tới khi BE-10 xong.
 - **Tiếp theo:** BE-10 (seed script), tiếp tục lấp `dishes.csv` (3/80, ưu tiên cao nhất còn lại của EPIC 1), R2 tự tra nốt 13 cặp thuốc-thực phẩm còn thiếu nguồn.
 
-### [2026-08-05] · Claude (R3) · Thực hiện PLAN_DAT-12 — BE-10 seed_db.py
+### [2026-08-05] · R3 · Thực hiện PLAN_DAT-12 — BE-10 seed_db.py
 - **Làm:** Đọc lại toàn bộ dự án (git log, TICKETS.md, data/README.md, `src/db/models.py`, alembic, test) trước khi bắt tay — xác nhận §2.1 (bỏ trần TICKETS.md) và DAT-11 đã xong từ commit trước, chỉ còn thiếu ticket `DAT-12` (đã thêm) và §2.3.1 (`seed_db.py`, chưa ai làm).
 - **`scripts/seed_db.py` + `make seed`:** đọc `food_items/dishes/dish_ingredients/clinical_rules/drug_food_interactions/serving_sizes.csv` → insert qua `src/db/models.py`. Idempotent bằng `session.merge()` theo khoá chính tự nhiên của từng bảng; riêng `serving_sizes` không có khoá tự nhiên trong CSV nên xoá-hết-rồi-nạp-lại (nội dung giống hệt mỗi lần chạy). `dish_ingredients` tự bỏ qua (kèm log rõ dòng nào) nếu `food_id`/`dish_id` chưa tồn tại/chưa có số liệu, thay vì crash lỗi FK. **Không** seed `gi_values.csv`/`purine_values.csv`/`usda_values.csv` — đã merge vào `food_items.csv` từ trước, không phải bảng DB độc lập.
 - **Verify thật (không chỉ tin test):** chạy `DATABASE_URL=sqlite:///./_tmp... python scripts/seed_db.py` 2 lần liên tiếp trên DB trắng — lần 1 và lần 2 đều ra đúng 125 food_items / 3 dishes / 11 dish_ingredients / 21 clinical_rules / 30 drug_food_interactions / 5 serving_sizes (idempotent thật, không chỉ test giả lập).
@@ -281,7 +281,7 @@
 - **Tiếp theo:** R2 tiếp tục fill dữ liệu (ưu tiên `dishes.csv`), R3 rà index khi BE-03 bắt đầu viết truy vấn thật.
 - **Thời gian:** ~1h
 
-### [2026-08-05] · Claude · Bỏ trần dữ liệu tối đa — 7.173 food_items (mục tiêu 1000+), 2.635 dishes (mục tiêu 500+)
+### [2026-08-05] · R2 · Bỏ trần dữ liệu tối đa — 7.173 food_items (mục tiêu 1000+), 2.635 dishes (mục tiêu 500+)
 - **Làm:** Theo yêu cầu Hưng "lấy tối đa dữ liệu có thể từ dataset/paper sẵn có trong `data/`", viết 3 script ETL từ tài nguyên đã tải sẵn (không gọi API, không suy đoán số liệu):
   1. `scripts/extract_usda_bulk.py` — SR Legacy (7.793) + Foundation Foods (436) từ `food.csv`/`food_nutrient.csv` → **6.854 dòng mới**, chỉ giữ dòng đủ 8 cột bắt buộc, loại mục cô đặc vô nghĩa lâm sàng (bột nở, kem tartar).
   2. `scripts/extract_nin2017_bulk.py` — trích TOÀN BỘ bảng "TPTP VN 2017" (304 trang, `pdfplumber` neo cột theo toạ độ tag-name) → **167 dòng mới** (621 mã có dữ liệu trên trang hợp lệ, 87 đã có sẵn, còn lại thiếu Na/K/béo/xơ thật sự không in trong bảng gốc, loại đúng RULE-2).
@@ -295,7 +295,7 @@
 
 ---
 
-### [2026-08-06] · Claude · Bắt đầu lấp món Việt — +27 món (vẫn `pending`, chưa thay thế R2)
+### [2026-08-06] · R2 · Bắt đầu lấp món Việt — +27 món (vẫn `pending`, chưa thay thế R2)
 - **Bối cảnh:** Hưng hỏi thẳng "sao món Việt vẫn mới có 3 món" sau đợt 05/08 — đúng, 2.632 món thêm hôm trước toàn bộ là USDA FNDDS (Mỹ), không đụng tới món Việt. Hưng yêu cầu "soạn công thức, call thêm API hoặc search thu thập thêm công thức". Đã kiểm tra 1 paper Hugging Face (Epicure, arXiv 2605.22391) Hưng gợi ý — xác nhận qua fetch PDF thật: đây là model embedding nguyên liệu (Gemini embedding + RecipeNLG/Recipe1M+/Xiachufang/ChefKoch/SOMOS/USDA), có định lượng thật nhưng **không có món Việt Nam trong bất kỳ dataset liệt kê nào** → không dùng được, không tốn công tích hợp.
 - **Nguồn thật tìm thấy trong `data/` chưa từng khai thác:** `data/Bảng xác định nhu cầu dinh dưỡng + thực đơn.xlsx` — file thực đơn nội bộ dự án, có 4 sheet thực đơn mẫu (Sáng/Trưa/Tối) với cột "KL sống sạch" (gram thật/khẩu phần). Viết `scripts/extract_menu_xlsx_dishes.py`: parse theo state machine (nhãn bữa ăn → tích luỹ nguyên liệu đến dòng "Hiện tại"/"Cần xây dựng"), khớp `food_id` bằng tên đã chuẩn hoá (bỏ dấu ngoặc, hạ chữ thường) — **cố tình không fuzzy-match rộng** (VD không tự suy "Dầu ăn" ≈ "Dầu ăn thực vật") để tránh gán nhầm loại thực phẩm khác thành phần dinh dưỡng khác nhau → tỷ lệ khớp chỉ ~37% (67/180 dòng), 2 sheet đầu (`tđ1`,`tđ2`) không có nhãn bữa ăn rõ nên 0 kết quả. Kết quả: **15 "bữa ăn" thật** (dish_id `MENU-*`), gram từ tài liệu thật, nhưng nguyên liệu bị thiếu (chỉ giữ phần khớp được).
 - **12 món Việt tự soạn qua LLM** (phở gà, bún chả, canh chua cá, rau muống xào tỏi, đậu phụ sốt cà chua, cá kho tộ, gà kho gừng, canh cải nấu tôm, sườn xào chua ngọt, trứng chiên hành, canh su hào cà rốt thịt băm, nấm hương xào thịt bò) — dùng nguyên liệu đã có `food_id` thật trong 319 dòng Việt curated/NIN, gram theo kinh nghiệm ẩm thực phổ thông (KHÔNG có nguồn định lượng đối chiếu — khác hẳn 3 món gốc đã đối chiếu Na với nghiên cứu). Vài món thiếu gia vị (đường, dấm, nước dùng...) vì `food_items.csv` chưa có các mục đó.
@@ -306,7 +306,7 @@
 
 ---
 
-### [2026-08-06] · Claude · Thực hiện PLAN_DAT-13 (đợt 1) — 13/13 drug_food_interactions có source_ref, khảo sát Na/K/kcal
+### [2026-08-06] · R2 · Thực hiện PLAN_DAT-13 (đợt 1) — 13/13 drug_food_interactions có source_ref, khảo sát Na/K/kcal
 - **§2.3 (DAT-05) — 13 cặp `drug_food_interactions.csv` thiếu `source_ref`:** tra cứu thật qua WebFetch/WebSearch cho từng cặp, **không dùng nguồn nào chưa xác nhận được nội dung**:
   - 9 cặp tra được trực tiếp trong **Dược thư Quốc gia VN 2022** (Losartan+kali, Simvastatin+bưởi, Metformin+rượu bia, Metformin+B12, Levothyroxine+đậu nành, Furosemide+kali, Spironolactone+kali, Tetracycline+canxi) qua `trungtamthuoc.com/hoat-chat/*` — trích nguyên văn đoạn liên quan vào `source_ref`.
   - 4 cặp Dược thư không có bản tiếng Việt đủ chi tiết → dùng nguồn quốc tế uy tín thay thế (đúng thứ tự ưu tiên plan §2.3 "Martindale/BNF... trước khi bỏ trống"): Levothyroxine+canxi (MedlinePlus/NIH), Levothyroxine+cà phê (Benvenga et al., *Thyroid* 2008;18(3):293-301 — nghiên cứu gốc, espresso giảm hấp thu ~36%), Phenelzine+tyramine (StatPearls/NCBI NBK554508), Sắt+trà-cà phê và Canxi+oxalat rau chân vịt (NIH Office of Dietary Supplements, Iron/Calcium Health Professional Fact Sheet).
@@ -318,7 +318,7 @@
 
 ---
 
-### [2026-08-06] · Claude · PLAN_DAT-13 (đợt 2) — quét toàn bộ NIN2017, lấp 78/272 dòng §2.1
+### [2026-08-06] · R2 · PLAN_DAT-13 (đợt 2) — quét toàn bộ NIN2017, lấp 78/272 dòng §2.1
 - **Viết `scripts/build_nin2017_full_index.py`** — biến thể của `extract_nin2017_bulk.py` nhưng KHÔNG lọc theo mã đã có trong `food_items.csv`, để tạo 1 bảng tra cứu đầy đủ theo tên phục vụ cả §2.1 và §2.2. Chạy nền ~5 phút (nhanh hơn nhiều so với ước tính 40 phút của lần trích trước — lý do: bảng thành phần chính của NIN2017 chỉ nằm ở **trang 24-134** (nhóm mã 01-14: ngũ cốc→đồ uống có cồn), phần còn lại của file PDF 304 trang không phải bảng thành phần cùng định dạng cột (khớp mô tả `data/README.md` "phụ lục, mục lục, các phần khác") nên các trang đó bị bỏ qua đúng theo thiết kế (`NEEDED_TAGS.issubset(anchors)` false), không phải lỗi quét thiếu. Kết quả: **236 mã, ghi vào `data/seeds/nin2017_full_index.csv`** (không commit — dẫn xuất trung gian, tái tạo được bằng script).
 - **Đối chiếu 272 dòng thiếu field của "Bảng TP có phospho" (§2.1) với bảng tra cứu này:** khớp tên chuẩn hoá được **78 dòng** (Ngô vàng hạt khô, Bột gạo nếp, Cà bát, Chuối xanh, Chôm chôm, Dâu tây, Đào, Lựu, Mơ... — đa số nhóm rau củ quả nhóm mã 03-08). Đã thêm 78 dòng mới vào `food_items.csv` (id 4000-4077, `source=NIN`, `source_ref` trỏ đúng mã+trang NIN2017 — không phải suy đoán). **194/272 dòng còn lại không khớp được** — tên trong bảng nội bộ dự án không xuất hiện trong 236 mã trích được (có thể do khác cách gọi tên, hoặc thực phẩm đó nằm ngoài phạm vi trang 24-134) — **giữ trống, không suy đoán**, đúng DEC-008.
 - **Đối chiếu 27 dòng còn trống của `food_items.template.csv` (§2.2):** **0/27 khớp được** với 236 mã NIN2017 (Mì ăn liền, Giò lụa, Chao, Rau ngót, Tía tô, Kinh giới, Rau răm, Mắm nêm... — toàn bộ là món chế biến sẵn hoặc rau thơm không nằm trong nhóm mã 01-14 đã trích được). Không thử USDA cross-reference (khớp chéo tiếng Việt→tiếng Anh) trong đợt này — plan §2.1 xếp bước này rủi ro cao hơn, cần thời gian riêng và nên có R2 xác nhận từng cặp khớp tên trước khi ghi vào `food_items.csv` chính.
@@ -328,7 +328,7 @@
 
 ---
 
-### [2026-08-06] · Claude · PLAN_DAT-13 (đợt 3) — khớp chéo USDA cho 21 dòng còn lại (rủi ro cao hơn, đã ghi rõ)
+### [2026-08-06] · R2 · PLAN_DAT-13 (đợt 3) — khớp chéo USDA cho 21 dòng còn lại (rủi ro cao hơn, đã ghi rõ)
 - **Đúng cảnh báo "rủi ro cao hơn" của plan §2.1** khi làm bước khớp chéo ngôn ngữ Việt→Anh với USDA (thay vì khớp tên trực tiếp như NIN2017): rà thủ công 191 tên còn lại của "Bảng TP có phospho" + 27 tên trống của `food_items.template.csv`, loại bỏ có chủ đích:
   - Sản phẩm thương hiệu (Vinamilk, VIFON, Dumex, Enfa, Ensure, Pediasure, Similac, Fiso, Nutren, Abound, Prosure, Isocal...) — cần đọc nhãn dinh dưỡng riêng từng sản phẩm, không phải việc "tra chéo nguồn", để nguyên trống.
   - Món/nguyên liệu đặc thù Việt không có tương đương Mỹ hợp lý (mắm nêm, mắm ruốc, chao, tương hột, giò lụa, chả quế, rau răm, kinh giới, tía tô, rau má, rau ngót, cá lóc, cá bống...) — để trống thay vì gán tạm bợ.
@@ -342,7 +342,7 @@
 
 ---
 
-### [2026-08-06] · Claude (theo yêu cầu Hưng, deadline mentor 08/08) · Thiết kế API stack + triển khai BE-02/03/04/05/06, HIT-02
+### [2026-08-06] · R2 (deadline mentor 08/08) · Thiết kế API stack + triển khai BE-02/03/04/05/06, HIT-02
 - **Bối cảnh:** Hưng chuyển yêu cầu mentor tuần này: (1) thiết kế API stack (danh sách API, chức năng, input/output, ràng buộc), (2) xây dữ liệu mẫu + hoàn thiện backend dựa trên đó + deploy để demo. Trước phiên này `src/api/routes.py` chỉ có `/health`, `/status`, `/chat` (stub 501) — chưa có auth, chưa có route nào chạm DB thật.
 - **`docs/API_DESIGN.md`:** 18 endpoint (auth/patients/targets/meal-plans/reviews/food-logs/audit), mỗi API có input/output/ràng buộc/lỗi/mapping DB, thứ tự triển khai theo đường găng `TICKETS.md`. Xác định phạm vi thực tế cho 2 ngày: ưu tiên 1→6 (auth→patients→targets→seed demo→meal-plans→reviews) — đúng lát cắt "đăng ký → hồ sơ → tính định mức → sinh thực đơn → chuyên gia duyệt" cần cho demo.
 - **BE-02 (auth):** JWT (`pyjwt`, access 15p/refresh 7 ngày, rotate khi refresh) + argon2id (`passlib`). Lỗi đăng nhập dùng chung cho sai email/sai mật khẩu (chống user-enumeration, test riêng xác nhận message giống hệt).
@@ -396,7 +396,7 @@
 
 ---
 
-### [2026-08-06] · Claude (theo yêu cầu Hưng) · Đề xuất HIT-06/HIT-07/EVL-07 — chuyên gia tự xây/chấm thực đơn + thu thập dữ liệu cải tiến (CHƯA DUYỆT, đang chờ đội bàn)
+### [2026-08-06] · R2 · Đề xuất HIT-06/HIT-07/EVL-07 — chuyên gia tự xây/chấm thực đơn + thu thập dữ liệu cải tiến (CHƯA DUYỆT, đang chờ đội bàn)
 - **Bối cảnh:** Hưng yêu cầu đề xuất tính năng cho chuyên gia dinh dưỡng chấm/chỉnh sửa thực đơn "phù hợp" hơn (không chỉ approve/sửa gram/từ chối như HIT-02 hiện tại), tự xây thực đơn trực tiếp có tính toán ngay, và lưu lại dữ liệu này để sau này thử "học tăng cường hoặc các phương pháp cải tiến model".
 - **Đã thêm 3 ticket ĐỀ XUẤT vào `docs/TICKETS.md`** (đánh dấu rõ "CẦN ĐỘI DUYỆT", chưa gán sprint/giờ):
   - `HIT-06` — API cho chuyên gia tự tạo/`fork` 1 thực đơn từ bản AI rồi sửa tự do (thêm/xoá món), mỗi thao tác gọi lại `compute_nutrition()`/`validate_menu()` NGAY trên server (đúng RULE-1 — chuyên gia chỉ chọn `food_id`+`grams`, không tự nhập số dinh dưỡng, khác hẳn "để LLM/chuyên gia tự gõ số"). Cần thêm 2 cột `origin` + `source_plan_id` vào `MealPlan` để biết bản nào từ AI, bản nào chuyên gia tự xây, và liên kết cặp gốc↔sửa.
@@ -407,7 +407,7 @@
 
 ---
 
-### [2026-08-06] · Claude (theo yêu cầu Hưng) · Đọc trực tiếp Excel chuyên gia — 3 khoảng cách công thức, đề xuất CLN-09/CLN-10/AGT-11
+### [2026-08-06] · R2 · Đọc trực tiếp Excel chuyên gia — 3 khoảng cách công thức, đề xuất CLN-09/CLN-10/AGT-11
 - **Bối cảnh:** Hưng gửi ảnh chụp 4 khối trong `data/Bảng xác định nhu cầu dinh dưỡng + thực đơn.xlsx` (sheet "Bước 1+2" + "4. Tính toán trên Excel" ở các sheet `tđ*`/`TĐ*`) — form thật chuyên gia dinh dưỡng dự án dùng để tính nhu cầu/chia bữa/lập thực đơn. Đọc trực tiếp formula (không suy đoán từ ảnh) bằng `openpyxl` (`data_only=False`) để trích đúng công thức, không phải giá trị đã tính sẵn.
 - **Phát hiện 1 — công thức BMR khác hẳn:** hệ thống dùng Mifflin-St Jeor; Excel chuyên gia dùng **WHO/FAO/UNU (1985)**, bảng tuyến tính theo (nhóm tuổi × giới), hệ số W (cân nặng) không có số hạng chiều cao (`Bước 1+2!H2:J10`, VD nhóm 30-60 tuổi: Nam = 11,6×W + 879). PAL (hệ số lao động, `H12:J17`) cũng khác `ACTIVITY_FACTOR` hiện có: 4 mức nhẹ/TB/nặng/rất nặng = 1.6/1.7/2.1/2.4 (nam), so với Mifflin đang dùng 1.2/1.375/1.55/1.725. Hai công thức KHÔNG tương đương, cho TDEE khác nhau đáng kể trên cùng 1 hồ sơ.
 - **Phát hiện 2 — phân nguồn đạm/béo động vật-thực vật:** Excel chia Protein 20%NL thành 35% ĐV/65% TV, Lipid 25%NL thành 50/50 ĐV/TV (`Bước 1+2!A12:D18`). Hệ thống hiện không có chiều dữ liệu này ở `food_items` (chỉ có tổng `protein_g`/`fat_g`).
@@ -424,17 +424,17 @@
 
 ---
 
-### [2026-08-06] · Claude (theo yêu cầu Hưng) · Research BMR theo dân tộc/bệnh lý + chốt nhãn loại lao động 4 mức
+### [2026-08-06] · R2 · Research BMR theo dân tộc/bệnh lý + chốt nhãn loại lao động 4 mức
 - **Bối cảnh:** Hưng hỏi thẳng "BMR có thay đổi theo dân tộc/quốc gia/nhóm bệnh không? Cần nghiên cứu chứng minh" trước khi cân nhắc đổi công thức BMR mặc định (CLN-09), và xác nhận dùng nhãn "loại lao động" 4 mức của chuyên gia cho `ActivityLevel`. Dùng 2 agent research (WebSearch/WebFetch, không suy đoán từ trí nhớ) trả lời riêng biệt: (1) BMR theo dân tộc/quần thể/bệnh lý, (2) nguồn gốc thang hệ số `ACTIVITY_FACTOR` đang dùng.
 - **Kết quả research 1 — BMR theo dân tộc/quần thể (đã trích đủ nguồn vào `docs/TICKETS.md` CLN-09):** CÓ bằng chứng thật nhưng KHÔNG nhất quán chiều — Mifflin-St Jeor chính xác nhất ở phụ nữ UAE (*Archives of Public Health* 2025), nhưng WHO/FAO/UNU chính xác nhất còn Mifflin **tệ nhất** ở bệnh nhân ĐTĐ2 Hàn Quốc (PubMed 37266123, 2023) — tức "công thức nào tốt hơn" phụ thuộc quần thể cụ thể, không có 1 câu trả lời chung. **Không tìm được nghiên cứu đo calorimetry trực tiếp trên người Việt Nam** — khoảng trống dữ liệu thật, ghi rõ để không ai giả định có. Chưa xác nhận được NIN có quy định chính thức dùng công thức nào (thử đọc PDF "Nhu cầu dinh dưỡng khuyến nghị cho người Việt Nam" qua mirror, không lộ rõ mục công thức — có thể do OCR, không phải bằng chứng NIN không quy định).
 - **Kết quả research về bệnh lý:** ADA không quy định công thức BMR riêng cho ĐTĐ2 (chỉ điều chỉnh mục tiêu calo theo goal). KDOQI (CKD, cập nhật 2020, *Am J Kidney Dis*) dùng khoảng 25-35 kcal/kg — con số THỰC NGHIỆM theo cân nặng, không suy ra từ công thức BMR nào — nên "đổi công thức BMR cho CKD" không có cơ sở, đúng hơn là hệ thống hiện tại (áp `adjusted_body_weight_kg` + khoảng kcal/kg riêng cho CKD trong `clinical_rules.csv`) đã đi đúng hướng cách tiếp cận thật của guideline.
 - **Kết quả research 2 — phát hiện phụ quan trọng:** thang hệ số `ACTIVITY_FACTOR` (1.2/1.375/1.55/1.725, đang dùng với Mifflin-St Jeor từ trước) **KHÔNG truy được về 1 nguồn học thuật/hướng dẫn lâm sàng đơn nhất** — không phải từ bài Mifflin-St Jeor 1990 gốc, cũng không phải IOM/NAM DRI 2005 (DRI 2005 dùng hệ số PA liên tục trong công thức EER khác cấu trúc hẳn, `nap.nationalacademies.org/catalog/10490`). Đây là quy ước phổ biến trong máy tính calo trực tuyến, tồn tại từ trước phiên này nhưng chưa ai phát hiện — ghi rõ vào docstring `models.py` theo đúng tinh thần RULE-2 (không giả vờ đã có nguồn).
-- **Đã chốt (quyết định của Hưng, không phải Claude tự đặt):** `ActivityLevel` đổi từ `SEDENTARY/LIGHT/MODERATE/ACTIVE` sang **4 mức nhãn "loại lao động" của chuyên gia**: `LIGHT/MODERATE/HEAVY/VERY_HEAVY` (nhẹ/trung bình/nặng/rất nặng), khớp thẳng "Bảng 2" Excel. Lan toả thay đổi qua `src/clinical/models.py`, `src/clinical/energy.py` (`pal_who_fao()` giờ khớp 1:1, không cần map xấp xỉ), `src/db/models.py`, `src/api/routes/patients.py` (thêm `Literal` validation, trước là `str` tự do không chặn giá trị sai), `scripts/seed_demo_users.py`. `ACTIVITY_FACTOR` (nhánh Mifflin) thêm `VERY_HEAVY: 1.9` theo ĐÚNG quy ước không-có-nguồn đã dùng cho 3 mức kia (nhất quán, không giả vờ mức mới có nguồn riêng trong khi 3 mức cũ thì không).
+- **Đã chốt (quyết định của Hưng, không phải AI tự đặt):** `ActivityLevel` đổi từ `SEDENTARY/LIGHT/MODERATE/ACTIVE` sang **4 mức nhãn "loại lao động" của chuyên gia**: `LIGHT/MODERATE/HEAVY/VERY_HEAVY` (nhẹ/trung bình/nặng/rất nặng), khớp thẳng "Bảng 2" Excel. Lan toả thay đổi qua `src/clinical/models.py`, `src/clinical/energy.py` (`pal_who_fao()` giờ khớp 1:1, không cần map xấp xỉ), `src/db/models.py`, `src/api/routes/patients.py` (thêm `Literal` validation, trước là `str` tự do không chặn giá trị sai), `scripts/seed_demo_users.py`. `ACTIVITY_FACTOR` (nhánh Mifflin) thêm `VERY_HEAVY: 1.9` theo ĐÚNG quy ước không-có-nguồn đã dùng cho 3 mức kia (nhất quán, không giả vờ mức mới có nguồn riêng trong khi 3 mức cũ thì không).
 - **Không tự làm:** KHÔNG tự chốt đổi công thức BMR mặc định (research cho thấy bằng chứng trái chiều, chưa đủ để quyết — đúng `CLAUDE.md` §6, để R2 quyết dựa trên xác nhận NIN trước).
 - **Xác nhận:** `pytest -q` 164/164 pass, `ruff check`/`mypy src/` sạch (10 lỗi ruff thấy trong lần chạy toàn repo thuộc file `scripts/log_*.py` của PR #44 đồng đội, không phải file phiên này sửa).
 - **Thời gian:** ~50 phút
 
-### [2026-08-06] · Claude (theo yêu cầu Hưng) · CLN-09 chốt: WHO/FAO/UNU thành công thức BMR/TDEE mặc định hệ thống
+### [2026-08-06] · R2 · CLN-09 chốt: WHO/FAO/UNU thành công thức BMR/TDEE mặc định hệ thống
 - **Bối cảnh:** Sau entry research trước đó (BMR không nhất quán theo quần thể, thiếu dữ liệu Việt Nam trực tiếp), Hưng chốt quyết định cuối: *"Vậy thì ưu tiên sử dụng từ bản excel, kể cả BMR và ActivityLevel"* — tức chấp nhận không có bằng chứng học thuật khẳng định WHO/FAO/UNU "đúng hơn" cho người Việt, nhưng ưu tiên đây là công thức chuyên gia dinh dưỡng DỰ ÁN đang dùng thật (nguồn thực hành trực tiếp, cao hơn tài liệu quốc tế chưa xác nhận áp dụng được).
 - **Thay đổi code:** viết lại `src/clinical/energy.py` — `compute_bmr()`/`compute_tdee()` (dùng trong `compute_targets()`) chuyển từ Mifflin-St Jeor sang `bmr_who_fao_unu()` + `pal_who_fao()`. Mifflin-St Jeor hạ xuống vai trò THAM KHẢO/so sánh (`compute_bmr_mifflin()`, `compute_tdee_mifflin()`), dùng `_ACTIVITY_FACTOR_MIFFLIN` cục bộ (giữ nguyên giá trị/docstring cảnh báo thiếu nguồn từ trước). `compute_tdee_who_fao()` (cân nặng thô, không hiệu chỉnh béo phì) giữ nguyên làm biến thể khớp Excel 100%; `compute_tdee()` mặc định VẪN áp `adjusted_body_weight_kg` (ràng buộc an toàn lâm sàng riêng, không phải một phần "công thức BMR" nên không mâu thuẫn quyết định ưu tiên Excel).
 - **Dọn dẹp:** xoá `ACTIVITY_FACTOR` khỏi `src/clinical/models.py` — hết consumer sau khi `energy.py` không còn import nó (dùng `_ACTIVITY_FACTOR_MIFFLIN` cục bộ thay thế).
@@ -443,7 +443,7 @@
 - **Chưa làm (không chặn quyết định này, nhưng nên làm sau):** R2 chưa chạy lại 60 case eval đối chiếu chuyên gia thật với công thức mới; chưa xác nhận trực tiếp với NIN xem có quy định chính thức riêng không.
 - **Thời gian:** ~35 phút
 
-### [2026-08-06] · Claude (theo yêu cầu Hưng) · Audit RULE-1/2/3 sau CLN-09 — phát hiện + sửa 1 lỗi RULE-2 thật
+### [2026-08-06] · R2 · Audit RULE-1/2/3 sau CLN-09 — phát hiện + sửa 1 lỗi RULE-2 thật
 - **Bối cảnh:** Hưng yêu cầu "pull github, sau đó kiểm tra, audit lại logic dự án" sau khi merge CLN-09. Dùng 1 subagent đọc trực tiếp `src/` đối chiếu 3 rule đỏ CLAUDE.md §2, không suy đoán.
 - **Phát hiện thật (đã sửa):** `src/clinical/rules.py::compute_targets()` — target `kcal` vẫn hardcode `rule_ids=["ENERGY-MSJ"]`/`guideline_refs=["Mifflin-St Jeor 1990..."]` dù `compute_energy_target_kcal()` đã đổi sang WHO/FAO/UNU từ CLN-09 cùng ngày. Đây là vi phạm RULE-2 thật (nguồn hiển thị cho người dùng sai) — không phải lý thuyết. Đổi thành `ENERGY-WHO-FAO-UNU` + ghi chú CLN-09.
 - **Phát hiện phụ (đã sửa):** `agents/nodes/core.py` chứa logic tính toán nhưng chưa nằm trong `DETERMINISTIC_FILES` của `tests/test_agent.py` (test chống import LLM, RULE-1) — thêm vào danh sách, xác nhận file vốn đã sạch.
@@ -451,7 +451,7 @@
 - **Xác nhận:** 165/165 test pass (thêm 1 test coverage), `ruff`/`mypy` sạch. Commit `7dc2197`, đã push PR #47.
 - **Thời gian:** ~20 phút
 
-### [2026-08-07] · Claude (theo yêu cầu Hưng) · Audit + fix 2 PR đội (#49, #50) trước khi merge
+### [2026-08-07] · R2 · Audit + fix 2 PR đội (#49, #50) trước khi merge
 - **Bối cảnh:** Hưng yêu cầu "check các branch mới từ team, kiểm tra rồi merge". PR #49 (EVL-01 T2DM eval dataset) đang conflict thật với `main`; PR #50 (Next.js frontend + guardrail y tế) CI kẹt `QUEUED` >1h do runner tự host offline (xác nhận không có service/process/container GitHub Actions runner nào trên máy này — runner phải nằm ở máy khác). Dùng 2 subagent review nội dung song song trong lúc chờ, sau đó tự kiểm chứng lại từng phát hiện bằng cách đọc trực tiếp diff/chạy thử trước khi kết luận (không tin agent report mù).
 - **PR #49 — đã tự fix, đã push:** (1) Resolve conflict `Makefile` (chỉ dòng `.PHONY` — 2 nhánh cùng thêm target khác nhau, gộp cả hai). (2) Phát hiện + sửa lỗi NGHIÊM TRỌNG: `python -m py_compile` cho thấy 3 script mới (`download_india_nfhs5_t2dm.py`, `download_chns_china_t2dm.py`, `download_bangladesh_steps_t2dm.py`) có `SyntaxError` thật — docstring chứa đường dẫn Windows kiểu `C:\Users\dinhl\...` khiến `\U` bị hiểu nhầm thành escape unicode 8 chữ số, script KHÔNG import được. `pytest` không bắt được vì các script trong `scripts/` không nằm trong test suite. Sửa bằng đổi docstring sang raw string (`r"""`). Đây là bug do tác giả phát triển trên máy có `C:\Users\dinhl\` (khác máy CI/máy khác), một dạng lỗi "chưa test trên môi trường sạch" — liên quan trực tiếp tới yêu cầu "làm sạch/chuẩn hoá dữ liệu và file trước khi dùng" của Hưng cùng ngày. Chính sách "100% dữ liệu mô phỏng" bị PR này đổi sang cho phép dùng dữ liệu NHANES/CHNS/STEPS/NFHS5 đã de-identify — **Hưng đã duyệt trực tiếp** ("PR#49 có thể de-identify để sử dụng dữ liệu được nhé"), không cần R1/R3 sign-off thêm theo yêu cầu này.
 - **PR #50 — đã tự fix, đã push:** Phát hiện lỗ hổng an toàn THẬT trong `src/agents/guardrail.py` (tính năng "guardrail chặn chỉ định y khoa", AGT-07): `check_guardrail()` kiểm tra `_SAFE_PATTERNS` TRƯỚC `_MEDICAL_PATTERNS`, và 1 safe-pattern chỉ cần khớp 1 từ dinh dưỡng đứng một mình (`thực đơn|khẩu phần|bữa ăn|dinh dưỡng|calo|carb|protein|chất béo|chất xơ`) là bypass toàn bộ — tự kiểm chứng bằng ví dụ cụ thể "Thực đơn của tôi thì tôi có nên ngừng thuốc insulin không?" lọt qua vì khớp "thực đơn". Bộ test cũ (20 câu) không bắt được vì không có case kết hợp từ dinh dưỡng + câu hỏi y tế nguy hiểm. Đã sửa: đảo thứ tự (dangerous pattern kiểm tra trước), xoá 3 safe-pattern không yêu cầu tên thuốc cụ thể đi kèm, thêm 3 test case adversarial vào `SHOULD_BLOCK`. Đồng thời sửa `except Exception` trần ở tầng LLM (vi phạm CLAUDE.md §4) — tách 2 nhánh có chủ đích: chưa cấu hình API key = không phải sự cố (fail-open, giữ chat hoạt động ở dev/test không có key thật), lỗi thật khi gọi API đã cấu hình = fail-closed (chặn, đúng chiều an toàn cho hệ thống y tế — khác thiết kế gốc là fail-open toàn bộ).
@@ -463,7 +463,7 @@
 
 ---
 
-### [2026-08-06] · Claude (theo yêu cầu Hưng) · Research đợt lớn: verify clinical_rules, mở rộng GI, tương tác thực phẩm + giờ thuốc
+### [2026-08-06] · R2 · Research đợt lớn: verify clinical_rules, mở rộng GI, tương tác thực phẩm + giờ thuốc
 - **Bối cảnh:** Hưng giao 9 luồng việc cho `data/` (research y khoa, thực đơn vùng miền, tương tác dược/thực phẩm, Việt hoá bảng thành phần, mở rộng NIN, GI/purine, serving_sizes, usda_values, viết lại README). Quyết định: chạy song song nhóm A (khai thác file local đã có trong repo) + nhóm B (research web/PubMed), nhóm C (schema tương tác TP-TP + giờ ăn) code luôn kèm migration sau khi có dữ liệu nguồn thật. 3 subagent chạy nền, dùng MCP PubMed ưu tiên hơn WebSearch (PMID thật, đáng tin hơn).
 - **Kết quả B1 — verify 21 `clinical_rules`:** Dùng nguồn sơ cấp đọc trực tiếp (KDIGO 2024 full text, KDOQI 2020 full PDF, NIN 2016 full PDF, ADA Standards of Care 2026 §5/§13 — bản 2026 xác nhận CÓ THẬT, *Diabetes Care* Vol 49 Suppl 1, PMID 41358898). Chỉ 7/21 rule khớp đúng nguồn (`BASE-NA-01`, `T2DM-SUG-01`, `T2DM-PRO-02`, `CKD-PRO-01`, `CKD-PRO-05`, `CKD-NA-01`, `HTN-NA-01`). **Phát hiện an toàn nghiêm trọng** đã ghi thành ticket `CLN-11` (P0): `CKD-PRO-01` áp trần đạm 0.8 g/kg cho cả G5 dù không phân biệt bệnh nhân lọc máu (KDOQI 2020 yêu cầu 1.0-1.2 g/kg cho G5D) — nguy cơ suy dinh dưỡng protein-năng lượng nếu áp nhầm; 3 rule kali `CKD-K-01/02/03` (đều `hard`) trích dẫn "KDOQI 2020 theo giai đoạn" nhưng mục 6.4.1 thật của KDOQI 2020 chỉ ở mức OPINION và tự nhận chưa có bằng chứng theo giai đoạn. Chi tiết đầy đủ + toàn bộ rule LỆCH/KHÔNG XÁC MINH ĐƯỢC xem `CLN-11` trong `docs/TICKETS.md`. **Không tự sửa ngưỡng** (đúng CLAUDE.md §6) — chờ R2.
 - **Kết quả B2a — mở rộng GI món Việt:** Nguồn chính: Chan HMS et al. 2001 *Eur J Clin Nutr* 55:1076-1083 (đã đọc toàn văn Bảng 1+2, PMID 11781674), Atkinson 2008 *Diabetes Care* 31:2281-2283 (PMC2584181), Henry 2021 *Nutr Diabetes* 11:2 compendium 940 món châu Á (PMID 33414403). Tìm được ~39 giá trị GI mới (cơm tấm, bún khô, cháo, khoai môn, sắn, mít, ổi, bánh cuốn, xôi mặn, các loại đậu, sữa, đường...). **Phát hiện quan trọng:** Việt Nam KHÔNG nằm trong danh sách quốc gia của compendium Henry 2021 — tức chưa có nghiên cứu GI nào đo trực tiếp trên người tại Việt Nam đạt chuẩn đưa vào bảng quốc tế; "Chan2001_VN" thực chất đo tại Sydney trên gạo/bún nhập từ Thái Lan/Úc/Trung Quốc, không phải mẫu đo tại VN — cần ghi rõ trong `note`, đừng để tên nguồn gây hiểu nhầm. **Cảnh báo giá trị hiện có đáng ngờ:** dưa hấu (CSV=51) thấp hơn nhiều so với y văn (dải thật 48-76, giá trị kinh điển 76); bánh mì (CSV=59) thấp bất thường so với y văn (75-83); khoai lang (CSV=77) một nguồn khác cho giá trị phi lý (179 thang bánh mì) — không dùng. Đã loại bỏ mọi giá trị eGI đo in-vitro (không phải đo trên người).
@@ -471,7 +471,7 @@
 - **Việc tiếp theo (chưa làm, ghi nhận cho phiên sau):** map dữ liệu GI/tương tác mới vào đúng CSV kèm review R2 cho phần lâm sàng; xây bảng DB mới cho tương tác TP-TP + giờ thuốc (nhóm C); B3 (thực đơn vùng miền) đang chạy riêng.
 - **Thời gian:** ~35 phút điều phối + thời gian chạy nền của 3 subagent
 
-### [2026-08-06] · Claude (theo yêu cầu Hưng) · B3 xong + hoàn tất nhóm A (khai thác file local): purine, sugar, serving_sizes, category
+### [2026-08-06] · R2 · B3 xong + hoàn tất nhóm A (khai thác file local): purine, sugar, serving_sizes, category
 - **B3 — thực đơn/mâm cơm 3 miền:** không tìm được nghiên cứu ẩm thực học/dinh dưỡng học thuật định lượng cấu trúc mâm cơm 3 miền (chỉ có nguồn báo/blog phổ thông). Đề xuất 20 món theo vùng — đa số kiến thức ẩm thực phổ thông, chưa có nguồn định lượng, phải xử lý như "LLM draft" khi thêm vào `dishes.csv`, không tự thêm vào CSV. **Cảnh báo an toàn:** món đề xuất "canh chua cá lóc kiểu Huế" dùng khế (carambola) — y văn quốc tế ghi nhận khế chứa caramboxin, chống chỉ định ở bệnh nhân suy thận. Ghi vào `DAT-04` trong `docs/TICKETS.md`, chưa thêm món nào vào `dishes.csv`.
 - **A1 (`sugar_g`):** quét toàn bộ `food_nutrient.csv` USDA bulk (script `scripts/scan_usda_sugar_coverage.py`) cho 6.861 fdcId nguồn USDA — "Sugars, added" (gần nghĩa free sugar nhất) chỉ có **0%** dữ liệu trong bộ SR Legacy/Foundation; "Total Sugars" có 81.9% nhưng KHÁC nghĩa free sugars của WHO mà `sugar_g`/`T2DM-SUG-01` dùng. **Không tự đổ nhầm dữ liệu vào field sai nghĩa** — ghi ticket `DAT-15` cho R2 quyết định có thêm cột `total_sugar_g` riêng hay không (đã có sẵn bảng tra `usda_sugar_coverage.csv` nếu R2 chọn làm).
 - **A2 (`purine_mg`):** trích `data/PURINEDATABASEANDDATASOURCES2025.xlsx` (608 dòng NAm+nonNAm+alcohol, script `scripts/extract_purine_db.py`) thành `purine_db_reference.csv` (475 dòng có trích dẫn Table6). Map thủ công (review từng dòng, không tự động) 32/366 dòng curated còn thiếu — chỉ nhận match cùng loài/loại rõ ràng (VD bỏ qua "cải xanh" vì các dòng gần giống trong bảng nguồn thực ra khác loài thực vật). `purine_values` phủ 19 → 51 món. Script: `scripts/map_purine_to_food_items.py`. Ghi `DAT-14`.
@@ -480,7 +480,7 @@
 - **Xác nhận cuối đợt A:** `validate_data.py` không lỗi mới (4 cảnh báo cũ, không tăng), `pytest -q` 165/165 pass. Tất cả script đều idempotent + có `--dry-run`, để lại dấu vết tái tạo được (không sửa tay CSV trực tiếp).
 - **Thời gian:** ~90 phút
 
-### [2026-08-06] · Claude (theo yêu cầu Hưng) · Nhóm C: 2 bảng DB mới (tương tác thực phẩm-thực phẩm, giờ dùng thuốc) — schema + migration + seed
+### [2026-08-06] · R2 · Nhóm C: 2 bảng DB mới (tương tác thực phẩm-thực phẩm, giờ dùng thuốc) — schema + migration + seed
 - **Bối cảnh:** Hưng duyệt trước cho nhóm C "code luôn cả migration + seed dữ liệu" (khác nhóm A/B chỉ cần research/ticket). Dùng dữ liệu đã có PMID/trích dẫn thật từ agent B2b (research trước đó cùng ngày).
 - **Schema:** thêm `FoodFoodInteraction` và `DrugMealTiming` vào `src/db/models.py` (theo đúng khuôn mẫu `DrugFoodInteraction` có sẵn — cột `source_ref` bắt buộc, `verify_status` mặc định `to_verify`). Migration `alembic/versions/5394cb31dc4e_...py` viết tay theo đúng style file migration gốc (không chạy `alembic revision --autogenerate` để tránh kết nối nhầm vào DB thật cấu hình trong `.env`) — đã test cả `upgrade`/`downgrade` trên SQLite scratch file, chạy sạch cả 2 chiều.
 - **Seed:** `data/seeds/food_food_interactions.csv` (9 cặp, PMID thật — sắt/polyphenol/phytate/canxi/oxalat/fructose/rượu, xem `DAT-18`), `data/seeds/drug_meal_timing.csv` (6 thuốc, xem `DAT-19`). Thêm `seed_food_food_interactions()`/`seed_drug_meal_timing()` vào `scripts/seed_db.py`, wiring vào `seed_all()`. Thêm `check_food_food_interactions()`/`check_drug_meal_timing()` vào `scripts/validate_data.py`.
@@ -488,6 +488,30 @@
 - **Xác nhận:** seed thử trên SQLite scratch DB thành công (9 + 6 dòng), `pytest -q` 165/165 pass (đã sửa `test_tao_du_15_bang` → `test_tao_du_17_bang`), `ruff`/`mypy` sạch, `validate_data.py` 0 lỗi (2 cảnh báo mới: cả 2 bảng đều 100% `to_verify`, đúng dự kiến vì chưa R2 xác nhận).
 - **CHƯA làm (ghi rõ trong ticket, không giả vờ xong):** chưa wiring 2 bảng này vào agent/API/UI — mới dừng ở tầng dữ liệu. R2 chưa xác nhận `verify_status`. Đặc biệt lưu ý ranh giới an toàn CLAUDE.md §3 khi wiring `drug_meal_timing`: chỉ mô tả thời điểm uống, tuyệt đối không diễn giải thành khuyên đổi liều/ngừng thuốc.
 - **Thời gian:** ~40 phút
+
+---
+
+### [2026-08-07] · R2 · DAT-22 — trích xuất Bảng TPTP VN 2017 (620 món)
+
+- Trích 620/620 thực phẩm (tr.23-152, khối macro+khoáng+vitamin) từ `data/Bang-thanh-phan-dinh-duong-Thuc-pham-VN-2017-27-4-17.pdf` bằng `pdfplumber.extract_tables()`, không OCR, không trùng mã. Script: `scripts/extract_nin2017.py` → `scripts/nin2017_extracted.json`.
+- Merge vào `data/seeds/food_items.csv` bằng `scripts/merge_nin2017_into_food_items.py` (chỉ khớp tên tuyệt đối, không fuzzy-match — bài học từ lần fuzzy-match sai "Hẹ"↔"Ghẹ" trước đó): 82 dòng cũ được bổ sung `source_ref` NIN 2017, 348 dòng mới thêm dạng placeholder (thiếu ≥1 trường lõi trong PDF, để trống thay vì đoán), 128 xung đột số liệu ghi vào `scripts/nin2017_conflicts.md` chờ R2 quyết định (không tự merge).
+- Xác nhận Purine (tr.219-248) CÓ số liệu thật cho nhóm Thịt/Thủy sản nhưng chưa merge do rủi ro lệch cột — đề xuất `DAT-23` làm riêng, cẩn thận hơn. Xem `scripts/nin2017_purine_findings.md`.
+- Sửa 1 bug thật phát hiện khi merge: `validate_data.py` cộng trùng `fiber_g` vào tổng đa chất (đã nằm trong `carb_g` theo NIN 2017), gây báo lỗi giả cho món khô/nhiều xơ (Măng khô, Hạt tiêu).
+- **Lưu ý kỹ thuật:** việc trích xuất được chạy đầu tiên trong 1 background agent dùng git worktree — worktree đó vô tình được tạo từ một commit cũ (trước khi `food_items.csv` được mở rộng lên 7316 dòng qua nhiều PR khác), nên kết quả merge ban đầu (183/364/53) bị tính trên dữ liệu cũ. Đã phát hiện qua kiểm tra `wc -l`/`git log` trước khi push, không dùng kết quả đó — chỉ giữ lại phần trích xuất thô (`nin2017_extracted.json`, độc lập với CSV nền) và script, chạy lại `merge_nin2017_into_food_items.py` trên `food_items.csv` thật hiện tại của `main`, ra số liệu đúng (82/348/128 ở trên). `validate_data.py` (0 lỗi) và `pytest` sạch sau khi chạy lại.
+- **Thời gian:** ~30 phút (không tính thời gian chạy nền của background agent).
+
+---
+
+### [2026-08-07] · R2 · SET-05 — kết nối Supabase, alembic upgrade head thành công
+
+- Hưng tự tạo project Supabase (`VNutriCare`, `tvnrvvkclqsuhnxnrcrn`, ap-northeast-1) và kết nối MCP Supabase (read_only) qua `.mcp.json`.
+- Chạy `alembic upgrade head` thành công lên Supabase — 17 bảng khớp đúng `src/db/models.py` (xác nhận qua `list_tables` MCP, read-only).
+- **2 vấn đề kết nối gặp phải và cách xử lý:**
+  1. `DATABASE_URL` ban đầu dùng host "Direct connection" (`db.<ref>.supabase.co`) — chỉ resolve ra địa chỉ IPv6, mạng hiện tại không có route IPv6 nên `psycopg2.OperationalError: could not translate host name`. Đổi sang **Session Pooler** (`aws-0-ap-northeast-1.pooler.supabase.com`, có IPv4) thì kết nối được.
+  2. Thiếu driver `psycopg2` (dự án trước giờ chỉ chạy SQLite nên dòng `psycopg2-binary` trong `requirements.txt` bị comment) — bật lại và cài.
+- Advisor bảo mật Supabase báo RLS bật mặc định trên mọi bảng nhưng chưa có policy (mức INFO, do Supabase tự động, không phải mình tạo) — không xử lý vì backend dùng kết nối Postgres trực tiếp, không qua PostgREST/anon key, đúng phạm vi ADR-008.
+- `vector` extension chưa bật (chưa cần, `guideline_chunks.embedding` còn ở JSON) — để dành cho `DAT-06`.
+- **Thời gian:** ~20 phút.
 
 ---
 
@@ -509,7 +533,7 @@
 | DEC-013 | 2026-08-03 | Không dùng số per-món của API NIN cho dishes; phân rã nguyên liệu (DAT-04 gốc) | R2 | Bối cảnh: API món ăn NIN có kcal/muối per-100g dao động phi lý (phở 276–826 kcal/100g, muối 0,01–6,7 g/100g). Phương án: A) seed dishes.csv từ NIN, B) phân rã món → nguyên liệu → tính SQL từ food_items. Chọn B vì số món NIN không đáng tin cho ngưỡng lâm sàng; food_items có nguồn NIN/USDA truy được. Hệ quả: test hồi quy muối (phở 3,3–4,0g/bát) tính từ nguyên liệu + khẩu phần (serving_sizes.csv) |
 | DEC-012 | 2026-08-02 | `purine_mg` thành optional (None) trong FoodItem/NutritionSummary | R2 | Bối cảnh: điền food_items từ NIN nhưng NIN (và USDA) KHÔNG có purine; purine chỉ cần cho gout. Phương án: A) tìm nguồn purine riêng cho cả 152 món rồi mới điền, B) purine optional + None-aware giống sugar/gi. Chọn B: gỡ được đường găng DAT-02 ngay, purine bổ sung sau từ nguồn riêng (bảng purine Nhật). Hệ quả: compute_nutrition cộng purine None-aware + cờ `purine_is_complete`; validator sinh cảnh báo `incomplete_data` cho ca gout khi thiếu → an toàn không bị đánh lừa bởi tổng thiếu hụt |
 | DEC-014 | 2026-08-05 | Giữ nguyên `compute_targets()`/DEC-007 (chỉ gắn `needs_expert_review` khi rule xung đột) dù PRD v2.1 §2.2 đọc thoáng qua có vẻ yêu cầu gắn cờ cho MỌI ca đồng mắc ngoài ĐTĐ2 | Hưng (xác nhận) | Bối cảnh: PRD v2.1 (Phương) thu hẹp trọng tâm MVP về ĐTĐ2, §2.2 dễ đọc thành "mọi bệnh đồng mắc → bắt buộc chuyên gia duyệt", ngược DEC-007. Phương án cân nhắc: A) sửa code theo nghĩa đen PRD mới; B) chỉ flag khi thật sự không xác định được ngưỡng an toàn (giữ DEC-007); C) hỏi R2 trước. Đã research `KeHoachDuAn_VNutriCare_VMEC10_v3.docx` (nguồn yêu cầu chính của chính PRD.md) mục 6.4.1 "Bốn tình huống kiểm chứng" — đặc tả gốc khớp chính xác hành vi hiện tại, kể cả ca ĐTĐ2+CKD chỉ chuyển chuyên gia khi dải ngưỡng hẹp bằng 0. `docs/NGHIEN_CUU_DAI_THAO_DUONG_2026.md` xác nhận cơ chế này là điểm khác biệt cạnh tranh. Chọn B. Hệ quả: không đổi code/test; sửa lại các note đã lỡ ghi "cần sửa code" trong `CLAUDE.md`/`TICKETS.md`/`docs/rules/10-clinical-safety.md` cho khớp kết luận |
-| DEC-015 | 2026-08-05 | Chỉ nhận Open Food Facts + Dược thư QGVN trong số 8 nguồn nghiên cứu bổ sung; loại PhyFoodComp/eBASIS/ASEANFOODS/WikiFCD-FoodOn | R2 (Claude) | Bối cảnh: tài liệu tổng quan `data/Dữ liệu dinh dưỡng Việt Nam.md` đề xuất 8 nguồn ngoài NIN/USDA. Phương án cân nhắc: chấp nhận cả 8 theo tài liệu, hoặc tự xác minh từng nguồn trước khi quyết. Chọn tự xác minh (WebSearch/WebFetch) vì tài liệu chỉ là gợi ý, không phải nguồn đã kiểm chứng. Hệ quả: PhyFoodComp bị loại vì ngoài phạm vi 4 bệnh mục tiêu (phytate phục vụ thiếu máu/thiếu kẽm); eBASIS bị loại vì trang chủ mô tả truy cập theo membership, không xác nhận được gói miễn phí; ASEANFOODS bị loại vì VFCT 2017 đã đối chiếu chéo sẵn (trùng lặp); WikiFCD/FoodOn bị loại vì cần hạ tầng SPARQL/ontology không tương xứng lợi ích cho MVP. QĐ 5948/QĐ-BYT KHÔNG được dùng làm nguồn cho DAT-05 vì chỉ xác nhận được là danh mục thuốc-thuốc, không có bằng chứng phủ thuốc-thực phẩm — tránh suy đoán sai như DEC-008 cảnh báo |
+| DEC-015 | 2026-08-05 | Chỉ nhận Open Food Facts + Dược thư QGVN trong số 8 nguồn nghiên cứu bổ sung; loại PhyFoodComp/eBASIS/ASEANFOODS/WikiFCD-FoodOn | R2 | Bối cảnh: tài liệu tổng quan `data/Dữ liệu dinh dưỡng Việt Nam.md` đề xuất 8 nguồn ngoài NIN/USDA. Phương án cân nhắc: chấp nhận cả 8 theo tài liệu, hoặc tự xác minh từng nguồn trước khi quyết. Chọn tự xác minh (WebSearch/WebFetch) vì tài liệu chỉ là gợi ý, không phải nguồn đã kiểm chứng. Hệ quả: PhyFoodComp bị loại vì ngoài phạm vi 4 bệnh mục tiêu (phytate phục vụ thiếu máu/thiếu kẽm); eBASIS bị loại vì trang chủ mô tả truy cập theo membership, không xác nhận được gói miễn phí; ASEANFOODS bị loại vì VFCT 2017 đã đối chiếu chéo sẵn (trùng lặp); WikiFCD/FoodOn bị loại vì cần hạ tầng SPARQL/ontology không tương xứng lợi ích cho MVP. QĐ 5948/QĐ-BYT KHÔNG được dùng làm nguồn cho DAT-05 vì chỉ xác nhận được là danh mục thuốc-thuốc, không có bằng chứng phủ thuốc-thực phẩm — tránh suy đoán sai như DEC-008 cảnh báo |
 | DEC-016 | 2026-08-05 | Bỏ trần số lượng ở EPIC 1/2 nhưng KHÔNG đổi ngưỡng validate_data.py; chỉ điền source_ref cho dược chất xác nhận được có chuyên luận riêng (17/30), để trống 13/30 còn lại | Hưng (yêu cầu) | Bối cảnh: yêu cầu "nâng trần → không giới hạn" cho EPIC 1/2 + "fill full data với mọi data tìm được". Phương án cân nhắc: A) đổi AC ticket thành số lớn tuỳ ý (VD 500 món) để nhìn "đầy tham vọng"; B) đổi AC thành "sàn, không phải trần" — không đặt trần trên nhưng cũng không bịa số lớn hơn hiện có; C) với drug_food_interactions, điền source_ref cho TẤT CẢ 30 dòng bằng cách suy luận chuyên luận Dược thư "chắc là có" cho các dược chất phổ biến. Chọn B (không đặt số trần tuỳ ý — số lượng là biến phụ thuộc, có nguồn thật hay không mới là biến chính, đúng RULE-2/DEC-008) và từ chối C (chỉ điền 17/30 đã xác nhận qua tìm kiếm thực tế có trang chuyên luận riêng, 13 dược chất còn lại — kể cả rất phổ biến như Metformin/Simvastatin — để trống vì KHÔNG tự xác nhận được, dù nhiều khả năng có thật). Hệ quả: "không giới hạn" trong ticket nghĩa là "không dừng lại vì đã đạt con số ban đầu", không phải "báo đã xong 100%" — validate_data.py vẫn coi 13 dòng thiếu source_ref là cảnh báo cần R2 xử lý tiếp, không tự ý tắt cảnh báo đó |
 | DEC-017 | 2026-08-05 | Khối USDA bulk (~7000 dòng food_items, id≥100000) chỉ dùng làm kho tham chiếu, loại khỏi ứng viên sinh thực đơn qua `USDA_BULK_ID_THRESHOLD` trong `retrieve_context` | Hưng (xác nhận) | Bối cảnh: thêm 6.854 dòng USDA bulk để đạt mục tiêu "1000+ food_items" khiến CP-SAT chậm 30-50 lần (đo thật: 1,5s→50s) vì `retrieve_context` đưa toàn bộ `food_items` làm ứng viên. Phương án cân nhắc: A) lọc candidate — chỉ dùng ~150 dòng Việt curated cho sinh thực đơn, giữ 7000 dòng USDA làm tham chiếu; B) giữ nguyên, chấp nhận chậm hơn; C) giảm quy mô nhập USDA xuống ~1000 dòng thay vì 6854. Chọn A vì không đánh đổi hiệu năng tính năng đã kiểm chứng (CP-SAT) lấy số lượng dữ liệu thô, đồng thời vẫn giữ được toàn bộ 7000+ dòng cho mục đích tra cứu/OOV/mở rộng sau. Hệ quả: `id` ≥100000 (fdc_id USDA) là quy ước phân tách "tham chiếu" vs "ứng viên sinh thực đơn" — mọi dữ liệu USDA bulk nhập sau này (kể cả mở rộng purine) nên tuân theo cùng quy ước ID để không cần sửa lại filter |
 
