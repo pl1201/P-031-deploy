@@ -39,6 +39,8 @@ Thumbs.db
 data/*
 !data/seeds/
 !data/README.md
+!data/patients/
+!data/patients/*.csv
 !data/patients/README.md
 !data/patients/manifest.yaml
 !data/VERSION
