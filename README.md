@@ -64,6 +64,11 @@ bash scripts/setup_hooks.sh
 
 # 6. Chạy thử không cần API key/DB (logic lâm sàng deterministic)
 make check          # ruff + validate-data + pytest, 190 test xanh
+# Chỉ sửa một phần? Chạy riêng nhóm test tương ứng thay vì toàn bộ suite:
+make test-clinical   # src/clinical/** — energy, rules, dishes, food_item
+make test-agents     # src/agents/** — graph, guardrail, hybrid, CP-SAT optimizer
+make test-api        # src/api/** — auth, patients, meal-plans, reviews, targets
+make test-db         # src/db/** + scripts/seed_*.py
 
 # 7. Chạy server
 make run             # hoặc: uvicorn src.main:app --reload --port 8000
