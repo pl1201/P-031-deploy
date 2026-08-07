@@ -100,9 +100,13 @@ def test_duyet_sua_gram_tinh_lai_dinh_duong(client, dietitian, pending_plan):
     # Giảm gram (không tăng): tăng có thể đẩy thực đơn vượt hard rule (carb/sugar)
     # nếu bản gốc đã sát ngưỡng trên — đúng hành vi RULE-3 (API phải chặn), không
     # phải bug, nhưng làm test flaky vì phụ thuộc thực đơn cụ thể được sinh ra.
-    # Giảm gram không bao giờ tự tạo vi phạm MAX mới nên an toàn cho mục đích
-    # test này (xác nhận approve+edit tính lại dinh dưỡng, không phải test biên).
-    new_grams = max(first_item["grams"] - 20, 1)
+    # CP-SAT không có seed cố định (pure feasibility, không Minimize — xem
+    # docstring optimizer.py) nên margin phía trên ngưỡng tối thiểu có thể rất
+    # mỏng tuỳ nghiệm khả thi được chọn — trừ 20g từng gây fail flaky thật khi
+    # nghiệm sát biên (audit 2026-08-07). Trừ 1g gần như không bao giờ đủ để tự
+    # tạo vi phạm MIN mới (chỉ test approve+edit tính lại dinh dưỡng, không phải
+    # test biên), giảm rủi ro flaky mà vẫn giữ đúng mục đích test.
+    new_grams = max(first_item["grams"] - 1, 1)
 
     r = client.post(
         f"/api/v1/reviews/{plan_id}/approve",
