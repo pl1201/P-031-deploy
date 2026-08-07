@@ -172,7 +172,7 @@ Sau batch 48 nguyên liệu NIN nội bộ (2026-08-06), vẫn còn khoảng tr�
 **AC:** Không tự gắn giá trị 0/trace cho Na/K/P mà không có `source_ref` cụ thể (mã NIN, FDC ID, hoặc lý giải khoa học rõ ràng cho nhóm "trace") · Mỗi batch chạy `validate_data.py` + `pytest` sạch trước khi commit · `docs/PLAN_DAT-13-fill-data-gaps.md` cập nhật tiến độ theo từng mục §2.
 
 ### `DAT-14` ✅ Mở rộng `purine_mg` từ Purine DB 2025 — ĐÃ LÀM (32 dòng mới, curated 1-152)
-**Owner:** Claude (theo yêu cầu Hưng) · **Trạng thái:** Đã merge phần curated, còn phần NIN bulk (id 2000+) chưa làm
+**Owner:** R2 · **Trạng thái:** Đã merge phần curated, còn phần NIN bulk (id 2000+) chưa làm
 `data/PURINEDATABASEANDDATASOURCES2025.xlsx` ("USDA and ODS-NIH Database for the Purine Content of Common Foods" R2.0, 2025, 608 dòng NAm+nonNAm+alcohol) đã được trích thành `data/seeds/purine_db_reference.csv` (`scripts/extract_purine_db.py`, 475 dòng có số + trích dẫn `Table6`). Đã map thủ công (có review từng dòng, KHÔNG tự động) 32/366 dòng curated còn thiếu `purine_mg` — chỉ nhận match cùng loài/loại rõ ràng, bỏ qua match mơ hồ (VD "cải xanh" bị bỏ vì các dòng gần giống trong bảng nguồn thực ra khác loài thực vật). Script: `scripts/map_purine_to_food_items.py` (idempotent, có `--dry-run`).
 **Còn lại:** 334 dòng curated không match được (không có trong 475 dòng nguồn, hoặc match quá mơ hồ để tin) · Toàn bộ dải id 2000-4077 (NIN2017 bulk extract, tên món lẫn text tiếng Anh OCR) chưa được thử map — cần làm sạch tên món trước (tách phần tiếng Anh OCR khỏi `name_vi`) rồi mới map được, việc riêng.
 **AC nếu làm tiếp:** Giữ nguyên tắc "chỉ map khi chắc chắn cùng loài", không hạ chuẩn để tăng số lượng.
@@ -183,17 +183,17 @@ Research 2026-08-06: quét toàn bộ `food_nutrient.csv` của USDA FDC bulk (s
 - **"Sugars, added" (nutrient 1235, gần nghĩa free sugars nhất): 0/6.861 dòng có dữ liệu (0%)** — bộ SR Legacy/Foundation Foods dự án dùng KHÔNG có trường này.
 - **"Total Sugars" (nutrient 2000/1063): 5.620/6.861 dòng (81.9%)** — có dữ liệu thật nhưng **khác nghĩa** `sugar_g` mà DAT-07 định nghĩa (đường tự do theo WHO, loại trừ đường tự nhiên trong sữa/trái cây nguyên quả).
 **Vì sao KHÔNG tự lấp:** đổ "Total Sugars" vào `sugar_g` rồi để `T2DM-SUG-01` (đường ≤10%E) áp ngưỡng sẽ gắn cờ SAI cho bệnh nhân ăn trái cây/sữa nguyên chất — vi phạm RULE-2 kiểu ngược (đúng số, sai ngữ nghĩa trường). `scripts/extract_usda_bulk.py` đã cố ý để trống vì lý do này từ trước, quyết định này giữ nguyên.
-**Đề xuất (cần R2 chốt, không phải Claude tự quyết schema):** (1) Thêm cột MỚI `total_sugar_g` tách biệt khỏi `sugar_g`, dùng cho hiển thị thông tin/không áp ngưỡng free-sugar, kèm Alembic migration — 81.9% dữ liệu đã sẵn sàng ở `usda_sugar_coverage.csv`; hoặc (2) không thêm gì, chờ có nguồn added-sugar/free-sugar thật (VD USDA Branded Foods có nhãn dinh dưỡng, hoặc tính tay cho món chế biến có công thức biết trước lượng đường thêm).
+**Đề xuất (cần R2 chốt, không phải AI tự quyết schema):** (1) Thêm cột MỚI `total_sugar_g` tách biệt khỏi `sugar_g`, dùng cho hiển thị thông tin/không áp ngưỡng free-sugar, kèm Alembic migration — 81.9% dữ liệu đã sẵn sàng ở `usda_sugar_coverage.csv`; hoặc (2) không thêm gì, chờ có nguồn added-sugar/free-sugar thật (VD USDA Branded Foods có nhãn dinh dưỡng, hoặc tính tay cho món chế biến có công thức biết trước lượng đường thêm).
 **AC:** Không tự thêm cột vào schema production khi chưa R2 duyệt hướng semantics · Nếu chọn hướng (1), migration phải đi kèm cùng PR (CLAUDE.md §4).
 
 ### `DAT-16` ✅ Mở rộng `serving_sizes.csv` 5 → 174 dòng (WWEIA reference) — ĐÃ LÀM
-**Owner:** Claude (theo yêu cầu Hưng) · **Trạng thái:** Xong, cần R2 xác nhận cách dùng
+**Owner:** R2 · **Trạng thái:** Xong, cần R2 xác nhận cách dùng
 Không có khảo sát khẩu phần món Việt quy mô lớn công khai để mở rộng 5 dòng gốc lên 100-200 mà vẫn giữ nguồn thật. Thay vào đó: tính TRUNG VỊ khẩu phần thật từ `food_portion.csv` (47.446 bản ghi khẩu phần USDA) theo 172 nhóm thực phẩm chính thức **WWEIA** (What We Eat In America — hệ phân loại dùng trong khảo sát NHANES), lấy nhóm có ≥5 mẫu (169/172 nhóm đạt). Script: `scripts/build_serving_sizes_wweia.py`. 5 dòng gốc (khớp món Việt cụ thể: bát phở, bát cơm...) giữ nguyên, không ghi đè — 169 dòng mới thêm với tiền tố `category=wweia_<mã>` để phân biệt rõ.
 **⚠️ Giới hạn phải đọc trước khi dùng:** đây là khẩu phần theo THÓI QUEN ĂN UỐNG MỸ (khảo sát NHANES), KHÔNG PHẢI khẩu phần người Việt — dùng làm tham chiếu/dự phòng khi không có nguồn khẩu phần Việt Nam cụ thể, đã ghi rõ trong cột `source` từng dòng.
 **AC nếu dùng tiếp:** R2 xác nhận UI/menu engine có phân biệt được 2 loại nguồn (VN cụ thể vs WWEIA tham chiếu) trước khi hiển thị cho chuyên gia/bệnh nhân.
 
 ### `DAT-17` ✅ Lấp `category` cho food_items nguồn USDA — ĐÃ LÀM (2% → 96%)
-**Owner:** Claude (theo yêu cầu Hưng) · **Trạng thái:** Xong
+**Owner:** R2 · **Trạng thái:** Xong
 Dịch trực tiếp phân loại chính thức `food_category` của USDA FoodData Central (28 nhóm, `food_category.csv` trong bulk download) sang nhãn tiếng Việt, join qua `fdc_id` (script `scripts/fill_category_from_usda.py`, có `--dry-run`). Đây là gán nhãn phân loại/tổ chức dữ liệu, KHÔNG phải giá trị lâm sàng — không thuộc phạm vi RULE-2 (không cần `source_ref` riêng cho `category`). Kết quả: 6.870 dòng được gán, độ phủ `category` 2% → 96% (7.022/7.315).
 **Còn lại:** 293 dòng không có `category` — gồm 22 dòng thiếu số liệu hoàn toàn (đã biết từ trước) + phần còn lại là dòng NIN/curated chưa từng có `category` và không thuộc phạm vi script này (script chỉ xử lý `source=USDA`).
 
@@ -255,7 +255,7 @@ Thêm rule `T2DM-SUG-01` (đường tự do < 10% năng lượng, WHO 2015) dùn
 
 ---
 
-> ❓ **ĐỀ XUẤT (2026-08-06, Claude theo yêu cầu Hưng — CẦN R2/ĐỘI DUYỆT, chưa gán sprint/giờ).** Đọc trực tiếp công thức trong `data/Bảng xác định nhu cầu dinh dưỡng + thực đơn.xlsx` (sheet "Bước 1+2" — chính file chuyên gia dinh dưỡng dự án đang dùng thật trên Excel), phát hiện 3 khoảng cách giữa công thức hệ thống hiện tại và thực hành chuyên gia. Chi tiết cell/formula trích dẫn trong `DEVLOG.md` entry cùng ngày.
+> ❓ **ĐỀ XUẤT (2026-08-06, R2 — CẦN R2/ĐỘI DUYỆT, chưa gán sprint/giờ).** Đọc trực tiếp công thức trong `data/Bảng xác định nhu cầu dinh dưỡng + thực đơn.xlsx` (sheet "Bước 1+2" — chính file chuyên gia dinh dưỡng dự án đang dùng thật trên Excel), phát hiện 3 khoảng cách giữa công thức hệ thống hiện tại và thực hành chuyên gia. Chi tiết cell/formula trích dẫn trong `DEVLOG.md` entry cùng ngày.
 
 ### `CLN-09` Đối chiếu công thức BMR/TDEE với thực hành chuyên gia thật — **ĐÃ CHỐT** (WHO/FAO/UNU là mặc định hệ thống)
 **Owner:** R2 · **P1?** · **Deps:** CLN-01
@@ -446,7 +446,7 @@ Lý do từ chối của chuyên gia được đưa vào `feedback` và agent si
 
 ---
 
-> ❓ **ĐỀ XUẤT (2026-08-06, Claude theo yêu cầu Hưng — CẦN ĐỘI DUYỆT TRƯỚC KHI COI LÀ TICKET CHÍNH THỨC, chưa gán sprint/giờ):** 3 ticket dưới đây xuất phát từ ý tưởng "chuyên gia tự xây/chấm thực đơn trực tiếp, lưu lại để cải tiến model sau này". Bối cảnh & lý do kỹ thuật ghi trong `DEVLOG.md` entry cùng ngày — đọc trước khi bàn.
+> ❓ **ĐỀ XUẤT (2026-08-06, R2 — CẦN ĐỘI DUYỆT TRƯỚC KHI COI LÀ TICKET CHÍNH THỨC, chưa gán sprint/giờ):** 3 ticket dưới đây xuất phát từ ý tưởng "chuyên gia tự xây/chấm thực đơn trực tiếp, lưu lại để cải tiến model sau này". Bối cảnh & lý do kỹ thuật ghi trong `DEVLOG.md` entry cùng ngày — đọc trước khi bàn.
 
 ### `HIT-06` API xây dựng thực đơn thủ công (chuyên gia tự chọn món) — ĐỀ XUẤT
 **Owner:** R3 (API) · **P2?** · **Deps:** HIT-02, BE-06
