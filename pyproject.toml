@@ -10,6 +10,14 @@ repository = "https://github.com/AI20K-Build-Phase-Cohort-3/P-031"
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
+# Bắt buộc từ 2026-08-07: PR#50 xoá tests/__init__.py (dọn placeholder rỗng
+# có chủ đích) — nhưng thiếu file này đổi cách pytest chèn rootdir vào
+# sys.path, khiến `pytest tests/` (cách CI gọi trong ci.yml, khác
+# `python -m pytest` chạy cục bộ vốn tự thêm CWD) báo
+# "ModuleNotFoundError: No module named 'src'". `pythonpath` là cách pytest
+# khuyến nghị để đảm bảo repo root luôn nằm trên sys.path bất kể có
+# __init__.py hay không.
+pythonpath = ["."]
 markers = [
     "slow: test chạy trên dữ liệu thật/đầy đủ (đắt hơn) — CI vẫn chạy full, dùng `-m \"not slow\"` khi cần vòng lặp nhanh cục bộ",
 ]
