@@ -85,7 +85,8 @@ GRAM_STEP = 25
 MAX_GRAMS_PER_ITEM = 300
 MIN_ITEMS_PER_SLOT = 1
 MAX_ITEMS_PER_SLOT = 5
-SOLVE_TIME_LIMIT_SECONDS = 30.0
+# Two solver phases may run; 2s each keeps the total CP-SAT budget <= 4s.
+SOLVE_TIME_LIMIT_SECONDS = 2.0
 
 # Bug đã audit thực tế (2026-08-07): KHÔNG có ràng buộc này, cùng một nguyên
 # liệu (VD gừng) có thể được chọn MAX_GRAMS_PER_ITEM ở CẢ 4 bữa/ngày = 1200 g/
@@ -162,8 +163,13 @@ class CPSATMenuOptimizer:
         candidates: list[FoodItem],
         feedback: str | None,
     ) -> MenuDraft:
+        # Defence in depth: callers should already use retrieve_context_bundle,
+        # but direct/API callers must not be able to create a 500+ candidate model.
+        from src.agents.nodes.core import _top_k_candidates
+
+        shortlisted = _top_k_candidates(candidates)
         eligible_dishes = _eligible_dishes(self._dishes, self._foods, profile) if self._foods else []
-        return _solve_day(candidates, targets, eligible_dishes, self._foods)
+        return _solve_day(shortlisted, targets, eligible_dishes, self._foods)
 
 
 def _active_nutrient_bounds(targets: ClinicalTargets) -> dict[str, tuple[float | None, float | None]]:
