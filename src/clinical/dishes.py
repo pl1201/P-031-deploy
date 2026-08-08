@@ -58,7 +58,14 @@ def load_dish_food_repository(
             recipes.setdefault(row["dish_id"], []).append((int(row["food_id"]), float(row["grams"])))
 
     with open(dishes_path, newline="", encoding="utf-8") as handle:
-        rows = [row for row in csv.DictReader(handle) if not row["dish_id"].startswith("FNDDS-")]
+        rows = [
+            row
+            for row in csv.DictReader(handle)
+            # MENU-* rows imported from spreadsheets describe an entire meal,
+            # not a prepared dish. Letting the optimizer select them creates
+            # labels such as "Bữa trưa" inside the dinner slot.
+            if not row["dish_id"].startswith(("FNDDS-", "MENU-"))
+        ]
 
     items: list[FoodItem] = []
     dish_views: dict[int, DishView] = {}
