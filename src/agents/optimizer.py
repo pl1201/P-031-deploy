@@ -48,6 +48,7 @@ from src.clinical.models import (
     MealSlot,
     MenuDraft,
     MenuItem,
+    PlannedDish,
     PatientProfile,
 )
 from src.clinical.nutrition import FoodRepository
@@ -428,6 +429,7 @@ def _try_solve(
         return None
 
     items: dict[MealSlot, list[MenuItem]] = {}
+    planned_dishes: dict[MealSlot, list[PlannedDish]] = {}
     for slot in _SLOTS:
         # gram theo food_id — gộp nguyên liệu thô + nguyên liệu bên trong món
         # hoàn chỉnh cùng food_id (hiếm nhưng có thể xảy ra) thành một dòng.
@@ -438,8 +440,11 @@ def _try_solve(
                 grams_by_food[f.id] = grams_by_food.get(f.id, 0.0) + g
         for dish, _totals in dish_totals:
             if solver.Value(dish_chosen[(slot, dish.dish_id)]):
+                planned_dishes.setdefault(slot, []).append(
+                    PlannedDish(dish_id=dish.dish_id, serving_grams=sum(ingredient.grams for ingredient in dish.ingredients))
+                )
                 for ing in dish.ingredients:
                     grams_by_food[ing.food_id] = grams_by_food.get(ing.food_id, 0.0) + ing.grams
         if grams_by_food:
             items[slot] = [MenuItem(food_id=fid, grams=g) for fid, g in grams_by_food.items()]
-    return MenuDraft(items=items)
+    return MenuDraft(items=items, planned_dishes=planned_dishes)

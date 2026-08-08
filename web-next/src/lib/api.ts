@@ -115,6 +115,45 @@ export interface ClinicalTargets {
   conflict_notes: string[]
 }
 
+export interface PatientObservation {
+  id: string
+  profile_id: string
+  observation_type: string
+  value: number
+  unit: string
+  measured_at: string
+  source: string
+  recorded_by: string
+  note: string | null
+  created_at: string
+}
+
+export interface ClinicalNote {
+  id: string
+  profile_id: string
+  author_id: string
+  note_type: string
+  content: string
+  visibility: 'internal' | 'care_team' | 'patient_visible'
+  version: number
+  created_at: string
+  updated_at: string
+}
+
+export interface ReviewEvent {
+  id: string
+  meal_plan_id: string
+  profile_id: string
+  reviewer_id: string
+  decision: string
+  reason: string | null
+  notes: string | null
+  menu_version: number
+  menu_hash: string | null
+  nutrition_hash: string | null
+  created_at: string
+}
+
 export class ApiError extends Error {
   constructor(public status: number, message: string) {
     super(message)
@@ -179,6 +218,14 @@ export function createApiClient(accessToken?: string) {
       request<PatientProfile>('/patients', { method: 'POST', body: JSON.stringify(data) }),
     updatePatient: (id: string, data: Partial<PatientProfile>) =>
       request<PatientProfile>(`/patients/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
+    listObservations: (id: string, observationType?: string) =>
+      request<PatientObservation[]>(`/patients/${id}/observations${observationType ? `?observation_type=${encodeURIComponent(observationType)}` : ''}`),
+    createObservation: (id: string, data: { observation_type: string; value: number; unit: string; measured_at: string; source?: string; note?: string }) =>
+      request<PatientObservation>(`/patients/${id}/observations`, { method: 'POST', body: JSON.stringify(data) }),
+    listClinicalNotes: (id: string) => request<ClinicalNote[]>(`/patients/${id}/notes`),
+    createClinicalNote: (id: string, data: { note_type: string; content: string; visibility: string }) =>
+      request<ClinicalNote>(`/patients/${id}/notes`, { method: 'POST', body: JSON.stringify(data) }),
+    listPatientReviewEvents: (id: string) => request<ReviewEvent[]>(`/patients/${id}/review-events`),
 
     // Targets
     computeTargets: (patientId: string) =>
@@ -208,5 +255,11 @@ export function createApiClient(accessToken?: string) {
         method: 'POST',
         body: JSON.stringify({ reason }),
       }),
+    listReviewHistory: (decision?: string, patientId?: string) => {
+      const params = new URLSearchParams()
+      if (decision) params.set('decision', decision)
+      if (patientId) params.set('patient_id', patientId)
+      return request<ReviewEvent[]>(`/reviews/history${params.size ? `?${params}` : ''}`)
+    },
   }
 }

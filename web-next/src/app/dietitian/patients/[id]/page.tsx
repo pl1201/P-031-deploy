@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { useParams } from 'next/navigation'
-import { createApiClient, type MealPlan, type PatientProfile } from '@/lib/api'
+import { createApiClient, type ClinicalNote, type MealPlan, type PatientObservation, type PatientProfile, type ReviewEvent } from '@/lib/api'
 import { getToken } from '@/lib/auth'
 
 const CONDITION_LABELS: Record<string, string> = {
@@ -33,20 +33,28 @@ export default function PatientDetailPage() {
   const { id } = useParams<{ id: string }>()
   const [patient, setPatient] = useState<PatientProfile | null>(null)
   const [plans, setPlans] = useState<MealPlan[]>([])
+  const [observations, setObservations] = useState<PatientObservation[]>([])
+  const [notes, setNotes] = useState<ClinicalNote[]>([])
+  const [reviewEvents, setReviewEvents] = useState<ReviewEvent[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
-  const [activeTab, setActiveTab] = useState<'overview' | 'plans'>('plans')
+  const [activeTab, setActiveTab] = useState<'overview' | 'observations' | 'plans' | 'notes' | 'reviews'>('overview')
+  const [noteContent, setNoteContent] = useState('')
+  const [savingNote, setSavingNote] = useState(false)
 
   useEffect(() => {
     const token = getToken()
     if (!token || !id) return
     let cancelled = false
     const api = createApiClient(token)
-    void Promise.all([api.getPatient(id), api.listMealPlans(id)])
-      .then(([profile, history]) => {
+    void Promise.all([api.getPatient(id), api.listMealPlans(id), api.listObservations(id), api.listClinicalNotes(id), api.listPatientReviewEvents(id)])
+      .then(([profile, history, observationHistory, clinicalNotes, reviewHistory]) => {
         if (cancelled) return
         setPatient(profile)
         setPlans(history.items)
+        setObservations(observationHistory)
+        setNotes(clinicalNotes)
+        setReviewEvents(reviewHistory)
       })
       .catch(e => { if (!cancelled) setError(e.message) })
       .finally(() => { if (!cancelled) setLoading(false) })
@@ -60,6 +68,19 @@ export default function PatientDetailPage() {
   const latestPlan = plans[0]
   const approvedCount = plans.filter(plan => plan.status === 'approved').length
   const pendingCount = plans.filter(plan => plan.status === 'pending_review').length
+
+  const handleCreateNote = async () => {
+    const token = getToken()
+    if (!token || !noteContent.trim()) return
+    setSavingNote(true)
+    try {
+      const note = await createApiClient(token).createClinicalNote(id, { note_type: 'follow_up', content: noteContent.trim(), visibility: 'care_team' })
+      setNotes(current => [note, ...current])
+      setNoteContent('')
+    } finally {
+      setSavingNote(false)
+    }
+  }
 
   return (
     <>
@@ -97,11 +118,14 @@ export default function PatientDetailPage() {
         </div>
 
         <div className="clinical-tabs" style={{ marginBottom: 18 }}>
-          <button className={`clinical-tab${activeTab === 'plans' ? ' active' : ''}`} onClick={() => setActiveTab('plans')}>Lịch sử thực đơn</button>
-          <button className={`clinical-tab${activeTab === 'overview' ? ' active' : ''}`} onClick={() => setActiveTab('overview')}>Thông tin lâm sàng</button>
+          <button className={`clinical-tab${activeTab === 'overview' ? ' active' : ''}`} onClick={() => setActiveTab('overview')}>Tổng quan lâm sàng</button>
+          <button className={`clinical-tab${activeTab === 'observations' ? ' active' : ''}`} onClick={() => setActiveTab('observations')}>Chỉ số & diễn biến</button>
+          <button className={`clinical-tab${activeTab === 'plans' ? ' active' : ''}`} onClick={() => setActiveTab('plans')}>Thực đơn</button>
+          <button className={`clinical-tab${activeTab === 'notes' ? ' active' : ''}`} onClick={() => setActiveTab('notes')}>Ghi chú chuyên gia</button>
+          <button className={`clinical-tab${activeTab === 'reviews' ? ' active' : ''}`} onClick={() => setActiveTab('reviews')}>Lịch sử phê duyệt</button>
         </div>
 
-        {activeTab === 'plans' ? (
+        {activeTab === 'plans' && (
           <section className="card">
             <div className="card-header"><div><h2 className="card-title">Lịch sử thực đơn</h2><p className="page-subtitle">Bao gồm bản đang sinh, chờ duyệt, đã duyệt và bị từ chối.</p></div><span className="badge badge-draft">{plans.length} bản</span></div>
             <div className="card-body">
@@ -119,7 +143,8 @@ export default function PatientDetailPage() {
               )}
             </div>
           </section>
-        ) : (
+        )}
+        {activeTab === 'overview' && (
           <section className="card">
             <div className="card-header"><h2 className="card-title">Thông tin phục vụ lập thực đơn</h2></div>
             <div className="card-body">
@@ -133,6 +158,29 @@ export default function PatientDetailPage() {
               </div>
               {Object.keys(patient.lab_values).length > 0 && <div style={{ marginTop: 22 }}><div className="section-heading"><h2>Chỉ số xét nghiệm</h2></div><div className="info-grid">{Object.entries(patient.lab_values).map(([key, value]) => <div className="info-tile" key={key}><span>{key}</span><strong>{value}</strong></div>)}</div></div>}
             </div>
+          </section>
+        )}
+        {activeTab === 'observations' && (
+          <section className="card">
+            <div className="card-header"><div><h2 className="card-title">Chỉ số và diễn biến</h2><p className="page-subtitle">Các phép đo được giữ theo thời gian, không ghi đè lịch sử.</p></div><span className="badge badge-draft">{observations.length} bản ghi</span></div>
+            <div className="card-body">
+              {observations.length === 0 ? <div className="empty-state"><div className="empty-title">Chưa có chỉ số theo thời gian</div></div> : <div className="audit-list">{observations.map(observation => <div className="audit-row" key={observation.id}><strong>{observation.observation_type.toUpperCase()}</strong><span><strong>{observation.value} {observation.unit}</strong><small className="text-muted" style={{ display: 'block' }}>{observation.source}</small></span><span>{new Date(observation.measured_at).toLocaleString('vi-VN')}</span><span className="text-muted">{observation.note || '—'}</span></div>)}</div>}
+            </div>
+          </section>
+        )}
+        {activeTab === 'notes' && (
+          <section className="card">
+            <div className="card-header"><div><h2 className="card-title">Ghi chú chuyên gia</h2><p className="page-subtitle">Ghi chú care team được tách khỏi ghi chú phê duyệt thực đơn.</p></div></div>
+            <div className="card-body">
+              <div className="form-group" style={{ marginBottom: 20 }}><label className="form-label" htmlFor="clinical-note">Thêm ghi chú theo dõi</label><textarea id="clinical-note" className="form-textarea" value={noteContent} onChange={event => setNoteContent(event.target.value)} placeholder="Đánh giá, mục tiêu hoặc nội dung cần theo dõi…" /><div style={{ display: 'flex', justifyContent: 'flex-end' }}><button className="btn btn-primary btn-sm" disabled={savingNote || !noteContent.trim()} onClick={handleCreateNote}>{savingNote ? 'Đang lưu…' : 'Lưu ghi chú'}</button></div></div>
+              <div className="patient-list">{notes.map(note => <article className="info-tile" key={note.id}><div style={{ display: 'flex', justifyContent: 'space-between', gap: 12 }}><strong>{note.note_type}</strong><span className="badge badge-draft">{note.visibility}</span></div><p style={{ marginTop: 10 }}>{note.content}</p><small className="text-muted" style={{ display: 'block', marginTop: 8 }}>{new Date(note.created_at).toLocaleString('vi-VN')}</small></article>)}</div>
+            </div>
+          </section>
+        )}
+        {activeTab === 'reviews' && (
+          <section className="card">
+            <div className="card-header"><div><h2 className="card-title">Lịch sử phê duyệt</h2><p className="page-subtitle">Dòng sự kiện append-only cho các quyết định chuyên gia.</p></div><span className="badge badge-draft">{reviewEvents.length} sự kiện</span></div>
+            <div className="audit-list">{reviewEvents.length === 0 ? <div className="empty-state"><div className="empty-title">Chưa có sự kiện phê duyệt mới</div><div className="empty-desc">Các quyết định sau khi nâng cấp backend sẽ xuất hiện tại đây.</div></div> : reviewEvents.map(event => <Link href={`/dietitian/reviews/${event.meal_plan_id}`} className="audit-row" key={event.id}><span className={`badge badge-${event.decision === 'approved' ? 'approved' : 'rejected'}`}>{event.decision === 'approved' ? 'Đã duyệt' : 'Từ chối'}</span><span className="font-mono text-sm">#{event.meal_plan_id.slice(0, 8)}</span><span>{new Date(event.created_at).toLocaleString('vi-VN')}</span><span>{event.notes || event.reason || 'Không có ghi chú'}</span><span>Phiên bản {event.menu_version}</span></Link>)}</div>
           </section>
         )}
       </div>

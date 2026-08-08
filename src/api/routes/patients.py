@@ -5,6 +5,7 @@ LLM: NO.
 
 from __future__ import annotations
 
+from datetime import datetime
 from typing import Literal
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
@@ -13,7 +14,7 @@ from sqlalchemy.orm import Session
 
 from src.api.security import CurrentUser, get_current_user, require_role
 from src.db.base import get_db
-from src.db.models import PatientAllergy, PatientMedication, PatientProfile, User
+from src.db.models import PatientAllergy, PatientMedication, PatientObservation, PatientProfile, User
 
 router = APIRouter(prefix="/patients", tags=["patients"])
 
@@ -120,7 +121,7 @@ def _get_owned_profile(db: Session, profile_id: str, user: CurrentUser) -> Patie
 def create_patient(
     payload: PatientProfileCreate,
     db: Session = Depends(get_db),
-    _user: CurrentUser = Depends(require_role("dietitian", "admin")),
+    user: CurrentUser = Depends(require_role("dietitian", "admin")),
 ) -> PatientProfileOut:
     target_user = db.get(User, payload.user_id)
     if target_user is None:
@@ -143,6 +144,18 @@ def create_patient(
     )
     db.add(profile)
     db.flush()  # cần profile.id trước khi tạo allergy/medication con
+    db.add(
+        PatientObservation(
+            profile_id=profile.id,
+            observation_type="weight",
+            value=payload.weight_kg,
+            unit="kg",
+            measured_at=datetime.utcnow(),
+            source="manual",
+            recorded_by=user.id,
+            note="Giá trị khởi tạo hồ sơ",
+        )
+    )
     _sync_allergies_and_medications(db, profile, payload.allergies, payload.medications)
     db.commit()
     db.refresh(profile)
@@ -169,6 +182,7 @@ def update_patient(
     profile = _get_owned_profile(db, profile_id, user)
 
     updates = payload.model_dump(exclude_unset=True)
+    previous_weight = profile.weight_kg
     if "conditions" in updates:
         profile.conditions = [c.model_dump() if hasattr(c, "model_dump") else c for c in payload.conditions or []]
         del updates["conditions"]
@@ -176,6 +190,19 @@ def update_patient(
     medications = updates.pop("medications", None)
     for field, value in updates.items():
         setattr(profile, field, value)
+    if "weight_kg" in updates and updates["weight_kg"] != previous_weight:
+        db.add(
+            PatientObservation(
+                profile_id=profile.id,
+                observation_type="weight",
+                value=updates["weight_kg"],
+                unit="kg",
+                measured_at=datetime.utcnow(),
+                source="manual",
+                recorded_by=user.id,
+                note="Cập nhật từ hồ sơ bệnh nhân",
+            )
+        )
     if allergies is not None or medications is not None:
         _sync_allergies_and_medications(
             db,
