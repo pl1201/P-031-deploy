@@ -48,6 +48,7 @@ def load_food_repository(path: Path | None = None) -> InMemoryFoodRepository:
                     id=int(row["id"]),
                     name_vi=row["name_vi"],
                     aliases=_split(row.get("aliases")),
+                    category=_opt_str(row.get("category")),
                     kcal_100g=float(row["kcal_100g"]),
                     protein_g=float(row["protein_g"]),
                     carb_g=float(row["carb_g"]),
@@ -119,6 +120,8 @@ def load_vn_dishes(path: Path | None = None, ingredients_path: Path | None = Non
             verified = (row.get("verified_by") or "").strip()
             if verified.upper().startswith("USDA FNDDS"):
                 continue  # khối bulk Mỹ lẫn trong dishes.csv, không phải món Việt
+            if row["dish_id"].upper().startswith("MENU-"):
+                continue  # đây là cả bữa mẫu từ Excel, không phải một món ăn cụ thể
             note = row.get("note") or ""
             if any(marker in note for marker in incomplete_recipe_markers):
                 continue  # công thức tự ghi nhận chưa đủ nguyên liệu — chờ R2 rà

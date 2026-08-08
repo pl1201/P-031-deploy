@@ -287,6 +287,26 @@ def _dish(dish_id: str, name_vi: str, ingredients: list[MenuItem]) -> DishCandid
     return DishCandidate(dish_id=dish_id, name_vi=name_vi, is_reviewed=False, ingredients=ingredients)
 
 
+def test_loader_loai_bo_bua_mau_khoi_catalog_mon():
+    from src.clinical.seeds import load_vn_dishes
+
+    dishes = load_vn_dishes()
+    assert dishes
+    assert all(not dish.dish_id.upper().startswith("MENU-") for dish in dishes)
+    assert all(not dish.name_vi.lower().startswith(("bữa sáng", "bữa trưa", "bữa tối")) for dish in dishes)
+
+
+def test_gia_vi_va_hat_co_tran_khau_phan_nho(foods):
+    from src.agents.optimizer import _max_grams_per_day, _max_grams_per_slot
+
+    spice = foods.all()[0].model_copy(update={"category": "gia vị"})
+    nut = foods.all()[0].model_copy(update={"category": "hạt"})
+    assert _max_grams_per_slot(spice) == 25
+    assert _max_grams_per_day(spice) == 50
+    assert _max_grams_per_slot(nut) == 50
+    assert _max_grams_per_day(nut) == 100
+
+
 def test_mon_hoan_chinh_duoc_chon_nguyen_ca_cong_thuc(foods):
     """Khi optimizer chọn một `DishCandidate`, TOÀN BỘ nguyên liệu của món phải
     xuất hiện trong draft — không được chọn nửa công thức."""

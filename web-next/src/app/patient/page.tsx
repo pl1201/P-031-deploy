@@ -75,16 +75,17 @@ export default function PatientDashboard() {
               {(['breakfast', 'lunch', 'dinner', 'snack'] as const).map(slot => {
                 const items = bySlot[slot]
                 if (!items?.length) return null
+                const dishItems = items.filter(item => item.dish_id)
                 return (
                   <div key={slot} className="card">
                     <div className="card-header">
                       <div>
                         <div className="slot-label">{SLOT_LABELS[slot]}</div>
                       </div>
-                      <div style={{ fontSize: 12, color: 'var(--c-muted)' }}>{items.length} món</div>
+                      <div style={{ fontSize: 12, color: 'var(--c-muted)' }}>{dishItems.length} món</div>
                     </div>
                     <div className="card-body" style={{ padding: '12px 24px' }}>
-                      {items.map(item => (
+                      {dishItems.map(item => (
                         <div key={item.id} className="dish-row">
                           <div className="dish-summary">
                             <div className="dish-name">{item.name_vi}</div>

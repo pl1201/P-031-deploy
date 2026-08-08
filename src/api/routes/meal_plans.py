@@ -107,7 +107,8 @@ class MealPlanOut(BaseModel):
             plan_date=plan.plan_date,
             status=plan.status,
             items=[
-                cls._item_out(i) for i in sorted(plan.items, key=lambda i: (i.slot, i.dish_id or "", i.food_id or 0))
+                cls._item_out(i)
+                for i in sorted(plan.items, key=lambda i: (i.slot, 0 if i.dish_id else 1, i.dish_id or "", i.food_id or 0))
             ],
             targets=plan.targets or {},
             computed_nutrition=plan.computed_nutrition or {},
