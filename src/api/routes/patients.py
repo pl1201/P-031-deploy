@@ -149,6 +149,26 @@ def create_patient(
     return PatientProfileOut.from_model(profile)
 
 
+# ⚠️ Phải khai báo TRƯỚC `/{profile_id}` — FastAPI khớp theo thứ tự khai báo,
+# đặt sau thì "me" bị hiểu là một profile_id và luôn trả 404.
+@router.get("/me", response_model=PatientProfileOut)
+def get_my_profile(
+    db: Session = Depends(get_db),
+    user: CurrentUser = Depends(get_current_user),
+) -> PatientProfileOut:
+    """Hồ sơ của chính người đang đăng nhập.
+
+    Cần cho mọi màn hình bệnh nhân: session chỉ có `user_id`, trong khi các API
+    dinh dưỡng đều khoá theo `profile_id`. Không có endpoint này thì bệnh nhân
+    không có cách nào biết `profile_id` của mình (`GET /patients` yêu cầu quyền
+    dietitian) — tức là không ghi được nhật ký.
+    """
+    profile = db.query(PatientProfile).filter(PatientProfile.user_id == user.id).first()
+    if profile is None:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "Bạn chưa có hồ sơ bệnh nhân")
+    return PatientProfileOut.from_model(profile)
+
+
 @router.get("/{profile_id}", response_model=PatientProfileOut)
 def get_patient(
     profile_id: str,

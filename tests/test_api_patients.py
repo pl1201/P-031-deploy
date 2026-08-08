@@ -138,3 +138,38 @@ def test_danh_sach_benh_nhan_chi_dietitian_goi_duoc(client, dietitian, patient_u
     assert r_dietitian.status_code == 200
     assert "items" in r_dietitian.json()
     assert "total" in r_dietitian.json()
+
+
+def test_benh_nhan_lay_duoc_ho_so_cua_chinh_minh(client):
+    """`/patients/me` — không có nó thì bệnh nhân không biết profile_id của mình.
+
+    Phải khai báo TRƯỚC `/{profile_id}`; nếu sai thứ tự, "me" bị hiểu là một
+    profile_id và endpoint luôn trả 404.
+    """
+    dt_id, dt_headers = _register_and_login(client, "dt_me@example.com", "dietitian")
+    bn_id, bn_headers = _register_and_login(client, "bn_me@example.com", "patient")
+
+    created = client.post(
+        "/api/v1/patients",
+        json={
+            "user_id": bn_id,
+            "age": 55,
+            "sex": "female",
+            "height_cm": 158,
+            "weight_kg": 58,
+            "activity_level": "light",
+            "conditions": [{"code": "T2DM", "stage": None}],
+        },
+        headers=dt_headers,
+    )
+    assert created.status_code == 201, created.text
+
+    r = client.get("/api/v1/patients/me", headers=bn_headers)
+    assert r.status_code == 200, r.text
+    assert r.json()["id"] == created.json()["id"]
+    assert r.json()["user_id"] == bn_id
+
+
+def test_chua_co_ho_so_thi_me_tra_404(client):
+    _, headers = _register_and_login(client, "bn_chua_hs@example.com", "patient")
+    assert client.get("/api/v1/patients/me", headers=headers).status_code == 404
