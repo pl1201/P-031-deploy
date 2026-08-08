@@ -1,5 +1,5 @@
 'use client'
-import { useEffect, useState, useCallback } from 'react'
+import { useEffect, useState } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { createApiClient, type MealPlan, type MealPlanItem, ApiError } from '@/lib/api'
@@ -83,6 +83,7 @@ export default function MealPlanReviewPage() {
   const [plan, setPlan] = useState<MealPlan | null>(null)
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
+  const [recomputingItem, setRecomputingItem] = useState<string | null>(null)
   const [error, setError] = useState('')
   const [toast, setToast] = useState('')
   const [toastType, setToastType] = useState<'success' | 'error'>('success')
@@ -98,26 +99,26 @@ export default function MealPlanReviewPage() {
     setTimeout(() => setToast(''), 3000)
   }
 
-  const loadPlan = useCallback(() => {
+  useEffect(() => {
     const token = getToken()
     if (!token || !id) return
-    setLoading(true)
-    createApiClient(token).getMealPlan(id as string)
+    let cancelled = false
+    void createApiClient(token).getMealPlan(id as string)
       .then(p => {
+        if (cancelled) return
         setPlan(p)
         const initial: Record<string, number> = {}
         p.items.forEach(item => { initial[item.id] = item.grams })
         setGramEdits(initial)
       })
-      .catch(e => setError(e.message))
-      .finally(() => setLoading(false))
+      .catch(e => { if (!cancelled) setError(e.message) })
+      .finally(() => { if (!cancelled) setLoading(false) })
+    return () => { cancelled = true }
   }, [id])
-
-  useEffect(() => { loadPlan() }, [loadPlan])
 
   const handleApprove = async () => {
     const token = getToken()
-    if (!token || !plan) return
+    if (!token || !plan || recomputingItem) return
     setSaving(true)
     try {
       const edits = Object.entries(gramEdits)
@@ -158,9 +159,35 @@ export default function MealPlanReviewPage() {
     }
   }
 
+  const handleFastRecompute = async (itemId: string) => {
+    const token = getToken()
+    if (!token || !plan) return
+    const grams = gramEdits[itemId]
+    const original = plan.items.find(item => item.id === itemId)
+    if (!original || original.grams === grams) return
+    setRecomputingItem(itemId)
+    try {
+      const updated = await createApiClient(token).recomputeMealPlan(plan.id, [{ item_id: itemId, grams }])
+      setPlan(updated)
+      setGramEdits(Object.fromEntries(updated.items.map(item => [item.id, item.grams])))
+      showToast(`Đã tính lại an toàn · ${updated.highest_risk}`)
+    } catch (e) {
+      showToast(e instanceof ApiError ? e.message : 'Không thể tính lại thực đơn', 'error')
+    } finally {
+      setRecomputingItem(null)
+    }
+  }
+
   const hardViolations = plan?.violations.filter(v => v.severity === 'hard') ?? []
   const softViolations = plan?.violations.filter(v => v.severity === 'soft') ?? []
-  const nutrition = plan?.computed_nutrition
+  const p0Findings = plan?.safety_findings.filter(f => f.risk_level === 'P0') ?? []
+  const p1Findings = plan?.safety_findings.filter(f => f.risk_level === 'P1') ?? []
+  // Older rows/API processes may still expose `{}` for plans stopped by the
+  // target gate. Treat incomplete nutrition as absent instead of rendering
+  // numeric fields and crashing on `undefined.toFixed()`.
+  const nutrition = plan?.computed_nutrition && Number.isFinite(plan.computed_nutrition.kcal)
+    ? plan.computed_nutrition
+    : null
 
   // Group items by slot
   const bySlot = plan?.items.reduce<Record<string, MealPlanItem[]>>((acc, item) => {
@@ -204,8 +231,8 @@ export default function MealPlanReviewPage() {
               <button
                 className="btn btn-primary"
                 onClick={() => setShowApproveDialog(true)}
-                disabled={saving || hardViolations.length > 0}
-                title={hardViolations.length > 0 ? 'Không thể duyệt khi còn vi phạm cứng' : ''}
+                disabled={saving || recomputingItem !== null || p0Findings.length > 0}
+                title={p0Findings.length > 0 ? 'Không thể duyệt khi còn cảnh báo P0' : ''}
               >
                 ✓ Duyệt thực đơn
               </button>
@@ -288,6 +315,8 @@ export default function MealPlanReviewPage() {
                             ...prev,
                             [item.id]: Number(e.target.value)
                           }))}
+                          onBlur={() => handleFastRecompute(item.id)}
+                          disabled={recomputingItem === item.id}
                         />
                       ) : (
                         <span className="food-grams">{item.grams} g</span>
@@ -300,6 +329,24 @@ export default function MealPlanReviewPage() {
           })}
 
           {/* Violations */}
+          {plan.safety_findings.length > 0 && (
+            <div className="card">
+              <div className="card-header">
+                <h2 className="card-title">Safety findings P0/P1/P2</h2>
+              </div>
+              <div className="card-body" style={{ display: 'grid', gap: 10 }}>
+                {plan.safety_findings.map((finding, index) => (
+                  <div key={`${finding.code}-${index}`} style={{ padding: '10px 12px', border: '1px solid var(--c-border)', borderRadius: 8 }}>
+                    <span className={`badge badge-${finding.risk_level === 'P0' ? 'hard' : 'soft'}`}>
+                      {finding.risk_level}
+                    </span>
+                    <span style={{ marginLeft: 8, fontSize: 13 }}>{finding.message_vi}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
           {plan.violations.length > 0 && (
             <div className="card">
               <div className="card-header">
@@ -413,8 +460,13 @@ export default function MealPlanReviewPage() {
             <p style={{ color: 'var(--c-muted)', fontSize: 14, marginTop: 8, marginBottom: 20 }}>
               Sau khi duyệt, thực đơn sẽ hiển thị cho bệnh nhân. Các chỉnh sửa gram sẽ được tính lại dinh dưỡng trên server.
             </p>
+            {p1Findings.length > 0 && (
+              <div className="safety-strip" style={{ marginBottom: 16 }}>
+                Có {p1Findings.length} cảnh báo P1; bắt buộc ghi rõ lý do override.
+              </div>
+            )}
             <div className="form-group" style={{ marginBottom: 20 }}>
-              <label className="form-label" htmlFor="approve-notes">Ghi chú chuyên gia <span style={{ fontWeight: 400, color: 'var(--c-muted)' }}>(không bắt buộc)</span></label>
+              <label className="form-label" htmlFor="approve-notes">Ghi chú chuyên gia <span style={{ fontWeight: 400, color: 'var(--c-muted)' }}>({p1Findings.length > 0 ? 'bắt buộc cho P1' : 'không bắt buộc'})</span></label>
               <textarea
                 id="approve-notes"
                 className="form-textarea"
@@ -426,7 +478,7 @@ export default function MealPlanReviewPage() {
             </div>
             <div style={{ display: 'flex', gap: 10, justifyContent: 'flex-end' }}>
               <button className="btn btn-secondary" onClick={() => setShowApproveDialog(false)}>Hủy</button>
-              <button className="btn btn-primary" onClick={handleApprove} disabled={saving}>
+              <button className="btn btn-primary" onClick={handleApprove} disabled={saving || (p1Findings.length > 0 && !notes.trim())}>
                 {saving ? <><span className="spinner" style={{ width: 14, height: 14 }} /> Đang duyệt...</> : '✓ Xác nhận duyệt'}
               </button>
             </div>
