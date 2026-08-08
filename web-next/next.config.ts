@@ -1,7 +1,7 @@
 import type { NextConfig } from "next";
 
-const nextConfig: NextConfig = {
-  output: "standalone",
-};
+// Vercel natively builds and deploys Next.js. `standalone` is only needed
+// when we package the app into our own Docker/Node runtime.
+const nextConfig: NextConfig = {};
 
 export default nextConfig;
