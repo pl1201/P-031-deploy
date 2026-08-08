@@ -135,3 +135,46 @@ def test_match_tra_ve_matched_on_de_soi_duoc(matcher: FoodMatcher) -> None:
     assert matcher.match("Cà rốt")[0].matched_on == "exact"
     assert matcher.match("cá lóc")[0].matched_on == "alias"
     assert matcher.match("thịt bò")[0].matched_on == "token"
+
+
+# --- Alias vùng miền trên dữ liệu seed THẬT --------------------------------
+
+
+def test_alias_vung_mien_tra_dung_mon_tren_seed_that() -> None:
+    """Người miền Nam gõ theo cách của họ vẫn phải ra đúng món.
+
+    Chạy trên `data/seeds/food_items.csv` thật chứ không phải fixture — alias
+    là dữ liệu, và test này bảo vệ chính dữ liệu đó khỏi bị sửa hỏng.
+    """
+    from src.agents.nodes.core import _la_khoi_usda_bulk
+    from src.clinical.seeds import load_food_repository
+
+    items = [f for f in load_food_repository().all() if not _la_khoi_usda_bulk(f)]
+    m = FoodMatcher(items)
+
+    mong_doi = {
+        "thịt heo ba chỉ": "Thịt lợn ba chỉ",
+        "bắp luộc": "Ngô luộc",
+        "đậu phộng hạt": "Lạc hạt",
+        "mè": "Vừng",
+        "khổ qua": "Mướp đắng",
+        "hột sen": "Hạt sen",
+    }
+    for go_vao, ky_vong in mong_doi.items():
+        best = m.best(go_vao)
+        assert best is not None, f"'{go_vao}' không khớp được món nào"
+        assert best.name_vi == ky_vong, f"'{go_vao}' ra '{best.name_vi}', mong đợi '{ky_vong}'"
+
+
+def test_bi_ngo_khong_bi_hieu_thanh_ngo() -> None:
+    """'Bí ngô' là quả bí đỏ, KHÔNG phải ngô — từ ghép không được tách ra thay.
+
+    Lỗi thật đã sinh ra khi chưa có luật chặn: 'Bí ngô' → alias 'bí bắp'.
+    """
+    from src.agents.nodes.core import _la_khoi_usda_bulk
+    from src.clinical.seeds import load_food_repository
+
+    items = [f for f in load_food_repository().all() if not _la_khoi_usda_bulk(f)]
+    for food in items:
+        for alias in food.aliases:
+            assert "bí bắp" not in alias.lower(), f"Alias sai trên '{food.name_vi}': {alias}"
