@@ -280,15 +280,16 @@ export default function MealPlanReviewPage() {
                 </div>
                 <div className="card-body" style={{ padding: '12px 24px' }}>
                   {items.map(item => (
-                    <div key={item.id} className="food-row">
+                    <div key={item.id} className="dish-row">
                       <div className="dish-summary">
-                        <div className="food-name">{item.name_vi}</div>
-                        <div style={{ marginTop: 4 }}>
+                        <div className="dish-name">{item.name_vi}</div>
+                        <div className="dish-meta">
+                          <span>Món ăn trong thực đơn</span>
                           <SourcePopover item={item} />
                         </div>
                         {item.ingredients.length > 0 && (
                           <details className="ingredient-details">
-                            <summary>Thành phần · {item.ingredients.length} nguyên liệu</summary>
+                            <summary>Dữ liệu tính khẩu phần · {item.ingredients.length} thành phần</summary>
                             <div className="ingredient-list">
                               {item.ingredients.map(ingredient => (
                                 <div key={ingredient.food_id} className="ingredient-line">
@@ -301,21 +302,12 @@ export default function MealPlanReviewPage() {
                         )}
                       </div>
                       {/* Gram editor */}
-                      {plan.status === 'pending_review' ? (
-                        <input
-                          type="number"
-                          className="form-input"
-                          style={{ width: 80, minHeight: 32, padding: '0 8px', fontSize: 13 }}
-                          value={gramEdits[item.id] ?? item.grams}
-                          min={1} max={2000} step={5}
-                          onChange={e => setGramEdits(prev => ({
-                            ...prev,
-                            [item.id]: Number(e.target.value)
-                          }))}
-                        />
-                      ) : (
-                        <span className="food-grams">{item.grams} g</span>
-                      )}
+                      <div className="dish-portion">
+                        <span style={{ display: 'block', fontFamily: 'var(--f-sans)', fontSize: 10, color: 'var(--c-muted)', marginBottom: 5 }}>Khẩu phần</span>
+                        {plan.status === 'pending_review' ? (
+                          <input type="number" className="form-input" aria-label={`Khẩu phần ${item.name_vi}`} style={{ width: 84, minHeight: 34, padding: '0 8px', fontSize: 13 }} value={gramEdits[item.id] ?? item.grams} min={1} max={2000} step={5} onChange={e => setGramEdits(prev => ({ ...prev, [item.id]: Number(e.target.value) }))} />
+                        ) : <span>{item.grams} g</span>}
+                      </div>
                     </div>
                   ))}
                 </div>

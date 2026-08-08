@@ -1,7 +1,7 @@
 'use client'
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
-import { createApiClient, type MealPlan } from '@/lib/api'
+import { createApiClient, type MealPlan, type PatientProfile } from '@/lib/api'
 import { getToken } from '@/lib/auth'
 
 function statusLabel(s: string) {
@@ -31,13 +31,17 @@ export default function DietitianDashboard() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [query, setQuery] = useState('')
+  const [patients, setPatients] = useState<Record<string, PatientProfile>>({})
 
   useEffect(() => {
     const token = getToken()
     if (!token) return
-    createApiClient(token)
-      .listPendingReviews()
-      .then(setPlans)
+    const api = createApiClient(token)
+    Promise.all([api.listPendingReviews(), api.listPatients(1, 100)])
+      .then(([pending, patientResult]) => {
+        setPlans(pending)
+        setPatients(Object.fromEntries(patientResult.items.map(patient => [patient.id, patient])))
+      })
       .catch(e => setError(e.message))
       .finally(() => setLoading(false))
   }, [])
@@ -45,6 +49,7 @@ export default function DietitianDashboard() {
   const hardCount = (plan: MealPlan) => plan.violations.filter(v => v.severity === 'hard').length
   const softCount = (plan: MealPlan) => plan.violations.filter(v => v.severity === 'soft').length
   const visiblePlans = plans.filter(plan => `${plan.id} ${plan.patient_id} ${plan.plan_date}`.toLowerCase().includes(query.toLowerCase()))
+  const createdTime = (createdAt: string) => new Date(createdAt).toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' })
 
   return (
     <>
@@ -62,49 +67,13 @@ export default function DietitianDashboard() {
       </div>
 
       <div className="page-body">
-        <section className="command-banner">
-          <div style={{ position: 'relative', zIndex: 1 }}>
-            <div style={{ fontSize: 10, letterSpacing: '.16em', textTransform: 'uppercase', color: 'rgba(255,255,255,.66)', marginBottom: 8 }}>Ưu tiên hôm nay</div>
-            <h2>Ra quyết định nhanh, vẫn giữ đầy đủ bằng chứng dinh dưỡng.</h2>
-            <p>Mỗi thực đơn được tính lại phía server, hiển thị nguồn dữ liệu và giữ dấu vết quyết định trước khi đến bệnh nhân.</p>
-          </div>
-          <div className="banner-meta">
-            <strong>{loading ? '—' : plans.length}</strong>
-            <span>thực đơn cần chuyên gia xử lý</span>
-          </div>
+        <section className="clinical-summary" aria-label="Tóm tắt hàng chờ">
+          <div className="clinical-summary-title">Ưu tiên xử lý hôm nay</div>
+          <div className="clinical-summary-item"><strong>{loading ? '—' : plans.length}</strong> chờ quyết định</div>
+          <div className="clinical-summary-item"><strong>{loading ? '—' : plans.reduce((acc, p) => acc + hardCount(p), 0)}</strong> vi phạm cứng</div>
+          <div className="clinical-summary-item"><strong>{loading ? '—' : plans.reduce((acc, p) => acc + softCount(p), 0)}</strong> cảnh báo</div>
+          <div className="clinical-summary-item"><strong>{loading ? '—' : plans.filter(p => hardCount(p) === 0).length}</strong> sẵn sàng duyệt</div>
         </section>
-
-        {/* Stats row */}
-        <div className="metric-grid">
-          <div className="metric-card" style={{ '--metric-color': '#1769c2' } as React.CSSProperties}>
-            <div className="metric-label">Chờ quyết định</div>
-            <div className="metric-value">
-              {loading ? '—' : plans.length}
-            </div>
-            <div className="metric-note">Tổng trong hàng chờ hiện tại</div>
-          </div>
-          <div className="metric-card" style={{ '--metric-color': '#c0392b' } as React.CSSProperties}>
-            <div className="metric-label">Vi phạm cứng</div>
-            <div className="metric-value" style={{ color: 'var(--c-red)' }}>
-              {loading ? '—' : plans.reduce((acc, p) => acc + hardCount(p), 0)}
-            </div>
-            <div className="metric-note">Cần xử lý trước khi duyệt</div>
-          </div>
-          <div className="metric-card" style={{ '--metric-color': '#e8b84b' } as React.CSSProperties}>
-            <div className="metric-label">Cảnh báo mềm</div>
-            <div className="metric-value" style={{ color: '#b17600' }}>
-              {loading ? '—' : plans.reduce((acc, p) => acc + softCount(p), 0)}
-            </div>
-            <div className="metric-note">Cần chuyên gia lưu ý</div>
-          </div>
-          <div className="metric-card" style={{ '--metric-color': '#239ac7' } as React.CSSProperties}>
-            <div className="metric-label">Sẵn sàng duyệt</div>
-            <div className="metric-value" style={{ color: 'var(--c-green2)' }}>
-              {loading ? '—' : plans.filter(p => hardCount(p) === 0).length}
-            </div>
-            <div className="metric-note">Không có vi phạm cứng</div>
-          </div>
-        </div>
 
         <div className="toolbar" style={{ marginBottom: 14 }}>
           <input className="search-box" aria-label="Tìm thực đơn" value={query} onChange={e => setQuery(e.target.value)} placeholder="Tìm mã thực đơn, bệnh nhân hoặc ngày…" />
@@ -145,12 +114,13 @@ export default function DietitianDashboard() {
             </div>
           ) : (
             <div className="table-wrap" style={{ borderRadius: 0, border: 'none', borderTop: '1px solid var(--c-border)' }}>
-              <table>
+              <table className="queue-table">
                 <thead>
                   <tr>
                     <th>Mã thực đơn</th>
                     <th>Bệnh nhân</th>
-                    <th>Ngày</th>
+                    <th>Hồ sơ lâm sàng</th>
+                    <th>Ngày / chờ</th>
                     <th>Vi phạm</th>
                     <th>Lần thử</th>
                     <th>Trạng thái</th>
@@ -166,9 +136,12 @@ export default function DietitianDashboard() {
                         </span>
                       </td>
                       <td>
-                        <span style={{ fontWeight: 500 }}>{plan.patient_id.slice(0, 12)}…</span>
+                        <Link href={`/dietitian/patients/${plan.patient_id}`} className="patient-identity">
+                          <strong>{patients[plan.patient_id] ? `${patients[plan.patient_id].sex === 'male' ? 'Nam' : 'Nữ'}, ${patients[plan.patient_id].age} tuổi` : 'Hồ sơ bệnh nhân'}</strong>
+                          <span>#{plan.patient_id.slice(0, 8)}</span>
+                        </Link>
                       </td>
-                      <td style={{ color: 'var(--c-ink2)' }}>{plan.plan_date}</td>
+                      <td><div>{plan.plan_date}</div><div className="text-muted" style={{ fontSize: 10, marginTop: 3 }}>Tạo lúc {createdTime(plan.created_at)}</div></td>
                       <td>
                         <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap' }}>
                           {hardCount(plan) > 0 && (
