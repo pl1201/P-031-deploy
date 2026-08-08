@@ -213,6 +213,7 @@ DETERMINISTIC_FILES = [
     "clinical/matching.py",
     "clinical/diary.py",
     "clinical/interactions.py",
+    "clinical/target_explainer.py",
     "agents/nodes/core.py",
 ]
 
