@@ -6,16 +6,9 @@ kết quả LLM thành MenuDraft đúng.
 
 from __future__ import annotations
 
-from dataclasses import replace
-
-from src.clinical.rules import compute_targets
-from src.clinical.rules import load_rules as _load_rules
+from src.clinical.rules import compute_targets, load_rules
 from src.config import Settings
 from src.services.llm import GeminiMenuGenerator, _LLMItem, _LLMSelection, _to_menu_draft
-
-
-def load_rules():
-    return [replace(rule, verify_status="verified") for rule in _load_rules(verified_only=False)]
 
 
 def test_schema_llm_khong_co_truong_dinh_duong():
