@@ -158,6 +158,7 @@ class FoodItem(BaseModel):
     id: int
     name_vi: str
     aliases: list[str] = Field(default_factory=list)
+    category: str | None = None
     kcal_100g: float = Field(ge=0, le=920)  # mỡ/dầu tinh ~884-902 kcal/100 g
     protein_g: float = Field(ge=0, le=90)
     carb_g: float = Field(ge=0, le=100)

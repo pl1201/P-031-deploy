@@ -267,6 +267,8 @@ export default function MealPlanReviewPage() {
           {(['breakfast', 'lunch', 'dinner', 'snack'] as const).map(slot => {
             const items = bySlot[slot]
             if (!items?.length) return null
+            const dishItems = items.filter(item => item.dish_id)
+            const supplementItems = items.filter(item => !item.dish_id)
             return (
               <div key={slot} className="card">
                 <div className="card-header">
@@ -275,11 +277,11 @@ export default function MealPlanReviewPage() {
                     <div className="slot-time">{SLOT_TIMES[slot]}</div>
                   </div>
                   <div style={{ textAlign: 'right', fontSize: 12, color: 'var(--c-muted)' }}>
-                    {items.length} món
+                    {dishItems.length} món
                   </div>
                 </div>
                 <div className="card-body" style={{ padding: '12px 24px' }}>
-                  {items.map(item => (
+                  {dishItems.map(item => (
                     <div key={item.id} className="dish-row">
                       <div className="dish-summary">
                         <div className="dish-name">{item.name_vi}</div>
@@ -295,8 +297,21 @@ export default function MealPlanReviewPage() {
                                 <div key={ingredient.food_id} className="ingredient-line">
                                   <span>{ingredient.name_vi}</span>
                                   <span>{ingredient.grams} g</span>
-                                </div>
-                              ))}
+                      </div>
+                    ))}
+                  {supplementItems.length > 0 && (
+                    <details className="ingredient-details">
+                      <summary>Dữ liệu cân bằng dinh dưỡng · {supplementItems.length} thực phẩm</summary>
+                      <div className="ingredient-list">
+                        {supplementItems.map(item => (
+                          <div key={item.id} className="ingredient-row">
+                            <span>{item.name_vi}</span>
+                            <span>{item.grams} g</span>
+                          </div>
+                        ))}
+                      </div>
+                    </details>
+                  )}
                             </div>
                           </details>
                         )}
