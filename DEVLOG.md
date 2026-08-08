@@ -611,6 +611,21 @@
 - Chi tiết: `docs/rules/60-agent-security.md`. **Chưa làm** (ghi ra để không tưởng là đã có): RAG chưa tồn tại nên chưa áp R60.1 cho `guideline_chunks`; chưa có rate limit cho endpoint gọi LLM; `AGENT_ACTIONS` mới là bảng khai báo, việc ép mọi call-site đi qua nó vẫn thủ công.
 - **Kiểm chứng:** `ruff` sạch; toàn bộ **295 test pass**.
 
+### [2026-08-08] · R3 · BE-07 — API nhật ký ăn uống + hàng chờ giải quyết OOV, và alias vùng miền
+
+- **Bối cảnh buộc phải thiết kế khác đi:** đo trực tiếp `data/seeds/` cho thấy chỉ **461 thực phẩm Việt** (`source=NIN`) và **30/7.745 dòng có alias**. Với vốn từ vựng đó, **món ngoài CSDL không phải ngoại lệ — nó là mặc định**. Nên luồng OOV phải là công dân hạng nhất chứ không phải nhánh lỗi.
+- **API (`src/api/routes/food_logs.py`):** `POST /food-logs` (bệnh nhân chỉ gõ TÊN món, không phải tự tra CSDL), `GET /food-logs?date=`, `GET /summary`, `GET /unresolved` (chuyên gia, kèm gợi ý matcher), `POST /{id}/resolve` (`map_to_existing` | `mark_no_data`).
+- **Hai bất biến, có test khoá:** (1) không bịa số — món chưa tra được thì `food_id=NULL`, `grams=NULL`, **không** cộng vào tổng; thiếu MỘT trong hai (không khớp được món, hoặc không rõ khẩu phần) là đủ để coi dòng đó chưa dùng được, vì biết ăn gì mà không biết bao nhiêu thì vẫn không cộng được (PRD FR-11). (2) không tin số client gửi — chuyên gia gán món thì `food_id` phải tồn tại thật, thiếu gram thì 422, đúng khuôn `approve_review`.
+- **`mark_no_data` là lựa chọn HỢP LỆ và được khuyến khích** (DEC-008), không phải đường cùng: dòng đó cố ý bị loại khỏi phép cộng kể cả khi đã có `food_id`.
+- **Matcher (`src/clinical/matching.py`) — hai lỗi thật bắt được khi đo trên seed, không phải lỗi giả định:**
+  - `loại` nằm trong stopword làm `Thịt bò loại I` rút gọn còn `{thịt, bò}` ⇒ truy vấn chung "thịt bò" **khớp chính xác** và tự động nhận đúng một hạng thịt cụ thể. Đó là **thay thế ngầm** mà chỉ R2 mới được quyết (hạng thịt khác nhau đáng kể về chất béo). Đã bỏ `loại` và `ăn` khỏi stopword.
+  - `phở bò` gợi ý `Bơ` và `cá lóc` gợi ý `Cá mè` — ứng viên 1 token ngắn bị thổi điểm khi bỏ dấu. Đã thêm luật: truy vấn ≥2 từ mà chỉ trùng 1 từ thì bỏ qua.
+- **Alias vùng miền:** thêm **134 alias cho 123 dòng** (lợn/heo, ngô/bắp, lạc/đậu phộng, vừng/mè, dứa/thơm/khóm, sắn/khoai mì, mướp đắng/khổ qua…). Đo sau khi áp: **9/12** từ khoá vùng miền khớp đúng, trước đó gần như 0. Ba ca còn trượt (`khoai mì luộc`, `cá lóc`, `bồ ngót`) **không phải lỗi matcher** — đã kiểm chứng cả ba nằm trong 370 dòng chưa có số liệu, và matcher **đúng** khi từ chối khớp món nó không có số.
+  - Lỗi sinh alias đã bắt được: **"Bí ngô" → "bí bắp"** (từ ghép "bí ngô" là quả bí đỏ, chứa "ngô" nhưng không phải ngô). Nay khoá dài hơn thắng khoá ngắn. Cố ý **loại** khỏi bảng: `mận` (Bắc = plum, Nam = quả roi — đúng một chiều, sai chiều ngược lại), `bắp→ngô` ("bắp" còn nghĩa bắp thịt).
+- **Đã sửa lỗ hổng:** `POST /api/v1/chat` trước đó **không có auth** — ai cũng gọi được và mỗi lần gọi có thể tiêu một lượt Gemini ở guardrail tầng 2. Thêm `get_current_user` + `guard_free_text()` dependency dùng chung cho mọi ô nhập tự do.
+- **Kiểm chứng:** migration chạy thật trên SQLite sạch (xác nhận `grams` nullable + đủ 8 cột mới); `validate_data.py` 0 lỗi; `ruff` sạch; toàn bộ **309 test pass**.
+- **Chưa làm:** Làn B (LLM mapper) chưa nối; frontend nhật ký + màn hàng chờ OOV chưa có; bảng `food_aliases` (học từ thao tác chuyên gia) chưa dựng — hiện alias vẫn nằm trong CSV.
+
 > ⚠️ **Ghi chú vận hành:** phiên này có **hai tiến trình agent chạy song song cùng thư mục** — `matching.py`/`diary.py`/`models.py` do phiên kia làm, và có lúc file bị sửa giữa hai lần chạy test cách nhau 4 giây khiến kết quả đo khác nhau. Đã chia việc lại theo yêu cầu của Hưng. Đội nên tránh chạy 2 agent cùng lúc trên cùng working tree.
 
 ---
