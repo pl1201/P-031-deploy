@@ -30,6 +30,7 @@ export default function DietitianDashboard() {
   const [plans, setPlans] = useState<MealPlan[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
+  const [query, setQuery] = useState('')
 
   useEffect(() => {
     const token = getToken()
@@ -43,15 +44,14 @@ export default function DietitianDashboard() {
 
   const hardCount = (plan: MealPlan) => plan.violations.filter(v => v.severity === 'hard').length
   const softCount = (plan: MealPlan) => plan.violations.filter(v => v.severity === 'soft').length
+  const visiblePlans = plans.filter(plan => `${plan.id} ${plan.patient_id} ${plan.plan_date}`.toLowerCase().includes(query.toLowerCase()))
 
   return (
     <>
       <div className="topbar">
         <div>
-          <p style={{ fontSize: 11, fontWeight: 700, letterSpacing: '.1em', textTransform: 'uppercase', color: 'var(--c-green2)', marginBottom: 4 }}>
-            TỔNG QUAN
-          </p>
-          <h1 className="page-title">Hàng chờ duyệt</h1>
+          <p className="page-kicker">Clinical command center</p>
+          <h1 className="page-title">Trung tâm duyệt thực đơn</h1>
         </div>
         <div className="topbar-actions">
           <span className="synthetic-label">DỮ LIỆU MÔ PHỎNG</span>
@@ -62,32 +62,53 @@ export default function DietitianDashboard() {
       </div>
 
       <div className="page-body">
+        <section className="command-banner">
+          <div style={{ position: 'relative', zIndex: 1 }}>
+            <div style={{ fontSize: 10, letterSpacing: '.16em', textTransform: 'uppercase', color: 'rgba(255,255,255,.66)', marginBottom: 8 }}>Ưu tiên hôm nay</div>
+            <h2>Ra quyết định nhanh, vẫn giữ đầy đủ bằng chứng dinh dưỡng.</h2>
+            <p>Mỗi thực đơn được tính lại phía server, hiển thị nguồn dữ liệu và giữ dấu vết quyết định trước khi đến bệnh nhân.</p>
+          </div>
+          <div className="banner-meta">
+            <strong>{loading ? '—' : plans.length}</strong>
+            <span>thực đơn cần chuyên gia xử lý</span>
+          </div>
+        </section>
+
         {/* Stats row */}
-        <div className="stats-grid" style={{ marginBottom: 28 }}>
-          <div className="stat-cell">
-            <div className="stat-label">Chờ duyệt</div>
-            <div className="stat-value" style={{ color: loading ? 'var(--c-muted)' : 'var(--c-orange)' }}>
+        <div className="metric-grid">
+          <div className="metric-card" style={{ '--metric-color': '#1769c2' } as React.CSSProperties}>
+            <div className="metric-label">Chờ quyết định</div>
+            <div className="metric-value">
               {loading ? '—' : plans.length}
             </div>
+            <div className="metric-note">Tổng trong hàng chờ hiện tại</div>
           </div>
-          <div className="stat-cell">
-            <div className="stat-label">Vi phạm cứng</div>
-            <div className="stat-value" style={{ color: 'var(--c-red)' }}>
+          <div className="metric-card" style={{ '--metric-color': '#c0392b' } as React.CSSProperties}>
+            <div className="metric-label">Vi phạm cứng</div>
+            <div className="metric-value" style={{ color: 'var(--c-red)' }}>
               {loading ? '—' : plans.reduce((acc, p) => acc + hardCount(p), 0)}
             </div>
+            <div className="metric-note">Cần xử lý trước khi duyệt</div>
           </div>
-          <div className="stat-cell">
-            <div className="stat-label">Cảnh báo mềm</div>
-            <div className="stat-value" style={{ color: 'var(--c-yellow)' }}>
+          <div className="metric-card" style={{ '--metric-color': '#e8b84b' } as React.CSSProperties}>
+            <div className="metric-label">Cảnh báo mềm</div>
+            <div className="metric-value" style={{ color: '#b17600' }}>
               {loading ? '—' : plans.reduce((acc, p) => acc + softCount(p), 0)}
             </div>
+            <div className="metric-note">Cần chuyên gia lưu ý</div>
           </div>
-          <div className="stat-cell">
-            <div className="stat-label">Cần xem xét</div>
-            <div className="stat-value" style={{ color: 'var(--c-purple)' }}>
-              {loading ? '—' : plans.filter(p => hardCount(p) > 0).length}
+          <div className="metric-card" style={{ '--metric-color': '#239ac7' } as React.CSSProperties}>
+            <div className="metric-label">Sẵn sàng duyệt</div>
+            <div className="metric-value" style={{ color: 'var(--c-green2)' }}>
+              {loading ? '—' : plans.filter(p => hardCount(p) === 0).length}
             </div>
+            <div className="metric-note">Không có vi phạm cứng</div>
           </div>
+        </div>
+
+        <div className="toolbar" style={{ marginBottom: 14 }}>
+          <input className="search-box" aria-label="Tìm thực đơn" value={query} onChange={e => setQuery(e.target.value)} placeholder="Tìm mã thực đơn, bệnh nhân hoặc ngày…" />
+          <span className="status-rail"><i /> Cập nhật theo dữ liệu API</span>
         </div>
 
         {/* Table */}
@@ -137,7 +158,7 @@ export default function DietitianDashboard() {
                   </tr>
                 </thead>
                 <tbody>
-                  {plans.map(plan => (
+                  {visiblePlans.map(plan => (
                     <tr key={plan.id}>
                       <td>
                         <span className="font-mono text-sm" style={{ color: 'var(--c-muted)' }}>

@@ -1,6 +1,7 @@
 'use client'
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
+import Link from 'next/link'
 import { createApiClient, type PatientProfile } from '@/lib/api'
 import { getToken } from '@/lib/auth'
 
@@ -78,14 +79,26 @@ export default function PatientsPage() {
   return (
     <>
       <div className="topbar">
-        <h1 className="page-title">Hồ sơ bệnh nhân</h1>
+        <div>
+          <p className="page-kicker">Patient intelligence</p>
+          <h1 className="page-title">Hồ sơ bệnh nhân</h1>
+        </div>
         <div className="topbar-actions">
           <span className="synthetic-label">DỮ LIỆU MÔ PHỎNG</span>
         </div>
       </div>
 
       <div className="page-body">
-        <input aria-label="Tìm hồ sơ hoặc bệnh lý" value={query} onChange={e => setQuery(e.target.value)} placeholder="Tìm theo mã hồ sơ hoặc bệnh lý" style={{ width: '100%', maxWidth: 420, marginBottom: 16 }} />
+        <div className="page-heading-row" style={{ marginBottom: 18 }}>
+          <div>
+            <h2 style={{ fontFamily: 'var(--f-serif)', fontSize: 26 }}>Danh sách đang theo dõi</h2>
+            <p className="page-subtitle">Mở hồ sơ để xem toàn bộ lịch sử thực đơn, chỉ số và quyết định chuyên gia.</p>
+          </div>
+          <span className="badge badge-approved">{patients.length} hồ sơ</span>
+        </div>
+        <div className="toolbar" style={{ marginBottom: 18 }}>
+          <input className="search-box" aria-label="Tìm hồ sơ hoặc bệnh lý" value={query} onChange={e => setQuery(e.target.value)} placeholder="Tìm mã hồ sơ hoặc bệnh lý…" />
+        </div>
         {loading ? (
           <div style={{ display: 'grid', placeItems: 'center', height: '50vh' }}>
             <span className="spinner" style={{ width: 32, height: 32, color: 'var(--c-green)' }} />
@@ -93,21 +106,13 @@ export default function PatientsPage() {
         ) : error ? (
           <div className="safety-strip safety-strip-error">{error}</div>
         ) : (
-          <div style={{ display: 'grid', gap: 16 }}>
+          <div className="patient-list">
             {patients.filter(p => `${p.id} ${p.conditions.map(c => c.code).join(' ')}`.toLowerCase().includes(query.toLowerCase())).map(p => (
-              <div key={p.id} className="card">
+              <div key={p.id} className="card patient-card">
                 <div className="patient-card-grid" style={{ display: 'grid', gridTemplateColumns: '56px 1fr auto', alignItems: 'center', gap: 20, padding: '20px 24px' }}>
                   {/* Avatar */}
-                  <div style={{
-                    width: 56, height: 56,
-                    borderRadius: '50% 50% 50% 14px',
-                    background: 'var(--c-green)',
-                    color: 'var(--c-lime)',
-                    fontFamily: 'var(--f-serif)',
-                    fontSize: 18,
-                    display: 'grid', placeItems: 'center',
-                  }}>
-                    {p.sex === 'male' ? '♂' : '♀'}
+                  <div className="patient-avatar-blue">
+                    {p.sex === 'male' ? 'N' : 'Nữ'}
                   </div>
 
                   {/* Info */}
@@ -143,16 +148,19 @@ export default function PatientsPage() {
                   </div>
 
                   {/* Action */}
-                  <button
-                    className="btn btn-primary"
-                    onClick={() => handleGeneratePlan(p)}
-                    disabled={generating !== null}
-                  >
-                    {generating === p.id
-                      ? <><span className="spinner" style={{ width: 14, height: 14 }} /> Đang sinh...</>
-                      : '+ Sinh thực đơn'
-                    }
-                  </button>
+                  <div className="patient-card-actions">
+                    <Link href={`/dietitian/patients/${p.id}`} className="btn btn-secondary">Xem hồ sơ</Link>
+                    <button
+                      className="btn btn-primary"
+                      onClick={() => handleGeneratePlan(p)}
+                      disabled={generating !== null}
+                    >
+                      {generating === p.id
+                        ? <><span className="spinner" style={{ width: 14, height: 14 }} /> Đang sinh...</>
+                        : '+ Sinh thực đơn'
+                      }
+                    </button>
+                  </div>
                 </div>
               </div>
             ))}
