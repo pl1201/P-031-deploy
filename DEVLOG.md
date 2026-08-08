@@ -547,6 +547,17 @@
 - **Chưa làm:** chưa thực hiện DAT-24 (mở rộng 500-1000 món) — đây là việc nhiều phiên, cần nguồn công thức thật có bản quyền rõ ràng, không phải việc 1 lượt.
 - **Thời gian:** ~25 phút.
 
+### [2026-08-08] · R2 · DAT-24 khảo sát khả thi 500 món + sửa bug lọc ứng viên loại nhầm 82 thực phẩm NIN
+
+- **Hưng yêu cầu:** nâng số món CP-SAT chọn được lên >500 món Việt.
+- **Nguồn công thức — đã tìm được, đủ quy mô:** `monngonmoingay.com` có **2.510 trang món ăn**, mỗi trang có JSON-LD `schema.org/Recipe` kèm **định lượng gram thật**; `robots.txt` cho phép tường minh `User-agent: ClaudeBot → Allow: /`. Viết `scripts/crawl_mnmn_dishes.py` (cache, delay, chỉ lấy sự kiện định lượng + URL nguồn, **không lưu văn bản công thức** — tránh vấn đề bản quyền). Lưu ý kỹ thuật: JSON-LD của site có ký tự xuống dòng thô trong chuỗi, phải `json.loads(..., strict=False)` nếu không mất ~2/3 số món. (Đối chiếu: `vietnamesecookbook.com` chỉ có 151 trang công thức — không đủ đạt 500.)
+- **🔴 Nút thắt thật KHÔNG phải nguồn công thức:** pilot 60 công thức — giả sử quy đổi được **mọi** đơn vị ước lệ (trái/củ/cây/muỗng…), tỷ lệ món có **đủ** nguyên liệu khớp `food_id` vẫn chỉ **3%**. Nhân lên 2.510 công thức ⇒ ~75 món, không đạt 500. Nghẽn nằm ở **kho nguyên liệu**, không ở công thức.
+- **🐛 Bug tìm được khi đào nguyên nhân:** `retrieve_context` lọc ứng viên bằng `id < 100_000` như proxy cho "thuộc khối USDA bulk". Proxy sai — script merge NIN 2017 cấp id nối tiếp dãy `fdc_id`, nên **82 thực phẩm Việt Nam thật của Viện Dinh dưỡng** (Vừng/mè, Cà rốt, Cải thìa, Cải soong, Giá đậu xanh/đậu tương, Ớt đỏ, Đậu tương, Sữa đậu nành…) nhận id ≥ 1.105.898 và **bị loại nhầm khỏi CP-SAT** — đúng nhóm nguyên liệu công thức món Việt cần nhất. Sửa: lọc theo `source` (`NIN`/`curated` luôn là ứng viên, bất kể id). **Ứng viên 439 → 521.** Thêm `tests/test_retrieve_context_candidates.py` (4 test hồi quy: NIN id lớn phải có mặt, khối USDA bulk vẫn phải bị loại, số ứng viên không được giảm, chặn dị ứng/không thích vẫn nguyên).
+- **Khoảng trống lớn nhất chưa khai thác:** **370 dòng `food_items.csv` bỏ trống hoàn toàn** — chính là danh sách nguyên liệu Việt curated gốc (Mì ăn liền, Bánh cuốn, Giò lụa, Chả quế, Cá lóc, Cá bống, Chao, Tương hột, Rau ngót…), và phần lớn nguyên liệu đang làm trượt món (`sườn non`, `giò sống`, `mực ống`, `thịt nạc vai`) nằm trong nhóm này. Lấp được ⇒ kho ứng viên 521 → ~890. **Cảnh báo:** khớp tên chính xác với `nin2017_extracted.json` chỉ ra 2/370 → phải tra tay/khớp mờ CÓ KIỂM SOÁT, không khớp mờ hàng loạt rồi tin luôn (gán nhầm "Cá lóc" sang "Cá lóc khô" là sai hoàn toàn về natri); trong 620 mục NIN 2017 chỉ 235 mục đủ macro + Na/K/P.
+- **Vì sao KHÔNG rút gọn bằng cách bỏ nguyên liệu chưa khớp:** `_dish_nutrient_totals()` tính tổng tuyệt đối cả món và CP-SAT dùng món như khối cố định (không co giãn khẩu phần). Thiếu nguyên liệu ⇒ món bị ghi nhận thấp hơn năng lượng thật ⇒ CP-SAT bù thêm nguyên liệu thô ⇒ **bệnh nhân ăn vượt ngưỡng**. Đúng bug đã sửa 2026-08-07 và là lý do PR #63 phải loại 17 món — không lặp lại để chạy theo số lượng.
+- **Chốt hướng (Hưng chọn):** mở rộng kho nguyên liệu trước, đo lại tỷ lệ khớp rồi mới tính tiếp — có thể không cần tới chính sách thay thế tên chung (`Thịt bò` → cắt nào) vốn là quyết định lâm sàng cần R2 ký.
+- **Chưa làm:** chưa crawl đầy đủ 2.510 công thức, chưa ghi dòng dữ liệu món nào vào `seeds/`. Kế hoạch chi tiết: `docs/DAT-24_kha_thi_500_mon.md`.
+
 ---
 
 ## 3. Quyết định kỹ thuật (Decision Log)
