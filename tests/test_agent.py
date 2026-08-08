@@ -210,6 +210,7 @@ DETERMINISTIC_FILES = [
     "clinical/nutrition.py",
     "clinical/validator.py",
     "clinical/models.py",
+    "clinical/matching.py",
     "agents/nodes/core.py",
 ]
 
