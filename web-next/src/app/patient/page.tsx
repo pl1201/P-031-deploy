@@ -85,30 +85,15 @@ export default function PatientDashboard() {
                     </div>
                     <div className="card-body" style={{ padding: '12px 24px' }}>
                       {items.map(item => (
-                        <div key={item.id} className="food-row">
+                        <div key={item.id} className="dish-row">
                           <div className="dish-summary">
-                            <div className="food-name">{item.name_vi}</div>
+                            <div className="dish-name">{item.name_vi}</div>
+                            <div className="dish-meta"><span>Món ăn đề xuất</span>{item.is_estimated && <span className="badge badge-estimated">Dữ liệu ước tính</span>}</div>
                             {item.is_estimated && (
-                              <span className="badge badge-estimated" style={{ marginTop: 4, display: 'inline-block' }}>
-                                Dữ liệu ước tính
-                              </span>
-                            )}
-                            {item.ingredients.length > 0 && (
-                              <details className="ingredient-details">
-                                <summary>Xem {item.ingredients.length} nguyên liệu</summary>
-                                <div className="ingredient-list">
-                                  {item.ingredients.map(ingredient => (
-                                    <div key={ingredient.food_id} className="ingredient-line">
-                                      <span>{ingredient.name_vi}</span>
-                                      <span>{ingredient.grams} g</span>
-                                    </div>
-                                  ))}
-                                </div>
-                              </details>
+                              <span className="sr-only">Khẩu phần có sử dụng dữ liệu ước tính.</span>
                             )}
                           </div>
-                          <span className="food-grams">{item.grams} g</span>
-                          <span className="source-chip" style={{ cursor: 'default' }}>{item.source}</span>
+                          <div className="dish-portion"><span style={{ display: 'block', fontFamily: 'var(--f-sans)', fontSize: 10, color: 'var(--c-muted)', marginBottom: 5 }}>Khẩu phần</span>{item.grams} g</div>
                         </div>
                       ))}
                     </div>

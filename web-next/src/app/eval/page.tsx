@@ -2,7 +2,6 @@
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { getSession } from '@/lib/auth'
-import Link from 'next/link'
 
 interface EvalResult {
   case_id: string
@@ -69,13 +68,12 @@ export default function EvalPage() {
   const pct = (v: number) => `${v.toFixed(1)}%`
 
   return (
-    <div style={{ padding: '36px', maxWidth: 960, margin: '0 auto' }}>
-      <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 32 }}>
-        <Link href="/dietitian" style={{ color: 'var(--c-muted)', fontSize: 13 }}>← Quay lại</Link>
-        <span style={{ color: 'var(--c-border2)' }}>/</span>
-        <h1 style={{ fontFamily: 'var(--f-serif)', fontSize: 28 }}>Báo cáo Eval</h1>
+    <>
+      <div className="topbar">
+        <div><p className="page-kicker">Model & safety operations</p><h1 className="page-title">Chất lượng hệ thống</h1></div>
         <span className="synthetic-label">DỮ LIỆU MÔ PHỎNG</span>
       </div>
+      <div className="page-body" style={{ maxWidth: 1200 }}>
 
       {loading ? (
         <div style={{ display: 'grid', placeItems: 'center', height: '40vh' }}>
@@ -208,6 +206,7 @@ export default function EvalPage() {
           </p>
         </>
       )}
-    </div>
+      </div>
+    </>
   )
 }

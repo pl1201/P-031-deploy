@@ -75,7 +75,7 @@ export default function PatientDetailPage() {
       </div>
 
       <div className="page-body">
-        <section className="command-banner" style={{ minHeight: 176 }}>
+        <section className="command-banner">
           <div style={{ position: 'relative', zIndex: 1 }}>
             <div style={{ display: 'flex', gap: 7, flexWrap: 'wrap', marginBottom: 12 }}>
               {patient.conditions.map(condition => <span key={condition.code} className="badge" style={{ color: '#0b4b8a', background: '#dff1ff', border: '1px solid rgba(255,255,255,.45)' }}>{CONDITION_LABELS[condition.code] ?? condition.code}{condition.stage ? ` · ${condition.stage}` : ''}</span>)}

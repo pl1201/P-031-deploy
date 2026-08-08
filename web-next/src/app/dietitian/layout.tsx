@@ -8,6 +8,7 @@ import { getSession, getToken, clearSession } from '@/lib/auth'
 const NAV: Array<{ href: string; label: string; icon: string; exact?: boolean; badge?: boolean }> = [
   { href: '/dietitian', label: 'Trung tâm duyệt', icon: '◉', exact: true, badge: true },
   { href: '/dietitian/patients', label: 'Hồ sơ bệnh nhân', icon: '◇' },
+  { href: '/dietitian/reviews', label: 'Nhật ký phê duyệt', icon: '✓' },
   { href: '/dietitian/eval', label: 'Chất lượng hệ thống', icon: '▥' },
 ]
 
