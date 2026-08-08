@@ -21,6 +21,11 @@ from __future__ import annotations
 from typing import Protocol
 
 from src.agents.state import MAX_RETRIES, NutriState
+from src.clinical.interactions import (
+    advisories_for,
+    check_drug_food_interactions,
+    load_drug_food_rules,
+)
 from src.clinical.models import (
     ClinicalTargets,
     MenuDraft,
@@ -193,14 +198,22 @@ def make_compute_nutrition(foods: FoodRepository):
 def make_validate(foods: FoodRepository, rules: list[ClinicalRule] | None = None):
     """Node: validate — LLM: NO. Guardrail tầng 3, fail closed."""
     rules = rules if rules is not None else load_rules()
+    # Nạp một lần khi dựng graph, không đọc CSV lại mỗi lần validate.
+    drug_food_rules = load_drug_food_rules()
 
     def validate_node(state: NutriState) -> dict:
         nutrition = state.get("computed_nutrition")
         draft = state["draft_menu"]
         if nutrition is None or draft is None:
             return {"violations": []}
+        profile = state["profile"]
         violations = validate_menu(nutrition, state["targets"], rules)
-        violations += check_allergies(draft, state["profile"], foods)
+        violations += check_allergies(draft, profile, foods)
+        # CLN-06: bảng 30 cặp tương tác đã seed từ lâu nhưng trước đây không có
+        # dòng code nào truy vấn — thuốc bệnh nhân đang dùng hoàn toàn không ảnh
+        # hưởng gì tới thực đơn sinh ra.
+        violations += check_drug_food_interactions(draft, profile, foods, drug_food_rules)
+        violations += advisories_for(profile, drug_food_rules)
         return {"violations": violations}
 
     return validate_node
