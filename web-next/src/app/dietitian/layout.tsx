@@ -2,18 +2,18 @@
 import { useEffect, useState } from 'react'
 import { useRouter, usePathname } from 'next/navigation'
 import Link from 'next/link'
-import { getSession, clearSession } from '@/lib/auth'
+import { createApiClient } from '@/lib/api'
+import { getSession, getToken, clearSession } from '@/lib/auth'
 
 const NAV: Array<{ href: string; label: string; icon: string; exact?: boolean; badge?: boolean }> = [
-  { href: '/dietitian', label: 'Hàng chờ duyệt', icon: '◎', exact: true, badge: true },
-  { href: '/dietitian/patients', label: 'Hồ sơ bệnh nhân', icon: '◈' },
-  { href: '/eval', label: 'Báo cáo Eval', icon: '◫' },
+  { href: '/dietitian', label: 'Trung tâm duyệt', icon: '◉', exact: true, badge: true },
+  { href: '/dietitian/patients', label: 'Hồ sơ bệnh nhân', icon: '◇' },
+  { href: '/dietitian/eval', label: 'Chất lượng hệ thống', icon: '▥' },
 ]
 
 export default function DietitianLayout({ children }: { children: React.ReactNode }) {
   const router = useRouter()
   const pathname = usePathname()
-  const [userName, setUserName] = useState('BS. Chuyên gia')
   const [pendingCount, setPendingCount] = useState<number | null>(null)
   const [menuOpen, setMenuOpen] = useState(false)
 
@@ -22,6 +22,10 @@ export default function DietitianLayout({ children }: { children: React.ReactNod
     if (!session || (session.role !== 'dietitian' && session.role !== 'admin')) {
       router.replace('/login')
       return
+    }
+    const token = getToken()
+    if (token) {
+      void createApiClient(token).listPendingReviews().then(items => setPendingCount(items.length)).catch(() => undefined)
     }
   }, [router])
 
@@ -41,12 +45,12 @@ export default function DietitianLayout({ children }: { children: React.ReactNod
           <div className="brand-icon">V</div>
           <div>
             <div className="brand-name">VNUTRICARE</div>
-            <div className="brand-sub">Clinical AI</div>
+            <div className="brand-sub">Clinical Nutrition Intelligence</div>
           </div>
         </div>
 
         <nav>
-          <div className="nav-label">Không gian làm việc</div>
+          <div className="nav-label">Clinical workspace</div>
           {NAV.map(item => (
             <Link
               key={item.href}
@@ -66,9 +70,9 @@ export default function DietitianLayout({ children }: { children: React.ReactNod
         </nav>
 
         <div className="sidebar-footer">
-          <div className="user-avatar">{userName.split(' ').map(w => w[0]).join('').slice(0, 2)}</div>
+          <div className="user-avatar">BC</div>
           <div>
-            <div className="user-name">{userName}</div>
+            <div className="user-name">BS. Chuyên gia</div>
             <div className="user-role">Chuyên gia dinh dưỡng</div>
           </div>
           <button
@@ -83,8 +87,8 @@ export default function DietitianLayout({ children }: { children: React.ReactNod
         <div style={{ marginTop: 16, padding: '12px', display: 'flex', alignItems: 'center', gap: 8, background: 'rgba(0,0,0,.1)', borderRadius: 'var(--r-md)' }}>
           <div className="status-dot" />
           <div>
-            <div style={{ fontSize: 11, fontWeight: 600 }}>Hệ thống sẵn sàng</div>
-            <div style={{ fontSize: 9, color: 'rgba(255,255,255,.4)', marginTop: 2 }}>Clinical engine v0.3</div>
+            <div style={{ fontSize: 11, fontWeight: 600 }}>Clinical engine online</div>
+            <div style={{ fontSize: 9, color: 'rgba(255,255,255,.5)', marginTop: 2 }}>API · Nutrition · Audit</div>
           </div>
         </div>
       </aside>

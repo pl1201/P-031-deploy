@@ -1,7 +1,7 @@
 'use client'
 import { useEffect, useState } from 'react'
 import { createApiClient, type MealPlan, type MealPlanItem } from '@/lib/api'
-import { getToken, getSession } from '@/lib/auth'
+import { getToken } from '@/lib/auth'
 
 const SLOT_LABELS: Record<string, string> = {
   breakfast: 'Bữa sáng',

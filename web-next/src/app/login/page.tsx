@@ -1,5 +1,4 @@
 'use client'
-import type { Metadata } from 'next'
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { createApiClient, ApiError } from '@/lib/api'

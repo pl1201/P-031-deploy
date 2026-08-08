@@ -1,5 +1,5 @@
 'use client'
-import { useEffect, useState, useCallback } from 'react'
+import { useEffect, useState } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { createApiClient, type MealPlan, type MealPlanItem, ApiError } from '@/lib/api'
@@ -98,22 +98,28 @@ export default function MealPlanReviewPage() {
     setTimeout(() => setToast(''), 3000)
   }
 
-  const loadPlan = useCallback(() => {
+  useEffect(() => {
     const token = getToken()
     if (!token || !id) return
-    setLoading(true)
-    createApiClient(token).getMealPlan(id as string)
+
+    let cancelled = false
+    void createApiClient(token).getMealPlan(id as string)
       .then(p => {
+        if (cancelled) return
         setPlan(p)
         const initial: Record<string, number> = {}
         p.items.forEach(item => { initial[item.id] = item.grams })
         setGramEdits(initial)
       })
-      .catch(e => setError(e.message))
-      .finally(() => setLoading(false))
-  }, [id])
+      .catch(e => {
+        if (!cancelled) setError(e.message)
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false)
+      })
 
-  useEffect(() => { loadPlan() }, [loadPlan])
+    return () => { cancelled = true }
+  }, [id])
 
   const handleApprove = async () => {
     const token = getToken()
@@ -189,6 +195,8 @@ export default function MealPlanReviewPage() {
         <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
           <Link href="/dietitian" style={{ color: 'var(--c-muted)', fontSize: 13 }}>← Hàng chờ</Link>
           <span style={{ color: 'var(--c-border2)' }}>/</span>
+          <Link href={`/dietitian/patients/${plan.patient_id}`} style={{ color: 'var(--c-green2)', fontSize: 13 }}>Hồ sơ bệnh nhân</Link>
+          <span style={{ color: 'var(--c-border2)' }}>/</span>
           <span style={{ fontFamily: 'var(--f-mono)', fontSize: 13, color: 'var(--c-muted)' }}>#{plan.id.slice(0, 8)}</span>
         </div>
         <div className="topbar-actions">
@@ -222,6 +230,22 @@ export default function MealPlanReviewPage() {
       <div className="page-body" style={{ display: 'grid', gridTemplateColumns: '1fr 340px', gap: 24, alignItems: 'start' }}>
         {/* Left — meal plan */}
         <div style={{ display: 'grid', gap: 20 }}>
+          <section className="card" style={{ padding: '16px 18px' }} aria-label="Quy trình duyệt thực đơn">
+            <div className="review-progress-grid">
+              {[
+                ['01', 'Đã sinh', 'Món và định lượng'],
+                ['02', 'Đã kiểm định', hardViolations.length ? 'Cần xử lý' : 'Đạt kiểm tra cứng'],
+                ['03', 'Chuyên gia duyệt', plan.status === 'pending_review' ? 'Đang chờ' : plan.status],
+                ['04', 'Bệnh nhân nhận', plan.status === 'approved' ? 'Đã sẵn sàng' : 'Sau khi duyệt'],
+              ].map(([step, label, detail]) => (
+                <div key={step} style={{ padding: '10px 12px', borderRadius: 11, background: 'var(--c-surface)', border: '1px solid var(--c-border)' }}>
+                  <div className="page-kicker" style={{ marginBottom: 3 }}>{step}</div>
+                  <div style={{ fontSize: 12, fontWeight: 700 }}>{label}</div>
+                  <div style={{ fontSize: 10, color: 'var(--c-muted)', marginTop: 3 }}>{detail}</div>
+                </div>
+              ))}
+            </div>
+          </section>
           {/* Safety strip */}
           {hardViolations.length > 0 && (
             <div className="safety-strip safety-strip-error">
