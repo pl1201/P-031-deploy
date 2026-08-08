@@ -638,6 +638,17 @@
 
 > ⚠️ **Ghi chú vận hành:** phiên này có **hai tiến trình agent chạy song song cùng thư mục** — `matching.py`/`diary.py`/`models.py` do phiên kia làm, và có lúc file bị sửa giữa hai lần chạy test cách nhau 4 giây khiến kết quả đo khác nhau. Đã chia việc lại theo yêu cầu của Hưng. Đội nên tránh chạy 2 agent cùng lúc trên cùng working tree.
 
+### [2026-08-08] · R3 · Review nhánh đồng đội + phát hiện khẩn về Supabase dùng chung
+
+- **Mở PR review-only** (không merge) cho 2 nhánh đồng đội chưa có PR: `nam-dev` → [#68](https://github.com/AI20K-Build-Phase-Cohort-3/P-031/pull/68), `ui-main` → [#69](https://github.com/AI20K-Build-Phase-Cohort-3/P-031/pull/69). Đã comment trên đúng dòng cho từng phát hiện.
+- **`nam-dev` — 3 phát hiện thật (đã kiểm chứng, `nam-dev` đang ngang bằng `main` nên diff đáng tin):**
+  1. 🔴 `load_rules()` đổi default `verified_only=True` sẽ làm `compute_targets()` trả về **RỖNG cho mọi bệnh nhân** — xác nhận trực tiếp cả 21 dòng `clinical_rules.csv` đang `to_verify`, không dòng nào `verified`. Đồng đội đã biết (tự viết test xác nhận), nhưng cần thống nhất chính sách chung với CLN-06 của PR #67 (hạ severity thay vì lọc sạch) trước khi cả hai cùng lên `main`.
+  2. 🔴 `src/clinical/interactions.py` trùng đường dẫn với PR #67, API khác hẳn nhau — cần đồng đội biết để hợp nhất, tránh ghi đè mất công.
+  3. Alembic 2 head song song với migration `food_logs` của PR #67 (cùng `down_revision=aedef0ff7743`) — cần migration merge trước khi cả hai lên `main`.
+- **`ui-main` — tự đính chính một nhận định sai:** ban đầu kết luận nhánh này "khôi phục lại bug CP-SAT thiếu năng lượng đã sửa" dựa trên `git diff` 2-cây trực tiếp. Kiểm tra lại bằng `gh pr diff` (theo merge-base thật) thì **sai** — merge-base của `ui-main` là một commit **trước khi** fix đó được thêm vào `main`, `ui-main` không hề đụng vùng code đó. Đã sửa lại PR #69 + xin lỗi công khai trên PR. Diff thật chỉ có: loại `MENU-*` khỏi ứng viên `dish_foods` (hợp lý) + `display_name` tương thích ngược — không có vấn đề.
+- **🔴 Phát hiện khẩn khi kiểm tra Supabase thật (chỉ SELECT, không ghi gì):** DB dùng chung của cả team hiện đang ở revision **`e63b8c4f1a32`** — đúng tip chain migration của `nam-dev`. Nghĩa là ai đó đã chạy `alembic upgrade head` với nhánh `nam-dev` (chưa merge) thẳng lên Supabase chung. Hệ quả: bảng `meal_plans` đã có đủ cột mới của `nam-dev`, nhưng **bảng `food_logs` vẫn là schema CŨ** (`grams NOT NULL`, thiếu `dish_id`/`slot`/`match_status`...) — **migration `food_logs` của PR #67 (đã merge vào `main`) chưa từng chạy trên Supabase**. API nhật ký ăn uống của BE-07 sẽ lỗi thật nếu chạy với Supabase (mới chỉ test qua bằng SQLite). Đã báo trên PR #68, **không tự chạy thêm gì lên Supabase** để tránh làm rối thêm — cần một migration merge nối `b7c214e93a08` với `e63b8c4f1a32`, chỉ một người chạy `upgrade head`.
+- **Dữ liệu bệnh nhân `data/patients/`:** đọc `manifest.yaml` — cả 4 dataset (2.020 dòng) đều `enabled: false`, 3/4 `Quarantined` (license/de-identification chưa xác minh). **Không nạp vào DB** — đường dữ liệu bệnh nhân thật của sản phẩm chỉ có 6 hồ sơ mô phỏng từ `scripts/seed_demo_users.py`. Muốn dùng 4 dataset này cần một ticket riêng xác minh license trước, không tự ý mở khoá trong lượt này.
+
 ---
 
 ## 3. Quyết định kỹ thuật (Decision Log)
