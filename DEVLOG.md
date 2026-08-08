@@ -581,6 +581,38 @@
 - **Đã ghi:** `data/seeds/dishes.mnmn.csv` (4 món, `verified_by=pending`), `dish_ingredients.mnmn.csv`, `dishes.mnmn.rejected.csv` (396 món kèm lý do từng món) — file staging riêng, **chưa nhập vào `dishes.csv`**.
 - **Kiểm chứng:** `validate_data.py` 0 lỗi; `ruff` sạch.
 
+### [2026-08-08] · R1/R3 · Vá lỗ hổng auth `/chat` + lỗ hổng guardrail "ngừng uống thuốc"
+
+- **Bug 1 — `/chat` không có auth:** `async def chat(payload: ChatRequest)` không có `Depends` nào. Ai cũng gọi được, và mỗi lần gọi có thể tiêu một lượt Gemini ở guardrail tầng 2. Đây là endpoint duy nhất nhận văn bản tự do nên cũng là bề mặt tấn công rẻ nhất. Đã thêm `Depends(get_current_user)` + 4 test hồi quy.
+- **🔴 Bug 2 — phát hiện KHI viết test cho bug 1:** guardrail bỏ lọt ý định tự ngừng thuốc. `"tôi có nên ngừng metformin không"` bị chặn, nhưng `"tôi muốn ngừng UỐNG metformin, ăn gì thay thế?"` **lọt hoàn toàn** — pattern cũ bắt buộc tên thuốc đứng ngay sau động từ, chỉ một chữ "uống" chen vào là thoát. Danh sách hoạt chất của pattern này cũng chỉ có 2 tên trong khi pattern "liều thuốc" có 14, nên `"giảm liều atorvastatin"` cũng lọt. Đã gom `_DRUG_NAMES` dùng chung (23 hoạt chất) + cho phép động từ chen giữa. Đo lại: **6/6 câu nguy hiểm bị chặn, 0/6 câu ăn uống bình thường bị chặn nhầm**.
+- Thêm `guard_free_text()` dependency factory để mọi ô nhập tự do sau này đều đi qua guardrail — thiếu nó nhìn thấy ngay ở chữ ký hàm, thay vì gọi `check_guardrail()` rải rác rồi quên một chỗ.
+
+### [2026-08-08] · R2 · CLN-06 — tương tác thuốc–thực phẩm, bảng 30 cặp cuối cùng cũng được dùng
+
+- Bảng `drug_food_interactions` đã seed từ lâu nhưng **chưa một dòng code nào truy vấn** — thuốc bệnh nhân đang dùng hoàn toàn không ảnh hưởng gì tới thực đơn sinh ra.
+- **Đọc kỹ 30 dòng thì thấy chúng chia làm hai loại khác hẳn nhau**, và chỉ một loại được phép sinh cảnh báo tự động: 24 dòng theo **tên món cụ thể** (bưởi, rau ngót, rượu bia) → khớp chắc chắn, `evidence` chỉ đích danh món đã kích hoạt; 6 dòng theo **nhóm chất** ("thực phẩm giàu kali") → muốn tự phát hiện phải có ngưỡng, mà ngưỡng là quyết định lâm sàng. Loại 2 trả về qua `advisories_for()` và **nói thẳng là hệ thống chưa tự kiểm tra được**.
+- **`verify_status`:** cả 30 dòng đang `to_verify` trong khi PRD FR-14 nói chỉ kích hoạt rule đã verified. Bỏ hẳn thì giấu mất cảnh báo warfarin/vitamin K thật; cho chặn cứng thì một rule chưa ai rà có quyền chặn thực đơn. Chốt: **vẫn cảnh báo nhưng không bao giờ HARD khi chưa verified**, và nói rõ trong câu chữ. R2 đổi `verify_status='verified'` thì cặp `high` tự động lên HARD.
+- 18 test mới.
+
+### [2026-08-08] · R3 · BE-07 — migration `food_logs`, nới `grams` thành nullable
+
+- Với kho chỉ 461 thực phẩm Việt, món ngoài CSDL là **trường hợp mặc định**. Bệnh nhân gõ "canh rau tập tàng, 1 bát" mà không tra được đơn vị "bát" thì **không có** con số gram nào đúng — schema cũ bắt buộc `grams NOT NULL` tức là ép bịa số (RULE-2/DEC-008).
+- Thêm cột truy vết: `match_status` (unmatched/auto/llm/expert/no_data), `match_confidence`, `portion_qty`, `portion_unit`, `grams_source_ref`, `dish_id`, `slot`, `note_vi`. `portion_qty/unit` giữ **nguyên văn** mô tả người dùng kể cả khi đã quy đổi được, để chuyên gia đối chiếu lại cách quy đổi.
+- Dòng có sẵn trước migration đều có `food_id` thật nên được gán `match_status='expert'`, không lọt vào hàng chờ giải quyết. `downgrade()` **xoá** dòng `grams IS NULL` thay vì điền số bịa để lách NOT NULL, và ghi rõ cảnh báo mất dữ liệu.
+- Đã chạy thật `alembic upgrade head` trên SQLite sạch: 15 cột đúng, `grams` nullable, 3 index.
+
+### [2026-08-08] · R1 · SEC-01 — kiểm soát quyền hạn agent (Controlled Agent Security)
+
+- **🔴 Lỗ hổng đã dựng lại được, không phải giả định:** `_candidates_text()` nội suy thẳng `food.name_vi` vào prompt, cùng định dạng phẳng với chính hướng dẫn của hệ thống. Mà tên món **không** phải dữ liệu tin cậy: ~6.900 dòng import bulk USDA + nội dung crawl web (`scripts/crawl_mnmn_dishes.py` — chính chúng ta crawl vào), cộng hành động `create_food_item` cho phép gõ tên tự do. Một tên món chứa `\n\n` + "QUY TẮC MỚI:" tách thành **4 dòng** trong prompt, đọc y hệt một khối chỉ thị mới. **Đã chứng minh test bắt đúng lỗi bằng cách gỡ lớp phòng thủ ra → test đỏ.**
+- **Ba tầng phòng thủ độc lập:** (1) `sanitize_untrusted()` làm phẳng xuống dòng/ký tự điều khiển + chuẩn hoá NFKC (chặn né bộ dò bằng ký tự đồng hình) + cắt độ dài; (2) `fence()` rào khối dữ liệu ngoài có nhãn + `scan_for_injection()` ghi log; (3) `assert_no_egress()` **chặn cứng** secret (Google key/JWT/DB URL/giá trị trong `Settings`) và PII (email/điện thoại/CCCD/BHYT theo CLAUDE.md §3).
+- **Điểm quan trọng nhất, ghi thành R60.0:** prompt **không phải** cơ chế an toàn. Injection thành công tuyệt đối cũng chỉ khiến agent chọn món kém — LLM vẫn chỉ trả được `food_id + grams` qua structured output, mọi con số do Python tính lại từ SQL, rồi `validate_menu()` và RULE-3 chặn tiếp. Nên chính sách là: **injection thì log và chạy tiếp** (chặn theo mẫu chuỗi sẽ tạo false positive làm hỏng luồng), **rò rỉ thì chặn cứng** (vì rò rỉ không có hàng rào nào phía sau).
+- **Cổng duyệt:** `AGENT_ACTIONS` khai báo 9 hành động theo 3 mức rủi ro. Hành động **chưa khai báo mặc định là HIGH** (fail closed) — thêm tính năng mà quên khai báo thì bị chặn chứ không chạy tự do. Mọi hành động HIGH bắt buộc ghi `requires_role` (có test ép).
+- **Red-team:** 39 test theo attack taxonomy 7 lớp, kèm test tự kiểm `test_moi_lop_tan_cong_deu_co_test` (thêm lớp mới mà quên test thì CI đỏ) và bộ đối trọng "không được báo động giả" với tên món thật.
+- Chi tiết: `docs/rules/60-agent-security.md`. **Chưa làm** (ghi ra để không tưởng là đã có): RAG chưa tồn tại nên chưa áp R60.1 cho `guideline_chunks`; chưa có rate limit cho endpoint gọi LLM; `AGENT_ACTIONS` mới là bảng khai báo, việc ép mọi call-site đi qua nó vẫn thủ công.
+- **Kiểm chứng:** `ruff` sạch; toàn bộ **295 test pass**.
+
+> ⚠️ **Ghi chú vận hành:** phiên này có **hai tiến trình agent chạy song song cùng thư mục** — `matching.py`/`diary.py`/`models.py` do phiên kia làm, và có lúc file bị sửa giữa hai lần chạy test cách nhau 4 giây khiến kết quả đo khác nhau. Đã chia việc lại theo yêu cầu của Hưng. Đội nên tránh chạy 2 agent cùng lúc trên cùng working tree.
+
 ---
 
 ## 3. Quyết định kỹ thuật (Decision Log)
