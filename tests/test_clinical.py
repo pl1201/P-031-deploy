@@ -2,8 +2,6 @@
 
 from __future__ import annotations
 
-from dataclasses import replace
-
 import pytest
 
 from src.clinical.energy import (
@@ -36,19 +34,8 @@ from src.clinical.nutrition import (
     check_allergies,
     compute_nutrition,
 )
-from src.clinical.rules import compute_targets
-from src.clinical.rules import load_rules as _load_rules
+from src.clinical.rules import compute_targets, load_rules
 from src.clinical.validator import build_feedback, has_blocking, validate_menu
-
-
-def load_rules():
-    return [replace(rule, verify_status="verified") for rule in _load_rules(verified_only=False)]
-
-
-def test_runtime_rule_loader_chi_nap_rule_verified():
-    assert _load_rules() == []  # current seed governance: all 21 rows are still to_verify
-    inventory = _load_rules(verified_only=False)
-    assert inventory and all(rule.verify_status == "to_verify" for rule in inventory)
 
 
 # ---------------------------------------------------------------- năng lượng

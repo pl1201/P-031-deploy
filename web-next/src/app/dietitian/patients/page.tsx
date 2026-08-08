@@ -1,7 +1,6 @@
 'use client'
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import Link from 'next/link'
 import { createApiClient, type PatientProfile } from '@/lib/api'
 import { getToken } from '@/lib/auth'
 
@@ -144,21 +143,16 @@ export default function PatientsPage() {
                   </div>
 
                   {/* Action */}
-                  <div style={{ display: 'flex', gap: 8 }}>
-                    <Link className="btn btn-secondary" href={`/dietitian/patients/${p.id}`}>
-                      Xem hồ sơ
-                    </Link>
-                    <button
-                      className="btn btn-primary"
-                      onClick={() => handleGeneratePlan(p)}
-                      disabled={generating !== null}
-                    >
-                      {generating === p.id
-                        ? <><span className="spinner" style={{ width: 14, height: 14 }} /> Đang sinh...</>
-                        : '+ Sinh thực đơn'
-                      }
-                    </button>
-                  </div>
+                  <button
+                    className="btn btn-primary"
+                    onClick={() => handleGeneratePlan(p)}
+                    disabled={generating !== null}
+                  >
+                    {generating === p.id
+                      ? <><span className="spinner" style={{ width: 14, height: 14 }} /> Đang sinh...</>
+                      : '+ Sinh thực đơn'
+                    }
+                  </button>
                 </div>
               </div>
             ))}

@@ -7,8 +7,6 @@ Dữ liệu thật phải đến từ NIN hoặc USDA kèm source_ref có thật
 
 from __future__ import annotations
 
-from dataclasses import replace
-
 import pytest
 from fastapi.testclient import TestClient
 from sqlalchemy import create_engine
@@ -29,13 +27,6 @@ from src.clinical.models import (
 from src.clinical.nutrition import InMemoryFoodRepository
 
 FIXTURE_REF = "TEST-FIXTURE (dữ liệu giả, không dùng lâm sàng)"
-
-
-@pytest.fixture
-def verified_rules():
-    from src.clinical.rules import load_rules
-
-    return [replace(rule, verify_status="verified") for rule in load_rules(verified_only=False)]
 
 
 def _food(fid, name, kcal, pro, carb, fat, fib, na, k, p, purine, allergens=(), aliases=()):
@@ -162,22 +153,10 @@ def db_session():
 
 
 @pytest.fixture
-def client(db_session, monkeypatch, verified_rules):
+def client(db_session):
     """`TestClient` với `get_db` override sang `db_session` — không chạm DB thật."""
-    from src.agents.nodes import core as core_nodes
-    from src.api.routes import targets as target_routes
-    from src.clinical.rules import compute_targets as compute_clinical_targets
     from src.db.base import get_db
     from src.main import app
-
-    # Integration tests use explicitly trusted fixture copies. Production still
-    # fails closed because every seed rule remains ``to_verify``.
-    monkeypatch.setattr(core_nodes, "load_rules", lambda *args, **kwargs: verified_rules)
-    monkeypatch.setattr(
-        target_routes,
-        "compute_targets_with_rule_gate",
-        lambda profile: (compute_clinical_targets(profile, verified_rules), []),
-    )
 
     def _override_get_db():
         yield db_session

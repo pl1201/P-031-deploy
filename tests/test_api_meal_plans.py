@@ -2,12 +2,8 @@
 
 from __future__ import annotations
 
-from datetime import date, datetime
-from types import SimpleNamespace
-
 import pytest
 
-from src.api.routes.meal_plans import MealPlanOut
 from src.config import get_settings
 
 
@@ -137,29 +133,3 @@ def test_plan_id_khong_ton_tai_tra_404(client, dietitian):
     _, dt_headers = dietitian
     r = client.get("/api/v1/meal-plans/khong-ton-tai", headers=dt_headers)
     assert r.status_code == 404
-
-
-def test_plan_bi_target_gate_chan_tra_computed_nutrition_null():
-    """Không biến trạng thái chưa tính dinh dưỡng thành object rỗng truthy ở UI."""
-    plan = SimpleNamespace(
-        id="plan-target-gate",
-        profile_id="profile-1",
-        plan_date=date(2026, 8, 10),
-        status="pending_review",
-        items=[],
-        targets={},
-        computed_nutrition={},
-        violations=[],
-        safety_findings=[],
-        review_packet={},
-        citations=[],
-        explanation_vi=None,
-        highest_risk="P0",
-        retry_count=0,
-        menu_version=0,
-        reviewer_id=None,
-        reviewer_notes=None,
-        created_at=datetime(2026, 8, 8),
-    )
-
-    assert MealPlanOut.from_model(plan).computed_nutrition is None

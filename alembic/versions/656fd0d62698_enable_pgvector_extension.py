@@ -1,4 +1,14 @@
+"""enable pgvector extension (chuẩn bị DAT-06 — guideline_chunks.embedding)
 
+Revision ID: 656fd0d62698
+Revises: 5394cb31dc4e
+Create Date: 2026-08-07 00:00:00.000000
+
+Chỉ áp dụng trên Postgres (Supabase) — bỏ qua trên SQLite (dev/test/CI),
+nơi vốn không có khái niệm extension và guideline_chunks.embedding vẫn ở
+dạng JSON (xem TODO trong src/db/base.py). Theo ADR-008: bật extension qua
+migration Alembic, không bật tay qua Supabase Studio UI.
+"""
 from typing import Sequence, Union
 
 from alembic import op
