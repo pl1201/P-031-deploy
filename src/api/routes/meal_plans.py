@@ -236,6 +236,37 @@ def _run_graph_and_persist(
         if draft is not None:
             session.query(MealPlanItem).filter(MealPlanItem.plan_id == plan_id).delete()
             for slot, menu_items in draft.items.items():
+                residual_grams = {menu_item.food_id: menu_item.grams for menu_item in menu_items}
+                planned_dishes = draft.planned_dishes.get(slot, [])
+                for planned_dish in planned_dishes:
+                    dish_row = session.get(Dish, planned_dish.dish_id)
+                    if dish_row is None:
+                        raise ValueError(f"Không tìm thấy món đã chọn: {planned_dish.dish_id}")
+                    recipe_grams = sum(part.grams for part in dish_row.ingredients)
+                    if recipe_grams <= 0:
+                        raise ValueError(f"Món không có định lượng công thức: {planned_dish.dish_id}")
+                    session.add(
+                        MealPlanItem(
+                            plan_id=plan_id,
+                            slot=slot.value,
+                            dish_id=planned_dish.dish_id,
+                            grams=planned_dish.serving_grams,
+                        )
+                    )
+                    scale = planned_dish.serving_grams / recipe_grams
+                    for part in dish_row.ingredients:
+                        residual_grams[part.food_id] = residual_grams.get(part.food_id, 0.0) - part.grams * scale
+
+                # CP-SAT vẫn có thể dùng một lượng thực phẩm bổ sung ngoài món
+                # để đạt target. Chỉ lưu phần dư thật; nguyên liệu thuộc món đã
+                # được biểu diễn bởi dish_id và không xuất hiện thành dòng UI.
+                if planned_dishes:
+                    for food_id, grams in residual_grams.items():
+                        if grams > 0.1:
+                            session.add(
+                                MealPlanItem(plan_id=plan_id, slot=slot.value, food_id=food_id, grams=round(grams, 1))
+                            )
+                    continue
                 for menu_item in menu_items:
                     # `dish_foods` chỉ khớp khi generator thật sự chọn NGUYÊN
                     # món qua kho món-tổng-hợp (gemini thuần); CP-SAT/hybrid

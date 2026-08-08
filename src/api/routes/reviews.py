@@ -7,19 +7,18 @@ from __future__ import annotations
 
 from datetime import UTC, datetime
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Query, status
 from pydantic import BaseModel, Field
 from sqlalchemy.orm import Session
 
 from src.api.routes.meal_plans import MealPlanOut, meal_plan_load_options
 from src.api.security import CurrentUser, require_role
-from src.clinical.dishes import load_dish_food_repository
 from src.clinical.models import ClinicalTargets, MealSlot, MenuDraft, MenuItem
 from src.clinical.nutrition import compute_nutrition
 from src.clinical.seeds import load_food_repository
 from src.clinical.validator import has_blocking, validate_menu
 from src.db.base import get_db
-from src.db.models import AuditLog, MealPlan
+from src.db.models import AuditLog, MealPlan, MealPlanReviewEvent
 
 router = APIRouter(prefix="/reviews", tags=["reviews"])
 
@@ -55,6 +54,38 @@ class RejectRequest(BaseModel):
     reason: str = Field(min_length=10)
 
 
+class ReviewEventOut(BaseModel):
+    id: str
+    meal_plan_id: str
+    profile_id: str
+    reviewer_id: str
+    decision: str
+    reason: str | None
+    notes: str | None
+    menu_version: int
+    menu_hash: str | None
+    nutrition_hash: str | None
+    created_at: datetime
+
+    model_config = {"from_attributes": True}
+
+
+@router.get("/history", response_model=list[ReviewEventOut])
+def list_review_history(
+    decision: str | None = Query(default=None),
+    patient_id: str | None = Query(default=None),
+    limit: int = Query(default=100, ge=1, le=500),
+    db: Session = Depends(get_db),
+    _user: CurrentUser = Depends(require_role("dietitian", "admin")),
+) -> list[MealPlanReviewEvent]:
+    query = db.query(MealPlanReviewEvent)
+    if decision:
+        query = query.filter(MealPlanReviewEvent.decision == decision)
+    if patient_id:
+        query = query.filter(MealPlanReviewEvent.profile_id == patient_id)
+    return query.order_by(MealPlanReviewEvent.created_at.desc()).limit(limit).all()
+
+
 def _get_pending_plan(db: Session, plan_id: str) -> MealPlan:
     plan = db.get(MealPlan, plan_id)
     if plan is None:
@@ -85,15 +116,23 @@ def approve_review(
 
         # RULE-1: không tin số gram do reviewer gửi để tính lại dinh dưỡng — luôn
         # gọi lại compute_nutrition/validate_menu trên server từ food_id+grams.
-        dish_foods = load_dish_food_repository()
         legacy_foods = load_food_repository()
         draft = MenuDraft()
         for item in plan.items:
-            candidate_id = dish_foods.food_id_for_dish(item.dish_id) if item.dish_id else item.food_id
-            if candidate_id is None:
+            if item.dish is not None:
+                recipe_grams = sum(part.grams for part in item.dish.ingredients)
+                if recipe_grams <= 0:
+                    raise HTTPException(status.HTTP_422_UNPROCESSABLE_ENTITY, "Món ăn không còn định lượng công thức")
+                scale = item.grams / recipe_grams
+                for part in item.dish.ingredients:
+                    draft.items.setdefault(MealSlot(item.slot), []).append(
+                        MenuItem(food_id=part.food_id, grams=part.grams * scale)
+                    )
+                continue
+            if item.food_id is None:
                 raise HTTPException(status.HTTP_422_UNPROCESSABLE_ENTITY, "Món ăn không còn trong dữ liệu công thức")
-            draft.items.setdefault(MealSlot(item.slot), []).append(MenuItem(food_id=candidate_id, grams=item.grams))
-        nutrition = compute_nutrition(draft, dish_foods if all(i.dish_id for i in plan.items) else legacy_foods)
+            draft.items.setdefault(MealSlot(item.slot), []).append(MenuItem(food_id=item.food_id, grams=item.grams))
+        nutrition = compute_nutrition(draft, legacy_foods)
         targets = ClinicalTargets.model_validate(plan.targets)
         violations = validate_menu(nutrition, targets)
 
@@ -111,9 +150,25 @@ def approve_review(
     plan.status = "approved"
     plan.reviewer_id = user.id
     plan.reviewer_notes = payload.notes
+    plan.approved_menu_version = plan.menu_version
+    plan.approved_menu_hash = plan.menu_hash
+    plan.approved_nutrition_hash = plan.nutrition_hash
 
     after = {"items": [{"id": i.id, "grams": i.grams} for i in plan.items], "status": plan.status}
     db.add(AuditLog(at=datetime.now(UTC), actor_id=user.id, action="approve", before=before, after=after))
+    db.add(
+        MealPlanReviewEvent(
+            meal_plan_id=plan.id,
+            profile_id=plan.profile_id,
+            reviewer_id=user.id,
+            decision="approved",
+            notes=payload.notes,
+            menu_version=plan.menu_version,
+            menu_hash=plan.menu_hash,
+            nutrition_hash=plan.nutrition_hash,
+            created_at=datetime.now(UTC),
+        )
+    )
     db.commit()
     db.refresh(plan)
     return MealPlanOut.from_model(plan)
@@ -140,6 +195,19 @@ def reject_review(
             action="reject",
             before=before,
             after={"status": plan.status, "reason": payload.reason},
+        )
+    )
+    db.add(
+        MealPlanReviewEvent(
+            meal_plan_id=plan.id,
+            profile_id=plan.profile_id,
+            reviewer_id=user.id,
+            decision="rejected",
+            reason=payload.reason,
+            menu_version=plan.menu_version,
+            menu_hash=plan.menu_hash,
+            nutrition_hash=plan.nutrition_hash,
+            created_at=datetime.now(UTC),
         )
     )
     db.commit()

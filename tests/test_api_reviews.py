@@ -5,7 +5,7 @@ from __future__ import annotations
 import pytest
 
 from src.config import get_settings
-from src.db.models import AuditLog
+from src.db.models import AuditLog, MealPlanReviewEvent
 
 
 def _register_and_login(client, email, role, password="matkhau123"):
@@ -91,6 +91,9 @@ def test_duyet_ghi_audit_log(client, dietitian, pending_plan, db_session):
     logs = db_session.query(AuditLog).filter(AuditLog.action == "approve").all()
     assert len(logs) == 1
     assert logs[0].after["status"] == "approved"
+    events = db_session.query(MealPlanReviewEvent).filter(MealPlanReviewEvent.meal_plan_id == plan_id).all()
+    assert len(events) == 1
+    assert events[0].decision == "approved"
 
 
 def test_duyet_sua_gram_tinh_lai_dinh_duong(client, dietitian, pending_plan):

@@ -34,6 +34,7 @@ from sqlalchemy import (
     DateTime,
     Float,
     ForeignKey,
+    Index,
     Integer,
     String,
     Text,
@@ -80,6 +81,9 @@ class PatientProfile(Base):
     allergies: Mapped[list[PatientAllergy]] = relationship(back_populates="profile")
     meal_plans: Mapped[list[MealPlan]] = relationship(back_populates="profile")
     food_logs: Mapped[list[FoodLog]] = relationship(back_populates="profile")
+    observations: Mapped[list[PatientObservation]] = relationship(back_populates="profile")
+    clinical_notes: Mapped[list[ClinicalNote]] = relationship(back_populates="profile")
+    review_events: Mapped[list[MealPlanReviewEvent]] = relationship(back_populates="profile")
 
 
 class PatientMedication(Base):
@@ -306,6 +310,29 @@ class MealPlan(Base):
     reviewer_id: Mapped[str | None] = mapped_column(ForeignKey("users.id"), nullable=True)
     reviewer_notes: Mapped[str | None] = mapped_column(Text, nullable=True)
     trace_id: Mapped[str | None] = mapped_column(String(100), nullable=True)
+    highest_risk: Mapped[str] = mapped_column(String(4), default="none")
+    menu_version: Mapped[int] = mapped_column(Integer, default=0)
+    approved_menu_version: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    menu_hash: Mapped[str | None] = mapped_column(String(64), nullable=True)
+    nutrition_hash: Mapped[str | None] = mapped_column(String(64), nullable=True)
+    approved_menu_hash: Mapped[str | None] = mapped_column(String(64), nullable=True)
+    approved_nutrition_hash: Mapped[str | None] = mapped_column(String(64), nullable=True)
+    safety_findings: Mapped[list] = mapped_column(JSON, default=list)
+    review_packet: Mapped[dict] = mapped_column(JSON, default=dict)
+    citations: Mapped[list] = mapped_column(JSON, default=list)
+    explanation_vi: Mapped[str | None] = mapped_column(Text, nullable=True)
+    run_id: Mapped[str | None] = mapped_column(String(36), nullable=True)
+    profile_snapshot_hash: Mapped[str | None] = mapped_column(String(64), nullable=True)
+    profile_version: Mapped[str | None] = mapped_column(String(32), nullable=True)
+    rule_version: Mapped[str | None] = mapped_column(String(32), nullable=True)
+    food_data_version: Mapped[str | None] = mapped_column(String(64), nullable=True)
+    interaction_version: Mapped[str | None] = mapped_column(String(32), nullable=True)
+    prompt_version: Mapped[str | None] = mapped_column(String(32), nullable=True)
+    attempt_history: Mapped[list] = mapped_column(JSON, default=list)
+    node_timings_ms: Mapped[dict] = mapped_column(JSON, default=dict)
+    token_usage: Mapped[dict] = mapped_column(JSON, default=dict)
+    last_error: Mapped[dict | None] = mapped_column(JSON, nullable=True)
+    audit_events: Mapped[list] = mapped_column(JSON, default=list)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
 
     profile: Mapped[PatientProfile] = relationship(back_populates="meal_plans")
@@ -349,6 +376,70 @@ class FoodLog(Base):
     profile: Mapped[PatientProfile] = relationship(back_populates="food_logs")
 
 
+class PatientObservation(Base):
+    """Giá trị lâm sàng theo thời gian; không ghi đè lịch sử trong profile JSON."""
+
+    __tablename__ = "patient_observations"
+    __table_args__ = (Index("ix_patient_observations_profile_type_measured", "profile_id", "observation_type", "measured_at"),)
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=_uuid)
+    profile_id: Mapped[str] = mapped_column(ForeignKey("patient_profiles.id"))
+    observation_type: Mapped[str] = mapped_column(String(50))
+    value: Mapped[float] = mapped_column(Float)
+    unit: Mapped[str] = mapped_column(String(30))
+    measured_at: Mapped[datetime] = mapped_column(DateTime)
+    source: Mapped[str] = mapped_column(String(30), default="manual")
+    recorded_by: Mapped[str] = mapped_column(ForeignKey("users.id"))
+    note: Mapped[str | None] = mapped_column(Text, nullable=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+
+    profile: Mapped[PatientProfile] = relationship(back_populates="observations")
+
+
+class ClinicalNote(Base):
+    """Ghi chú theo hồ sơ với visibility rõ ràng cho care team/bệnh nhân."""
+
+    __tablename__ = "clinical_notes"
+    __table_args__ = (Index("ix_clinical_notes_profile_created", "profile_id", "created_at"),)
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=_uuid)
+    profile_id: Mapped[str] = mapped_column(ForeignKey("patient_profiles.id"))
+    author_id: Mapped[str] = mapped_column(ForeignKey("users.id"))
+    note_type: Mapped[str] = mapped_column(String(30), default="follow_up")
+    content: Mapped[str] = mapped_column(Text)
+    visibility: Mapped[str] = mapped_column(String(20), default="care_team")
+    version: Mapped[int] = mapped_column(Integer, default=1)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+    updated_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+
+    profile: Mapped[PatientProfile] = relationship(back_populates="clinical_notes")
+
+
+class MealPlanReviewEvent(Base):
+    """Append-only decision history; trạng thái hiện tại trên MealPlan chỉ là projection."""
+
+    __tablename__ = "meal_plan_review_events"
+    __table_args__ = (
+        Index("ix_review_events_profile_created", "profile_id", "created_at"),
+        Index("ix_review_events_plan_created", "meal_plan_id", "created_at"),
+        Index("ix_review_events_decision_created", "decision", "created_at"),
+    )
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=_uuid)
+    meal_plan_id: Mapped[str] = mapped_column(ForeignKey("meal_plans.id"))
+    profile_id: Mapped[str] = mapped_column(ForeignKey("patient_profiles.id"))
+    reviewer_id: Mapped[str] = mapped_column(ForeignKey("users.id"))
+    decision: Mapped[str] = mapped_column(String(30))
+    reason: Mapped[str | None] = mapped_column(Text, nullable=True)
+    notes: Mapped[str | None] = mapped_column(Text, nullable=True)
+    menu_version: Mapped[int] = mapped_column(Integer, default=0)
+    menu_hash: Mapped[str | None] = mapped_column(String(64), nullable=True)
+    nutrition_hash: Mapped[str | None] = mapped_column(String(64), nullable=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+
+    profile: Mapped[PatientProfile] = relationship(back_populates="review_events")
+
+
 class AuditLog(Base):
     """Append-only theo R20.16/BE-08 — KHÔNG có API xoá/sửa ở tầng ứng dụng."""
 
@@ -364,6 +455,7 @@ class AuditLog(Base):
 
 __all__ = [
     "AuditLog",
+    "ClinicalNote",
     "Dish",
     "DishIngredient",
     "ClinicalRule",
@@ -373,8 +465,10 @@ __all__ = [
     "GuidelineChunk",
     "MealPlan",
     "MealPlanItem",
+    "MealPlanReviewEvent",
     "PatientAllergy",
     "PatientMedication",
+    "PatientObservation",
     "PatientProfile",
     "ServingSize",
     "User",
