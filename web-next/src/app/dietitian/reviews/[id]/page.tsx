@@ -182,11 +182,6 @@ export default function MealPlanReviewPage() {
   const softViolations = plan?.violations.filter(v => v.severity === 'soft') ?? []
   const p0Findings = plan?.safety_findings.filter(f => f.risk_level === 'P0') ?? []
   const p1Findings = plan?.safety_findings.filter(f => f.risk_level === 'P1') ?? []
-  // Rule-catalogue findings are managed separately from errors in this meal plan.
-  const ruleGovernanceFindings = plan?.safety_findings.filter(f => f.category === 'unverified_rule') ?? []
-  const clinicalP0Findings = p0Findings.filter(f => f.category !== 'unverified_rule')
-  const hasMealBlocker = hardViolations.length > 0 || clinicalP0Findings.length > 0
-  const hasRuleGovernanceBlocker = ruleGovernanceFindings.length > 0
   // Older rows/API processes may still expose `{}` for plans stopped by the
   // target gate. Treat incomplete nutrition as absent instead of rendering
   // numeric fields and crashing on `undefined.toFixed()`.
@@ -237,9 +232,7 @@ export default function MealPlanReviewPage() {
                 className="btn btn-primary"
                 onClick={() => setShowApproveDialog(true)}
                 disabled={saving || recomputingItem !== null || p0Findings.length > 0}
-                title={hasRuleGovernanceBlocker
-                  ? 'Bộ tiêu chuẩn dinh dưỡng đang chờ xác nhận; hệ thống chưa cho phép xuất bản.'
-                  : p0Findings.length > 0 ? 'Không thể duyệt khi còn cảnh báo P0.' : ''}
+                title={p0Findings.length > 0 ? 'Không thể duyệt khi còn cảnh báo P0' : ''}
               >
                 ✓ Duyệt thực đơn
               </button>
@@ -256,59 +249,21 @@ export default function MealPlanReviewPage() {
       <div className="page-body" style={{ display: 'grid', gridTemplateColumns: '1fr 340px', gap: 24, alignItems: 'start' }}>
         {/* Left — meal plan */}
         <div style={{ display: 'grid', gap: 20 }}>
-          <section aria-label="Tiến trình thực đơn" style={{
-            display: 'grid', gridTemplateColumns: 'repeat(4, minmax(0, 1fr))', gap: 1,
-            background: 'var(--c-border)', border: '1px solid var(--c-border)', borderRadius: 'var(--r-md)', overflow: 'hidden',
-          }}>
-            {[
-              ['01', 'Đã sinh', 'Thực đơn và định lượng đã tạo'],
-              ['02', 'Đã kiểm định', hasMealBlocker ? 'Cần xử lý lỗi thực đơn' : 'Không có lỗi dinh dưỡng cứng'],
-              ['03', 'Chuyên gia duyệt', plan.status === 'approved' ? 'Đã xuất bản' : 'Đang chờ quyết định'],
-              ['04', 'Bệnh nhân nhận', plan.status === 'approved' ? 'Đã sẵn sàng xem' : 'Sau khi được duyệt'],
-            ].map(([step, title, detail], index) => (
-              <div key={step} style={{ background: 'var(--c-card)', padding: '14px 16px', minHeight: 82 }}>
-                <div style={{ color: index === 2 && plan.status !== 'approved' ? 'var(--c-orange)' : 'var(--c-green2)', fontFamily: 'var(--f-mono)', fontSize: 11, fontWeight: 700, letterSpacing: '.08em' }}>{step}</div>
-                <div style={{ marginTop: 4, fontSize: 13, fontWeight: 700 }}>{title}</div>
-                <div style={{ marginTop: 3, color: 'var(--c-muted)', fontSize: 11, lineHeight: 1.35 }}>{detail}</div>
-              </div>
-            ))}
-          </section>
-
           {/* Safety strip */}
-          {hasMealBlocker && (
+          {hardViolations.length > 0 && (
             <div className="safety-strip safety-strip-error">
-              <span style={{ fontWeight: 700, marginRight: 4 }}>⚠ Cần xử lý trước khi duyệt</span>
+              <span style={{ fontWeight: 700, marginRight: 4 }}>⚠ {hardViolations.length} vi phạm cứng</span>
               — Không thể duyệt cho đến khi xử lý xong.
             </div>
           )}
-          {!hasMealBlocker && (
+          {hardViolations.length === 0 && (
             <div className="safety-strip safety-strip-ok">
               <span>✓</span>
               <span>
-                <strong>Thực đơn không có vi phạm dinh dưỡng cứng</strong>
+                <strong>Không có vi phạm cứng</strong>
                 {softViolations.length > 0 && ` · ${softViolations.length} cảnh báo mềm cần lưu ý`}
               </span>
             </div>
-          )}
-
-          {hasRuleGovernanceBlocker && (
-            <section style={{ padding: '14px 16px', border: '1px solid #ead8a2', background: '#fff9e8', borderRadius: 'var(--r-md)' }} aria-label="Trạng thái bộ tiêu chuẩn">
-              <div style={{ display: 'flex', gap: 10, alignItems: 'flex-start' }}>
-                <span aria-hidden="true" style={{ color: '#9a6a00', fontSize: 17 }}>ⓘ</span>
-                <div>
-                  <div style={{ fontSize: 13, fontWeight: 700, color: '#6d4b00' }}>Bộ tiêu chuẩn dinh dưỡng đang chờ xác nhận</div>
-                  <p style={{ marginTop: 4, color: '#765a19', fontSize: 12, lineHeight: 1.5 }}>
-                    Thực đơn đã được sinh và không có lỗi dinh dưỡng cứng. Tuy nhiên, {ruleGovernanceFindings.length} quy tắc nền chưa được đội quản trị nội dung kích hoạt, nên hệ thống chưa thể xuất bản cho bệnh nhân.
-                  </p>
-                  <details style={{ marginTop: 8, fontSize: 12, color: '#765a19' }}>
-                    <summary style={{ cursor: 'pointer', fontWeight: 600 }}>Xem các quy tắc chờ xác nhận</summary>
-                    <ul style={{ margin: '8px 0 0', paddingLeft: 18 }}>
-                      {ruleGovernanceFindings.map((finding, index) => <li key={`${finding.code}-${index}`}>{finding.rule_id || finding.code}</li>)}
-                    </ul>
-                  </details>
-                </div>
-              </div>
-            </section>
           )}
 
           {/* Meal slots */}
@@ -374,13 +329,13 @@ export default function MealPlanReviewPage() {
           })}
 
           {/* Violations */}
-          {plan.safety_findings.some(finding => finding.category !== 'unverified_rule') && (
+          {plan.safety_findings.length > 0 && (
             <div className="card">
               <div className="card-header">
-                <h2 className="card-title">Cảnh báo thực đơn cần chuyên gia xem xét</h2>
+                <h2 className="card-title">Safety findings P0/P1/P2</h2>
               </div>
               <div className="card-body" style={{ display: 'grid', gap: 10 }}>
-                {plan.safety_findings.filter(finding => finding.category !== 'unverified_rule').map((finding, index) => (
+                {plan.safety_findings.map((finding, index) => (
                   <div key={`${finding.code}-${index}`} style={{ padding: '10px 12px', border: '1px solid var(--c-border)', borderRadius: 8 }}>
                     <span className={`badge badge-${finding.risk_level === 'P0' ? 'hard' : 'soft'}`}>
                       {finding.risk_level}
