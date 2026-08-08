@@ -11,7 +11,7 @@ from __future__ import annotations
 
 from src.agents.nodes.core import (
     USDA_BULK_ID_THRESHOLD,
-    VN_CURATED_SOURCES,
+    USDA_BULK_SOURCE,
     make_retrieve_context,
 )
 from src.clinical.models import Condition, ConditionCode, PatientProfile
@@ -53,7 +53,7 @@ def test_thuc_pham_nin_id_lon_van_la_ung_vien() -> None:
 def test_khoi_usda_bulk_van_bi_loai() -> None:
     """Sửa bug không được kéo theo cả ~6.850 dòng USDA bulk vào (CP-SAT chậm 30-50x)."""
     got = _candidates(_profile())
-    bulk = [f for f in got if f.id >= USDA_BULK_ID_THRESHOLD and f.source not in VN_CURATED_SOURCES]
+    bulk = [f for f in got if f.id >= USDA_BULK_ID_THRESHOLD and f.source == USDA_BULK_SOURCE]
 
     assert bulk == [], f"{len(bulk)} dòng USDA bulk lọt vào ứng viên, VD: {[f.name_vi for f in bulk[:3]]}"
 

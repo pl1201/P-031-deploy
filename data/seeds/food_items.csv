@@ -7328,17 +7328,17 @@ id,name_vi,aliases,category,kcal_100g,protein_g,carb_g,fat_g,fiber_g,sugar_g,na_
 1105909,Ngô nếp luộc,,,,,,,,,,,,,,,,,,,"[CHUA DU LIEU - can DAT-13] NIN 2017, ma 01023, tr.26 - PDF thieu: na_mg, k_mg",FALSE
 1105910,Củ ấu,,,,,,,,,,,,,,,,,,,"[CHUA DU LIEU - can DAT-13] NIN 2017, ma 02001, tr.30 - PDF thieu: na_mg, k_mg",FALSE
 1105911,Củ cái,,,134,3.1,30.18,0.12,1.8,,12,397,32,,,,,,,NIN,"NIN 2017, ma 02002, tr.30",FALSE
-1105912,Củ dong,,,,,,,,,,,,,,,,,,,"[CHUA DU LIEU - can DAT-13] NIN 2017, ma 02003, tr.30 - PDF thieu: fat_g",FALSE
+1105912,Củ dong,,,129,1.4,30.8,0.2,2.4,,73,299,21,,,,,,,estimated,"NIN 2017 mã 02003 (năng lượng/đa chất); fat_g lấy từ USDA FDC #168490 'Arrowroot, raw' do NIN 2017 không phân tích các trường này — khớp theo name_en NIN 'Arrow root, raw', score=1.00. ƯỚC TÍNH, R2 cần duyệt.",TRUE
 1105913,Củ sắn dây,,,,,,,,,,,,,,,,,,,"[CHUA DU LIEU - can DAT-13] NIN 2017, ma 02005, tr.30 - PDF thieu: na_mg, k_mg",FALSE
 1105914,Củ súng khô (đã bỏ vỏ),,,,,,,,,,,,,,,,,,,"[CHUA DU LIEU - can DAT-13] NIN 2017, ma 02006, tr.30 - PDF thieu: na_mg, k_mg",FALSE
 1105915,Củ từ,,,,,,,,,,,,,,,,,,,"[CHUA DU LIEU - can DAT-13] NIN 2017, ma 02007, tr.30 - PDF thieu: fat_g",FALSE
 1105916,Khoai nước,,,,,,,,,,,,,,,,,,,"[CHUA DU LIEU - can DAT-13] NIN 2017, ma 02011, tr.30 - PDF thieu: na_mg, k_mg",FALSE
 1105917,Khoai riềng,,,,,,,,,,,,,,,,,,,"[CHUA DU LIEU - can DAT-13] NIN 2017, ma 02012, tr.30 - PDF thieu: fat_g, na_mg, k_mg",FALSE
-1105918,Bột dong lọc,,,,,,,,,,,,,,,,,,,"[CHUA DU LIEU - can DAT-13] NIN 2017, ma 02016, tr.32 - PDF thieu: fat_g, na_mg, k_mg",FALSE
+1105918,Bột dong lọc,,,343,0.6,85.2,0.1,0.5,,2,11,18,,,,,,,estimated,"NIN 2017 mã 02016 (năng lượng/đa chất); fat_g, na_mg, k_mg lấy từ USDA FDC #170684 'Arrowroot flour' do NIN 2017 không phân tích các trường này — khớp theo name_en NIN 'Arrow root flour', score=1.00. ƯỚC TÍNH, R2 cần duyệt.",TRUE
 1105919,Bột khoai lang,,,,,,,,,,,,,,,,,,,"[CHUA DU LIEU - can DAT-13] NIN 2017, ma 02017, tr.32 - PDF thieu: na_mg, k_mg",FALSE
 1105920,Bột khoai riềng (bột đao),,,,,,,,,,,,,,,,,,,"[CHUA DU LIEU - can DAT-13] NIN 2017, ma 02018, tr.32 - PDF thieu: fat_g, na_mg, k_mg",FALSE
 1105921,Bột khoai tây (lọc),,,,,,,,,,,,,,,,,,,"[CHUA DU LIEU - can DAT-13] NIN 2017, ma 02019, tr.32 - PDF thieu: na_mg, k_mg",FALSE
-1105922,Bột sắn,,,,,,,,,,,,,,,,,,,"[CHUA DU LIEU - can DAT-13] NIN 2017, ma 02020, tr.32 - PDF thieu: na_mg, k_mg",FALSE
+1105922,Bột sắn,,,341,2.4,81.8,0.5,2.2,,13.08,197.6,37,,,,,,,estimated,"NIN 2017 mã 02020 (năng lượng/đa chất); na_mg, k_mg lấy từ USDA FDC #2512377 'Flour, cassava' do NIN 2017 không phân tích các trường này — khớp theo name_en NIN 'Cassava flour', score=0.91. ƯỚC TÍNH, R2 cần duyệt.",TRUE
 1105923,Bột sắn dây,,,,,,,,,,,,,,,,,,,"[CHUA DU LIEU - can DAT-13] NIN 2017, ma 02021, tr.32 - PDF thieu: fat_g, na_mg, k_mg",FALSE
 1105924,Sắn khô,,,,,,,,,,,,,,,,,,,"[CHUA DU LIEU - can DAT-13] NIN 2017, ma 02025, tr.32 - PDF thieu: na_mg, k_mg",FALSE
 1105925,Trân châu sắn,,,,,,,,,,,,,,,,,,,"[CHUA DU LIEU - can DAT-13] NIN 2017, ma 02026, tr.32 - PDF thieu: fat_g, na_mg, k_mg",FALSE
@@ -7446,7 +7446,7 @@ id,name_vi,aliases,category,kcal_100g,protein_g,carb_g,fat_g,fiber_g,sugar_g,na_
 1106027,Gioi,,,,,,,,,,,,,,,,,,,"[CHUA DU LIEU - can DAT-13] NIN 2017, ma 05018, tr.66 - PDF thieu: fat_g",FALSE
 1106028,Hồng bì,,,,,,,,,,,,,,,,,,,"[CHUA DU LIEU - can DAT-13] NIN 2017, ma 05019, tr.66 - PDF thieu: fat_g, na_mg, k_mg",FALSE
 1106029,Hồng đỏ,,,38,0.7,8.6,0.1,2.5,,4,214,19,,,,,,,NIN,"NIN 2017, ma 05020, tr.66",FALSE
-1106030,Mãng cầu xiêm,,,,,,,,,,,,,,,,,,,"[CHUA DU LIEU - can DAT-13] NIN 2017, ma 05025, tr.66 - PDF thieu: fat_g",FALSE
+1106030,Mãng cầu xiêm,,,58,1.8,12.6,0.3,1.9,,4,382,14,,,,,,,estimated,"NIN 2017 mã 05025 (năng lượng/đa chất); fat_g lấy từ USDA FDC #167761 'Soursop, raw' do NIN 2017 không phân tích các trường này — khớp theo name_en NIN 'Soursop', score=0.96. ƯỚC TÍNH, R2 cần duyệt.",TRUE
 1106031,Mắc coọc,,,,,,,,,,,,,,,,,,,"[CHUA DU LIEU - can DAT-13] NIN 2017, ma 05026, tr.66 - PDF thieu: fat_g, fiber_g, na_mg, k_mg",FALSE
 1106032,Mận tím,,,23,0.6,4.6,0.2,0.7,,0,157,20,,,,,,,NIN,"NIN 2017, ma 05027, tr.66",FALSE
 1106033,Mít khô,,,,,,,,,,,,,,,,,,,"[CHUA DU LIEU - can DAT-13] NIN 2017, ma 05029, tr.66 - PDF thieu: fat_g, na_mg, k_mg, p_mg",FALSE
@@ -7467,15 +7467,15 @@ id,name_vi,aliases,category,kcal_100g,protein_g,carb_g,fat_g,fiber_g,sugar_g,na_
 1106048,"Dầu thảo mộc (Lạc, vừng, cám...)",,,,,,,,,,,,,,,,,,,"[CHUA DU LIEU - can DAT-13] NIN 2017, ma 06002, tr.74 - PDF thieu: na_mg, k_mg, p_mg",FALSE
 1106049,Mỡ lợn muối,,,,,,,,,,,,,,,,,,,"[CHUA DU LIEU - can DAT-13] NIN 2017, ma 06003, tr.74 - PDF thieu: na_mg, k_mg, p_mg",FALSE
 1106050,Bơ thực vật,,,729,0.5,0.1,80.7,0,,2,25,13,,,,,,,NIN,"NIN 2017, ma 06005, tr.74",FALSE
-1106051,Dầu bông,,,,,,,,,,,,,,,,,,,"[CHUA DU LIEU - can DAT-13] NIN 2017, ma 06006, tr.74 - PDF thieu: na_mg, k_mg, p_mg",FALSE
-1106052,Dầu cám gạo,,,,,,,,,,,,,,,,,,,"[CHUA DU LIEU - can DAT-13] NIN 2017, ma 06007, tr.74 - PDF thieu: na_mg, k_mg, p_mg",FALSE
-1106053,Dầu cọ,,,,,,,,,,,,,,,,,,,"[CHUA DU LIEU - can DAT-13] NIN 2017, ma 06008, tr.74 - PDF thieu: na_mg, k_mg, p_mg",FALSE
-1106054,Dầu dừa,,,,,,,,,,,,,,,,,,,"[CHUA DU LIEU - can DAT-13] NIN 2017, ma 06009, tr.74 - PDF thieu: na_mg, k_mg, p_mg",FALSE
-1106055,Dầu đậu tương,,,,,,,,,,,,,,,,,,,"[CHUA DU LIEU - can DAT-13] NIN 2017, ma 06010, tr.74 - PDF thieu: na_mg, k_mg, p_mg",FALSE
-1106056,Dầu lạc,,,,,,,,,,,,,,,,,,,"[CHUA DU LIEU - can DAT-13] NIN 2017, ma 06011, tr.74 - PDF thieu: na_mg, k_mg, p_mg",FALSE
-1106057,Dầu mè,,,,,,,,,,,,,,,,,,,"[CHUA DU LIEU - can DAT-13] NIN 2017, ma 06012, tr.74 - PDF thieu: na_mg, k_mg, p_mg",FALSE
+1106051,Dầu bông,,,900,0,0,100,0,,0,0,0,,,,,,,estimated,"NIN 2017 mã 06006 (năng lượng/đa chất); na_mg, k_mg, p_mg lấy từ USDA FDC #171024 'Oil, cottonseed, salad or cooking' do NIN 2017 không phân tích các trường này — khớp theo name_en NIN 'Cottonseed oil, salad or cooking', score=0.97. ƯỚC TÍNH, R2 cần duyệt.",TRUE
+1106052,Dầu cám gạo,,,900,0,0,100,0,,0,0,0,,,,,,,estimated,"NIN 2017 mã 06007 (năng lượng/đa chất); na_mg, k_mg, p_mg lấy từ USDA FDC #171013 'Oil, rice bran' do NIN 2017 không phân tích các trường này — khớp theo name_en NIN 'Rice bran oil', score=0.94. ƯỚC TÍNH, R2 cần duyệt.",TRUE
+1106053,Dầu cọ,,,900,0,0,100,0,,0,0,0,,,,,,,estimated,"NIN 2017 mã 06008 (năng lượng/đa chất); na_mg, k_mg, p_mg lấy từ USDA FDC #171015 'Oil, palm' do NIN 2017 không phân tích các trường này — khớp theo name_en NIN 'Palm oil', score=0.90. ƯỚC TÍNH, R2 cần duyệt.",TRUE
+1106054,Dầu dừa,,,900,0,0,100,0,,0,0,0,,,,,,,estimated,"NIN 2017 mã 06009 (năng lượng/đa chất); na_mg, k_mg, p_mg lấy từ USDA FDC #2710182 'Coconut oil' do NIN 2017 không phân tích các trường này — khớp theo name_en NIN 'Coconut oil', score=1.00. ƯỚC TÍNH, R2 cần duyệt.",TRUE
+1106055,Dầu đậu tương,,,900,0,0,100,0,,0,0,0,,,,,,,estimated,"NIN 2017 mã 06010 (năng lượng/đa chất); na_mg, k_mg, p_mg lấy từ USDA FDC #171411 'Oil, soybean, salad or cooking' do NIN 2017 không phân tích các trường này — khớp theo name_en NIN 'Soybean oil, salad or cooking', score=0.97. ƯỚC TÍNH, R2 cần duyệt.",TRUE
+1106056,Dầu lạc,,,900,0,0,100,0,,0,0,0,,,,,,,estimated,"NIN 2017 mã 06011 (năng lượng/đa chất); na_mg, k_mg, p_mg lấy từ USDA FDC #171410 'Oil, peanut, salad or cooking' do NIN 2017 không phân tích các trường này — khớp theo name_en NIN 'Peanut oil, salad or cooking', score=0.97. ƯỚC TÍNH, R2 cần duyệt.",TRUE
+1106057,Dầu mè,,,900,0,0,100,0,,0,0,0,,,,,,,estimated,"NIN 2017 mã 06012 (năng lượng/đa chất); na_mg, k_mg, p_mg lấy từ USDA FDC #171016 'Oil, sesame, salad or cooking' do NIN 2017 không phân tích các trường này — khớp theo name_en NIN 'Sesame oil. Salad or cooking', score=0.97. ƯỚC TÍNH, R2 cần duyệt.",TRUE
 1106058,Dầu ngô,,,,,,,,,,,,,,,,,,,"[CHUA DU LIEU - can DAT-13] NIN 2017, ma 06013, tr.74 - PDF thieu: na_mg, k_mg, p_mg",FALSE
-1106059,Dầu oliu,,,,,,,,,,,,,,,,,,,"[CHUA DU LIEU - can DAT-13] NIN 2017, ma 06014, tr.74 - PDF thieu: p_mg",FALSE
+1106059,Dầu oliu,,,900,0,0,100,0,,2,1,0,,,,,,,estimated,"NIN 2017 mã 06014 (năng lượng/đa chất); p_mg lấy từ USDA FDC #171413 'Oil, olive, salad or cooking' do NIN 2017 không phân tích các trường này — khớp theo name_en NIN 'Olive oil, salad or cooking', score=0.97. ƯỚC TÍNH, R2 cần duyệt.",TRUE
 1106060,Thịt bê nạc,,,85,20,0,0.5,0,,80,348,176,,,,,,,NIN,"NIN 2017, ma 07002, tr.78",FALSE
 1106061,Thịt bò loại II,,,,,,,,,,,,,,,,,,,"[CHUA DU LIEU - can DAT-13] NIN 2017, ma 07004, tr.78 - PDF thieu: na_mg, k_mg",FALSE
 1106062,"Thịt bò, lưng, nạc",,,121,23.07,0.1,3.16,0,,57,361,214,,,,,,,NIN,"NIN 2017, ma 07005, tr.78",FALSE
@@ -7564,7 +7564,7 @@ id,name_vi,aliases,category,kcal_100g,protein_g,carb_g,fat_g,fiber_g,sugar_g,na_
 1106145,Rươi,,,,,,,,,,,,,,,,,,,"[CHUA DU LIEU - can DAT-13] NIN 2017, ma 08047, tr.100 - PDF thieu: na_mg, k_mg",FALSE
 1106146,Tép gạo,,,,,,,,,,,,,,,,,,,"[CHUA DU LIEU - can DAT-13] NIN 2017, ma 08049, tr.100 - PDF thieu: na_mg, k_mg",FALSE
 1106147,Tép khô,,,,,,,,,,,,,,,,,,,"[CHUA DU LIEU - can DAT-13] NIN 2017, ma 08050, tr.100 - PDF thieu: na_mg, k_mg",FALSE
-1106148,Tôm khô,,,,,,,,,,,,,,,,,,,"[CHUA DU LIEU - can DAT-13] NIN 2017, ma 08053, tr.100 - PDF thieu: na_mg, k_mg",FALSE
+1106148,Tôm khô,,,347,75.6,2.5,3.8,0,,2175,200,995,,,,,,,estimated,"NIN 2017 mã 08053 (năng lượng/đa chất); na_mg, k_mg lấy từ USDA FDC #2706366 'Shrimp, dried' do NIN 2017 không phân tích các trường này — khớp theo name_en NIN 'Shrimp dried', score=1.00. ƯỚC TÍNH, R2 cần duyệt.",TRUE
 1106149,Trai,,,38,4.6,2.5,1.1,0,,56,314,107,,,,,,,NIN,"NIN 2017, ma 08054, tr.100",FALSE
 1106150,Bánh phồng tôm rán,,,,,,,,,,,,,,,,,,,"[CHUA DU LIEU - can DAT-13] NIN 2017, ma 08055, tr.100 - PDF thieu: na_mg, k_mg",FALSE
 1106151,Bánh phồng tôm sống,,,381,3.4,75.3,7.4,0,,418,195,50,,,,,,,NIN,"NIN 2017, ma 08056, tr.100",FALSE
@@ -7588,7 +7588,7 @@ id,name_vi,aliases,category,kcal_100g,protein_g,carb_g,fat_g,fiber_g,sugar_g,na_
 1106169,Trứng gà công nghiệp,,,,,,,,,,,,,,,,,,,"[CHUA DU LIEU - can DAT-13] NIN 2017, ma 09012, tr.106 - PDF thieu: fiber_g, na_mg, k_mg, p_mg",FALSE
 1106170,Sữa mẹ (sữa người),,,61,1.5,7,3,0,,15,41,15,,,,,,,NIN,"NIN 2017, ma 10003, tr.110",FALSE
 1106171,Sữa chua vớt béo,,,26,3.4,3.1,0,0,,135,339,109,,,,,,,NIN,"NIN 2017, ma 10005, tr.110",FALSE
-1106172,Sữa đặc có đường Việt Nam,,,,,,,,,,,,,,,,,,,"[CHUA DU LIEU - can DAT-13] NIN 2017, ma 10008, tr.110 - PDF thieu: na_mg, k_mg",FALSE
+1106172,Sữa đặc có đường Việt Nam,,,336,8.1,56,8.8,0,,127,371,219,,,,,,,estimated,"NIN 2017 mã 10008 (năng lượng/đa chất); na_mg, k_mg lấy từ USDA FDC #2705402 'Milk, condensed, sweetened' do NIN 2017 không phân tích các trường này — khớp theo name_en NIN 'Milk condensed sweetened', score=1.00. ƯỚC TÍNH, R2 cần duyệt.",TRUE
 1106173,Phó mát,,,380,25.5,0,30.9,0,,621,98,424,,,,,,,NIN,"NIN 2017, ma 10009, tr.110",FALSE
 1106174,Chuối nước đường,,,,,,,,,,,,,,,,,,,"[CHUA DU LIEU - can DAT-13] NIN 2017, ma 11001, tr.114 - PDF thieu: na_mg, k_mg",FALSE
 1106175,Dưa chuột hộp,,,19,0.3,4.16,0.14,0.7,,1208,23,16,,,,,,,NIN,"NIN 2017, ma 11002, tr.114",FALSE
@@ -7730,7 +7730,7 @@ id,name_vi,aliases,category,kcal_100g,protein_g,carb_g,fat_g,fiber_g,sugar_g,na_
 1106311,Gà tần,,,,,,,,,,,,,,,,,,,"[CHUA DU LIEU - can DAT-13] NIN 2017, ma 15057, tr.148 - PDF thieu: na_mg, k_mg",FALSE
 1106312,Miến lươn,,,,,,,,,,,,,,,,,,,"[CHUA DU LIEU - can DAT-13] NIN 2017, ma 15058, tr.148 - PDF thieu: na_mg, k_mg",FALSE
 1106313,Miến ngan,,,,,,,,,,,,,,,,,,,"[CHUA DU LIEU - can DAT-13] NIN 2017, ma 15059, tr.148 - PDF thieu: na_mg, k_mg",FALSE
-1106314,Mỳ vằn thắn,,,,,,,,,,,,,,,,,,,"[CHUA DU LIEU - can DAT-13] NIN 2017, ma 15060, tr.148 - PDF thieu: na_mg, k_mg",FALSE
+1106314,Mỳ vằn thắn,,,81,2.6,10.58,3.1,0.2,,370,86,31,,,,,,,estimated,"NIN 2017 mã 15060 (năng lượng/đa chất); na_mg, k_mg lấy từ USDA FDC #2709160 'Soup, wonton' do NIN 2017 không phân tích các trường này — khớp theo name_en NIN 'Wonton soup', score=0.91. ƯỚC TÍNH, R2 cần duyệt.",TRUE
 1106315,Mỳ xào,,,,,,,,,,,,,,,,,,,"[CHUA DU LIEU - can DAT-13] NIN 2017, ma 15061, tr.148 - PDF thieu: na_mg, k_mg",FALSE
 1106316,Nem lụi,,,,,,,,,,,,,,,,,,,"[CHUA DU LIEU - can DAT-13] NIN 2017, ma 15062, tr.148 - PDF thieu: na_mg, k_mg",FALSE
 1106317,Nem rán,,,,,,,,,,,,,,,,,,,"[CHUA DU LIEU - can DAT-13] NIN 2017, ma 15063, tr.148 - PDF thieu: na_mg, k_mg",FALSE

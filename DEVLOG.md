@@ -558,6 +558,17 @@
 - **Chốt hướng (Hưng chọn):** mở rộng kho nguyên liệu trước, đo lại tỷ lệ khớp rồi mới tính tiếp — có thể không cần tới chính sách thay thế tên chung (`Thịt bò` → cắt nào) vốn là quyết định lâm sàng cần R2 ký.
 - **Chưa làm:** chưa crawl đầy đủ 2.510 công thức, chưa ghi dòng dữ liệu món nào vào `seeds/`. Kế hoạch chi tiết: `docs/DAT-24_kha_thi_500_mon.md`.
 
+### [2026-08-08] · R2 · DAT-24 (tiếp) — đào tới cùng 370 dòng trống: phần lớn là khoảng trống THẬT của NIN 2017
+
+- **Phát hiện:** 348/370 dòng trống đều là mục NIN 2017 **đã biết mã**, bị chặn vì bản PDF gốc không phân tích vài trường — áp đảo là `na_mg`/`k_mg` (328/348 dòng), lác đác `fat_g`/`fiber_g`/`p_mg`.
+- **Kiểm chứng trên PDF gốc trước khi kết luận:** trang 24, mã 01012 "Bánh mỳ" — tại toạ độ cột `NA`/`K` **không có token nào**; ba số `0.10/0.07/0.7` nằm ở x≈918/955/994 là THIA/RIBF/NIA. Vậy ô đó **thật sự trống trong bảng gốc, không phải lỗi trích xuất**.
+- **🔴 Đính chính một giả định nguy hiểm:** "trống" ở nhóm này KHÔNG đồng nghĩa "không đáng kể" — bánh mỳ có Na ≈ 490-600 mg/100g (USDA). Điền 0 sẽ sai nghiêm trọng đúng vào ngưỡng chặn cứng của THA/CKD.
+- **Đã thử lấp bằng đối chiếu NIN → USDA** qua chính `name_en` do NIN cung cấp (`scripts/fill_nin_gaps_from_usda.py`, chỉ dùng nhóm generic sr_legacy/foundation/survey, bỏ ~2 triệu dòng branded). Kết quả: **tự động lấp 15 dòng** (score ≥ 0,90 — dầu ăn các loại, bột dong, bột sắn, tôm khô, sữa đặc, mãng cầu xiêm), **19 dòng đưa R2 duyệt tay** (`food_items.nin_gaps_can_R2_duyet.csv`), **314 dòng bỏ hẳn** kèm lý do (`food_items.nin_gaps_unresolved.csv`). Mọi dòng lấp đều `source=estimated` + `is_estimated=TRUE` + `source_ref` ghi rõ CẢ HAI nguồn (macro từ NIN mã X, Na/K từ USDA fdc_id Y, kèm điểm khớp).
+- **Phải siết bộ khớp 3 lần mới đủ an toàn** — bản đầu cho ra khớp sai nguy hiểm: `Dầu ngô`→`Oil, olive`; `Lòng trắng trứng vịt`→`Duck egg, cooked`; `Hạt dẻ tươi`→`Flour, chestnut` (xơ 2,3 vs 8,7); `Mắm tôm loãng`→`Shrimp with lobster sauce` (món Hoa, Na 1031 trong khi mắm tôm cao hơn nhiều lần). Ba lớp chặn đã thêm: nhóm tính từ loại trừ nhau, token dạng chế biến phải khớp hai chiều, và **kiểm tra xung đột trên token thô** — vì `raw`/`cooked`/`dried` vừa là stopword vừa nằm trong nhóm loại trừ, kiểm tra sau khi bỏ stopword thì nhóm đó không bao giờ chạy và `Shrimp dried` khớp được với `Shrimp, raw`.
+- **Sửa tiếp bộ lọc ứng viên:** 15 dòng vừa lấp mang `source=estimated` nên vẫn bị loại. Đổi hẳn sang đúng bản chất — loại **đúng** khối bulk USDA (`source=="USDA"` VÀ `id ≥ ngưỡng`), mọi dòng khác đều là ứng viên. **Ứng viên nguyên liệu CP-SAT: 439 → 536.**
+- **Kết luận thẳng:** 314/348 dòng còn lại **không lấp được từ nguồn hiện có**. Đây là khoảng trống thật của dữ liệu thành phần thực phẩm Việt Nam (NIN 2017 không đo Na/K cho nhóm này), không phải việc kỹ thuật xử lý được — muốn có thì phải đo/mua dữ liệu hoặc R2 tra tay từng mục.
+- **Kiểm chứng:** `validate_data.py` 0 lỗi; `ruff` sạch; `pytest` 155 passed — 4 fail + 31 error còn lại đã xác nhận có sẵn từ trước (thiếu `passlib`), đã kiểm bằng cách stash thay đổi rồi chạy lại.
+
 ---
 
 ## 3. Quyết định kỹ thuật (Decision Log)

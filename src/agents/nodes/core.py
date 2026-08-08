@@ -106,15 +106,21 @@ def make_compute_targets(rules: list[ClinicalRule] | None = None):
 # là thực phẩm Mỹ/quốc tế không phù hợp bối cảnh bệnh nhân Việt Nam.
 USDA_BULK_ID_THRESHOLD = 100_000
 
-# Nguồn được coi là "thực phẩm Việt Nam curated" — luôn là ứng viên, BẤT KỂ id.
+# Khối tham chiếu cần loại = ĐÚNG những dòng import bulk từ USDA (source="USDA"
+# VÀ id là fdc_id gốc ≥ ngưỡng). Mọi dòng khác — NIN, curated, estimated — đều
+# là thực phẩm Việt Nam do đội biên soạn và LÀ ứng viên, bất kể id.
 #
-# Sửa 2026-08-08 (DAT-24): ngưỡng id ở trên là proxy cho "thuộc khối USDA bulk",
-# và proxy đó đã sai. Script merge NIN 2017 cấp id nối tiếp dãy fdc_id nên 82
-# thực phẩm Việt Nam THẬT của Viện Dinh dưỡng (Vừng, Cà rốt, Cải thìa, Giá đậu
-# xanh, Ớt đỏ, Đậu tương…) nhận id ≥ 1.105.898 và bị loại nhầm khỏi ứng viên
-# CP-SAT — đúng nhóm nguyên liệu mà công thức món Việt cần nhất. Lọc theo
-# `source` là đúng ý định ban đầu ("loại khối bulk Mỹ"), không phải theo id.
-VN_CURATED_SOURCES = frozenset({"NIN", "curated"})
+# Sửa 2026-08-08 (DAT-24): ngưỡng id một mình là proxy cho "thuộc khối USDA
+# bulk", và proxy đó sai. Script merge NIN 2017 cấp id nối tiếp dãy fdc_id nên
+# 82 thực phẩm Việt Nam THẬT của Viện Dinh dưỡng (Vừng, Cà rốt, Cải thìa, Giá
+# đậu xanh, Ớt đỏ, Đậu tương…) nhận id ≥ 1.105.898 và bị loại nhầm khỏi ứng
+# viên CP-SAT — đúng nhóm nguyên liệu mà công thức món Việt cần nhất.
+USDA_BULK_SOURCE = "USDA"
+
+
+def _la_khoi_usda_bulk(food) -> bool:
+    """True khi dòng thuộc khối import bulk USDA (kho tham chiếu, không phải ứng viên)."""
+    return food.source == USDA_BULK_SOURCE and food.id >= USDA_BULK_ID_THRESHOLD
 
 
 def make_retrieve_context(foods: FoodRepository):
@@ -131,7 +137,7 @@ def make_retrieve_context(foods: FoodRepository):
         candidates = [
             f
             for f in all_items
-            if (f.id < USDA_BULK_ID_THRESHOLD or f.source in VN_CURATED_SOURCES)
+            if not _la_khoi_usda_bulk(f)
             and not any(a in profile.allergies for a in map(str.lower, f.contains_allergens))
             and f.name_vi.lower() not in profile.dislikes
         ]
