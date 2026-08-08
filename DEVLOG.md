@@ -649,6 +649,19 @@
 - **🔴 Phát hiện khẩn khi kiểm tra Supabase thật (chỉ SELECT, không ghi gì):** DB dùng chung của cả team hiện đang ở revision **`e63b8c4f1a32`** — đúng tip chain migration của `nam-dev`. Nghĩa là ai đó đã chạy `alembic upgrade head` với nhánh `nam-dev` (chưa merge) thẳng lên Supabase chung. Hệ quả: bảng `meal_plans` đã có đủ cột mới của `nam-dev`, nhưng **bảng `food_logs` vẫn là schema CŨ** (`grams NOT NULL`, thiếu `dish_id`/`slot`/`match_status`...) — **migration `food_logs` của PR #67 (đã merge vào `main`) chưa từng chạy trên Supabase**. API nhật ký ăn uống của BE-07 sẽ lỗi thật nếu chạy với Supabase (mới chỉ test qua bằng SQLite). Đã báo trên PR #68, **không tự chạy thêm gì lên Supabase** để tránh làm rối thêm — cần một migration merge nối `b7c214e93a08` với `e63b8c4f1a32`, chỉ một người chạy `upgrade head`.
 - **Dữ liệu bệnh nhân `data/patients/`:** đọc `manifest.yaml` — cả 4 dataset (2.020 dòng) đều `enabled: false`, 3/4 `Quarantined` (license/de-identification chưa xác minh). **Không nạp vào DB** — đường dữ liệu bệnh nhân thật của sản phẩm chỉ có 6 hồ sơ mô phỏng từ `scripts/seed_demo_users.py`. Muốn dùng 4 dataset này cần một ticket riêng xác minh license trước, không tự ý mở khoá trong lượt này.
 
+### [2026-08-08] · R1 · P1 — Trợ lý ngưỡng cho chuyên gia (trả lời Q3)
+
+- **Nguyên tắc:** LLM chỉ **diễn giải** và **parse tham số** — không bao giờ sinh ra một con số ngưỡng. Mọi số liệu luôn lấy từ `compute_targets()` đã có sẵn (`applied_rule_ids`, `guideline_refs` trong từng `NutrientTarget`, `conflict_notes`) — dữ kiện tồn tại từ trước nhưng chưa ai từng giải thích được cho chuyên gia bằng tiếng Việt tự nhiên.
+- **`src/clinical/target_explainer.py` (LLM: NO, thêm vào `DETERMINISTIC_FILES`)** — `explain_targets(profile, targets, rules)`: với mỗi chất, liệt kê rule nào THẮNG (`applied`) và rule nào bị LOẠI kèm lý do (`excluded`). `diff_explanations()` so sánh 2 lần tính cho luồng what-if.
+- **🐛 Bug thật bắt được khi đo trên dữ liệu thật, không phải giả định:** `T2DM-PRO-02` (`requires_flag=elderly`) bị loại vì bệnh nhân chưa đủ tuổi — **không** phải vì bị CKD ghi đè (`overridden_by` của chính rule này rỗng). `_select_rules()` gộp 2 lý do loại trừ khác nhau trong một điều kiện `OR` (`not not_overridden(rule) or not flag_required_met(rule)`), nên nếu code giải thích cũng gộp chung sẽ in ra **"Bị  thay thế"** (rỗng, vô nghĩa). Đã tách riêng 2 nhánh: `overridden_by` vs `requires_flag` chưa đạt, kiểm chứng lại bằng ca bệnh nhân 70 tuổi (đủ elderly) thấy rule tự động chuyển từ `excluded` sang `applied` đúng như kỳ vọng.
+- **`src/services/target_assistant.py` (LLM: YES, theo khuôn `services/llm.py`):**
+  - `explain_naturally()` — chỉ văn phong hoá `NutrientExplanation` đã có, test hồi quy xác nhận mọi con số trong prompt gửi LLM đều lấy từ input, không nơi nào tự thêm.
+  - `parse_what_if()` — trả về `ProfileDelta`, **schema không có field số nào** (chỉ `ConditionCode` enum + chuỗi giai đoạn + list cờ). Pydantic tự chặn LLM trả field lạ hay giá trị ngoài enum — không cần code phòng thủ thêm, đã test bằng `pytest.raises(ValidationError)`.
+  - `apply_delta()` — áp lên **bản sao** hồ sơ, `model_copy()`, test xác nhận profile gốc không đổi.
+- **API mới (`targets.py`), chỉ role `dietitian`/`admin`:** `GET /targets/{id}/explain`, `POST /targets/{id}/what-if` — what-if tính lại thật bằng `compute_targets()` trên bản sao, **không side-effect lên DB** (chỉ ghi `AuditLog` câu hỏi + delta để truy vết), test xác nhận hồ sơ thật trong DB không đổi sau khi gọi.
+- **Kiểm chứng:** 29 test mới (10 explainer + 11 assistant + 8 API, mock Gemini không tốn quota). Toàn bộ suite **343 passed**, `ruff` sạch.
+- **Chưa làm:** thực đơn tương đương từ tủ lạnh (Q3 phần còn lại) — chỉ có đặc tả, bàn giao cho agent kế tiếp qua prompt (xem plan file). Cần R2 chốt "phạm vi thay thế duyệt trước" trước khi code.
+
 ---
 
 ## 3. Quyết định kỹ thuật (Decision Log)
