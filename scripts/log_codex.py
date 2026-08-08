@@ -10,7 +10,9 @@ import json
 import os
 import subprocess
 import sys
-from datetime import UTC, datetime, timedelta, timezone
+from datetime import datetime, timedelta, timezone
+
+UTC = timezone.utc
 from pathlib import Path
 
 VN_TZ = timezone(timedelta(hours=7))

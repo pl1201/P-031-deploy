@@ -90,6 +90,26 @@ export interface Violation {
   rule_id?: string
 }
 
+export interface SafetyFinding {
+  code: string
+  risk_level: 'P0' | 'P1' | 'P2'
+  category: string
+  message_vi: string
+  suggestion?: string | null
+  rule_id?: string | null
+  evidence_refs: string[]
+  reviewer_override_allowed: boolean
+}
+
+export interface ReviewPacket {
+  highest_risk: 'P0' | 'P1' | 'P2' | 'none'
+  can_approve: boolean
+  used_fallback: boolean
+  target_gate_reasons: string[]
+  findings: SafetyFinding[]
+  summary: string
+}
+
 export interface MealPlan {
   id: string
   patient_id: string
@@ -99,6 +119,12 @@ export interface MealPlan {
   targets: Record<string, NutrientTarget>
   computed_nutrition: ComputedNutrition | null
   violations: Violation[]
+  safety_findings: SafetyFinding[]
+  review_packet: ReviewPacket
+  citations: Array<{ source_ref: string; title?: string | null; rule_ids: string[] }>
+  explanation_vi: string | null
+  highest_risk: 'P0' | 'P1' | 'P2' | 'none'
+  menu_version: number
   retry_count: number
   reviewer_id: string | null
   reviewer_notes: string | null
@@ -139,7 +165,9 @@ export function createApiClient(accessToken?: string) {
     headers.set('Content-Type', 'application/json')
     if (accessToken) headers.set('Authorization', `Bearer ${accessToken}`)
 
-    const res = await fetch(`${BASE_URL}${path}`, { ...init, headers })
+    let res: Response
+    try { res = await fetch(`${BASE_URL}${path}`, { ...init, headers }) }
+    catch { throw new ApiError(0, 'Không kết nối được máy chủ. Hãy kiểm tra Docker/backend rồi thử lại.') }
 
     if (!res.ok) {
       const body = await res.json().catch(() => null) as { detail?: string } | null
@@ -196,6 +224,11 @@ export function createApiClient(accessToken?: string) {
 
     // Reviews (HITL)
     listPendingReviews: () => request<MealPlan[]>('/reviews/pending'),
+    recomputeMealPlan: (planId: string, edits: Array<{ item_id: string; grams: number }>) =>
+      request<MealPlan>(`/reviews/${planId}/recompute`, {
+        method: 'POST',
+        body: JSON.stringify({ edits }),
+      }),
     approveMealPlan: (planId: string, edits?: Array<{ item_id: string; grams: number }>, notes?: string) =>
       request<MealPlan>(`/reviews/${planId}/approve`, {
         method: 'POST',

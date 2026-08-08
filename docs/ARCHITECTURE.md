@@ -520,7 +520,7 @@ graph TB
 
 - **Backend:** Render Web Service, Docker multi-stage, health check `/api/v1/health`
 - **Frontend:** Vercel, biến `NEXT_PUBLIC_API_URL`
-- **DB:** Neon free tier (có pgvector) hoặc Supabase
+- **DB:** Neon free tier (có pgvector) hoặc Supabase — nếu chọn Supabase, chỉ dùng làm Postgres hosted thuần, xem ràng buộc ở ADR-008
 - **Secrets:** chỉ qua env vars của platform, **không bao giờ trong repo**
 - **Cold start Render free tier ~50s** → trước demo phải "warm up" bằng cách gọi health check
 
@@ -593,6 +593,7 @@ graph TB
 | ADR-005 | Drug-food curated 80 cặp thay vì DDID 23.950 | Import DDID | License chưa rõ; 80 cặp đủ bao phủ 4 nhóm bệnh của đề bài |
 | ADR-006 | Render + Vercel, không K8s | AWS EKS, GCP GKE | 6 tuần, free tier, không được thêm điểm nếu dùng K8s |
 | ADR-007 | Fail closed | Cảnh báo rồi vẫn hiển thị | Bối cảnh y tế; sai sót có hậu quả thật |
+| ADR-008 | Supabase = hosted Postgres+pgvector thuần (nếu chọn thay Neon), KHÔNG dùng RLS/Auth/CLI migration của Supabase | Dùng full stack Supabase (Auth + RLS + Supabase CLI migrations) | Auth (JWT+argon2id) và authorization (chặn ở tầng query FastAPI, VD `_get_owned_profile`) đã tự xây — thêm RLS tạo 2 tầng phân quyền phải đồng bộ tay, dễ lệch. Alembic đã là nguồn chân lý schema duy nhất — dùng song song Supabase CLI migrations tạo 2 nguồn cạnh tranh. Free tier Supabase tự pause sau 1 tuần không hoạt động — cần lưu ý trước demo. Xem research 2026-08-07 trong `DEVLOG.md` |
 
 ---
 

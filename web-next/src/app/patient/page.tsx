@@ -1,7 +1,7 @@
 'use client'
 import { useEffect, useState } from 'react'
 import { createApiClient, type MealPlan, type MealPlanItem } from '@/lib/api'
-import { getToken, getSession } from '@/lib/auth'
+import { getToken } from '@/lib/auth'
 
 const SLOT_LABELS: Record<string, string> = {
   breakfast: 'Bữa sáng',
@@ -27,7 +27,9 @@ export default function PatientDashboard() {
       .finally(() => setLoading(false))
   }, [])
 
-  const nutrition = selected?.computed_nutrition
+  const nutrition = selected?.computed_nutrition && Number.isFinite(selected.computed_nutrition.kcal)
+    ? selected.computed_nutrition
+    : null
 
   const bySlot = selected?.items.reduce<Record<string, MealPlanItem[]>>((acc, item) => {
     ;(acc[item.slot] ??= []).push(item)

@@ -20,7 +20,10 @@ from src.agents.assembly import build_nutricare_graph
 from src.api.clinical_bridge import to_clinical_profile
 from src.api.security import CurrentUser, get_current_user
 from src.clinical.dishes import load_dish_food_repository
+from src.clinical.integrity import hash_menu, hash_nutrition, publish_gate_open
 from src.clinical.models import PatientProfile as ClinicalPatientProfile
+from src.clinical.seeds import load_food_repository
+from src.config import get_settings
 from src.db.base import get_db, get_session_factory
 from src.db.models import Dish, DishIngredient, MealPlan, MealPlanItem
 from src.db.models import PatientProfile as DbPatientProfile
@@ -88,9 +91,15 @@ class MealPlanOut(BaseModel):
     status: str
     items: list[MealPlanItemOut]
     targets: dict
-    computed_nutrition: dict
+    computed_nutrition: dict | None
     violations: list[dict]
+    safety_findings: list[dict]
+    review_packet: dict
+    citations: list[dict]
+    explanation_vi: str | None
+    highest_risk: str
     retry_count: int
+    menu_version: int
     reviewer_id: str | None
     reviewer_notes: str | None
     created_at: datetime
@@ -104,11 +113,23 @@ class MealPlanOut(BaseModel):
             patient_id=plan.profile_id,
             plan_date=plan.plan_date,
             status=plan.status,
-            items=[cls._item_out(i) for i in sorted(plan.items, key=lambda i: (i.slot, i.dish_id or "", i.food_id or 0))],
+            items=[
+                cls._item_out(i) for i in sorted(plan.items, key=lambda i: (i.slot, i.dish_id or "", i.food_id or 0))
+            ],
             targets=plan.targets or {},
-            computed_nutrition=plan.computed_nutrition or {},
+            # An empty mapping means the graph stopped before nutrition was
+            # computed (for example, at the fail-closed target gate).  Expose
+            # that state as JSON null so clients cannot mistake it for a
+            # complete ComputedNutrition payload.
+            computed_nutrition=plan.computed_nutrition or None,
             violations=plan.violations or [],
+            safety_findings=plan.safety_findings or [],
+            review_packet=plan.review_packet or {},
+            citations=plan.citations or [],
+            explanation_vi=plan.explanation_vi,
+            highest_risk=plan.highest_risk,
             retry_count=plan.retry_count,
+            menu_version=plan.menu_version,
             reviewer_id=plan.reviewer_id,
             reviewer_notes=plan.reviewer_notes,
             created_at=plan.created_at,
@@ -136,14 +157,25 @@ class MealPlanOut(BaseModel):
                 ingredient_names = [part.food.name_vi for part in item.dish.ingredients]
                 display_name = " + ".join(ingredient_names[:3]) or "Món tổng hợp"
             return MealPlanItemOut(
-                id=item.id, slot=item.slot, dish_id=item.dish_id, grams=item.grams,
-                name_vi=display_name, source="recipe", source_ref=f"dish:{item.dish_id}",
-                is_estimated=False, ingredients=ingredients,
+                id=item.id,
+                slot=item.slot,
+                dish_id=item.dish_id,
+                grams=item.grams,
+                name_vi=item.dish.name_vi,
+                source="recipe",
+                source_ref=f"dish:{item.dish_id}",
+                is_estimated=False,
+                ingredients=ingredients,
             )
         assert item.food is not None
         return MealPlanItemOut(
-            id=item.id, slot=item.slot, food_id=item.food_id, grams=item.grams,
-            name_vi=item.food.name_vi, source=item.food.source, source_ref=item.food.source_ref,
+            id=item.id,
+            slot=item.slot,
+            food_id=item.food_id,
+            grams=item.grams,
+            name_vi=item.food.name_vi,
+            source=item.food.source,
+            source_ref=item.food.source_ref,
             is_estimated=item.food.is_estimated,
         )
 
@@ -195,11 +227,39 @@ def _run_graph_and_persist(
         if dislikes:
             clinical_profile = clinical_profile.model_copy(update={"dislikes": dislikes})
 
+        # CP-SAT (và hybrid, dùng CP-SAT ở lượt đầu) có cơ chế "dish" RIÊNG
+        # (DishCandidate + dish_chosen trong optimizer.py) — món hoàn chỉnh
+        # được chọn NGUYÊN KHỐI rồi tự khai triển thành food_id+grams nguyên
+        # liệu thô thật trong MenuDraft (RULE-1). Kho "food" tổng hợp theo
+        # món (`load_dish_food_repository`, mỗi món = 1 "food" mật độ pha
+        # loãng cả công thức) chỉ đúng cho generator chọn NGUYÊN món qua LLM
+        # (`gemini` thuần). Trộn lẫn 2 kho — dùng kho món-tổng-hợp làm nguồn
+        # "nguyên liệu thô" cho CP-SAT — khiến CP-SAT chọn lượng nhỏ của một
+        # "food" có mật độ đã pha loãng như thể là nguyên liệu rời, ra thực
+        # đơn thiếu năng lượng nghiêm trọng dù CP-SAT báo khả thi (phát hiện
+        # audit 2026-08-07 khi merge PR#57 dish-day-cap với PR#59 dish-repo).
         dish_foods = load_dish_food_repository()
-        graph = build_nutricare_graph(profiles=_DbProfileRepository(session, clinical_profile), foods=dish_foods)
+        raw_foods = load_food_repository()
+        uses_raw_candidates = get_settings().menu_generator in ("cpsat", "hybrid")
+        foods = raw_foods if uses_raw_candidates else dish_foods
+        graph = build_nutricare_graph(profiles=_DbProfileRepository(session, clinical_profile), foods=foods)
         result = graph.invoke({"patient_id": clinical_profile.patient_id, "trace_id": plan_id})
 
         plan.status = result.get("status") or "failed"
+        plan.run_id = result.get("run_id")
+        plan.profile_snapshot_hash = result.get("profile_snapshot_hash")
+        plan.profile_version = result.get("profile_version")
+        plan.rule_version = result.get("rule_version")
+        plan.food_data_version = result.get("food_data_version")
+        plan.interaction_version = result.get("interaction_version")
+        plan.prompt_version = result.get("prompt_version")
+        plan.attempt_history = [attempt.model_dump(mode="json") for attempt in result.get("attempt_history") or []]
+        plan.node_timings_ms = result.get("node_timings_ms") or {}
+        token_usage = result.get("token_usage")
+        plan.token_usage = token_usage.model_dump(mode="json") if token_usage is not None else {}
+        last_error = result.get("last_error")
+        plan.last_error = last_error.model_dump(mode="json") if last_error is not None else None
+        plan.audit_events = [event.model_dump(mode="json") for event in result.get("audit_events") or []]
         plan.retry_count = result.get("retry_count") or 0
         targets = result.get("targets")
         if targets is not None:
@@ -207,19 +267,43 @@ def _run_graph_and_persist(
         nutrition = result.get("computed_nutrition")
         if nutrition is not None:
             plan.computed_nutrition = nutrition.model_dump(mode="json")
+            plan.nutrition_hash = hash_nutrition(nutrition)
+        else:
+            plan.computed_nutrition = {}
+            plan.nutrition_hash = None
         plan.violations = [v.model_dump(mode="json") for v in result.get("violations") or []]
+        plan.safety_findings = [finding.model_dump(mode="json") for finding in result.get("safety_findings") or []]
+        review_packet = result.get("review_packet")
+        plan.review_packet = review_packet.model_dump(mode="json") if review_packet is not None else {}
+        plan.citations = [citation.model_dump(mode="json") for citation in result.get("citations") or []]
+        plan.explanation_vi = result.get("expert_explanation")
+        plan.highest_risk = result.get("highest_risk") or "none"
 
         draft = result.get("draft_menu")
         if draft is not None:
+            plan.menu_version = (plan.menu_version or 0) + 1
+            plan.menu_hash = hash_menu(draft)
             session.query(MealPlanItem).filter(MealPlanItem.plan_id == plan_id).delete()
             for slot, menu_items in draft.items.items():
                 for menu_item in menu_items:
-                    dish = dish_foods.dish_for_food_id(menu_item.food_id)
-                    if dish is None:
-                        raise ValueError(f"Generator returned unknown dish candidate {menu_item.food_id}")
-                    session.add(MealPlanItem(
-                        plan_id=plan_id, slot=slot.value, dish_id=dish.dish_id, grams=menu_item.grams
-                    ))
+                    # `dish_foods` chỉ khớp khi generator thật sự chọn NGUYÊN
+                    # món qua kho món-tổng-hợp (gemini thuần); CP-SAT/hybrid
+                    # trả food_id nguyên liệu thô thật (xem ghi chú ở trên) —
+                    # KHÔNG cưỡng ép map dish, lưu thẳng food_id khi không map
+                    # được thay vì raise (raise chỉ đúng khi foods=dish_foods).
+                    dish = dish_foods.dish_for_food_id(menu_item.food_id) if not uses_raw_candidates else None
+                    if dish is not None:
+                        session.add(
+                            MealPlanItem(plan_id=plan_id, slot=slot.value, dish_id=dish.dish_id, grams=menu_item.grams)
+                        )
+                    else:
+                        session.add(
+                            MealPlanItem(
+                                plan_id=plan_id, slot=slot.value, food_id=menu_item.food_id, grams=menu_item.grams
+                            )
+                        )
+        else:
+            plan.menu_hash = None
         session.commit()
     except Exception:
         # Biên ngoài cùng của 1 background task fire-and-forget: không có request
@@ -238,17 +322,26 @@ def _run_graph_and_persist(
 
 
 def _get_visible_plan(db: Session, plan_id: str, user: CurrentUser) -> MealPlan:
-    query = (
-        db.query(MealPlan)
-        .options(*meal_plan_load_options())
-        .filter(MealPlan.id == plan_id)
-    )
+    query = db.query(MealPlan).options(*meal_plan_load_options()).filter(MealPlan.id == plan_id)
     if user.role == "patient":
-        query = query.join(DbPatientProfile).filter(DbPatientProfile.user_id == user.id, MealPlan.status == "approved")
+        query = _apply_patient_publish_gate(query.join(DbPatientProfile)).filter(DbPatientProfile.user_id == user.id)
     plan = query.first()
-    if plan is None:
+    if plan is None or (user.role == "patient" and not publish_gate_open(plan)):
         raise HTTPException(status.HTTP_404_NOT_FOUND, "Không tìm thấy thực đơn")
     return plan
+
+
+def _apply_patient_publish_gate(query):
+    """SQL half of the publish gate; ``publish_gate_open`` is the defence-in-depth check."""
+    return query.filter(
+        MealPlan.status == "approved",
+        MealPlan.highest_risk != "P0",
+        MealPlan.menu_hash.is_not(None),
+        MealPlan.nutrition_hash.is_not(None),
+        MealPlan.menu_version == MealPlan.approved_menu_version,
+        MealPlan.menu_hash == MealPlan.approved_menu_hash,
+        MealPlan.nutrition_hash == MealPlan.approved_nutrition_hash,
+    )
 
 
 @router.post("", response_model=CreateMealPlanResponse, status_code=status.HTTP_202_ACCEPTED)
@@ -313,7 +406,7 @@ def list_meal_plans(
 ) -> MealPlanListOut:
     query = db.query(MealPlan).options(*meal_plan_load_options())
     if user.role == "patient":
-        query = query.join(DbPatientProfile).filter(DbPatientProfile.user_id == user.id, MealPlan.status == "approved")
+        query = _apply_patient_publish_gate(query.join(DbPatientProfile)).filter(DbPatientProfile.user_id == user.id)
     elif patient_id is not None:
         query = query.filter(MealPlan.profile_id == patient_id)
     if plan_status is not None:
