@@ -106,14 +106,23 @@ def make_compute_targets(rules: list[ClinicalRule] | None = None):
 # là thực phẩm Mỹ/quốc tế không phù hợp bối cảnh bệnh nhân Việt Nam.
 USDA_BULK_ID_THRESHOLD = 100_000
 
+# Nguồn được coi là "thực phẩm Việt Nam curated" — luôn là ứng viên, BẤT KỂ id.
+#
+# Sửa 2026-08-08 (DAT-24): ngưỡng id ở trên là proxy cho "thuộc khối USDA bulk",
+# và proxy đó đã sai. Script merge NIN 2017 cấp id nối tiếp dãy fdc_id nên 82
+# thực phẩm Việt Nam THẬT của Viện Dinh dưỡng (Vừng, Cà rốt, Cải thìa, Giá đậu
+# xanh, Ớt đỏ, Đậu tương…) nhận id ≥ 1.105.898 và bị loại nhầm khỏi ứng viên
+# CP-SAT — đúng nhóm nguyên liệu mà công thức món Việt cần nhất. Lọc theo
+# `source` là đúng ý định ban đầu ("loại khối bulk Mỹ"), không phải theo id.
+VN_CURATED_SOURCES = frozenset({"NIN", "curated"})
+
 
 def make_retrieve_context(foods: FoodRepository):
     """Node: retrieve_context — LLM: NO.
 
     Lọc sẵn danh sách ứng viên theo dị ứng và bệnh lý, để LLM không bao giờ
     nhìn thấy thực phẩm cấm. Chặn ở đầu vào rẻ hơn chặn ở đầu ra. Đồng thời
-    loại khối USDA bulk (id ≥ `USDA_BULK_ID_THRESHOLD`) khỏi ứng viên — xem
-    ghi chú ở trên.
+    loại khối USDA bulk khỏi ứng viên — xem ghi chú ở trên.
     """
 
     def retrieve_context(state: NutriState) -> dict:
@@ -122,7 +131,7 @@ def make_retrieve_context(foods: FoodRepository):
         candidates = [
             f
             for f in all_items
-            if f.id < USDA_BULK_ID_THRESHOLD
+            if (f.id < USDA_BULK_ID_THRESHOLD or f.source in VN_CURATED_SOURCES)
             and not any(a in profile.allergies for a in map(str.lower, f.contains_allergens))
             and f.name_vi.lower() not in profile.dislikes
         ]

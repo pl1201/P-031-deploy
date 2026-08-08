@@ -76,6 +76,26 @@ Bỏ bớt nguyên liệu ⇒ món bị ghi nhận **thấp hơn** năng lượn
 
 ---
 
+## 4b. Đã sửa trong nhánh này: bug lọc ứng viên loại nhầm 82 thực phẩm NIN
+
+`src/agents/nodes/core.py` lọc ứng viên CP-SAT bằng `id < 100_000` như một *proxy* cho "thuộc khối USDA bulk". Proxy đó **sai**: script merge NIN 2017 cấp id nối tiếp dãy `fdc_id`, nên **82 thực phẩm Việt Nam thật của Viện Dinh dưỡng** nhận id ≥ 1.105.898 và bị loại nhầm — đúng nhóm nguyên liệu công thức món Việt cần nhất:
+
+> Vừng (mè), Cà rốt, Cải thìa, Cải soong, Giá đậu xanh, Giá đậu tương, Ớt đỏ to, Đậu tương, Đậu xanh, Đậu Hà Lan, Sữa đậu nành, Ngô bắp tươi…
+
+Đã sửa: lọc theo `source` (`NIN`/`curated` luôn là ứng viên, bất kể id) thay vì theo id.
+
+**Ứng viên nguyên liệu CP-SAT: 439 → 521.**
+
+## 4c. Khoảng trống lớn nhất chưa khai thác: 370 dòng `food_items.csv` bỏ trống
+
+370 dòng **chưa có bất kỳ số liệu nào**, và đó chính là danh sách nguyên liệu Việt curated gốc (id nhỏ), đúng những thứ công thức cần:
+
+> Mì ăn liền, Bánh cuốn, Sắn luộc, Thịt gà (ức, bỏ da), Giò lụa, Chả quế, Cá lóc, Cá bống, Cá khô, Chao, Tương hột, Rau ngót…
+
+Lấp được 370 dòng này ⇒ kho ứng viên **521 → ~890**, và phần lớn nguyên liệu đang làm trượt món (`sườn non`, `giò sống`, `mực ống`, `thịt nạc vai`) nằm trong nhóm này.
+
+Cảnh báo khi làm: khớp tên chính xác với `scripts/nin2017_extracted.json` chỉ ra **2/370** — nghĩa là phải tra tay/khớp mờ có kiểm soát, **không** được khớp mờ hàng loạt rồi tin luôn (gán nhầm "Cá lóc" sang "Cá lóc khô" là sai hoàn toàn về natri). Trong 620 mục NIN 2017 chỉ **235** mục có đủ macro + Na/K/P.
+
 ## 5. Việc cần làm để thật sự đạt 500+ (theo thứ tự)
 
 1. **[Chặn đường găng] Mở rộng kho nguyên liệu Việt** từ 439 lên ~1.000-1.500.

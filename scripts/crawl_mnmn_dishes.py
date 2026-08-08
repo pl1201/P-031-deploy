@@ -178,7 +178,9 @@ def load_food_index() -> dict[str, int]:
         for row in csv.DictReader(f):
             if not (row.get("kcal_100g") or "").strip():
                 continue
-            if int(row["id"]) >= 100_000:
+            # Giu dong bo voi bo loc ung vien trong src/agents/nodes/core.py:
+            # loai khoi USDA bulk, nhung GIU thuc pham NIN/curated du id lon.
+            if int(row["id"]) >= 100_000 and (row.get("source") or "") not in ("NIN", "curated"):
                 continue
             for label in [row["name_vi"], *(row.get("aliases") or "").split("|")]:
                 key = _norm(label)
