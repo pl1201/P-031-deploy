@@ -21,7 +21,7 @@ from src.clinical.seeds import load_food_repository
 def _candidates(profile: PatientProfile) -> list:
     foods = load_food_repository()
     node = make_retrieve_context(foods)
-    return node({"profile": profile})["candidate_foods"]
+    return [foods.get(food_id) for food_id in node({"profile": profile})["candidate_ids"]]
 
 
 def _profile(**kwargs) -> PatientProfile:
@@ -58,12 +58,10 @@ def test_khoi_usda_bulk_van_bi_loai() -> None:
     assert bulk == [], f"{len(bulk)} dòng USDA bulk lọt vào ứng viên, VD: {[f.name_vi for f in bulk[:3]]}"
 
 
-def test_ung_vien_khong_it_hon_truoc_khi_sua() -> None:
-    """Số ứng viên phải ≥ mức cũ (439) — sửa bug chỉ được thêm, không được bớt."""
+def test_ung_vien_duoc_rut_gon_theo_latency_budget() -> None:
+    """Shortlist phải nằm trong budget 50-120 thay vì đẩy ~521 món vào solver."""
     got = _candidates(_profile())
-    chi_theo_id = [f for f in load_food_repository().all() if f.id < USDA_BULK_ID_THRESHOLD]
-
-    assert len(got) > len(chi_theo_id)
+    assert 50 <= len(got) <= 120
 
 
 def test_van_loai_di_ung_va_mon_khong_thich() -> None:
