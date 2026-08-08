@@ -268,6 +268,30 @@ class MenuDraft(BaseModel):
         return [i for items in self.items.values() for i in items]
 
 
+class DishCandidate(BaseModel):
+    """Một món ăn Việt Nam hoàn chỉnh (công thức = nguyên liệu cố định), dùng làm
+    khung cho generator thay vì luôn ghép rời từng nguyên liệu thô (CLN-*, xem
+    quyết định "hybrid: dish làm khung" trong DEVLOG).
+
+    CỐ Ý không tự sinh MenuItem mới — `ingredients` là food_id + gram THẬT lấy
+    từ `dish_ingredients.csv`, generator chỉ chọn "dùng món này hay không",
+    Python vẫn là nơi duy nhất tính dinh dưỡng (RULE-1 giữ nguyên qua lớp này).
+    """
+
+    dish_id: str
+    name_vi: str
+    region: str | None = None
+    # `data/seeds/dishes.csv` hiện có 2 nhóm hoàn toàn khác nhau dưới cùng cột
+    # verified_by: ~2600 dòng "USDA FNDDS" (khối bulk thực phẩm Mỹ lẫn vào,
+    # KHÔNG phải món Việt — bị loại ở load_vn_dishes()) và 30 món Việt thật
+    # (Phở bò, Bún đậu mắm...) nhưng verified_by="pending" — R2 CHƯA rà công
+    # thức. is_reviewed=False cho toàn bộ 30 món này hiện tại; downstream (API/
+    # UI) phải hiển thị cảnh báo "công thức chưa qua chuyên gia rà" khi dùng.
+    is_reviewed: bool = False
+    verified_by: str | None = None
+    ingredients: list[MenuItem] = Field(default_factory=list)
+
+
 class SourceRef(BaseModel):
     food_id: int
     name: str

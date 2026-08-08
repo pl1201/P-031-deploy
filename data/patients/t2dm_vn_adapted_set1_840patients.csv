@@ -1,0 +1,841 @@
+﻿patient_id,age,sex,height_cm,weight_kg,bmi,activity_level,weight_goal,region,frailty_sarcopenia,metabolically_unstable,sodium_wasting,hba1c_pct,glucose_fasting_mg_dl,medications,dislikes,source_dataset,original_bmi,sbp_mmhg,dbp_mmhg
+nhanes_t2dm_0000,44,female,157.8,48.6,19.5,moderately_active,maintain,south,False,False,False,6.2,156.0,,mắm tôm,NHANES_2021_2023_VN_adapted,29.7,,
+nhanes_t2dm_0001,61,female,154.1,76.5,32.2,moderately_active,maintain,central,False,False,False,13.5,,,sầu riêng,NHANES_2021_2023_VN_adapted,41.3,,
+nhanes_t2dm_0002,80,female,162.8,56.2,21.2,lightly_active,maintain,north,False,False,False,8.2,,,tiết canh,NHANES_2021_2023_VN_adapted,29.9,,
+nhanes_t2dm_0003,54,male,166.8,97.4,35.0,sedentary,lose,south,False,False,False,8.7,,,sầu riêng;tim,NHANES_2021_2023_VN_adapted,49.7,,
+nhanes_t2dm_0004,63,male,170.4,52.3,18.0,sedentary,lose,south,False,False,False,6.7,,,tiết canh;bí đao,NHANES_2021_2023_VN_adapted,24.8,141.0,79.0
+nhanes_t2dm_0005,71,female,162.8,78.2,29.5,lightly_active,lose,central,False,False,False,6.6,,,,NHANES_2021_2023_VN_adapted,38.7,,
+nhanes_t2dm_0006,55,female,159.3,59.4,23.4,sedentary,maintain,south,False,False,False,6.8,167.0,,bí đao,NHANES_2021_2023_VN_adapted,33.2,,
+nhanes_t2dm_0008,57,male,169.5,59.2,20.6,lightly_active,lose,north,False,False,False,6.6,163.0,,tiết canh;tim,NHANES_2021_2023_VN_adapted,29.0,,
+nhanes_t2dm_0009,67,female,152.2,81.1,35.0,sedentary,lose,north,False,False,False,8.9,149.0,,tim,NHANES_2021_2023_VN_adapted,55.1,147.0,65.0
+nhanes_t2dm_0011,79,male,165.8,50.6,18.4,sedentary,lose,central,False,False,False,5.5,163.0,,lòng,NHANES_2021_2023_VN_adapted,27.4,146.0,75.0
+nhanes_t2dm_0012,80,male,173.6,72.9,24.2,sedentary,lose,south,False,False,False,7.9,149.0,,,NHANES_2021_2023_VN_adapted,33.5,,
+nhanes_t2dm_0014,62,male,168.9,78.2,27.4,sedentary,maintain,central,False,False,False,8.3,,,bí đao;tiết canh,NHANES_2021_2023_VN_adapted,35.8,,
+nhanes_t2dm_0015,47,female,152.0,41.6,18.0,lightly_active,lose,north,False,False,False,8.8,198.0,,gan;mướp đắng,NHANES_2021_2023_VN_adapted,23.1,,
+nhanes_t2dm_0016,65,female,158.7,48.6,19.3,lightly_active,lose,north,False,False,False,7.6,,,mắm tôm,NHANES_2021_2023_VN_adapted,27.7,,
+nhanes_t2dm_0017,51,female,147.3,40.8,18.8,lightly_active,maintain,south,False,False,False,,,,mướp đắng;gan;bí đao,NHANES_2021_2023_VN_adapted,29.2,,
+nhanes_t2dm_0019,61,female,150.4,68.8,30.4,sedentary,lose,north,False,False,False,6.7,,,sầu riêng;tim;mướp đắng,NHANES_2021_2023_VN_adapted,39.7,,
+nhanes_t2dm_0020,73,male,164.1,57.4,21.3,lightly_active,maintain,south,False,False,False,6.5,175.0,,mướp đắng;gan,NHANES_2021_2023_VN_adapted,31.9,142.0,76.0
+nhanes_t2dm_0021,55,female,149.9,40.4,18.0,sedentary,lose,north,False,False,False,12.0,,,tim,NHANES_2021_2023_VN_adapted,23.4,,
+nhanes_t2dm_0022,73,male,177.5,56.7,18.0,sedentary,gain,north,False,False,False,6.4,114.0,,tim;mướp đắng;gan,NHANES_2021_2023_VN_adapted,27.4,,
+nhanes_t2dm_0023,66,male,161.4,46.9,18.0,sedentary,maintain,north,False,False,False,,,,gan,NHANES_2021_2023_VN_adapted,25.5,165.0,95.0
+nhanes_t2dm_0024,65,male,161.6,56.7,21.7,sedentary,lose,north,False,False,False,7.6,,,gan,NHANES_2021_2023_VN_adapted,33.0,,
+nhanes_t2dm_0025,62,female,162.4,70.2,26.6,sedentary,maintain,north,False,False,False,8.4,,,gan,NHANES_2021_2023_VN_adapted,35.6,,
+nhanes_t2dm_0026,76,male,167.7,63.0,22.4,moderately_active,lose,south,False,False,False,7.9,109.0,,,NHANES_2021_2023_VN_adapted,29.7,150.0,69.0
+nhanes_t2dm_0027,64,male,161.7,53.1,20.3,moderately_active,lose,north,False,False,False,7.1,162.0,,mướp đắng;lòng,NHANES_2021_2023_VN_adapted,30.1,,
+nhanes_t2dm_0028,80,male,167.0,50.2,18.0,sedentary,lose,south,False,False,False,6.6,142.0,,,NHANES_2021_2023_VN_adapted,19.9,152.0,69.0
+nhanes_t2dm_0029,45,female,148.3,68.6,31.2,lightly_active,lose,south,False,False,False,9.7,,,bí đao;mắm tôm,NHANES_2021_2023_VN_adapted,40.1,,
+nhanes_t2dm_0031,68,female,157.3,44.5,18.0,lightly_active,lose,north,False,False,False,6.4,,,,NHANES_2021_2023_VN_adapted,26.9,,
+nhanes_t2dm_0033,71,male,160.0,52.5,20.5,lightly_active,maintain,north,False,False,False,9.3,181.0,,lòng;mắm tôm,NHANES_2021_2023_VN_adapted,31.0,,
+nhanes_t2dm_0034,51,male,177.1,56.5,18.0,sedentary,lose,south,False,False,False,9.6,,,gan;mắm tôm;mướp đắng,NHANES_2021_2023_VN_adapted,22.2,,
+nhanes_t2dm_0036,79,female,156.5,85.7,35.0,lightly_active,lose,north,False,False,False,6.9,139.0,,tiết canh,NHANES_2021_2023_VN_adapted,45.0,,
+nhanes_t2dm_0037,61,male,165.8,74.2,27.0,sedentary,maintain,south,False,False,False,6.9,120.0,,,NHANES_2021_2023_VN_adapted,35.2,,
+nhanes_t2dm_0039,78,female,153.1,46.2,19.7,moderately_active,lose,central,False,False,False,9.2,197.0,,tim,NHANES_2021_2023_VN_adapted,29.1,,
+nhanes_t2dm_0040,65,female,151.8,69.4,30.1,sedentary,lose,central,False,False,False,6.5,,,lòng,NHANES_2021_2023_VN_adapted,39.4,,
+nhanes_t2dm_0041,39,female,170.0,101.1,35.0,lightly_active,lose,south,False,False,False,9.3,,,mướp đắng;sầu riêng,NHANES_2021_2023_VN_adapted,47.8,,
+nhanes_t2dm_0042,67,male,175.8,73.9,23.9,lightly_active,maintain,south,False,False,False,6.4,126.0,,,NHANES_2021_2023_VN_adapted,33.7,156.0,84.0
+nhanes_t2dm_0044,70,female,152.8,81.7,35.0,sedentary,maintain,south,False,False,False,7.3,,,mắm tôm;mướp đắng,NHANES_2021_2023_VN_adapted,48.9,145.0,83.0
+nhanes_t2dm_0046,80,male,179.9,87.7,27.1,sedentary,maintain,north,False,False,False,10.4,,,mắm tôm,NHANES_2021_2023_VN_adapted,33.3,,
+nhanes_t2dm_0047,80,female,150.1,40.6,18.0,sedentary,lose,south,False,False,False,6.4,,,,NHANES_2021_2023_VN_adapted,27.3,153.0,74.0
+nhanes_t2dm_0048,50,female,147.8,68.6,31.4,sedentary,lose,north,False,False,False,8.4,130.0,,,NHANES_2021_2023_VN_adapted,40.8,,
+nhanes_t2dm_0049,62,male,174.6,59.8,19.6,moderately_active,lose,north,False,False,False,8.7,86.0,,tim,NHANES_2021_2023_VN_adapted,28.5,148.0,93.0
+nhanes_t2dm_0051,52,female,155.4,43.5,18.0,sedentary,lose,central,False,False,False,13.7,309.0,,tiết canh,NHANES_2021_2023_VN_adapted,20.1,,
+nhanes_t2dm_0052,67,female,157.6,47.4,19.1,moderately_active,lose,south,False,False,False,7.8,,,,NHANES_2021_2023_VN_adapted,29.3,155.0,83.0
+nhanes_t2dm_0053,58,male,174.0,91.4,30.2,lightly_active,lose,south,False,False,False,9.1,202.0,,gan;lòng,NHANES_2021_2023_VN_adapted,38.8,153.0,78.0
+nhanes_t2dm_0054,64,male,166.4,54.0,19.5,sedentary,maintain,south,False,False,False,6.5,126.0,,tim,NHANES_2021_2023_VN_adapted,28.4,,
+nhanes_t2dm_0058,80,female,157.8,47.6,19.1,sedentary,lose,central,False,False,False,7.2,,,gan,NHANES_2021_2023_VN_adapted,28.6,,
+nhanes_t2dm_0061,63,male,165.9,86.4,31.4,moderately_active,maintain,south,False,False,False,6.2,125.0,,,NHANES_2021_2023_VN_adapted,40.5,,
+nhanes_t2dm_0062,61,male,179.3,57.9,18.0,lightly_active,lose,central,False,False,False,10.5,354.0,,mắm tôm;mướp đắng,NHANES_2021_2023_VN_adapted,22.1,,
+nhanes_t2dm_0065,73,male,168.4,73.4,25.9,lightly_active,maintain,south,False,False,False,6.8,,,,NHANES_2021_2023_VN_adapted,35.7,,
+nhanes_t2dm_0067,80,female,156.4,44.0,18.0,sedentary,gain,north,False,False,False,7.2,140.0,,gan;sầu riêng,NHANES_2021_2023_VN_adapted,19.1,164.0,63.0
+nhanes_t2dm_0068,67,female,152.9,42.1,18.0,sedentary,lose,south,False,False,False,6.4,100.0,,lòng;tiết canh,NHANES_2021_2023_VN_adapted,24.3,153.0,73.0
+nhanes_t2dm_0069,33,female,152.0,73.0,31.6,lightly_active,maintain,central,False,False,False,12.4,305.0,,mướp đắng,NHANES_2021_2023_VN_adapted,40.4,,
+nhanes_t2dm_0070,65,female,158.5,77.6,30.9,sedentary,maintain,central,False,False,False,7.4,,,tim;bí đao;sầu riêng,NHANES_2021_2023_VN_adapted,38.3,141.0,82.0
+nhanes_t2dm_0071,73,female,161.1,51.1,19.7,lightly_active,lose,south,False,False,False,8.4,230.0,,tim,NHANES_2021_2023_VN_adapted,29.4,171.0,65.0
+nhanes_t2dm_0072,48,female,150.8,40.9,18.0,moderately_active,lose,north,False,False,False,6.1,110.0,,,NHANES_2021_2023_VN_adapted,25.9,,
+nhanes_t2dm_0074,67,female,155.2,84.3,35.0,sedentary,gain,central,False,False,False,6.2,,,lòng;tim;bí đao,NHANES_2021_2023_VN_adapted,42.7,,
+nhanes_t2dm_0075,44,male,173.6,59.7,19.8,lightly_active,maintain,north,False,False,False,10.1,,,tim;lòng,NHANES_2021_2023_VN_adapted,28.1,,
+nhanes_t2dm_0077,65,male,168.7,99.6,35.0,sedentary,lose,south,False,False,False,7.0,,,,NHANES_2021_2023_VN_adapted,60.6,,
+nhanes_t2dm_0078,80,female,158.6,64.1,25.5,moderately_active,maintain,south,False,False,False,7.5,,,,NHANES_2021_2023_VN_adapted,34.1,147.0,61.0
+nhanes_t2dm_0079,61,female,153.2,78.4,33.4,sedentary,maintain,north,False,False,False,5.9,98.0,,tim;lòng;sầu riêng,NHANES_2021_2023_VN_adapted,42.1,143.0,82.0
+nhanes_t2dm_0081,80,male,171.4,67.3,22.9,lightly_active,lose,north,False,False,False,7.2,,,mắm tôm;tim,NHANES_2021_2023_VN_adapted,32.7,,
+nhanes_t2dm_0082,77,female,155.3,69.7,28.9,lightly_active,lose,south,False,False,False,7.4,167.0,,tiết canh;lòng,NHANES_2021_2023_VN_adapted,37.2,,
+nhanes_t2dm_0083,42,female,160.5,90.2,35.0,sedentary,lose,south,False,False,False,9.1,,,lòng,NHANES_2021_2023_VN_adapted,55.1,127.0,91.0
+nhanes_t2dm_0084,76,male,176.8,59.7,19.1,lightly_active,lose,south,False,False,False,8.1,143.0,,,NHANES_2021_2023_VN_adapted,28.1,,
+nhanes_t2dm_0085,60,male,165.7,50.5,18.4,sedentary,maintain,south,False,False,False,7.0,153.0,,lòng,NHANES_2021_2023_VN_adapted,26.7,145.0,85.0
+nhanes_t2dm_0087,68,male,171.1,63.8,21.8,sedentary,lose,south,False,False,False,8.4,,,,NHANES_2021_2023_VN_adapted,31.1,,
+nhanes_t2dm_0090,63,female,149.6,42.1,18.8,sedentary,maintain,south,False,False,False,6.1,,,lòng,NHANES_2021_2023_VN_adapted,28.5,149.0,81.0
+nhanes_t2dm_0091,76,female,153.9,42.6,18.0,moderately_active,lose,south,False,False,False,6.9,,,gan,NHANES_2021_2023_VN_adapted,22.9,156.0,73.0
+nhanes_t2dm_0092,66,male,167.1,50.3,18.0,sedentary,lose,central,False,False,False,6.8,131.0,,,NHANES_2021_2023_VN_adapted,26.6,,
+nhanes_t2dm_0093,77,male,175.0,67.4,22.0,sedentary,lose,south,False,False,False,7.9,151.0,,tiết canh,NHANES_2021_2023_VN_adapted,32.0,,
+nhanes_t2dm_0094,77,male,154.5,43.0,18.0,sedentary,lose,north,False,False,False,7.9,168.0,,mướp đắng,NHANES_2021_2023_VN_adapted,24.6,,
+nhanes_t2dm_0096,71,male,161.7,47.1,18.0,sedentary,maintain,south,False,False,False,6.9,139.0,,gan,NHANES_2021_2023_VN_adapted,25.6,,
+nhanes_t2dm_0097,80,female,162.4,52.0,19.7,lightly_active,maintain,south,False,False,False,5.9,128.0,,tim,NHANES_2021_2023_VN_adapted,29.9,,
+nhanes_t2dm_0098,64,female,156.5,85.7,35.0,sedentary,maintain,central,False,False,False,7.0,,,bí đao,NHANES_2021_2023_VN_adapted,44.8,,
+nhanes_t2dm_0099,65,female,160.0,89.6,35.0,sedentary,lose,north,False,False,False,9.2,,,,NHANES_2021_2023_VN_adapted,46.7,158.0,92.0
+nhanes_t2dm_0100,68,female,161.6,49.9,19.1,sedentary,lose,north,False,False,False,6.2,,,tim;tiết canh,NHANES_2021_2023_VN_adapted,30.1,,
+nhanes_t2dm_0101,74,male,163.3,48.5,18.2,lightly_active,maintain,north,False,False,False,8.7,252.0,,lòng;sầu riêng;mướp đắng,NHANES_2021_2023_VN_adapted,28.8,,
+nhanes_t2dm_0102,68,female,154.2,81.1,34.1,lightly_active,lose,north,False,False,False,7.0,,,,NHANES_2021_2023_VN_adapted,43.1,,
+nhanes_t2dm_0103,34,male,163.5,70.3,26.3,lightly_active,gain,south,False,False,False,7.0,,,bí đao,NHANES_2021_2023_VN_adapted,34.5,,
+nhanes_t2dm_0105,57,male,166.8,70.1,25.2,lightly_active,lose,north,False,False,False,6.5,118.0,,,NHANES_2021_2023_VN_adapted,32.9,,
+nhanes_t2dm_0106,68,male,178.2,111.1,35.0,sedentary,lose,north,False,False,False,6.3,,,sầu riêng;tiết canh;tim,NHANES_2021_2023_VN_adapted,46.9,,
+nhanes_t2dm_0107,62,male,152.4,41.8,18.0,lightly_active,maintain,north,False,False,False,9.5,168.0,,bí đao;lòng,NHANES_2021_2023_VN_adapted,22.7,141.0,91.0
+nhanes_t2dm_0109,59,female,155.0,55.0,22.9,lightly_active,lose,north,False,False,False,8.1,160.0,,tiết canh,NHANES_2021_2023_VN_adapted,31.8,188.0,114.0
+nhanes_t2dm_0110,59,female,157.8,48.1,19.3,sedentary,lose,central,False,False,False,6.9,111.0,,gan;lòng;bí đao,NHANES_2021_2023_VN_adapted,26.3,,
+nhanes_t2dm_0111,55,female,152.9,48.9,20.9,sedentary,lose,north,False,False,False,8.2,,,gan;tiết canh;mướp đắng,NHANES_2021_2023_VN_adapted,30.9,,
+nhanes_t2dm_0113,58,male,163.8,93.9,35.0,sedentary,lose,north,False,False,False,9.9,,,bí đao,NHANES_2021_2023_VN_adapted,43.8,,
+nhanes_t2dm_0114,55,female,150.6,55.6,24.5,lightly_active,maintain,south,False,False,False,6.9,,,tiết canh,NHANES_2021_2023_VN_adapted,33.4,,
+nhanes_t2dm_0115,22,male,152.3,41.8,18.0,lightly_active,lose,south,False,False,False,13.1,385.0,,sầu riêng;mướp đắng,NHANES_2021_2023_VN_adapted,24.4,,
+nhanes_t2dm_0117,74,male,162.6,58.4,22.1,sedentary,lose,south,False,False,False,,,,sầu riêng;bí đao;lòng,NHANES_2021_2023_VN_adapted,30.9,142.0,80.0
+nhanes_t2dm_0119,48,female,148.3,49.3,22.4,sedentary,maintain,central,False,False,False,8.0,199.0,,mướp đắng;lòng;gan,NHANES_2021_2023_VN_adapted,31.9,,
+nhanes_t2dm_0120,50,female,163.6,48.2,18.0,sedentary,lose,south,False,False,False,8.8,273.0,,tim;mắm tôm;bí đao,NHANES_2021_2023_VN_adapted,27.0,128.0,91.0
+nhanes_t2dm_0121,66,male,169.5,51.7,18.0,lightly_active,lose,south,False,False,False,7.0,130.0,,bí đao;tim,NHANES_2021_2023_VN_adapted,26.5,,
+nhanes_t2dm_0122,65,female,152.3,66.1,28.5,lightly_active,maintain,south,False,False,False,7.5,,,,NHANES_2021_2023_VN_adapted,36.1,,
+nhanes_t2dm_0124,52,female,158.8,60.8,24.1,moderately_active,lose,south,False,False,False,6.8,144.0,,bí đao,NHANES_2021_2023_VN_adapted,33.7,,
+nhanes_t2dm_0126,59,female,170.0,69.4,24.0,sedentary,maintain,central,False,False,False,5.9,,,mắm tôm,NHANES_2021_2023_VN_adapted,33.5,,
+nhanes_t2dm_0127,38,male,160.8,73.2,28.3,sedentary,lose,north,False,False,False,5.6,118.0,,bí đao;lòng,NHANES_2021_2023_VN_adapted,36.8,,
+nhanes_t2dm_0129,73,female,155.1,43.3,18.0,sedentary,maintain,south,False,False,False,,,,lòng;tim,NHANES_2021_2023_VN_adapted,21.7,,
+nhanes_t2dm_0131,76,male,180.0,58.3,18.0,sedentary,lose,north,False,False,False,7.8,242.0,,,NHANES_2021_2023_VN_adapted,26.5,,
+nhanes_t2dm_0133,80,female,150.8,51.4,22.6,lightly_active,lose,north,False,False,False,7.5,175.0,,tiết canh,NHANES_2021_2023_VN_adapted,31.5,,
+nhanes_t2dm_0134,69,male,165.8,72.3,26.3,moderately_active,lose,north,False,False,False,7.6,219.0,,tiết canh,NHANES_2021_2023_VN_adapted,35.5,,
+nhanes_t2dm_0135,80,female,140.6,35.6,18.0,sedentary,lose,south,False,False,False,6.4,,,,NHANES_2021_2023_VN_adapted,24.5,165.0,69.0
+nhanes_t2dm_0136,80,male,170.3,74.5,25.7,sedentary,gain,central,False,False,False,7.0,102.0,,gan;lòng,NHANES_2021_2023_VN_adapted,32.4,144.0,60.0
+nhanes_t2dm_0138,75,male,164.6,48.8,18.0,sedentary,maintain,north,False,False,False,7.9,,,mướp đắng,NHANES_2021_2023_VN_adapted,23.2,148.0,68.0
+nhanes_t2dm_0139,47,male,165.2,49.9,18.3,moderately_active,lose,central,False,False,False,7.0,,,,NHANES_2021_2023_VN_adapted,27.1,,
+nhanes_t2dm_0140,77,female,151.3,41.2,18.0,sedentary,lose,north,False,False,False,5.9,,,bí đao,NHANES_2021_2023_VN_adapted,22.4,,
+nhanes_t2dm_0141,69,male,161.3,91.1,35.0,sedentary,lose,north,False,False,False,6.7,99.0,,gan,NHANES_2021_2023_VN_adapted,49.5,,
+nhanes_t2dm_0142,70,female,154.7,51.9,21.7,moderately_active,lose,north,False,False,False,8.9,340.0,,,NHANES_2021_2023_VN_adapted,30.1,154.0,76.0
+nhanes_t2dm_0143,71,female,154.7,53.4,22.3,lightly_active,lose,north,False,False,False,5.4,101.0,,gan,NHANES_2021_2023_VN_adapted,32.7,150.0,106.0
+nhanes_t2dm_0144,50,male,175.3,55.3,18.0,sedentary,lose,central,False,False,False,7.6,,,lòng,NHANES_2021_2023_VN_adapted,22.0,,
+nhanes_t2dm_0145,65,male,173.0,86.8,29.0,sedentary,maintain,central,False,False,False,11.4,320.0,,mắm tôm;tiết canh,NHANES_2021_2023_VN_adapted,39.2,141.0,89.0
+nhanes_t2dm_0146,71,female,156.9,65.5,26.6,lightly_active,lose,north,False,False,False,6.0,108.0,,,NHANES_2021_2023_VN_adapted,34.9,,
+nhanes_t2dm_0148,61,female,163.1,69.7,26.2,moderately_active,maintain,south,False,False,False,6.5,,,,NHANES_2021_2023_VN_adapted,36.3,,
+nhanes_t2dm_0149,70,female,159.1,88.6,35.0,moderately_active,lose,south,False,False,False,5.1,,,,NHANES_2021_2023_VN_adapted,46.5,,
+nhanes_t2dm_0150,54,female,168.3,68.0,24.0,lightly_active,maintain,north,False,False,False,7.1,150.0,,mắm tôm;sầu riêng,NHANES_2021_2023_VN_adapted,31.4,141.0,79.0
+nhanes_t2dm_0153,78,female,163.5,53.2,19.9,sedentary,lose,north,False,False,False,8.9,187.0,,,NHANES_2021_2023_VN_adapted,28.3,,
+nhanes_t2dm_0154,73,female,156.5,50.7,20.7,moderately_active,lose,south,False,False,False,6.3,109.0,,bí đao;tim,NHANES_2021_2023_VN_adapted,30.3,,
+nhanes_t2dm_0155,55,male,168.1,67.5,23.9,lightly_active,gain,south,False,False,False,8.0,,,,NHANES_2021_2023_VN_adapted,32.8,,
+nhanes_t2dm_0156,43,male,167.7,54.0,19.2,sedentary,maintain,south,False,False,False,6.7,129.0,,bí đao,NHANES_2021_2023_VN_adapted,28.4,122.0,90.0
+nhanes_t2dm_0157,22,female,156.3,85.5,35.0,sedentary,lose,south,False,False,False,5.6,,,,NHANES_2021_2023_VN_adapted,50.2,,
+nhanes_t2dm_0158,58,female,159.1,86.6,34.2,lightly_active,lose,south,False,False,False,7.6,145.0,,,NHANES_2021_2023_VN_adapted,42.9,,
+nhanes_t2dm_0159,73,male,174.7,84.2,27.6,lightly_active,maintain,south,False,False,False,8.3,227.0,,gan,NHANES_2021_2023_VN_adapted,36.7,148.0,88.0
+nhanes_t2dm_0160,35,male,175.1,80.9,26.4,lightly_active,lose,south,False,False,False,9.1,,,mướp đắng,NHANES_2021_2023_VN_adapted,35.7,146.0,94.0
+nhanes_t2dm_0161,25,female,152.5,81.4,35.0,moderately_active,lose,central,False,False,False,14.6,,,,NHANES_2021_2023_VN_adapted,48.0,135.0,105.0
+nhanes_t2dm_0163,55,male,169.6,54.9,19.1,sedentary,maintain,south,False,False,False,8.0,186.0,,,NHANES_2021_2023_VN_adapted,27.9,,
+nhanes_t2dm_0165,70,female,157.9,50.9,20.4,lightly_active,maintain,central,False,False,False,5.7,101.0,,gan;tiết canh,NHANES_2021_2023_VN_adapted,30.6,,
+nhanes_t2dm_0166,80,male,150.6,48.8,21.5,moderately_active,maintain,central,False,False,False,7.2,,,,NHANES_2021_2023_VN_adapted,30.2,,
+nhanes_t2dm_0167,76,male,162.2,47.4,18.0,moderately_active,lose,north,False,False,False,9.6,140.0,,mướp đắng;bí đao,NHANES_2021_2023_VN_adapted,24.8,152.0,97.0
+nhanes_t2dm_0168,29,male,179.4,57.9,18.0,lightly_active,lose,north,False,False,False,9.8,417.0,,bí đao,NHANES_2021_2023_VN_adapted,20.5,,
+nhanes_t2dm_0169,61,female,161.8,50.0,19.1,sedentary,lose,central,False,False,False,5.6,,,,NHANES_2021_2023_VN_adapted,28.5,,
+nhanes_t2dm_0170,62,male,168.1,94.7,33.5,moderately_active,lose,south,False,False,False,5.4,102.0,,gan,NHANES_2021_2023_VN_adapted,42.3,,
+nhanes_t2dm_0171,61,female,147.3,46.9,21.6,sedentary,lose,south,False,False,False,5.9,113.0,,,NHANES_2021_2023_VN_adapted,30.8,,
+nhanes_t2dm_0172,61,male,165.4,62.1,22.7,sedentary,gain,north,False,False,False,7.5,,,,NHANES_2021_2023_VN_adapted,32.4,150.0,83.0
+nhanes_t2dm_0173,78,male,168.4,51.0,18.0,sedentary,maintain,north,False,False,False,6.4,125.0,,,NHANES_2021_2023_VN_adapted,23.0,146.0,66.0
+nhanes_t2dm_0174,62,female,155.8,47.1,19.4,sedentary,lose,south,False,False,False,6.2,109.0,,lòng;gan;bí đao,NHANES_2021_2023_VN_adapted,28.3,,
+nhanes_t2dm_0175,68,male,151.7,52.7,22.9,sedentary,lose,south,False,False,False,8.2,,,mắm tôm,NHANES_2021_2023_VN_adapted,33.7,,
+nhanes_t2dm_0176,77,female,154.1,62.9,26.5,sedentary,maintain,central,False,False,False,6.9,157.0,,tim;bí đao,NHANES_2021_2023_VN_adapted,34.6,174.0,84.0
+nhanes_t2dm_0177,58,female,155.1,54.8,22.8,moderately_active,lose,south,False,False,False,5.4,100.0,,,NHANES_2021_2023_VN_adapted,30.3,,
+nhanes_t2dm_0178,40,female,156.4,44.0,18.0,sedentary,lose,north,False,False,False,7.7,171.0,,bí đao,NHANES_2021_2023_VN_adapted,25.0,,
+nhanes_t2dm_0179,62,male,174.4,54.7,18.0,sedentary,lose,south,False,False,False,6.6,126.0,,gan,NHANES_2021_2023_VN_adapted,22.4,,
+nhanes_t2dm_0180,65,male,165.9,49.5,18.0,sedentary,lose,south,False,False,False,10.3,,,mướp đắng;bí đao,NHANES_2021_2023_VN_adapted,26.3,,
+nhanes_t2dm_0182,74,male,170.7,69.3,23.8,moderately_active,lose,north,False,False,False,6.6,64.0,,,NHANES_2021_2023_VN_adapted,33.1,161.0,89.0
+nhanes_t2dm_0183,75,female,165.9,49.8,18.1,sedentary,lose,central,False,False,False,6.0,105.0,,,NHANES_2021_2023_VN_adapted,26.9,,
+nhanes_t2dm_0184,65,female,161.2,62.4,24.0,sedentary,lose,north,False,False,False,6.5,,,sầu riêng,NHANES_2021_2023_VN_adapted,32.9,,
+nhanes_t2dm_0185,55,male,170.2,101.4,35.0,sedentary,maintain,south,False,False,False,7.6,,,bí đao;mướp đắng,NHANES_2021_2023_VN_adapted,50.7,,
+nhanes_t2dm_0186,51,male,160.4,61.5,23.9,lightly_active,lose,north,False,False,False,6.5,,,tiết canh;gan,NHANES_2021_2023_VN_adapted,33.8,,
+nhanes_t2dm_0188,46,female,156.8,44.3,18.0,moderately_active,lose,south,False,False,False,5.5,,,,NHANES_2021_2023_VN_adapted,27.6,,
+nhanes_t2dm_0189,66,male,163.2,89.8,33.7,lightly_active,lose,north,False,False,False,,,,,NHANES_2021_2023_VN_adapted,41.9,,
+nhanes_t2dm_0190,56,male,172.0,84.9,28.7,lightly_active,lose,south,False,False,False,10.7,321.0,,lòng,NHANES_2021_2023_VN_adapted,38.8,148.0,78.0
+nhanes_t2dm_0191,61,male,170.9,52.6,18.0,lightly_active,maintain,north,False,False,False,5.9,95.0,,,NHANES_2021_2023_VN_adapted,22.4,181.0,115.0
+nhanes_t2dm_0192,63,female,159.8,72.5,28.4,lightly_active,lose,south,False,False,False,8.3,,,tiết canh;mắm tôm,NHANES_2021_2023_VN_adapted,38.9,,
+nhanes_t2dm_0193,80,male,177.6,56.8,18.0,lightly_active,maintain,south,False,False,False,,,,gan,NHANES_2021_2023_VN_adapted,23.0,,
+nhanes_t2dm_0194,80,male,168.8,55.3,19.4,sedentary,lose,central,False,False,False,6.7,138.0,,mướp đắng,NHANES_2021_2023_VN_adapted,28.4,155.0,70.0
+nhanes_t2dm_0195,73,female,156.0,50.4,20.7,lightly_active,lose,south,False,False,False,5.8,110.0,,bí đao,NHANES_2021_2023_VN_adapted,29.5,,
+nhanes_t2dm_0196,61,male,160.0,46.1,18.0,sedentary,lose,south,False,False,False,7.2,147.0,,tim;mắm tôm,NHANES_2021_2023_VN_adapted,21.5,,
+nhanes_t2dm_0197,69,male,165.8,49.5,18.0,lightly_active,gain,south,False,False,False,9.5,,,gan;tim;mắm tôm,NHANES_2021_2023_VN_adapted,26.1,,
+nhanes_t2dm_0199,70,male,153.8,62.4,26.4,sedentary,maintain,south,False,False,False,5.8,131.0,,tim,NHANES_2021_2023_VN_adapted,35.5,,
+nhanes_t2dm_0200,61,female,158.9,45.7,18.1,sedentary,maintain,south,False,False,False,6.0,117.0,,tiết canh,NHANES_2021_2023_VN_adapted,27.7,,
+nhanes_t2dm_0201,72,female,160.1,46.1,18.0,sedentary,lose,central,False,False,False,11.1,,,mướp đắng,NHANES_2021_2023_VN_adapted,18.1,,
+nhanes_t2dm_0202,62,female,152.8,43.2,18.5,lightly_active,lose,south,False,False,False,6.2,,,mướp đắng;sầu riêng;tim,NHANES_2021_2023_VN_adapted,27.0,,
+nhanes_t2dm_0203,28,male,159.0,66.5,26.3,sedentary,lose,south,False,False,False,13.7,320.0,,,NHANES_2021_2023_VN_adapted,33.9,129.0,95.0
+nhanes_t2dm_0204,54,female,155.1,58.2,24.2,sedentary,maintain,south,False,False,False,7.4,,,mắm tôm;mướp đắng,NHANES_2021_2023_VN_adapted,31.8,,
+nhanes_t2dm_0205,61,male,177.4,78.4,24.9,sedentary,gain,south,False,False,False,11.1,235.0,,,NHANES_2021_2023_VN_adapted,34.0,,
+nhanes_t2dm_0206,63,male,162.1,56.2,21.4,moderately_active,gain,central,False,False,False,5.2,102.0,,sầu riêng,NHANES_2021_2023_VN_adapted,30.2,,
+nhanes_t2dm_0207,60,female,157.5,48.1,19.4,moderately_active,maintain,south,False,False,False,8.1,159.0,,,NHANES_2021_2023_VN_adapted,28.6,,
+nhanes_t2dm_0208,45,male,158.9,60.3,23.9,lightly_active,maintain,north,False,False,False,5.9,,,gan,NHANES_2021_2023_VN_adapted,34.5,143.0,89.0
+nhanes_t2dm_0209,68,female,157.1,59.0,23.9,sedentary,maintain,south,False,False,False,9.9,293.0,,gan,NHANES_2021_2023_VN_adapted,33.6,,
+nhanes_t2dm_0210,63,male,174.3,79.9,26.3,lightly_active,lose,central,False,False,False,7.1,118.0,,mắm tôm,NHANES_2021_2023_VN_adapted,34.2,,
+nhanes_t2dm_0211,75,male,172.6,104.3,35.0,sedentary,maintain,south,False,False,False,6.6,,,sầu riêng,NHANES_2021_2023_VN_adapted,47.9,,
+nhanes_t2dm_0212,57,female,154.4,83.4,35.0,moderately_active,lose,south,False,False,False,9.1,157.0,,,NHANES_2021_2023_VN_adapted,46.7,,
+nhanes_t2dm_0214,70,male,165.7,61.2,22.3,sedentary,lose,north,False,False,False,7.3,,,,NHANES_2021_2023_VN_adapted,31.0,154.0,79.0
+nhanes_t2dm_0216,61,male,166.5,68.8,24.8,moderately_active,maintain,south,False,False,False,6.8,,,mắm tôm;bí đao,NHANES_2021_2023_VN_adapted,34.1,152.0,69.0
+nhanes_t2dm_0217,62,female,154.4,44.6,18.7,lightly_active,lose,north,False,False,False,7.5,,,mắm tôm,NHANES_2021_2023_VN_adapted,28.5,,
+nhanes_t2dm_0218,57,male,168.2,66.2,23.4,sedentary,lose,south,False,False,False,7.2,179.0,,bí đao,NHANES_2021_2023_VN_adapted,32.6,,
+nhanes_t2dm_0219,80,female,156.1,67.0,27.5,sedentary,maintain,north,False,False,False,6.5,187.0,,,NHANES_2021_2023_VN_adapted,35.9,173.0,65.0
+nhanes_t2dm_0220,79,male,169.2,63.6,22.2,sedentary,lose,north,False,False,False,5.6,182.0,,bí đao,NHANES_2021_2023_VN_adapted,30.3,,
+nhanes_t2dm_0221,60,male,168.0,50.8,18.0,sedentary,maintain,south,False,False,False,6.6,133.0,,,NHANES_2021_2023_VN_adapted,25.4,,
+nhanes_t2dm_0222,74,female,154.5,43.0,18.0,lightly_active,lose,central,False,False,False,6.5,108.0,,mướp đắng,NHANES_2021_2023_VN_adapted,25.4,145.0,65.0
+nhanes_t2dm_0223,65,female,153.8,73.8,31.2,sedentary,maintain,central,False,False,False,5.9,102.0,,,NHANES_2021_2023_VN_adapted,41.4,,
+nhanes_t2dm_0225,79,female,146.4,48.2,22.5,lightly_active,lose,north,False,False,False,6.4,,,,NHANES_2021_2023_VN_adapted,32.3,156.0,75.0
+nhanes_t2dm_0226,65,female,161.1,65.9,25.4,sedentary,maintain,north,False,False,False,5.5,101.0,,,NHANES_2021_2023_VN_adapted,35.3,,
+nhanes_t2dm_0227,65,male,170.4,52.3,18.0,sedentary,maintain,south,False,False,False,4.7,100.0,,lòng,NHANES_2021_2023_VN_adapted,20.4,,
+nhanes_t2dm_0232,51,male,172.9,83.1,27.8,lightly_active,lose,central,False,False,False,9.3,297.0,,,NHANES_2021_2023_VN_adapted,34.9,,
+nhanes_t2dm_0233,77,male,161.1,46.7,18.0,sedentary,maintain,central,False,False,False,6.0,,,,NHANES_2021_2023_VN_adapted,24.8,,
+nhanes_t2dm_0234,71,female,152.0,61.2,26.5,lightly_active,lose,north,False,False,False,11.3,,,bí đao,NHANES_2021_2023_VN_adapted,36.3,152.0,97.0
+nhanes_t2dm_0235,56,female,154.9,58.5,24.4,sedentary,maintain,north,False,False,False,8.9,187.0,,,NHANES_2021_2023_VN_adapted,34.2,,
+nhanes_t2dm_0236,65,male,160.2,68.8,26.8,moderately_active,lose,south,False,False,False,7.1,,,mắm tôm;tim,NHANES_2021_2023_VN_adapted,34.6,,
+nhanes_t2dm_0237,58,female,159.1,53.2,21.0,sedentary,gain,south,False,False,False,7.0,165.0,,tiết canh,NHANES_2021_2023_VN_adapted,29.3,,
+nhanes_t2dm_0238,80,male,160.3,46.3,18.0,sedentary,lose,north,False,False,False,6.4,,,lòng,NHANES_2021_2023_VN_adapted,21.1,162.0,70.0
+nhanes_t2dm_0240,76,male,172.0,78.1,26.4,sedentary,lose,south,False,False,False,8.4,,,gan,NHANES_2021_2023_VN_adapted,34.0,,
+nhanes_t2dm_0241,78,male,168.4,51.9,18.3,sedentary,lose,south,False,False,False,8.6,,,bí đao,NHANES_2021_2023_VN_adapted,27.8,,
+nhanes_t2dm_0242,67,male,177.9,57.0,18.0,sedentary,lose,south,False,False,False,,,,bí đao,NHANES_2021_2023_VN_adapted,26.2,140.0,77.0
+nhanes_t2dm_0243,80,female,166.4,63.1,22.8,sedentary,lose,south,False,False,False,8.0,,,bí đao,NHANES_2021_2023_VN_adapted,32.4,,
+nhanes_t2dm_0244,45,male,167.7,83.8,29.8,moderately_active,lose,south,False,False,False,5.6,,,mắm tôm;gan;sầu riêng,NHANES_2021_2023_VN_adapted,39.0,,
+nhanes_t2dm_0245,80,male,170.4,55.7,19.2,lightly_active,lose,north,False,False,False,5.6,,,,NHANES_2021_2023_VN_adapted,28.9,152.0,97.0
+nhanes_t2dm_0247,67,female,154.7,48.3,20.2,sedentary,lose,south,False,False,False,7.3,157.0,,sầu riêng,NHANES_2021_2023_VN_adapted,28.1,,
+nhanes_t2dm_0248,55,male,169.6,62.7,21.8,sedentary,lose,south,False,False,False,6.2,119.0,,lòng,NHANES_2021_2023_VN_adapted,32.2,,
+nhanes_t2dm_0249,60,male,165.4,56.1,20.5,sedentary,lose,central,False,False,False,6.0,,,mướp đắng;sầu riêng;tiết canh,NHANES_2021_2023_VN_adapted,31.8,,
+nhanes_t2dm_0250,58,female,156.3,68.6,28.1,moderately_active,maintain,south,False,False,False,6.9,197.0,,mắm tôm,NHANES_2021_2023_VN_adapted,39.3,154.0,76.0
+nhanes_t2dm_0251,68,female,163.4,48.1,18.0,lightly_active,maintain,central,False,False,False,7.4,101.0,,,NHANES_2021_2023_VN_adapted,27.4,,
+nhanes_t2dm_0252,57,male,170.6,76.3,26.2,lightly_active,lose,south,False,False,False,6.7,,,,NHANES_2021_2023_VN_adapted,34.7,,
+nhanes_t2dm_0253,65,male,175.7,55.6,18.0,lightly_active,lose,south,False,False,False,6.2,102.0,,gan,NHANES_2021_2023_VN_adapted,24.8,,
+nhanes_t2dm_0254,74,male,174.3,67.4,22.2,sedentary,lose,north,False,False,False,5.6,112.0,,,NHANES_2021_2023_VN_adapted,31.0,,
+nhanes_t2dm_0255,58,female,149.6,56.6,25.3,lightly_active,maintain,central,False,False,False,7.5,,,tiết canh;bí đao,NHANES_2021_2023_VN_adapted,33.5,,
+nhanes_t2dm_0256,80,male,166.6,50.0,18.0,lightly_active,gain,central,False,False,False,,,,,NHANES_2021_2023_VN_adapted,26.5,,
+nhanes_t2dm_0257,71,female,169.9,56.9,19.7,moderately_active,lose,south,False,False,False,5.8,,,sầu riêng,NHANES_2021_2023_VN_adapted,28.4,,
+nhanes_t2dm_0258,63,female,159.4,58.9,23.2,lightly_active,lose,north,False,False,False,8.5,,,,NHANES_2021_2023_VN_adapted,33.5,,
+nhanes_t2dm_0259,61,female,153.7,78.9,33.4,sedentary,gain,central,False,False,False,6.5,,,lòng,NHANES_2021_2023_VN_adapted,43.0,,
+nhanes_t2dm_0261,63,female,161.2,79.5,30.6,lightly_active,maintain,north,False,False,False,5.5,,,bí đao;mắm tôm;sầu riêng,NHANES_2021_2023_VN_adapted,40.1,,
+nhanes_t2dm_0262,77,female,161.0,80.4,31.0,lightly_active,lose,south,False,False,False,7.5,,,,NHANES_2021_2023_VN_adapted,39.7,147.0,55.0
+nhanes_t2dm_0263,77,male,169.2,68.7,24.0,sedentary,lose,south,False,False,False,,,,mướp đắng;tim,NHANES_2021_2023_VN_adapted,32.8,148.0,65.0
+nhanes_t2dm_0267,71,female,156.6,69.2,28.2,moderately_active,maintain,north,False,False,False,10.4,,,tim;mướp đắng,NHANES_2021_2023_VN_adapted,36.0,,
+nhanes_t2dm_0270,74,male,164.5,59.0,21.8,moderately_active,lose,north,False,False,False,7.4,209.0,,gan;mướp đắng;mắm tôm,NHANES_2021_2023_VN_adapted,30.5,,
+nhanes_t2dm_0271,68,female,154.1,51.8,21.8,lightly_active,maintain,north,False,False,False,5.6,102.0,,,NHANES_2021_2023_VN_adapted,31.1,,
+nhanes_t2dm_0272,71,female,159.9,61.9,24.2,moderately_active,maintain,north,False,False,False,6.3,98.0,,lòng;tiết canh,NHANES_2021_2023_VN_adapted,33.3,,
+nhanes_t2dm_0273,58,female,164.2,48.5,18.0,sedentary,maintain,north,False,False,False,5.9,121.0,,gan,NHANES_2021_2023_VN_adapted,27.0,,
+nhanes_t2dm_0274,63,male,166.6,66.1,23.8,lightly_active,lose,north,False,False,False,10.2,,,tiết canh,NHANES_2021_2023_VN_adapted,32.5,,
+nhanes_t2dm_0275,46,female,161.5,73.3,28.1,lightly_active,lose,north,False,False,False,17.1,,,lòng;mắm tôm;gan,NHANES_2021_2023_VN_adapted,36.6,182.0,142.0
+nhanes_t2dm_0276,66,male,165.1,63.2,23.2,sedentary,lose,central,False,False,False,6.9,153.0,,mướp đắng,NHANES_2021_2023_VN_adapted,35.3,144.0,74.0
+nhanes_t2dm_0277,80,male,159.0,46.8,18.5,moderately_active,lose,south,False,False,False,7.0,,,,NHANES_2021_2023_VN_adapted,26.1,,
+nhanes_t2dm_0279,56,male,166.0,57.3,20.8,sedentary,maintain,north,False,False,False,7.3,,,tim;tiết canh,NHANES_2021_2023_VN_adapted,30.5,,
+nhanes_t2dm_0280,75,male,182.9,78.6,23.5,lightly_active,gain,north,False,False,False,6.3,133.0,,lòng,NHANES_2021_2023_VN_adapted,32.5,143.0,84.0
+nhanes_t2dm_0282,38,male,162.5,87.7,33.2,sedentary,lose,south,False,False,False,7.6,,,sầu riêng,NHANES_2021_2023_VN_adapted,41.8,134.0,108.0
+nhanes_t2dm_0283,57,male,156.5,52.4,21.4,lightly_active,maintain,north,False,False,False,5.7,110.0,,tim,NHANES_2021_2023_VN_adapted,30.4,,
+nhanes_t2dm_0284,69,male,166.9,50.1,18.0,sedentary,lose,south,False,False,False,8.9,,,,NHANES_2021_2023_VN_adapted,23.6,,
+nhanes_t2dm_0285,54,male,171.7,59.6,20.2,sedentary,lose,south,False,False,False,10.3,263.0,,tim;mắm tôm,NHANES_2021_2023_VN_adapted,29.1,,
+nhanes_t2dm_0286,58,male,169.2,51.5,18.0,lightly_active,lose,north,False,False,False,14.1,,,bí đao,NHANES_2021_2023_VN_adapted,22.3,,
+nhanes_t2dm_0288,80,female,149.4,40.2,18.0,sedentary,lose,south,False,False,False,,,,mướp đắng;mắm tôm,NHANES_2021_2023_VN_adapted,24.1,,
+nhanes_t2dm_0291,60,male,170.1,52.1,18.0,lightly_active,lose,north,False,False,False,6.4,112.0,,,NHANES_2021_2023_VN_adapted,25.4,150.0,80.0
+nhanes_t2dm_0294,74,female,156.8,55.3,22.5,sedentary,lose,central,False,False,False,7.4,,,lòng,NHANES_2021_2023_VN_adapted,31.6,,
+nhanes_t2dm_0295,66,female,157.3,86.6,35.0,moderately_active,maintain,central,False,False,False,,,,sầu riêng,NHANES_2021_2023_VN_adapted,56.4,,
+nhanes_t2dm_0297,77,male,166.5,51.8,18.7,sedentary,lose,south,False,False,False,6.3,,,lòng,NHANES_2021_2023_VN_adapted,28.0,,
+nhanes_t2dm_0298,73,female,143.2,71.8,35.0,lightly_active,lose,central,False,False,False,7.4,,,lòng,NHANES_2021_2023_VN_adapted,44.5,,
+nhanes_t2dm_0299,67,male,161.8,53.4,20.4,sedentary,lose,south,False,False,False,6.9,110.0,,lòng;gan;mướp đắng,NHANES_2021_2023_VN_adapted,28.7,,
+nhanes_t2dm_0301,33,female,155.4,54.6,22.6,sedentary,lose,south,False,False,False,,,,tiết canh,NHANES_2021_2023_VN_adapted,30.3,,
+nhanes_t2dm_0302,65,female,146.6,58.0,27.0,lightly_active,maintain,south,False,False,False,11.4,460.0,,gan,NHANES_2021_2023_VN_adapted,36.9,150.0,93.0
+nhanes_t2dm_0307,41,female,151.6,46.4,20.2,moderately_active,lose,south,False,False,False,7.2,203.0,,,NHANES_2021_2023_VN_adapted,28.5,,
+nhanes_t2dm_0308,48,male,162.7,47.6,18.0,moderately_active,lose,north,False,False,False,6.4,192.0,,,NHANES_2021_2023_VN_adapted,22.2,,
+nhanes_t2dm_0309,59,male,172.7,100.8,33.8,lightly_active,lose,north,False,False,False,8.7,161.0,,gan;lòng,NHANES_2021_2023_VN_adapted,44.5,145.0,93.0
+nhanes_t2dm_0310,63,male,168.2,68.2,24.1,sedentary,lose,south,False,False,False,5.6,,,,NHANES_2021_2023_VN_adapted,32.2,,
+nhanes_t2dm_0311,73,male,171.6,53.0,18.0,sedentary,lose,north,False,False,False,7.8,133.0,,mắm tôm;bí đao,NHANES_2021_2023_VN_adapted,21.9,146.0,66.0
+nhanes_t2dm_0312,80,male,165.0,49.0,18.0,moderately_active,lose,south,False,False,False,7.3,,,tim,NHANES_2021_2023_VN_adapted,25.5,160.0,76.0
+nhanes_t2dm_0314,73,female,157.9,87.3,35.0,sedentary,lose,north,False,False,False,6.8,,,gan;sầu riêng,NHANES_2021_2023_VN_adapted,45.9,164.0,85.0
+nhanes_t2dm_0315,51,female,147.5,39.2,18.0,lightly_active,maintain,central,False,False,False,9.2,293.0,,,NHANES_2021_2023_VN_adapted,19.0,,
+nhanes_t2dm_0316,58,female,153.7,65.9,27.9,sedentary,maintain,north,False,False,False,6.3,109.0,,,NHANES_2021_2023_VN_adapted,36.8,,
+nhanes_t2dm_0318,62,male,171.5,70.3,23.9,sedentary,maintain,south,False,False,False,6.7,142.0,,bí đao,NHANES_2021_2023_VN_adapted,30.0,,
+nhanes_t2dm_0319,65,female,160.6,46.4,18.0,sedentary,lose,south,False,False,False,6.2,,,sầu riêng;mắm tôm,NHANES_2021_2023_VN_adapted,24.8,143.0,80.0
+nhanes_t2dm_0321,55,female,162.5,47.5,18.0,moderately_active,maintain,south,False,False,False,7.6,174.0,,mắm tôm;gan,NHANES_2021_2023_VN_adapted,27.6,,
+nhanes_t2dm_0322,76,male,174.3,75.3,24.8,lightly_active,lose,central,False,False,False,7.4,,,tim;sầu riêng,NHANES_2021_2023_VN_adapted,33.9,150.0,73.0
+nhanes_t2dm_0323,63,male,172.2,56.6,19.1,sedentary,maintain,central,False,False,False,7.5,,,gan,NHANES_2021_2023_VN_adapted,29.7,,
+nhanes_t2dm_0324,75,male,164.7,60.8,22.4,lightly_active,lose,south,False,False,False,6.9,,,gan,NHANES_2021_2023_VN_adapted,30.2,,
+nhanes_t2dm_0325,59,male,170.5,52.3,18.0,sedentary,gain,south,False,False,False,13.3,366.0,,mướp đắng;sầu riêng;lòng,NHANES_2021_2023_VN_adapted,18.9,,
+nhanes_t2dm_0326,57,male,163.5,52.9,19.8,lightly_active,lose,south,False,False,False,7.0,,,,NHANES_2021_2023_VN_adapted,28.6,,
+nhanes_t2dm_0328,80,female,146.4,38.6,18.0,lightly_active,maintain,north,False,False,False,6.4,,,mắm tôm;gan,NHANES_2021_2023_VN_adapted,23.8,,
+nhanes_t2dm_0332,70,female,151.6,47.1,20.5,sedentary,lose,north,False,False,False,8.0,149.0,,bí đao;gan,NHANES_2021_2023_VN_adapted,29.8,,
+nhanes_t2dm_0334,57,female,152.8,43.0,18.4,sedentary,maintain,north,False,False,False,7.2,149.0,,bí đao;sầu riêng;lòng,NHANES_2021_2023_VN_adapted,27.2,,
+nhanes_t2dm_0336,63,male,164.5,48.7,18.0,sedentary,gain,central,False,False,False,13.5,,,tim;mắm tôm,NHANES_2021_2023_VN_adapted,25.8,,
+nhanes_t2dm_0337,53,male,164.8,67.6,24.9,sedentary,lose,south,False,False,False,6.3,,,mắm tôm,NHANES_2021_2023_VN_adapted,33.8,,
+nhanes_t2dm_0338,71,female,157.6,47.4,19.1,sedentary,gain,south,False,False,False,6.5,126.0,,sầu riêng;bí đao,NHANES_2021_2023_VN_adapted,27.2,,
+nhanes_t2dm_0339,61,male,168.8,51.3,18.0,sedentary,lose,north,False,False,False,7.6,166.0,,,NHANES_2021_2023_VN_adapted,22.8,,
+nhanes_t2dm_0340,72,male,158.9,83.8,33.2,sedentary,maintain,south,False,False,False,8.2,,,,NHANES_2021_2023_VN_adapted,43.0,,
+nhanes_t2dm_0341,57,male,164.6,50.9,18.8,lightly_active,maintain,south,False,False,False,6.3,132.0,,gan;bí đao,NHANES_2021_2023_VN_adapted,27.8,,
+nhanes_t2dm_0342,48,female,152.9,61.3,26.2,lightly_active,lose,central,False,False,False,5.5,109.0,,,NHANES_2021_2023_VN_adapted,34.4,,
+nhanes_t2dm_0344,52,female,153.7,71.1,30.1,moderately_active,lose,south,False,False,False,9.1,,,tiết canh,NHANES_2021_2023_VN_adapted,37.7,,
+nhanes_t2dm_0347,55,male,170.0,52.0,18.0,moderately_active,lose,north,False,False,False,9.7,304.0,,tim,NHANES_2021_2023_VN_adapted,18.7,,
+nhanes_t2dm_0348,80,male,164.3,68.3,25.3,lightly_active,lose,central,False,False,False,6.6,,,mướp đắng,NHANES_2021_2023_VN_adapted,33.3,,
+nhanes_t2dm_0349,76,female,148.9,39.9,18.0,sedentary,lose,south,False,False,False,8.9,,,,NHANES_2021_2023_VN_adapted,26.8,162.0,70.0
+nhanes_t2dm_0351,62,male,160.1,46.1,18.0,lightly_active,lose,central,False,False,False,13.3,,,lòng;gan,NHANES_2021_2023_VN_adapted,23.7,,
+nhanes_t2dm_0352,69,female,156.4,70.0,28.6,sedentary,lose,central,False,False,False,7.2,145.0,,tim,NHANES_2021_2023_VN_adapted,39.0,152.0,65.0
+nhanes_t2dm_0353,67,male,160.7,48.6,18.8,sedentary,maintain,north,False,False,False,,,,tiết canh,NHANES_2021_2023_VN_adapted,26.5,,
+nhanes_t2dm_0354,59,female,160.1,53.6,20.9,sedentary,lose,south,False,False,False,5.8,103.0,,gan,NHANES_2021_2023_VN_adapted,28.8,,
+nhanes_t2dm_0357,62,female,156.0,62.8,25.8,lightly_active,lose,south,False,False,False,7.1,,,tim;mắm tôm,NHANES_2021_2023_VN_adapted,34.7,,
+nhanes_t2dm_0358,63,female,152.6,61.7,26.5,sedentary,maintain,south,False,False,False,5.8,,,mướp đắng,NHANES_2021_2023_VN_adapted,36.0,,
+nhanes_t2dm_0359,53,male,155.5,54.9,22.7,moderately_active,lose,central,False,False,False,7.4,277.0,,gan;mướp đắng,NHANES_2021_2023_VN_adapted,31.4,151.0,101.0
+nhanes_t2dm_0360,50,female,157.6,75.5,30.4,moderately_active,lose,north,False,False,False,7.1,,,lòng,NHANES_2021_2023_VN_adapted,39.5,,
+nhanes_t2dm_0361,77,male,166.3,49.8,18.0,lightly_active,maintain,south,False,False,False,6.8,,,,NHANES_2021_2023_VN_adapted,26.2,147.0,76.0
+nhanes_t2dm_0362,69,male,172.4,63.0,21.2,sedentary,lose,south,False,False,False,6.0,,,tim;tiết canh;lòng,NHANES_2021_2023_VN_adapted,29.5,,
+nhanes_t2dm_0363,80,female,158.5,56.0,22.3,lightly_active,lose,central,False,False,False,7.0,,,mướp đắng,NHANES_2021_2023_VN_adapted,30.8,,
+nhanes_t2dm_0364,58,male,164.2,74.1,27.5,sedentary,maintain,north,False,False,False,6.6,144.0,,tiết canh;bí đao,NHANES_2021_2023_VN_adapted,36.6,,
+nhanes_t2dm_0366,58,female,149.3,78.0,35.0,lightly_active,lose,north,False,False,False,11.6,,,,NHANES_2021_2023_VN_adapted,44.8,,
+nhanes_t2dm_0367,43,female,160.0,46.1,18.0,lightly_active,lose,central,False,False,False,11.3,264.0,,,NHANES_2021_2023_VN_adapted,24.7,,
+nhanes_t2dm_0368,57,male,158.9,45.4,18.0,lightly_active,maintain,central,False,False,False,6.8,155.0,,,NHANES_2021_2023_VN_adapted,26.1,,
+nhanes_t2dm_0369,55,male,169.0,52.6,18.4,sedentary,maintain,south,False,False,False,8.0,,,tim,NHANES_2021_2023_VN_adapted,27.7,,
+nhanes_t2dm_0370,68,male,164.0,54.9,20.4,sedentary,lose,south,False,False,False,6.4,,,mắm tôm,NHANES_2021_2023_VN_adapted,30.7,178.0,67.0
+nhanes_t2dm_0372,45,female,164.6,93.5,34.5,sedentary,lose,north,False,False,False,9.1,263.0,,mướp đắng,NHANES_2021_2023_VN_adapted,45.2,,
+nhanes_t2dm_0373,57,male,169.7,62.8,21.8,sedentary,lose,south,False,False,False,8.1,206.0,,gan;mắm tôm,NHANES_2021_2023_VN_adapted,32.0,,
+nhanes_t2dm_0374,71,male,160.6,46.7,18.1,sedentary,lose,north,False,False,False,8.7,,,,NHANES_2021_2023_VN_adapted,29.3,163.0,79.0
+nhanes_t2dm_0375,42,female,153.3,42.3,18.0,moderately_active,lose,south,False,False,False,7.6,213.0,,,NHANES_2021_2023_VN_adapted,27.9,,
+nhanes_t2dm_0376,62,male,172.0,55.3,18.7,moderately_active,lose,north,False,False,False,5.7,,,tiết canh;tim,NHANES_2021_2023_VN_adapted,29.0,153.0,69.0
+nhanes_t2dm_0377,54,female,159.3,78.7,31.0,sedentary,lose,south,False,False,False,5.6,,,tiết canh,NHANES_2021_2023_VN_adapted,43.0,,
+nhanes_t2dm_0378,65,male,165.9,77.1,28.0,lightly_active,lose,north,False,False,False,7.2,175.0,,mắm tôm;lòng,NHANES_2021_2023_VN_adapted,38.6,,
+nhanes_t2dm_0379,60,male,164.2,48.5,18.0,sedentary,lose,north,False,False,False,4.8,104.0,,,NHANES_2021_2023_VN_adapted,25.4,141.0,68.0
+nhanes_t2dm_0380,32,female,150.8,70.7,31.1,moderately_active,lose,north,False,False,False,6.0,,,tim;mướp đắng,NHANES_2021_2023_VN_adapted,38.9,,
+nhanes_t2dm_0383,58,male,162.8,92.8,35.0,sedentary,lose,north,False,False,False,8.0,173.0,,tim,NHANES_2021_2023_VN_adapted,48.5,,
+nhanes_t2dm_0384,64,male,163.1,60.1,22.6,lightly_active,lose,north,False,False,False,7.1,,,tiết canh,NHANES_2021_2023_VN_adapted,32.6,,
+nhanes_t2dm_0385,79,male,156.5,44.1,18.0,lightly_active,lose,central,False,False,False,7.6,132.0,,sầu riêng;mướp đắng,NHANES_2021_2023_VN_adapted,19.9,,
+nhanes_t2dm_0386,64,female,157.0,47.3,19.2,lightly_active,lose,north,False,False,False,5.5,102.0,,,NHANES_2021_2023_VN_adapted,28.9,,
+nhanes_t2dm_0387,62,female,157.4,55.0,22.2,lightly_active,lose,central,False,False,False,6.1,,,tiết canh,NHANES_2021_2023_VN_adapted,31.4,162.0,92.0
+nhanes_t2dm_0388,52,female,156.6,78.7,32.1,sedentary,lose,north,False,False,False,11.1,,,lòng,NHANES_2021_2023_VN_adapted,39.5,142.0,100.0
+nhanes_t2dm_0389,80,female,158.9,64.6,25.6,lightly_active,lose,south,False,False,False,8.6,,,sầu riêng,NHANES_2021_2023_VN_adapted,34.6,,
+nhanes_t2dm_0390,63,female,154.3,83.3,35.0,lightly_active,maintain,north,False,False,False,6.5,196.0,,tim,NHANES_2021_2023_VN_adapted,48.5,,
+nhanes_t2dm_0391,54,male,169.5,59.5,20.7,lightly_active,maintain,south,False,False,False,10.6,,,,NHANES_2021_2023_VN_adapted,28.9,158.0,101.0
+nhanes_t2dm_0392,73,male,164.5,49.2,18.2,lightly_active,lose,north,False,False,False,13.0,,,sầu riêng,NHANES_2021_2023_VN_adapted,25.0,,
+nhanes_t2dm_0393,80,female,147.6,39.2,18.0,sedentary,lose,north,False,False,False,5.9,,,sầu riêng,NHANES_2021_2023_VN_adapted,21.1,,
+nhanes_t2dm_0395,64,female,166.7,83.9,30.2,moderately_active,lose,north,False,False,False,13.7,,,,NHANES_2021_2023_VN_adapted,38.6,,
+nhanes_t2dm_0397,71,male,167.8,50.7,18.0,sedentary,lose,central,False,False,False,5.5,,,tim;lòng;gan,NHANES_2021_2023_VN_adapted,26.0,,
+nhanes_t2dm_0398,65,female,148.0,67.5,30.8,moderately_active,lose,north,False,False,False,7.6,,,mướp đắng;lòng,NHANES_2021_2023_VN_adapted,41.4,168.0,109.0
+nhanes_t2dm_0400,71,female,160.0,53.0,20.7,lightly_active,lose,north,False,False,False,9.5,175.0,,,NHANES_2021_2023_VN_adapted,30.2,,
+nhanes_t2dm_0401,69,female,150.0,46.4,20.6,lightly_active,lose,north,False,False,False,8.2,,,gan,NHANES_2021_2023_VN_adapted,29.4,,
+nhanes_t2dm_0405,72,male,159.0,45.5,18.0,moderately_active,lose,central,False,False,False,6.2,121.0,,,NHANES_2021_2023_VN_adapted,25.5,152.0,86.0
+nhanes_t2dm_0406,72,male,173.0,57.2,19.1,lightly_active,lose,north,False,False,False,6.3,199.0,,,NHANES_2021_2023_VN_adapted,29.4,,
+nhanes_t2dm_0407,70,male,171.8,57.0,19.3,sedentary,lose,south,False,False,False,6.2,106.0,,bí đao;tim,NHANES_2021_2023_VN_adapted,28.9,175.0,93.0
+nhanes_t2dm_0408,50,female,158.3,45.1,18.0,sedentary,maintain,north,False,False,False,6.2,,,tiết canh,NHANES_2021_2023_VN_adapted,25.0,141.0,99.0
+nhanes_t2dm_0409,62,female,154.8,43.1,18.0,sedentary,lose,north,False,False,False,6.4,101.0,,,NHANES_2021_2023_VN_adapted,25.3,,
+nhanes_t2dm_0410,65,male,164.3,48.6,18.0,sedentary,lose,north,False,False,False,7.2,121.0,,tiết canh,NHANES_2021_2023_VN_adapted,27.1,,
+nhanes_t2dm_0411,62,female,158.3,52.1,20.8,lightly_active,lose,south,False,False,False,,,,tiết canh;lòng;bí đao,NHANES_2021_2023_VN_adapted,31.0,153.0,94.0
+nhanes_t2dm_0413,68,female,158.8,73.1,29.0,lightly_active,lose,south,False,False,False,7.4,,,mướp đắng;mắm tôm,NHANES_2021_2023_VN_adapted,37.9,,
+nhanes_t2dm_0414,68,male,162.8,47.7,18.0,lightly_active,lose,south,False,False,False,7.9,202.0,,sầu riêng;tim,NHANES_2021_2023_VN_adapted,28.6,,
+nhanes_t2dm_0416,49,male,166.2,75.4,27.3,sedentary,lose,south,False,False,False,6.6,,,bí đao;sầu riêng,NHANES_2021_2023_VN_adapted,37.0,151.0,96.0
+nhanes_t2dm_0417,68,female,161.5,53.7,20.6,moderately_active,lose,north,False,False,False,9.2,173.0,,bí đao,NHANES_2021_2023_VN_adapted,29.5,,
+nhanes_t2dm_0419,72,female,157.3,44.5,18.0,sedentary,lose,north,False,False,False,5.3,127.0,,sầu riêng,NHANES_2021_2023_VN_adapted,25.8,,
+nhanes_t2dm_0420,58,male,169.3,78.0,27.2,lightly_active,lose,central,False,False,False,7.7,159.0,,mướp đắng,NHANES_2021_2023_VN_adapted,34.1,,
+nhanes_t2dm_0421,72,male,183.2,82.2,24.5,sedentary,maintain,south,False,False,False,7.0,126.0,,mắm tôm;tiết canh,NHANES_2021_2023_VN_adapted,33.9,,
+nhanes_t2dm_0422,70,female,163.6,50.1,18.7,lightly_active,maintain,south,False,False,False,5.3,342.0,,,NHANES_2021_2023_VN_adapted,27.9,,
+nhanes_t2dm_0423,69,female,151.8,80.7,35.0,lightly_active,lose,south,False,False,False,,,,,NHANES_2021_2023_VN_adapted,50.8,,
+nhanes_t2dm_0426,62,male,172.8,53.7,18.0,sedentary,lose,south,False,False,False,6.7,145.0,,bí đao;mướp đắng,NHANES_2021_2023_VN_adapted,20.4,,
+nhanes_t2dm_0428,57,male,172.4,82.3,27.7,moderately_active,lose,north,False,False,False,7.2,123.0,,,NHANES_2021_2023_VN_adapted,37.6,,
+nhanes_t2dm_0429,71,female,163.8,60.6,22.6,sedentary,maintain,south,False,False,False,6.7,,,,NHANES_2021_2023_VN_adapted,31.0,162.0,89.0
+nhanes_t2dm_0430,27,male,163.2,77.2,29.0,sedentary,maintain,north,False,False,False,8.4,191.0,,tim,NHANES_2021_2023_VN_adapted,38.7,139.0,105.0
+nhanes_t2dm_0431,67,female,156.3,45.9,18.8,lightly_active,lose,north,False,False,False,,,,,NHANES_2021_2023_VN_adapted,27.4,,
+nhanes_t2dm_0432,72,male,169.5,51.7,18.0,sedentary,lose,south,False,False,False,6.5,,,bí đao;mướp đắng,NHANES_2021_2023_VN_adapted,19.3,148.0,63.0
+nhanes_t2dm_0433,68,male,181.1,101.0,30.8,sedentary,lose,north,False,False,False,7.1,170.0,,,NHANES_2021_2023_VN_adapted,39.3,,
+nhanes_t2dm_0434,39,male,169.1,68.6,24.0,sedentary,lose,north,False,False,False,6.6,,,bí đao,NHANES_2021_2023_VN_adapted,35.0,,
+nhanes_t2dm_0436,47,female,154.9,69.1,28.8,lightly_active,lose,central,False,False,False,5.4,,,gan;lòng;bí đao,NHANES_2021_2023_VN_adapted,37.9,,
+nhanes_t2dm_0437,58,female,153.4,69.7,29.6,lightly_active,lose,south,False,False,False,7.3,131.0,,sầu riêng,NHANES_2021_2023_VN_adapted,37.9,164.0,79.0
+nhanes_t2dm_0438,64,female,156.1,43.9,18.0,lightly_active,maintain,south,False,False,False,,,,sầu riêng;gan,NHANES_2021_2023_VN_adapted,22.1,,
+nhanes_t2dm_0439,62,male,162.8,54.9,20.7,moderately_active,maintain,north,False,False,False,6.3,108.0,,tim,NHANES_2021_2023_VN_adapted,30.9,,
+nhanes_t2dm_0440,67,female,158.9,88.4,35.0,sedentary,maintain,north,False,False,False,9.3,,,bí đao;mắm tôm,NHANES_2021_2023_VN_adapted,49.4,,
+nhanes_t2dm_0441,64,female,155.5,48.6,20.1,sedentary,lose,north,False,False,False,6.6,,,tiết canh;sầu riêng;gan,NHANES_2021_2023_VN_adapted,30.1,,
+nhanes_t2dm_0442,63,female,146.5,41.6,19.4,lightly_active,lose,north,False,False,False,6.1,139.0,,bí đao;tiết canh,NHANES_2021_2023_VN_adapted,29.2,,
+nhanes_t2dm_0443,35,female,141.7,43.2,21.5,lightly_active,maintain,north,False,False,False,7.4,,,gan,NHANES_2021_2023_VN_adapted,29.6,,
+nhanes_t2dm_0444,53,male,152.5,55.1,23.7,sedentary,lose,north,False,False,False,8.6,,,,NHANES_2021_2023_VN_adapted,33.5,,
+nhanes_t2dm_0445,78,female,159.7,62.7,24.6,sedentary,lose,central,False,False,False,6.7,,,tim;bí đao;sầu riêng,NHANES_2021_2023_VN_adapted,33.9,193.0,93.0
+nhanes_t2dm_0446,61,male,168.8,64.1,22.5,lightly_active,lose,north,False,False,False,6.5,,,,NHANES_2021_2023_VN_adapted,34.7,,
+nhanes_t2dm_0447,40,female,163.4,48.1,18.0,sedentary,maintain,south,False,False,False,5.1,,,,NHANES_2021_2023_VN_adapted,23.6,,
+nhanes_t2dm_0448,73,female,160.2,46.2,18.0,sedentary,lose,central,False,False,False,,,,,NHANES_2021_2023_VN_adapted,21.0,,
+nhanes_t2dm_0450,73,male,175.8,55.6,18.0,moderately_active,maintain,south,False,False,False,,,,,NHANES_2021_2023_VN_adapted,26.0,,
+nhanes_t2dm_0452,65,male,164.7,48.8,18.0,sedentary,maintain,north,False,False,False,6.2,131.0,,mắm tôm;tim,NHANES_2021_2023_VN_adapted,26.7,,
+nhanes_t2dm_0453,46,female,167.6,98.3,35.0,lightly_active,lose,south,False,False,False,7.7,152.0,,,NHANES_2021_2023_VN_adapted,64.7,,
+nhanes_t2dm_0454,56,female,164.2,94.4,35.0,sedentary,lose,south,False,False,False,6.8,,,gan,NHANES_2021_2023_VN_adapted,46.4,,
+nhanes_t2dm_0456,50,female,169.4,51.7,18.0,sedentary,lose,central,False,False,False,5.7,,,tim,NHANES_2021_2023_VN_adapted,25.2,,
+nhanes_t2dm_0457,46,female,159.1,74.2,29.3,lightly_active,maintain,south,False,False,False,11.0,173.0,,,NHANES_2021_2023_VN_adapted,40.6,121.0,94.0
+nhanes_t2dm_0458,67,female,146.7,58.1,27.0,lightly_active,gain,north,False,False,False,7.5,,,,NHANES_2021_2023_VN_adapted,35.9,,
+nhanes_t2dm_0459,55,male,173.4,55.9,18.6,lightly_active,lose,north,False,False,False,9.9,249.0,,bí đao,NHANES_2021_2023_VN_adapted,26.6,,
+nhanes_t2dm_0460,63,female,154.9,55.9,23.3,sedentary,lose,south,False,False,False,5.9,97.0,,,NHANES_2021_2023_VN_adapted,31.6,,
+nhanes_t2dm_0461,70,female,160.5,46.4,18.0,sedentary,lose,south,False,False,False,5.6,,,tiết canh;mướp đắng,NHANES_2021_2023_VN_adapted,25.7,149.0,72.0
+nhanes_t2dm_0462,70,female,157.9,49.1,19.7,moderately_active,lose,south,False,False,False,7.3,,,lòng,NHANES_2021_2023_VN_adapted,27.6,,
+nhanes_t2dm_0464,55,male,171.1,81.7,27.9,lightly_active,lose,north,False,False,False,7.8,206.0,,,NHANES_2021_2023_VN_adapted,34.4,180.0,110.0
+nhanes_t2dm_0465,64,female,160.7,46.5,18.0,lightly_active,lose,north,False,False,False,6.9,126.0,,sầu riêng;tim,NHANES_2021_2023_VN_adapted,21.4,,
+nhanes_t2dm_0466,64,female,151.8,70.3,30.5,lightly_active,lose,south,False,False,False,,,,lòng;tiết canh,NHANES_2021_2023_VN_adapted,39.5,142.0,86.0
+nhanes_t2dm_0467,69,female,160.1,57.2,22.3,lightly_active,gain,central,False,False,False,6.6,,,mướp đắng,NHANES_2021_2023_VN_adapted,32.0,150.0,68.0
+nhanes_t2dm_0469,63,female,160.2,46.2,18.0,lightly_active,lose,central,False,False,False,6.0,119.0,,mướp đắng,NHANES_2021_2023_VN_adapted,20.7,,
+nhanes_t2dm_0470,67,female,154.9,51.3,21.4,lightly_active,maintain,central,False,False,False,14.8,,,gan,NHANES_2021_2023_VN_adapted,31.2,,
+nhanes_t2dm_0471,80,female,150.8,40.9,18.0,moderately_active,maintain,north,False,False,False,5.6,113.0,,tim,NHANES_2021_2023_VN_adapted,23.2,153.0,67.0
+nhanes_t2dm_0472,47,male,162.1,92.0,35.0,lightly_active,lose,north,False,False,False,12.4,308.0,,tiết canh;lòng,NHANES_2021_2023_VN_adapted,47.9,,
+nhanes_t2dm_0473,41,male,172.0,53.3,18.0,sedentary,lose,south,False,False,False,6.3,,,gan,NHANES_2021_2023_VN_adapted,25.7,,
+nhanes_t2dm_0474,77,female,156.6,58.1,23.7,sedentary,maintain,north,False,False,False,6.7,,,tiết canh;mướp đắng;bí đao,NHANES_2021_2023_VN_adapted,31.6,209.0,79.0
+nhanes_t2dm_0476,56,female,156.6,44.1,18.0,lightly_active,gain,south,False,False,False,5.6,,,,NHANES_2021_2023_VN_adapted,27.3,,
+nhanes_t2dm_0477,74,female,157.7,53.0,21.3,lightly_active,lose,south,False,False,False,5.9,,,sầu riêng;tim,NHANES_2021_2023_VN_adapted,29.4,,
+nhanes_t2dm_0478,57,female,160.9,90.6,35.0,lightly_active,lose,north,False,False,False,7.0,139.0,,lòng,NHANES_2021_2023_VN_adapted,51.7,,
+nhanes_t2dm_0479,65,female,153.6,60.4,25.6,lightly_active,lose,south,False,False,False,5.1,94.0,,tiết canh,NHANES_2021_2023_VN_adapted,34.2,,
+nhanes_t2dm_0480,33,female,152.4,81.3,35.0,lightly_active,lose,north,False,False,False,9.1,,,,NHANES_2021_2023_VN_adapted,55.9,124.0,95.0
+nhanes_t2dm_0481,66,male,160.3,46.3,18.0,lightly_active,lose,north,False,False,False,6.7,200.0,,,NHANES_2021_2023_VN_adapted,26.3,,
+nhanes_t2dm_0482,51,male,168.1,54.3,19.2,lightly_active,maintain,north,False,False,False,6.5,85.0,,lòng;sầu riêng;tiết canh,NHANES_2021_2023_VN_adapted,28.8,137.0,90.0
+nhanes_t2dm_0483,69,male,173.0,53.9,18.0,lightly_active,lose,south,False,False,False,4.5,,,tim,NHANES_2021_2023_VN_adapted,24.0,174.0,70.0
+nhanes_t2dm_0484,68,male,167.3,65.8,23.5,sedentary,lose,central,False,False,False,7.1,,,gan,NHANES_2021_2023_VN_adapted,32.7,,
+nhanes_t2dm_0485,80,male,168.0,50.8,18.0,sedentary,lose,north,False,False,False,6.2,118.0,,bí đao,NHANES_2021_2023_VN_adapted,25.1,166.0,81.0
+nhanes_t2dm_0486,55,female,169.3,92.3,32.2,lightly_active,lose,south,False,False,False,7.4,172.0,,,NHANES_2021_2023_VN_adapted,41.4,,
+nhanes_t2dm_0487,59,female,157.5,72.7,29.3,lightly_active,lose,north,False,False,False,7.2,,,gan,NHANES_2021_2023_VN_adapted,37.4,159.0,113.0
+nhanes_t2dm_0488,66,male,173.9,54.4,18.0,lightly_active,gain,north,False,False,False,6.3,106.0,,,NHANES_2021_2023_VN_adapted,25.4,,
+nhanes_t2dm_0489,71,male,168.8,51.3,18.0,lightly_active,maintain,south,False,False,False,6.7,115.0,,gan;bí đao,NHANES_2021_2023_VN_adapted,20.4,,
+nhanes_t2dm_0490,61,female,166.7,50.0,18.0,sedentary,lose,south,False,False,False,11.3,,,,NHANES_2021_2023_VN_adapted,23.4,,
+nhanes_t2dm_0491,58,female,153.8,63.4,26.8,lightly_active,maintain,north,False,False,False,6.8,123.0,,sầu riêng,NHANES_2021_2023_VN_adapted,34.9,,
+nhanes_t2dm_0493,56,male,166.9,97.5,35.0,sedentary,maintain,south,False,False,False,7.1,132.0,,,NHANES_2021_2023_VN_adapted,58.4,,
+nhanes_t2dm_0494,69,female,158.9,86.1,34.1,lightly_active,lose,south,False,False,False,5.6,,,mướp đắng,NHANES_2021_2023_VN_adapted,42.8,,
+nhanes_t2dm_0495,65,male,166.0,62.0,22.5,moderately_active,maintain,north,False,False,False,6.2,153.0,,sầu riêng,NHANES_2021_2023_VN_adapted,29.6,,
+nhanes_t2dm_0496,75,female,143.5,45.1,21.9,sedentary,maintain,north,False,False,False,5.6,,,bí đao,NHANES_2021_2023_VN_adapted,30.6,,
+nhanes_t2dm_0497,73,female,164.9,48.9,18.0,sedentary,lose,south,False,False,False,7.6,171.0,,bí đao;mắm tôm;gan,NHANES_2021_2023_VN_adapted,26.0,,
+nhanes_t2dm_0500,60,female,145.1,44.4,21.1,sedentary,maintain,north,False,False,False,6.5,,,,NHANES_2021_2023_VN_adapted,29.7,,
+nhanes_t2dm_0501,76,female,155.6,53.7,22.2,sedentary,maintain,central,False,False,False,5.4,,,gan,NHANES_2021_2023_VN_adapted,31.0,,
+nhanes_t2dm_0502,77,male,161.6,47.0,18.0,sedentary,maintain,south,False,False,False,8.2,166.0,,bí đao,NHANES_2021_2023_VN_adapted,24.3,,
+nhanes_t2dm_0503,52,male,177.2,109.9,35.0,sedentary,maintain,south,False,False,False,6.1,144.0,,lòng;sầu riêng,NHANES_2021_2023_VN_adapted,59.2,,
+nhanes_t2dm_0504,73,male,157.5,44.7,18.0,sedentary,lose,south,False,False,False,6.8,262.0,,mướp đắng,NHANES_2021_2023_VN_adapted,19.6,159.0,79.0
+nhanes_t2dm_0505,41,male,177.2,76.3,24.3,sedentary,maintain,north,False,False,False,6.9,,,,NHANES_2021_2023_VN_adapted,33.5,126.0,96.0
+nhanes_t2dm_0506,57,female,154.8,58.5,24.4,lightly_active,lose,central,False,False,False,5.5,,,gan,NHANES_2021_2023_VN_adapted,32.7,150.0,105.0
+nhanes_t2dm_0508,69,female,153.6,68.7,29.1,lightly_active,maintain,central,False,False,False,7.6,202.0,,sầu riêng,NHANES_2021_2023_VN_adapted,40.1,150.0,74.0
+nhanes_t2dm_0509,35,male,163.6,93.7,35.0,lightly_active,lose,south,False,False,False,8.3,166.0,,,NHANES_2021_2023_VN_adapted,50.4,141.0,86.0
+nhanes_t2dm_0510,63,male,176.8,62.2,19.9,lightly_active,maintain,south,False,False,False,9.8,210.0,,,NHANES_2021_2023_VN_adapted,27.6,,
+nhanes_t2dm_0511,64,female,155.7,61.8,25.5,lightly_active,lose,south,False,False,False,7.3,,,mắm tôm;mướp đắng,NHANES_2021_2023_VN_adapted,34.6,143.0,83.0
+nhanes_t2dm_0512,27,female,154.7,44.5,18.6,lightly_active,maintain,south,False,False,False,5.0,80.0,,sầu riêng,NHANES_2021_2023_VN_adapted,27.0,,
+nhanes_t2dm_0513,80,female,164.7,52.1,19.2,lightly_active,gain,north,False,False,False,7.4,,,,NHANES_2021_2023_VN_adapted,28.5,,
+nhanes_t2dm_0514,60,female,149.7,55.6,24.8,lightly_active,gain,south,False,False,False,10.8,,,,NHANES_2021_2023_VN_adapted,35.8,,
+nhanes_t2dm_0515,73,male,169.7,51.8,18.0,sedentary,lose,central,False,False,False,10.6,,,tiết canh;bí đao,NHANES_2021_2023_VN_adapted,26.5,,
+nhanes_t2dm_0517,68,male,158.7,45.3,18.0,sedentary,lose,north,False,False,False,13.3,,,gan,NHANES_2021_2023_VN_adapted,26.1,,
+nhanes_t2dm_0520,61,female,160.1,71.8,28.0,sedentary,lose,north,False,False,False,13.6,,,tiết canh,NHANES_2021_2023_VN_adapted,35.6,,
+nhanes_t2dm_0521,73,female,165.4,90.8,33.2,sedentary,maintain,north,False,False,False,7.3,,,mắm tôm;mướp đắng,NHANES_2021_2023_VN_adapted,41.8,143.0,67.0
+nhanes_t2dm_0522,80,male,158.3,57.6,23.0,sedentary,maintain,central,False,False,False,7.4,117.0,,,NHANES_2021_2023_VN_adapted,31.9,,
+nhanes_t2dm_0523,72,female,148.3,42.4,19.3,lightly_active,maintain,south,False,False,False,6.8,,,tim;tiết canh,NHANES_2021_2023_VN_adapted,29.4,,
+nhanes_t2dm_0524,51,male,168.9,99.8,35.0,sedentary,lose,south,False,False,False,8.4,156.0,,,NHANES_2021_2023_VN_adapted,57.0,151.0,82.0
+nhanes_t2dm_0525,80,male,175.7,55.6,18.0,lightly_active,maintain,south,False,False,False,7.5,194.0,,tiết canh;tim,NHANES_2021_2023_VN_adapted,24.5,144.0,74.0
+nhanes_t2dm_0526,63,male,172.6,104.3,35.0,lightly_active,lose,north,False,False,False,8.6,,,mắm tôm,NHANES_2021_2023_VN_adapted,44.9,,
+nhanes_t2dm_0527,68,male,169.1,75.5,26.4,sedentary,maintain,north,False,False,False,6.2,116.0,,mắm tôm,NHANES_2021_2023_VN_adapted,34.4,,
+nhanes_t2dm_0528,76,female,152.5,41.9,18.0,lightly_active,lose,south,False,False,False,6.7,74.0,,bí đao,NHANES_2021_2023_VN_adapted,25.0,,
+nhanes_t2dm_0529,73,male,160.4,46.3,18.0,sedentary,maintain,south,False,False,False,7.1,151.0,,gan,NHANES_2021_2023_VN_adapted,27.6,,
+nhanes_t2dm_0530,72,female,154.6,72.7,30.4,lightly_active,lose,central,False,False,False,6.0,,,,NHANES_2021_2023_VN_adapted,37.1,,
+nhanes_t2dm_0531,72,male,156.5,64.9,26.5,sedentary,lose,south,False,False,False,7.5,135.0,,,NHANES_2021_2023_VN_adapted,34.6,,
+nhanes_t2dm_0532,70,female,160.5,49.5,19.2,sedentary,lose,north,False,False,False,6.1,,,tim,NHANES_2021_2023_VN_adapted,27.9,,
+nhanes_t2dm_0534,74,male,160.2,72.9,28.4,moderately_active,gain,north,False,False,False,6.2,119.0,,gan,NHANES_2021_2023_VN_adapted,36.9,,
+nhanes_t2dm_0535,80,female,152.8,53.7,23.0,sedentary,lose,north,False,False,False,6.7,,,sầu riêng;gan,NHANES_2021_2023_VN_adapted,31.3,162.0,71.0
+nhanes_t2dm_0536,66,female,160.6,66.3,25.7,sedentary,lose,south,False,False,False,6.3,128.0,,tiết canh,NHANES_2021_2023_VN_adapted,33.8,,
+nhanes_t2dm_0538,52,male,171.6,53.0,18.0,sedentary,lose,central,False,False,False,12.9,313.0,,tim,NHANES_2021_2023_VN_adapted,27.5,,
+nhanes_t2dm_0539,60,male,171.3,68.7,23.4,sedentary,maintain,north,False,False,False,8.0,188.0,,tim;mướp đắng,NHANES_2021_2023_VN_adapted,31.5,,
+nhanes_t2dm_0541,79,male,177.6,57.4,18.2,sedentary,maintain,south,False,False,False,7.3,102.0,,mướp đắng,NHANES_2021_2023_VN_adapted,27.4,,
+nhanes_t2dm_0542,63,male,164.3,52.6,19.5,sedentary,lose,central,False,False,False,5.8,124.0,,gan,NHANES_2021_2023_VN_adapted,28.1,,
+nhanes_t2dm_0544,58,female,161.2,66.3,25.5,lightly_active,lose,south,False,False,False,5.6,120.0,,,NHANES_2021_2023_VN_adapted,35.6,,
+nhanes_t2dm_0545,52,male,169.8,51.9,18.0,sedentary,lose,north,False,False,False,6.9,89.0,,,NHANES_2021_2023_VN_adapted,27.8,,
+nhanes_t2dm_0548,67,male,168.0,50.8,18.0,sedentary,lose,north,False,False,False,6.7,133.0,,sầu riêng,NHANES_2021_2023_VN_adapted,21.8,,
+nhanes_t2dm_0549,60,female,146.8,38.8,18.0,sedentary,lose,south,False,False,False,6.7,,,,NHANES_2021_2023_VN_adapted,23.3,,
+nhanes_t2dm_0550,59,male,180.0,107.9,33.3,lightly_active,lose,south,False,False,False,12.8,333.0,,sầu riêng;gan;mướp đắng,NHANES_2021_2023_VN_adapted,40.5,145.0,65.0
+nhanes_t2dm_0552,63,female,155.4,65.9,27.3,moderately_active,lose,north,False,False,False,6.7,140.0,,mắm tôm;mướp đắng;tiết canh,NHANES_2021_2023_VN_adapted,35.8,,
+nhanes_t2dm_0553,63,male,172.8,89.6,30.0,lightly_active,maintain,south,False,False,False,8.9,201.0,,,NHANES_2021_2023_VN_adapted,39.8,125.0,93.0
+nhanes_t2dm_0555,58,female,161.9,54.3,20.7,moderately_active,lose,north,False,False,False,6.5,,,sầu riêng;lòng,NHANES_2021_2023_VN_adapted,30.0,,
+nhanes_t2dm_0556,63,male,168.8,57.6,20.2,lightly_active,lose,north,False,False,False,6.9,,,tim,NHANES_2021_2023_VN_adapted,29.7,,
+nhanes_t2dm_0558,68,male,185.0,61.6,18.0,lightly_active,maintain,central,False,False,False,,,,,NHANES_2021_2023_VN_adapted,25.3,,
+nhanes_t2dm_0559,59,female,159.4,48.5,19.1,sedentary,lose,north,False,False,False,7.8,,,,NHANES_2021_2023_VN_adapted,30.0,,
+nhanes_t2dm_0560,77,male,153.4,42.4,18.0,sedentary,lose,south,False,False,False,5.8,,,,NHANES_2021_2023_VN_adapted,27.2,,
+nhanes_t2dm_0561,70,male,173.8,88.8,29.4,sedentary,maintain,south,False,False,False,7.3,,,mắm tôm;lòng,NHANES_2021_2023_VN_adapted,37.7,,
+nhanes_t2dm_0563,58,male,165.8,69.8,25.4,sedentary,maintain,north,False,False,False,,,,,NHANES_2021_2023_VN_adapted,35.4,,
+nhanes_t2dm_0564,50,male,163.7,48.2,18.0,sedentary,lose,north,False,False,False,6.6,,,lòng,NHANES_2021_2023_VN_adapted,27.4,,
+nhanes_t2dm_0566,71,male,173.3,68.8,22.9,sedentary,maintain,central,False,False,False,6.0,118.0,,,NHANES_2021_2023_VN_adapted,32.6,,
+nhanes_t2dm_0567,67,male,168.3,73.6,26.0,lightly_active,maintain,central,False,False,False,7.5,105.0,,mắm tôm;tim,NHANES_2021_2023_VN_adapted,34.0,,
+nhanes_t2dm_0568,45,female,142.6,53.3,26.2,sedentary,lose,north,False,False,False,5.5,,,tim,NHANES_2021_2023_VN_adapted,35.0,,
+nhanes_t2dm_0569,35,female,161.5,49.6,19.0,lightly_active,lose,north,False,False,False,,,,gan,NHANES_2021_2023_VN_adapted,28.8,,
+nhanes_t2dm_0570,49,female,160.8,77.1,29.8,sedentary,gain,central,False,False,False,6.2,,,lòng,NHANES_2021_2023_VN_adapted,38.7,,
+nhanes_t2dm_0571,67,female,163.1,66.5,25.0,lightly_active,lose,central,False,False,False,,,,,NHANES_2021_2023_VN_adapted,33.1,,
+nhanes_t2dm_0573,75,female,153.6,42.5,18.0,lightly_active,lose,north,False,False,False,6.0,,,,NHANES_2021_2023_VN_adapted,22.0,,
+nhanes_t2dm_0574,62,male,167.1,51.9,18.6,lightly_active,maintain,south,False,False,False,7.5,159.0,,,NHANES_2021_2023_VN_adapted,27.5,,
+nhanes_t2dm_0575,80,male,160.4,46.3,18.0,sedentary,lose,north,False,False,False,6.2,103.0,,bí đao,NHANES_2021_2023_VN_adapted,22.0,,
+nhanes_t2dm_0577,53,male,171.5,62.4,21.2,sedentary,maintain,north,False,False,False,5.7,135.0,,tim;sầu riêng,NHANES_2021_2023_VN_adapted,30.2,,
+nhanes_t2dm_0578,61,female,151.6,41.4,18.0,sedentary,maintain,north,False,False,False,9.9,162.0,,sầu riêng;tim;gan,NHANES_2021_2023_VN_adapted,22.6,,
+nhanes_t2dm_0579,56,female,155.8,85.0,35.0,lightly_active,gain,south,False,False,False,11.1,,,sầu riêng,NHANES_2021_2023_VN_adapted,45.5,,
+nhanes_t2dm_0580,34,female,151.3,80.1,35.0,moderately_active,lose,south,False,False,False,6.4,141.0,,,NHANES_2021_2023_VN_adapted,47.5,,
+nhanes_t2dm_0582,76,female,154.8,49.1,20.5,sedentary,lose,south,False,False,False,6.1,,,mướp đắng,NHANES_2021_2023_VN_adapted,29.4,159.0,70.0
+nhanes_t2dm_0583,72,male,169.4,72.9,25.4,moderately_active,lose,central,False,False,False,7.3,,,,NHANES_2021_2023_VN_adapted,33.1,,
+nhanes_t2dm_0584,61,female,153.1,82.0,35.0,sedentary,gain,north,False,False,False,6.3,,,sầu riêng;gan,NHANES_2021_2023_VN_adapted,45.4,143.0,68.0
+nhanes_t2dm_0585,53,male,172.5,69.3,23.3,sedentary,lose,south,False,False,False,8.0,188.0,,sầu riêng;mướp đắng;bí đao,NHANES_2021_2023_VN_adapted,30.5,,
+nhanes_t2dm_0587,53,female,170.0,101.1,35.0,sedentary,lose,south,False,False,False,6.7,106.0,,tiết canh;gan,NHANES_2021_2023_VN_adapted,44.6,,
+nhanes_t2dm_0588,28,female,162.3,77.4,29.4,sedentary,lose,south,False,False,False,7.1,,,tim;mắm tôm;mướp đắng,NHANES_2021_2023_VN_adapted,38.2,,
+nhanes_t2dm_0589,79,female,155.0,49.0,20.4,moderately_active,maintain,south,False,False,False,7.2,,,,NHANES_2021_2023_VN_adapted,29.5,128.0,100.0
+nhanes_t2dm_0591,70,male,167.4,77.6,27.7,sedentary,maintain,north,False,False,False,7.3,,,mướp đắng,NHANES_2021_2023_VN_adapted,36.2,,
+nhanes_t2dm_0592,55,female,156.8,63.7,25.9,lightly_active,lose,south,False,False,False,6.8,106.0,,sầu riêng,NHANES_2021_2023_VN_adapted,35.1,,
+nhanes_t2dm_0593,56,male,164.8,65.5,24.1,sedentary,lose,north,False,False,False,6.3,131.0,,,NHANES_2021_2023_VN_adapted,33.0,,
+nhanes_t2dm_0594,20,male,177.3,71.4,22.7,sedentary,maintain,north,False,False,False,5.8,,,mướp đắng,NHANES_2021_2023_VN_adapted,30.8,,
+nhanes_t2dm_0596,68,female,149.2,45.6,20.5,sedentary,maintain,south,False,False,False,9.3,,,,NHANES_2021_2023_VN_adapted,30.1,,
+nhanes_t2dm_0597,53,female,157.2,53.6,21.7,sedentary,gain,north,False,False,False,7.9,182.0,,mướp đắng;sầu riêng,NHANES_2021_2023_VN_adapted,28.3,,
+nhanes_t2dm_0598,67,male,162.5,47.5,18.0,moderately_active,lose,south,False,False,False,6.7,150.0,,bí đao;sầu riêng,NHANES_2021_2023_VN_adapted,26.3,,
+nhanes_t2dm_0599,80,male,167.9,50.7,18.0,sedentary,lose,north,False,False,False,7.6,,,,NHANES_2021_2023_VN_adapted,26.8,147.0,83.0
+nhanes_t2dm_0600,67,female,157.4,49.8,20.1,moderately_active,lose,south,False,False,False,,,,lòng,NHANES_2021_2023_VN_adapted,29.7,,
+nhanes_t2dm_0601,78,female,161.8,77.2,29.5,sedentary,lose,south,False,False,False,10.4,,,,NHANES_2021_2023_VN_adapted,37.3,,
+nhanes_t2dm_0602,55,male,160.6,46.4,18.0,lightly_active,lose,south,False,False,False,9.4,59.0,,lòng;gan,NHANES_2021_2023_VN_adapted,24.9,,
+nhanes_t2dm_0603,30,female,160.7,85.0,32.9,sedentary,lose,north,False,False,False,6.6,,,gan,NHANES_2021_2023_VN_adapted,41.0,,
+nhanes_t2dm_0605,58,female,151.1,41.1,18.0,sedentary,lose,north,False,False,False,5.9,113.0,,lòng;mắm tôm,NHANES_2021_2023_VN_adapted,26.8,140.0,72.0
+nhanes_t2dm_0606,55,male,163.7,63.2,23.6,sedentary,lose,central,False,False,False,5.9,110.0,,mắm tôm,NHANES_2021_2023_VN_adapted,32.8,,
+nhanes_t2dm_0607,71,male,171.5,53.2,18.1,moderately_active,maintain,south,False,False,False,7.1,142.0,,gan;bí đao,NHANES_2021_2023_VN_adapted,26.9,,
+nhanes_t2dm_0608,57,female,160.0,74.2,29.0,sedentary,lose,north,False,False,False,,,,,NHANES_2021_2023_VN_adapted,38.8,129.0,90.0
+nhanes_t2dm_0609,78,female,163.6,48.2,18.0,lightly_active,lose,south,False,False,False,5.9,104.0,,tim,NHANES_2021_2023_VN_adapted,24.9,,
+nhanes_t2dm_0610,58,male,166.5,65.7,23.7,lightly_active,maintain,north,False,False,False,9.1,230.0,,,NHANES_2021_2023_VN_adapted,32.5,119.0,90.0
+nhanes_t2dm_0611,58,female,166.7,84.8,30.5,sedentary,maintain,south,False,False,False,6.9,124.0,,mắm tôm,NHANES_2021_2023_VN_adapted,39.3,,
+nhanes_t2dm_0612,80,female,152.4,41.8,18.0,sedentary,lose,north,False,False,False,7.4,177.0,,bí đao,NHANES_2021_2023_VN_adapted,26.7,181.0,73.0
+nhanes_t2dm_0613,48,male,171.6,75.7,25.7,moderately_active,lose,north,False,False,False,6.7,148.0,,sầu riêng,NHANES_2021_2023_VN_adapted,34.3,136.0,99.0
+nhanes_t2dm_0614,26,female,152.3,81.2,35.0,lightly_active,maintain,north,False,False,False,7.0,111.0,,bí đao,NHANES_2021_2023_VN_adapted,52.6,,
+nhanes_t2dm_0617,65,female,160.7,90.4,35.0,sedentary,lose,central,False,False,False,8.5,,,,NHANES_2021_2023_VN_adapted,53.9,,
+nhanes_t2dm_0618,72,female,150.1,40.6,18.0,sedentary,lose,north,False,False,False,5.6,,,bí đao,NHANES_2021_2023_VN_adapted,25.5,,
+nhanes_t2dm_0619,75,male,161.6,47.0,18.0,sedentary,maintain,central,False,False,False,6.7,,,sầu riêng,NHANES_2021_2023_VN_adapted,22.8,193.0,105.0
+nhanes_t2dm_0620,79,female,148.9,77.6,35.0,lightly_active,maintain,south,False,False,False,6.2,123.0,,mắm tôm,NHANES_2021_2023_VN_adapted,44.5,,
+nhanes_t2dm_0621,69,male,165.3,58.7,21.5,sedentary,maintain,central,False,False,False,8.2,95.0,,mắm tôm,NHANES_2021_2023_VN_adapted,31.2,,
+nhanes_t2dm_0622,68,female,158.9,48.2,19.1,lightly_active,maintain,north,False,False,False,8.8,,,,NHANES_2021_2023_VN_adapted,27.9,,
+nhanes_t2dm_0623,56,female,160.2,66.7,26.0,lightly_active,lose,central,False,False,False,5.7,,,bí đao,NHANES_2021_2023_VN_adapted,36.1,,
+nhanes_t2dm_0625,63,male,182.5,60.0,18.0,sedentary,maintain,south,False,False,False,10.0,,,lòng;mướp đắng,NHANES_2021_2023_VN_adapted,24.8,156.0,87.0
+nhanes_t2dm_0626,80,female,150.5,60.7,26.8,sedentary,lose,south,False,False,False,6.9,125.0,,bí đao;mướp đắng,NHANES_2021_2023_VN_adapted,36.0,,
+nhanes_t2dm_0627,57,female,165.1,49.1,18.0,sedentary,maintain,south,False,False,False,9.9,,,tiết canh;mướp đắng;lòng,NHANES_2021_2023_VN_adapted,24.1,156.0,92.0
+nhanes_t2dm_0628,61,male,175.2,55.3,18.0,sedentary,maintain,north,False,False,False,10.3,,,,NHANES_2021_2023_VN_adapted,25.2,146.0,89.0
+nhanes_t2dm_0629,69,male,162.5,76.0,28.8,lightly_active,lose,south,False,False,False,6.9,,,bí đao,NHANES_2021_2023_VN_adapted,39.3,,
+nhanes_t2dm_0630,58,female,147.6,76.3,35.0,sedentary,lose,north,False,False,False,,,,,NHANES_2021_2023_VN_adapted,49.8,131.0,94.0
+nhanes_t2dm_0632,78,female,150.7,69.3,30.5,lightly_active,lose,south,False,False,False,5.9,,,,NHANES_2021_2023_VN_adapted,40.0,195.0,100.0
+nhanes_t2dm_0633,64,female,153.1,54.6,23.3,lightly_active,lose,north,False,False,False,7.5,,,mướp đắng,NHANES_2021_2023_VN_adapted,32.0,148.0,94.0
+nhanes_t2dm_0634,73,male,165.9,57.0,20.7,sedentary,lose,north,False,False,False,5.5,,,,NHANES_2021_2023_VN_adapted,29.9,176.0,90.0
+nhanes_t2dm_0635,69,male,154.3,53.1,22.3,lightly_active,maintain,central,False,False,False,6.9,165.0,,tim,NHANES_2021_2023_VN_adapted,32.1,,
+nhanes_t2dm_0637,66,male,176.5,74.1,23.8,sedentary,maintain,central,False,False,False,8.3,255.0,,mắm tôm,NHANES_2021_2023_VN_adapted,33.7,,
+nhanes_t2dm_0638,65,male,166.6,97.1,35.0,moderately_active,lose,central,False,False,False,8.0,219.0,,gan;bí đao,NHANES_2021_2023_VN_adapted,44.6,,
+nhanes_t2dm_0639,80,female,155.6,54.2,22.4,moderately_active,maintain,north,False,False,False,6.3,,,lòng;mướp đắng;bí đao,NHANES_2021_2023_VN_adapted,31.9,,
+nhanes_t2dm_0640,61,male,171.2,56.9,19.4,moderately_active,lose,south,False,False,False,5.9,,,bí đao,NHANES_2021_2023_VN_adapted,27.8,,
+nhanes_t2dm_0641,51,female,155.0,64.9,27.0,sedentary,lose,south,False,False,False,5.7,94.0,,mướp đắng;sầu riêng;mắm tôm,NHANES_2021_2023_VN_adapted,36.0,,
+nhanes_t2dm_0642,50,female,154.1,58.9,24.8,moderately_active,maintain,north,False,False,False,5.4,,,lòng;mướp đắng,NHANES_2021_2023_VN_adapted,33.7,,
+nhanes_t2dm_0644,77,female,152.0,43.0,18.6,lightly_active,lose,north,False,False,False,6.1,89.0,,tim,NHANES_2021_2023_VN_adapted,28.0,,
+nhanes_t2dm_0645,76,male,166.2,56.6,20.5,lightly_active,maintain,north,False,False,False,6.0,101.0,,,NHANES_2021_2023_VN_adapted,29.8,152.0,82.0
+nhanes_t2dm_0646,73,male,173.0,59.9,20.0,lightly_active,lose,south,False,False,False,6.1,,,sầu riêng,NHANES_2021_2023_VN_adapted,27.5,,
+nhanes_t2dm_0647,80,female,157.1,58.5,23.7,lightly_active,lose,north,False,False,False,6.2,,,tiết canh;gan,NHANES_2021_2023_VN_adapted,32.3,,
+nhanes_t2dm_0648,64,male,150.4,40.7,18.0,sedentary,lose,central,False,False,False,6.9,,,lòng,NHANES_2021_2023_VN_adapted,25.6,,
+nhanes_t2dm_0650,74,male,153.3,63.7,27.1,sedentary,maintain,north,False,False,False,6.2,154.0,,,NHANES_2021_2023_VN_adapted,36.0,,
+nhanes_t2dm_0651,69,female,154.3,68.3,28.7,lightly_active,lose,south,False,False,False,7.7,,,tiết canh,NHANES_2021_2023_VN_adapted,37.5,,
+nhanes_t2dm_0652,45,female,156.0,85.2,35.0,moderately_active,lose,south,False,False,False,6.2,105.0,,tim;bí đao,NHANES_2021_2023_VN_adapted,50.3,,
+nhanes_t2dm_0653,59,female,157.9,59.1,23.7,sedentary,maintain,south,False,False,False,11.0,,,,NHANES_2021_2023_VN_adapted,30.9,,
+nhanes_t2dm_0654,64,male,164.7,49.4,18.2,sedentary,lose,north,False,False,False,6.8,104.0,,lòng,NHANES_2021_2023_VN_adapted,28.9,,
+nhanes_t2dm_0656,32,female,159.5,64.4,25.3,lightly_active,maintain,central,False,False,False,7.0,130.0,,tiết canh,NHANES_2021_2023_VN_adapted,33.8,,
+nhanes_t2dm_0657,59,male,170.6,53.6,18.4,lightly_active,maintain,central,False,False,False,9.1,160.0,,sầu riêng;lòng,NHANES_2021_2023_VN_adapted,26.7,156.0,84.0
+nhanes_t2dm_0658,64,female,153.8,63.9,27.0,lightly_active,lose,north,False,False,False,6.8,172.0,,gan,NHANES_2021_2023_VN_adapted,34.4,,
+nhanes_t2dm_0659,66,male,153.7,53.4,22.6,sedentary,maintain,north,False,False,False,8.5,164.0,,mắm tôm;tim,NHANES_2021_2023_VN_adapted,33.7,,
+nhanes_t2dm_0660,42,female,156.8,50.2,20.4,lightly_active,lose,north,False,False,False,,,,lòng,NHANES_2021_2023_VN_adapted,28.2,,
+nhanes_t2dm_0661,62,female,170.0,101.1,35.0,moderately_active,maintain,south,False,False,False,6.2,127.0,,,NHANES_2021_2023_VN_adapted,44.7,,
+nhanes_t2dm_0663,78,female,146.4,51.9,24.2,lightly_active,maintain,south,False,False,False,6.4,,,lòng;gan,NHANES_2021_2023_VN_adapted,31.9,145.0,83.0
+nhanes_t2dm_0664,60,female,154.3,61.7,25.9,lightly_active,lose,north,False,False,False,7.7,151.0,,mắm tôm,NHANES_2021_2023_VN_adapted,33.1,,
+nhanes_t2dm_0667,67,male,175.2,55.3,18.0,sedentary,lose,south,False,False,False,7.6,149.0,,mướp đắng,NHANES_2021_2023_VN_adapted,27.2,,
+nhanes_t2dm_0669,57,female,160.2,89.8,35.0,lightly_active,lose,south,False,False,False,8.2,120.0,,,NHANES_2021_2023_VN_adapted,44.0,138.0,91.0
+nhanes_t2dm_0670,66,male,161.9,86.5,33.0,sedentary,lose,central,False,False,False,6.6,115.0,,mướp đắng;sầu riêng,NHANES_2021_2023_VN_adapted,42.3,,
+nhanes_t2dm_0671,55,male,171.2,52.8,18.0,sedentary,lose,north,False,False,False,7.7,,,mướp đắng;lòng,NHANES_2021_2023_VN_adapted,18.2,,
+nhanes_t2dm_0672,65,female,162.6,65.0,24.6,lightly_active,lose,central,False,False,False,8.5,,,mướp đắng;gan;lòng,NHANES_2021_2023_VN_adapted,33.2,,
+nhanes_t2dm_0675,66,female,153.0,81.0,34.6,lightly_active,lose,south,False,False,False,8.5,177.0,,lòng;tim,NHANES_2021_2023_VN_adapted,42.8,,
+nhanes_t2dm_0676,68,male,168.6,57.7,20.3,sedentary,lose,north,False,False,False,6.6,138.0,,mướp đắng,NHANES_2021_2023_VN_adapted,29.6,141.0,86.0
+nhanes_t2dm_0677,80,female,164.6,63.9,23.6,lightly_active,maintain,south,False,False,False,6.6,124.0,,,NHANES_2021_2023_VN_adapted,32.8,,
+nhanes_t2dm_0678,40,female,154.5,73.5,30.8,lightly_active,lose,south,False,False,False,9.3,,,mướp đắng;lòng,NHANES_2021_2023_VN_adapted,38.6,154.0,101.0
+nhanes_t2dm_0679,79,male,171.5,59.4,20.2,sedentary,gain,south,False,False,False,7.1,83.0,,,NHANES_2021_2023_VN_adapted,30.3,147.0,65.0
+nhanes_t2dm_0680,47,male,170.3,84.4,29.1,lightly_active,lose,north,False,False,False,6.3,,,,NHANES_2021_2023_VN_adapted,38.5,,
+nhanes_t2dm_0681,74,female,151.6,59.8,26.0,sedentary,lose,north,False,False,False,7.7,,,,NHANES_2021_2023_VN_adapted,35.1,,
+nhanes_t2dm_0683,67,male,170.5,52.3,18.0,lightly_active,lose,south,False,False,False,9.6,307.0,,mướp đắng;tiết canh,NHANES_2021_2023_VN_adapted,28.0,138.0,90.0
+nhanes_t2dm_0685,73,male,170.3,54.2,18.7,sedentary,maintain,south,False,False,False,,,,mắm tôm,NHANES_2021_2023_VN_adapted,27.3,,
+nhanes_t2dm_0686,70,female,157.1,44.4,18.0,lightly_active,lose,south,False,False,False,,,,bí đao,NHANES_2021_2023_VN_adapted,24.3,,
+nhanes_t2dm_0687,62,female,165.6,90.8,33.1,sedentary,maintain,central,False,False,False,6.9,85.0,,mướp đắng,NHANES_2021_2023_VN_adapted,41.1,,
+nhanes_t2dm_0689,75,male,156.9,72.9,29.6,sedentary,maintain,central,False,False,False,5.8,,,,NHANES_2021_2023_VN_adapted,37.8,,
+nhanes_t2dm_0690,38,male,162.6,74.6,28.2,sedentary,lose,south,False,False,False,9.8,,,gan,NHANES_2021_2023_VN_adapted,36.6,139.0,96.0
+nhanes_t2dm_0691,71,male,178.9,57.6,18.0,sedentary,lose,north,False,False,False,10.3,238.0,,gan,NHANES_2021_2023_VN_adapted,24.7,,
+nhanes_t2dm_0693,69,female,158.2,68.6,27.4,moderately_active,maintain,north,False,False,False,6.4,,,,NHANES_2021_2023_VN_adapted,36.6,,
+nhanes_t2dm_0694,56,male,171.6,80.1,27.2,sedentary,lose,central,False,False,False,7.3,198.0,,,NHANES_2021_2023_VN_adapted,37.6,,
+nhanes_t2dm_0695,80,female,157.9,44.9,18.0,sedentary,maintain,south,False,False,False,6.4,131.0,,,NHANES_2021_2023_VN_adapted,19.3,146.0,105.0
+nhanes_t2dm_0696,71,male,167.7,92.5,32.9,sedentary,maintain,central,False,False,False,8.9,247.0,,,NHANES_2021_2023_VN_adapted,40.7,,
+nhanes_t2dm_0697,60,female,153.4,42.4,18.0,sedentary,lose,central,False,False,False,5.8,,,,NHANES_2021_2023_VN_adapted,27.1,,
+nhanes_t2dm_0698,70,male,159.0,47.0,18.6,lightly_active,lose,north,False,False,False,6.3,80.0,,,NHANES_2021_2023_VN_adapted,26.2,,
+nhanes_t2dm_0699,67,male,173.1,60.2,20.1,sedentary,lose,central,False,False,False,5.3,,,,NHANES_2021_2023_VN_adapted,29.2,,
+nhanes_t2dm_0700,78,male,156.0,79.6,32.7,sedentary,lose,south,False,False,False,6.8,102.0,,,NHANES_2021_2023_VN_adapted,40.9,,
+nhanes_t2dm_0701,74,female,158.0,60.2,24.1,moderately_active,maintain,south,False,False,False,11.9,199.0,,mắm tôm;tiết canh,NHANES_2021_2023_VN_adapted,33.9,,
+nhanes_t2dm_0702,46,female,150.4,45.2,20.0,lightly_active,lose,south,False,False,False,11.6,,,tim;tiết canh,NHANES_2021_2023_VN_adapted,27.9,142.0,81.0
+nhanes_t2dm_0703,69,female,148.3,51.0,23.2,sedentary,maintain,south,False,False,False,7.0,,,mướp đắng;lòng,NHANES_2021_2023_VN_adapted,32.6,,
+nhanes_t2dm_0704,65,male,167.4,65.6,23.4,sedentary,gain,south,False,False,False,14.1,,,tim,NHANES_2021_2023_VN_adapted,33.1,,
+nhanes_t2dm_0705,64,female,156.3,44.0,18.0,sedentary,lose,south,False,False,False,10.6,245.0,,gan,NHANES_2021_2023_VN_adapted,21.8,,
+nhanes_t2dm_0706,67,female,158.1,51.2,20.5,sedentary,lose,north,False,False,False,6.5,,,mắm tôm;bí đao,NHANES_2021_2023_VN_adapted,29.8,195.0,84.0
+nhanes_t2dm_0707,71,male,170.0,78.0,27.0,sedentary,lose,central,False,False,False,7.2,119.0,,tim;lòng,NHANES_2021_2023_VN_adapted,36.3,170.0,76.0
+nhanes_t2dm_0708,46,female,158.9,45.4,18.0,sedentary,maintain,north,False,False,False,8.6,80.0,,lòng;mướp đắng;bí đao,NHANES_2021_2023_VN_adapted,20.7,,
+nhanes_t2dm_0709,63,female,156.5,75.7,30.9,moderately_active,gain,south,False,False,False,6.6,155.0,,mắm tôm,NHANES_2021_2023_VN_adapted,40.6,134.0,91.0
+nhanes_t2dm_0710,51,female,157.6,74.3,29.9,sedentary,maintain,south,False,False,False,8.1,,,mướp đắng,NHANES_2021_2023_VN_adapted,40.2,,
+nhanes_t2dm_0711,79,male,155.4,45.4,18.8,moderately_active,gain,south,False,False,False,7.0,117.0,,gan;mắm tôm;bí đao,NHANES_2021_2023_VN_adapted,29.2,154.0,83.0
+nhanes_t2dm_0712,65,female,155.7,59.4,24.5,sedentary,lose,south,False,False,False,6.4,123.0,,,NHANES_2021_2023_VN_adapted,34.5,,
+nhanes_t2dm_0713,72,female,154.9,43.2,18.0,sedentary,lose,south,False,False,False,7.3,,,mướp đắng,NHANES_2021_2023_VN_adapted,20.5,152.0,80.0
+nhanes_t2dm_0714,67,male,168.5,51.1,18.0,sedentary,lose,north,False,False,False,7.4,175.0,,,NHANES_2021_2023_VN_adapted,27.9,156.0,75.0
+nhanes_t2dm_0715,63,male,169.8,59.1,20.5,sedentary,lose,south,False,False,False,9.1,203.0,,tim;tiết canh,NHANES_2021_2023_VN_adapted,29.5,,
+nhanes_t2dm_0716,69,female,157.4,82.3,33.2,lightly_active,maintain,north,False,False,False,8.9,,,sầu riêng,NHANES_2021_2023_VN_adapted,41.6,176.0,74.0
+nhanes_t2dm_0717,63,male,165.6,62.8,22.9,lightly_active,lose,central,False,False,False,6.6,145.0,,,NHANES_2021_2023_VN_adapted,31.9,158.0,86.0
+nhanes_t2dm_0719,31,male,164.9,91.9,33.8,sedentary,maintain,south,False,False,False,15.6,,,bí đao,NHANES_2021_2023_VN_adapted,44.4,137.0,92.0
+nhanes_t2dm_0720,57,male,165.6,49.4,18.0,sedentary,maintain,north,False,False,False,9.2,,,tim,NHANES_2021_2023_VN_adapted,25.8,,
+nhanes_t2dm_0721,68,male,166.8,95.2,34.2,lightly_active,gain,south,False,False,False,9.6,281.0,,tim,NHANES_2021_2023_VN_adapted,42.5,159.0,77.0
+nhanes_t2dm_0722,57,male,166.7,50.0,18.0,sedentary,lose,south,False,False,False,10.1,235.0,,,NHANES_2021_2023_VN_adapted,26.8,189.0,110.0
+nhanes_t2dm_0723,56,female,157.8,77.4,31.1,lightly_active,lose,north,False,False,False,6.1,,,bí đao,NHANES_2021_2023_VN_adapted,39.6,,
+nhanes_t2dm_0724,80,male,172.9,53.8,18.0,lightly_active,lose,central,False,False,False,5.7,,,,NHANES_2021_2023_VN_adapted,19.4,159.0,85.0
+nhanes_t2dm_0725,80,female,150.4,40.7,18.0,lightly_active,lose,central,False,False,False,6.1,121.0,,,NHANES_2021_2023_VN_adapted,21.0,,
+nhanes_t2dm_0726,61,female,144.9,43.0,20.5,moderately_active,lose,north,False,False,False,8.8,,,,NHANES_2021_2023_VN_adapted,30.5,,
+nhanes_t2dm_0727,50,female,156.3,48.4,19.8,lightly_active,maintain,north,False,False,False,9.9,278.0,,mắm tôm,NHANES_2021_2023_VN_adapted,27.1,160.0,83.0
+nhanes_t2dm_0728,43,male,172.7,66.2,22.2,moderately_active,maintain,south,False,False,False,8.9,211.0,,,NHANES_2021_2023_VN_adapted,32.8,,
+nhanes_t2dm_0729,62,male,173.5,66.2,22.0,lightly_active,maintain,north,False,False,False,5.7,,,mướp đắng,NHANES_2021_2023_VN_adapted,31.1,,
+nhanes_t2dm_0730,51,male,150.9,45.1,19.8,sedentary,lose,central,False,False,False,10.1,,,,NHANES_2021_2023_VN_adapted,29.7,,
+nhanes_t2dm_0731,70,male,166.0,49.6,18.0,lightly_active,maintain,central,False,False,False,6.1,139.0,,gan,NHANES_2021_2023_VN_adapted,25.6,,
+nhanes_t2dm_0732,52,female,155.6,69.0,28.5,moderately_active,lose,south,False,False,False,6.0,97.0,,sầu riêng,NHANES_2021_2023_VN_adapted,37.4,,
+nhanes_t2dm_0735,64,male,166.6,54.1,19.5,lightly_active,lose,central,False,False,False,,,,mướp đắng,NHANES_2021_2023_VN_adapted,28.9,,
+nhanes_t2dm_0737,80,male,160.7,46.5,18.0,lightly_active,lose,north,False,False,False,7.9,197.0,,bí đao;sầu riêng;mắm tôm,NHANES_2021_2023_VN_adapted,24.3,,
+nhanes_t2dm_0739,45,female,154.1,69.8,29.4,sedentary,lose,central,False,False,False,6.6,142.0,,gan,NHANES_2021_2023_VN_adapted,38.6,137.0,95.0
+nhanes_t2dm_0740,62,female,156.5,77.2,31.5,sedentary,lose,south,False,False,False,,,,lòng,NHANES_2021_2023_VN_adapted,43.0,,
+nhanes_t2dm_0741,75,female,151.5,61.1,26.6,sedentary,maintain,north,False,False,False,5.5,,,bí đao;sầu riêng,NHANES_2021_2023_VN_adapted,37.1,171.0,106.0
+nhanes_t2dm_0742,58,male,165.3,71.3,26.1,moderately_active,maintain,south,False,False,False,8.1,143.0,,tim;sầu riêng;gan,NHANES_2021_2023_VN_adapted,34.8,,
+nhanes_t2dm_0744,69,male,178.8,57.5,18.0,lightly_active,lose,north,False,False,False,6.8,,,,NHANES_2021_2023_VN_adapted,25.5,,
+nhanes_t2dm_0745,70,female,148.7,49.3,22.3,sedentary,lose,central,False,False,False,8.0,142.0,,,NHANES_2021_2023_VN_adapted,32.6,,
+nhanes_t2dm_0746,61,male,159.5,63.1,24.8,sedentary,lose,central,False,False,False,6.6,,,,NHANES_2021_2023_VN_adapted,33.6,,
+nhanes_t2dm_0747,80,male,163.1,47.9,18.0,sedentary,lose,central,False,False,False,7.5,,,gan,NHANES_2021_2023_VN_adapted,24.7,157.0,63.0
+nhanes_t2dm_0748,54,female,148.7,43.8,19.8,sedentary,lose,north,False,False,False,7.5,191.0,,,NHANES_2021_2023_VN_adapted,30.3,185.0,79.0
+nhanes_t2dm_0749,47,female,147.8,44.1,20.2,sedentary,lose,south,False,False,False,8.1,171.0,,tim,NHANES_2021_2023_VN_adapted,27.5,,
+nhanes_t2dm_0751,71,male,166.5,49.9,18.0,sedentary,maintain,central,False,False,False,5.2,160.0,,sầu riêng,NHANES_2021_2023_VN_adapted,25.9,,
+nhanes_t2dm_0752,79,female,147.0,73.9,34.2,sedentary,lose,north,False,False,False,8.1,,,gan,NHANES_2021_2023_VN_adapted,41.9,,
+nhanes_t2dm_0753,53,male,165.9,71.3,25.9,moderately_active,lose,north,False,False,False,13.9,,,,NHANES_2021_2023_VN_adapted,35.6,,
+nhanes_t2dm_0755,44,male,160.8,67.5,26.1,sedentary,maintain,north,False,False,False,9.4,349.0,,mắm tôm,NHANES_2021_2023_VN_adapted,34.5,,
+nhanes_t2dm_0756,80,male,158.7,45.3,18.0,lightly_active,lose,north,False,False,False,7.4,,,tim;gan;bí đao,NHANES_2021_2023_VN_adapted,27.2,,
+nhanes_t2dm_0757,76,male,171.1,52.7,18.0,lightly_active,lose,north,False,False,False,7.7,164.0,,tim,NHANES_2021_2023_VN_adapted,26.4,150.0,72.0
+nhanes_t2dm_0758,39,male,169.3,89.7,31.3,sedentary,maintain,south,False,False,False,6.4,,,sầu riêng,NHANES_2021_2023_VN_adapted,39.7,148.0,99.0
+nhanes_t2dm_0759,66,female,155.8,62.1,25.6,sedentary,lose,central,False,False,False,6.2,86.0,,,NHANES_2021_2023_VN_adapted,35.5,,
+nhanes_t2dm_0760,58,male,174.4,54.7,18.0,lightly_active,lose,south,False,False,False,6.0,,,lòng,NHANES_2021_2023_VN_adapted,25.5,,
+nhanes_t2dm_0761,80,female,163.9,48.4,18.0,lightly_active,lose,north,False,False,False,6.6,109.0,,bí đao;sầu riêng;mướp đắng,NHANES_2021_2023_VN_adapted,24.4,,
+nhanes_t2dm_0762,80,female,149.8,47.1,21.0,lightly_active,maintain,south,False,False,False,7.7,133.0,,,NHANES_2021_2023_VN_adapted,31.6,164.0,70.0
+nhanes_t2dm_0763,69,male,169.9,62.4,21.6,sedentary,lose,south,False,False,False,6.5,156.0,,tiết canh,NHANES_2021_2023_VN_adapted,30.4,,
+nhanes_t2dm_0764,64,female,154.5,62.1,26.0,sedentary,lose,central,False,False,False,5.9,97.0,,,NHANES_2021_2023_VN_adapted,35.4,,
+nhanes_t2dm_0765,74,male,170.9,57.0,19.5,lightly_active,maintain,north,False,False,False,6.6,,,tiết canh,NHANES_2021_2023_VN_adapted,27.4,,
+nhanes_t2dm_0767,61,male,171.9,62.9,21.3,sedentary,lose,north,False,False,False,11.2,186.0,,lòng;gan,NHANES_2021_2023_VN_adapted,31.1,,
+nhanes_t2dm_0768,44,male,173.8,70.1,23.2,sedentary,maintain,south,False,False,False,7.2,,,gan,NHANES_2021_2023_VN_adapted,32.1,,
+nhanes_t2dm_0769,58,female,151.0,79.8,35.0,lightly_active,maintain,south,False,False,False,8.2,188.0,,,NHANES_2021_2023_VN_adapted,43.1,,
+nhanes_t2dm_0770,80,female,157.0,62.6,25.4,lightly_active,maintain,north,False,False,False,7.1,124.0,,lòng;tiết canh,NHANES_2021_2023_VN_adapted,34.6,,
+nhanes_t2dm_0771,72,male,170.4,52.3,18.0,moderately_active,maintain,south,False,False,False,8.4,137.0,,gan,NHANES_2021_2023_VN_adapted,24.3,,
+nhanes_t2dm_0773,67,male,166.9,56.3,20.2,lightly_active,lose,south,False,False,False,,,,,NHANES_2021_2023_VN_adapted,29.1,,
+nhanes_t2dm_0777,66,male,163.3,61.6,23.1,sedentary,lose,south,False,False,False,,,,mướp đắng,NHANES_2021_2023_VN_adapted,32.0,,
+nhanes_t2dm_0778,71,female,156.6,44.1,18.0,sedentary,lose,central,False,False,False,,,,tiết canh;tim,NHANES_2021_2023_VN_adapted,23.4,,
+nhanes_t2dm_0779,64,female,154.9,49.4,20.6,sedentary,maintain,central,False,False,False,6.0,,,,NHANES_2021_2023_VN_adapted,29.6,,
+nhanes_t2dm_0780,54,male,171.7,71.0,24.1,sedentary,lose,north,False,False,False,7.3,153.0,,lòng,NHANES_2021_2023_VN_adapted,32.8,,
+nhanes_t2dm_0782,73,male,171.8,68.5,23.2,sedentary,lose,south,False,False,False,5.9,,,,NHANES_2021_2023_VN_adapted,32.4,,
+nhanes_t2dm_0783,57,female,157.1,56.0,22.7,sedentary,lose,south,False,False,False,5.6,,,mắm tôm,NHANES_2021_2023_VN_adapted,31.4,154.0,89.0
+nhanes_t2dm_0784,80,female,155.1,43.3,18.0,sedentary,maintain,central,False,False,False,7.7,163.0,,tim;mắm tôm;mướp đắng,NHANES_2021_2023_VN_adapted,23.4,,
+nhanes_t2dm_0785,79,female,152.9,79.7,34.1,lightly_active,lose,south,False,False,False,6.3,,,tim,NHANES_2021_2023_VN_adapted,42.1,,
+nhanes_t2dm_0786,69,male,162.7,47.9,18.1,sedentary,lose,south,False,False,False,8.8,,,tim;lòng,NHANES_2021_2023_VN_adapted,29.0,,
+nhanes_t2dm_0787,79,male,160.3,65.3,25.4,sedentary,lose,south,False,False,False,7.5,,,gan,NHANES_2021_2023_VN_adapted,34.0,,
+nhanes_t2dm_0788,59,female,159.4,45.7,18.0,sedentary,maintain,north,False,False,False,12.2,,,,NHANES_2021_2023_VN_adapted,21.9,,
+nhanes_t2dm_0789,76,female,141.5,70.1,35.0,sedentary,lose,south,False,False,False,6.8,,,mắm tôm;tim,NHANES_2021_2023_VN_adapted,48.1,,
+nhanes_t2dm_0790,66,male,171.6,92.5,31.4,lightly_active,lose,north,False,False,False,7.1,120.0,,bí đao,NHANES_2021_2023_VN_adapted,41.3,,
+nhanes_t2dm_0791,53,male,163.8,48.3,18.0,sedentary,lose,south,False,False,False,7.4,,,sầu riêng,NHANES_2021_2023_VN_adapted,23.8,,
+nhanes_t2dm_0792,62,male,174.6,54.9,18.0,lightly_active,lose,north,False,False,False,7.3,124.0,,gan;tiết canh,NHANES_2021_2023_VN_adapted,26.4,,
+nhanes_t2dm_0793,52,male,161.2,53.5,20.6,sedentary,lose,south,False,False,False,5.8,162.0,,tim;mắm tôm,NHANES_2021_2023_VN_adapted,30.3,,
+nhanes_t2dm_0794,72,male,185.0,106.8,31.2,lightly_active,lose,south,False,False,False,7.0,91.0,,mướp đắng;sầu riêng,NHANES_2021_2023_VN_adapted,40.0,,
+nhanes_t2dm_0795,72,male,156.7,57.2,23.3,sedentary,lose,north,False,False,False,8.9,205.0,,bí đao;mướp đắng,NHANES_2021_2023_VN_adapted,32.8,,
+nhanes_t2dm_0796,60,male,170.3,59.2,20.4,sedentary,gain,north,False,False,False,14.3,,,,NHANES_2021_2023_VN_adapted,28.2,151.0,77.0
+nhanes_t2dm_0798,65,female,159.2,73.8,29.1,lightly_active,maintain,south,False,False,False,7.1,149.0,,,NHANES_2021_2023_VN_adapted,39.6,,
+nhanes_t2dm_0799,65,female,155.4,48.1,19.9,sedentary,maintain,south,False,False,False,7.9,,,sầu riêng;lòng,NHANES_2021_2023_VN_adapted,28.4,,
+nhanes_t2dm_0800,65,female,149.6,47.9,21.4,moderately_active,lose,north,False,False,False,6.1,115.0,,tiết canh,NHANES_2021_2023_VN_adapted,31.0,,
+nhanes_t2dm_0801,66,male,175.8,76.0,24.6,moderately_active,lose,north,False,False,False,8.6,210.0,,lòng,NHANES_2021_2023_VN_adapted,33.6,152.0,97.0
+nhanes_t2dm_0802,72,female,153.8,82.8,35.0,sedentary,lose,south,False,False,False,9.3,151.0,,mắm tôm,NHANES_2021_2023_VN_adapted,49.3,,
+nhanes_t2dm_0803,62,female,150.0,73.1,32.5,lightly_active,lose,south,False,False,False,6.8,110.0,,mắm tôm,NHANES_2021_2023_VN_adapted,40.3,,
+nhanes_t2dm_0805,76,male,162.7,47.6,18.0,sedentary,lose,south,False,False,False,6.4,168.0,,lòng;bí đao;tiết canh,NHANES_2021_2023_VN_adapted,22.7,,
+nhanes_t2dm_0806,48,female,162.7,92.6,35.0,sedentary,maintain,south,False,False,False,8.5,,,tiết canh,NHANES_2021_2023_VN_adapted,51.8,,
+nhanes_t2dm_0807,70,female,156.3,67.7,27.7,sedentary,maintain,south,False,False,False,6.1,,,tim;sầu riêng,NHANES_2021_2023_VN_adapted,35.4,,
+nhanes_t2dm_0808,44,female,159.3,88.8,35.0,lightly_active,lose,north,False,False,False,7.3,,,,NHANES_2021_2023_VN_adapted,44.6,,
+nhanes_t2dm_0809,55,female,167.7,77.6,27.6,moderately_active,lose,south,False,False,False,7.3,142.0,,,NHANES_2021_2023_VN_adapted,37.4,145.0,102.0
+nhanes_t2dm_0810,49,male,177.2,109.9,35.0,sedentary,lose,north,False,False,False,6.3,,,,NHANES_2021_2023_VN_adapted,47.0,,
+nhanes_t2dm_0811,79,female,159.8,47.2,18.5,lightly_active,maintain,north,False,False,False,7.5,,,sầu riêng,NHANES_2021_2023_VN_adapted,27.6,151.0,71.0
+nhanes_t2dm_0812,55,female,157.3,60.9,24.6,sedentary,maintain,central,False,False,False,8.2,175.0,,gan;mắm tôm,NHANES_2021_2023_VN_adapted,33.7,,
+nhanes_t2dm_0813,59,male,165.2,57.3,21.0,sedentary,lose,south,False,False,False,7.2,,,mướp đắng;tim;bí đao,NHANES_2021_2023_VN_adapted,29.6,145.0,91.0
+nhanes_t2dm_0814,72,female,157.8,55.8,22.4,sedentary,lose,south,False,False,False,8.9,,,,NHANES_2021_2023_VN_adapted,30.4,,
+nhanes_t2dm_0815,47,male,164.9,68.5,25.2,lightly_active,lose,north,False,False,False,10.1,230.0,,,NHANES_2021_2023_VN_adapted,35.1,,
+nhanes_t2dm_0817,75,male,161.0,63.0,24.3,moderately_active,lose,south,False,False,False,8.0,234.0,,,NHANES_2021_2023_VN_adapted,33.0,,
+nhanes_t2dm_0818,47,male,166.4,96.4,34.8,lightly_active,maintain,north,False,False,False,9.9,146.0,,tim,NHANES_2021_2023_VN_adapted,44.2,130.0,92.0
+nhanes_t2dm_0819,57,female,153.2,73.7,31.4,lightly_active,lose,south,False,False,False,7.1,,,gan,NHANES_2021_2023_VN_adapted,40.9,145.0,83.0
+nhanes_t2dm_0820,80,female,153.3,52.9,22.5,lightly_active,lose,central,False,False,False,8.0,,,,NHANES_2021_2023_VN_adapted,33.1,,
+nhanes_t2dm_0822,63,female,154.4,42.9,18.0,sedentary,lose,south,False,False,False,5.6,103.0,,,NHANES_2021_2023_VN_adapted,25.6,,
+nhanes_t2dm_0823,53,female,151.7,54.1,23.5,sedentary,lose,north,False,False,False,5.9,,,lòng;mắm tôm,NHANES_2021_2023_VN_adapted,33.2,,
+nhanes_t2dm_0824,63,female,141.7,50.4,25.1,sedentary,lose,north,False,False,False,6.4,108.0,,lòng;gan,NHANES_2021_2023_VN_adapted,33.9,,
+nhanes_t2dm_0826,65,male,172.0,59.2,20.0,lightly_active,lose,south,False,False,False,6.1,,,,NHANES_2021_2023_VN_adapted,29.7,,
+nhanes_t2dm_0827,74,male,158.3,59.9,23.9,sedentary,maintain,north,False,False,False,6.5,,,,NHANES_2021_2023_VN_adapted,32.9,,
+nhanes_t2dm_0828,71,female,159.4,66.8,26.3,lightly_active,lose,central,False,False,False,6.4,,,sầu riêng,NHANES_2021_2023_VN_adapted,37.1,152.0,76.0
+nhanes_t2dm_0829,63,male,171.8,100.4,34.0,moderately_active,lose,north,False,False,False,7.1,110.0,,mắm tôm,NHANES_2021_2023_VN_adapted,43.9,,
+nhanes_t2dm_0830,62,female,162.7,79.4,30.0,sedentary,maintain,central,False,False,False,10.1,246.0,,tiết canh,NHANES_2021_2023_VN_adapted,39.2,,
+nhanes_t2dm_0832,80,male,153.3,51.2,21.8,sedentary,lose,south,False,False,False,6.4,,,mắm tôm,NHANES_2021_2023_VN_adapted,30.5,,
+nhanes_t2dm_0833,77,female,149.8,40.4,18.0,sedentary,gain,central,False,False,False,6.1,117.0,,bí đao,NHANES_2021_2023_VN_adapted,25.0,,
+nhanes_t2dm_0836,76,male,170.3,58.3,20.1,sedentary,maintain,north,False,False,False,9.7,,,tiết canh,NHANES_2021_2023_VN_adapted,28.9,152.0,78.0
+nhanes_t2dm_0837,60,female,154.9,49.4,20.6,lightly_active,lose,north,False,False,False,8.9,,,tiết canh,NHANES_2021_2023_VN_adapted,29.8,,
+nhanes_t2dm_0838,52,male,179.5,75.1,23.3,lightly_active,lose,south,False,False,False,12.0,322.0,,tiết canh,NHANES_2021_2023_VN_adapted,31.5,,
+nhanes_t2dm_0839,44,male,180.6,82.2,25.2,sedentary,lose,south,False,False,False,10.0,196.0,,,NHANES_2021_2023_VN_adapted,34.0,,
+nhanes_t2dm_0842,80,male,166.2,57.2,20.7,sedentary,lose,south,False,False,False,6.2,200.0,,,NHANES_2021_2023_VN_adapted,29.1,,
+nhanes_t2dm_0843,68,female,149.5,56.5,25.3,sedentary,maintain,south,False,False,False,8.2,145.0,,mướp đắng;gan,NHANES_2021_2023_VN_adapted,35.3,,
+nhanes_t2dm_0844,31,male,159.8,53.9,21.1,lightly_active,lose,north,False,False,False,6.4,125.0,,lòng,NHANES_2021_2023_VN_adapted,30.3,,
+nhanes_t2dm_0845,74,female,152.8,64.9,27.8,sedentary,lose,south,False,False,False,5.8,113.0,,,NHANES_2021_2023_VN_adapted,36.6,,
+nhanes_t2dm_0846,76,male,172.9,81.3,27.2,sedentary,lose,south,False,False,False,6.8,157.0,,,NHANES_2021_2023_VN_adapted,37.0,,
+nhanes_t2dm_0847,80,male,170.4,70.6,24.3,lightly_active,maintain,south,False,False,False,6.7,145.0,,mắm tôm,NHANES_2021_2023_VN_adapted,32.1,166.0,96.0
+nhanes_t2dm_0848,70,male,161.5,46.9,18.0,sedentary,lose,south,False,False,False,6.3,155.0,,gan,NHANES_2021_2023_VN_adapted,25.2,,
+nhanes_t2dm_0849,70,male,157.2,64.0,25.9,sedentary,lose,south,False,False,False,5.2,,,,NHANES_2021_2023_VN_adapted,34.5,,
+nhanes_t2dm_0850,46,female,153.5,62.4,26.5,sedentary,gain,central,False,False,False,6.0,,,tim,NHANES_2021_2023_VN_adapted,34.7,133.0,95.0
+nhanes_t2dm_0851,51,female,155.8,47.1,19.4,lightly_active,lose,north,False,False,False,6.3,126.0,,,NHANES_2021_2023_VN_adapted,29.5,,
+nhanes_t2dm_0852,43,female,164.4,94.6,35.0,lightly_active,gain,south,False,False,False,7.2,,,tim;mướp đắng,NHANES_2021_2023_VN_adapted,48.1,138.0,94.0
+nhanes_t2dm_0853,80,female,152.3,41.8,18.0,lightly_active,maintain,south,False,False,False,5.9,,,,NHANES_2021_2023_VN_adapted,23.9,155.0,66.0
+nhanes_t2dm_0854,80,female,162.5,75.5,28.6,moderately_active,lose,central,False,False,False,8.2,,,sầu riêng,NHANES_2021_2023_VN_adapted,38.3,,
+nhanes_t2dm_0855,73,male,183.8,68.6,20.3,sedentary,maintain,north,False,False,False,5.2,115.0,,lòng;sầu riêng,NHANES_2021_2023_VN_adapted,30.3,,
+nhanes_t2dm_0857,60,female,157.5,44.7,18.0,lightly_active,lose,south,False,False,False,8.8,246.0,,mướp đắng,NHANES_2021_2023_VN_adapted,24.9,,
+nhanes_t2dm_0858,67,male,170.8,52.5,18.0,sedentary,maintain,south,False,False,False,7.1,130.0,,,NHANES_2021_2023_VN_adapted,23.6,,
+nhanes_t2dm_0859,68,male,170.8,57.2,19.6,sedentary,lose,south,False,False,False,6.8,178.0,,mắm tôm,NHANES_2021_2023_VN_adapted,29.1,,
+nhanes_t2dm_0861,70,female,147.8,55.7,25.5,lightly_active,lose,south,False,False,False,12.5,,,mắm tôm,NHANES_2021_2023_VN_adapted,35.1,,
+nhanes_t2dm_0862,62,male,175.1,55.2,18.0,sedentary,lose,north,False,False,False,7.4,205.0,,lòng;mướp đắng;sầu riêng,NHANES_2021_2023_VN_adapted,27.0,,
+nhanes_t2dm_0863,70,male,166.3,71.9,26.0,lightly_active,lose,central,False,False,False,8.5,,,tim,NHANES_2021_2023_VN_adapted,35.3,,
+nhanes_t2dm_0864,69,male,173.3,64.0,21.3,lightly_active,maintain,south,False,False,False,9.1,,,,NHANES_2021_2023_VN_adapted,30.6,,
+nhanes_t2dm_0865,45,male,161.1,90.8,35.0,sedentary,lose,north,False,False,False,5.6,,,,NHANES_2021_2023_VN_adapted,61.5,,
+nhanes_t2dm_0866,58,male,166.5,71.5,25.8,sedentary,lose,north,False,False,False,6.5,160.0,,sầu riêng,NHANES_2021_2023_VN_adapted,34.7,153.0,89.0
+nhanes_t2dm_0869,72,male,158.3,80.2,32.0,sedentary,gain,central,False,False,False,5.8,,,,NHANES_2021_2023_VN_adapted,41.1,,
+nhanes_t2dm_0870,72,female,160.1,89.7,35.0,lightly_active,maintain,north,False,False,False,7.0,,,tim,NHANES_2021_2023_VN_adapted,47.6,144.0,88.0
+nhanes_t2dm_0871,71,female,156.1,63.8,26.2,sedentary,maintain,south,False,False,False,6.7,,,sầu riêng;tiết canh,NHANES_2021_2023_VN_adapted,38.0,141.0,88.0
+nhanes_t2dm_0872,69,female,158.2,67.6,27.0,sedentary,maintain,north,False,False,False,5.8,110.0,,gan,NHANES_2021_2023_VN_adapted,34.3,147.0,88.0
+nhanes_t2dm_0873,69,male,159.8,53.6,21.0,sedentary,maintain,north,False,False,False,6.9,147.0,,,NHANES_2021_2023_VN_adapted,29.4,,
+nhanes_t2dm_0875,55,female,156.7,85.9,35.0,moderately_active,maintain,north,False,False,False,7.7,,,,NHANES_2021_2023_VN_adapted,52.6,,
+nhanes_t2dm_0877,59,male,170.9,63.1,21.6,moderately_active,maintain,south,False,False,False,,,,bí đao;sầu riêng;mắm tôm,NHANES_2021_2023_VN_adapted,30.8,,
+nhanes_t2dm_0878,55,female,150.6,55.1,24.3,lightly_active,lose,south,False,False,False,8.6,,,tiết canh;mướp đắng,NHANES_2021_2023_VN_adapted,35.9,159.0,84.0
+nhanes_t2dm_0880,59,male,176.4,56.0,18.0,sedentary,lose,south,False,False,False,10.9,561.0,,tim;lòng;mướp đắng,NHANES_2021_2023_VN_adapted,22.1,,
+nhanes_t2dm_0881,68,female,165.3,60.7,22.2,lightly_active,lose,north,False,False,False,6.7,,,bí đao,NHANES_2021_2023_VN_adapted,31.0,,
+nhanes_t2dm_0882,63,male,173.6,63.0,20.9,sedentary,lose,central,False,False,False,7.3,,,,NHANES_2021_2023_VN_adapted,30.3,136.0,91.0
+nhanes_t2dm_0883,77,female,156.3,85.5,35.0,lightly_active,lose,central,False,False,False,9.3,278.0,,tim,NHANES_2021_2023_VN_adapted,57.2,146.0,75.0
+nhanes_t2dm_0884,48,female,149.2,59.7,26.8,sedentary,lose,north,False,False,False,7.7,,,bí đao,NHANES_2021_2023_VN_adapted,36.3,,
+nhanes_t2dm_0885,65,female,152.7,77.9,33.4,sedentary,maintain,north,False,False,False,9.6,,,tim;bí đao;lòng,NHANES_2021_2023_VN_adapted,40.8,141.0,88.0
+nhanes_t2dm_0886,68,male,173.5,76.2,25.3,sedentary,lose,south,False,False,False,6.9,132.0,,,NHANES_2021_2023_VN_adapted,32.5,,
+nhanes_t2dm_0887,80,male,161.3,46.8,18.0,sedentary,lose,south,False,False,False,6.2,,,,NHANES_2021_2023_VN_adapted,26.3,153.0,69.0
+nhanes_t2dm_0888,69,female,148.8,39.9,18.0,sedentary,gain,south,False,False,False,8.4,214.0,,sầu riêng,NHANES_2021_2023_VN_adapted,29.7,,
+nhanes_t2dm_0889,64,male,164.0,94.1,35.0,lightly_active,lose,central,False,False,False,10.0,,,mướp đắng,NHANES_2021_2023_VN_adapted,49.8,,
+nhanes_t2dm_0890,76,male,169.1,75.8,26.5,lightly_active,maintain,central,False,False,False,6.1,,,,NHANES_2021_2023_VN_adapted,35.8,,
+nhanes_t2dm_0891,75,male,168.9,65.9,23.1,sedentary,lose,central,False,False,False,8.9,,,,NHANES_2021_2023_VN_adapted,32.3,,
+nhanes_t2dm_0892,64,male,157.5,57.3,23.1,moderately_active,maintain,south,False,False,False,6.8,133.0,,tiết canh,NHANES_2021_2023_VN_adapted,32.6,,
+nhanes_t2dm_0893,41,female,163.8,51.0,19.0,sedentary,maintain,south,False,False,False,5.5,100.0,,tim,NHANES_2021_2023_VN_adapted,27.3,,
+nhanes_t2dm_0895,68,male,171.6,80.7,27.4,sedentary,lose,north,False,False,False,6.7,,,mướp đắng;bí đao;gan,NHANES_2021_2023_VN_adapted,36.3,,
+nhanes_t2dm_0896,47,female,165.7,49.4,18.0,sedentary,lose,central,False,False,False,10.4,,,,NHANES_2021_2023_VN_adapted,23.5,,
+nhanes_t2dm_0897,58,female,148.3,75.9,34.5,lightly_active,lose,central,False,False,False,6.7,,,mướp đắng,NHANES_2021_2023_VN_adapted,45.1,,
+nhanes_t2dm_0898,80,male,163.2,55.4,20.8,sedentary,lose,south,False,False,False,7.8,167.0,,mướp đắng,NHANES_2021_2023_VN_adapted,30.0,,
+nhanes_t2dm_0899,63,female,156.0,60.1,24.7,lightly_active,lose,central,False,False,False,6.6,117.0,,bí đao;mướp đắng,NHANES_2021_2023_VN_adapted,33.0,,
+nhanes_t2dm_0900,56,female,153.9,54.9,23.2,lightly_active,lose,central,False,False,False,6.4,117.0,,gan;lòng,NHANES_2021_2023_VN_adapted,33.1,,
+nhanes_t2dm_0902,68,female,152.5,65.4,28.1,sedentary,lose,north,False,False,False,6.2,104.0,,sầu riêng;lòng,NHANES_2021_2023_VN_adapted,35.5,,
+nhanes_t2dm_0903,66,male,167.7,56.0,19.9,sedentary,lose,north,False,False,False,7.9,134.0,,sầu riêng,NHANES_2021_2023_VN_adapted,29.3,,
+nhanes_t2dm_0904,41,female,157.9,73.3,29.4,lightly_active,lose,north,False,False,False,7.7,,,mắm tôm;sầu riêng,NHANES_2021_2023_VN_adapted,38.8,,
+nhanes_t2dm_0906,60,female,151.3,60.7,26.5,sedentary,lose,central,False,False,False,7.8,179.0,,tim,NHANES_2021_2023_VN_adapted,34.7,,
+nhanes_t2dm_0909,60,female,155.4,84.5,35.0,sedentary,lose,north,False,False,False,,,,lòng;tim,NHANES_2021_2023_VN_adapted,64.7,145.0,90.0
+nhanes_t2dm_0911,75,female,161.2,73.5,28.3,lightly_active,lose,central,False,False,False,7.6,,,,NHANES_2021_2023_VN_adapted,37.1,,
+nhanes_t2dm_0912,80,female,157.0,80.1,32.5,sedentary,lose,north,False,False,False,7.2,85.0,,sầu riêng,NHANES_2021_2023_VN_adapted,40.7,,
+nhanes_t2dm_0914,67,male,170.0,60.1,20.8,lightly_active,lose,south,False,False,False,7.0,,,tim,NHANES_2021_2023_VN_adapted,28.3,,
+nhanes_t2dm_0915,71,male,178.4,62.1,19.5,sedentary,lose,south,False,False,False,5.6,119.0,,,NHANES_2021_2023_VN_adapted,28.4,143.0,91.0
+nhanes_t2dm_0916,35,male,166.5,82.1,29.6,lightly_active,maintain,central,False,False,False,6.8,,,,NHANES_2021_2023_VN_adapted,38.0,,
+nhanes_t2dm_0918,68,female,153.9,45.0,19.0,moderately_active,maintain,north,False,False,False,10.1,235.0,,,NHANES_2021_2023_VN_adapted,26.9,,
+nhanes_t2dm_0919,73,female,148.1,61.6,28.1,sedentary,lose,north,False,False,False,8.0,212.0,,lòng,NHANES_2021_2023_VN_adapted,37.1,152.0,97.0
+nhanes_t2dm_0921,59,male,172.8,81.5,27.3,lightly_active,maintain,south,False,False,False,6.1,,,sầu riêng,NHANES_2021_2023_VN_adapted,36.5,,
+nhanes_t2dm_0922,72,male,165.1,49.1,18.0,sedentary,maintain,north,False,False,False,,,,,NHANES_2021_2023_VN_adapted,26.0,194.0,88.0
+nhanes_t2dm_0925,67,female,161.8,82.5,31.5,lightly_active,lose,north,False,False,False,8.8,,,lòng,NHANES_2021_2023_VN_adapted,41.0,,
+nhanes_t2dm_0926,63,male,167.6,50.6,18.0,lightly_active,lose,south,False,False,False,8.0,145.0,,,NHANES_2021_2023_VN_adapted,25.6,145.0,74.0
+nhanes_t2dm_0929,57,male,152.7,81.6,35.0,moderately_active,lose,south,False,False,False,8.4,,,,NHANES_2021_2023_VN_adapted,44.9,,
+nhanes_t2dm_0930,50,male,163.6,48.2,18.0,lightly_active,maintain,central,False,False,False,8.1,,,gan;sầu riêng,NHANES_2021_2023_VN_adapted,25.4,158.0,86.0
+nhanes_t2dm_0931,77,female,144.7,61.3,29.3,moderately_active,lose,north,False,False,False,8.0,,,lòng;gan;mắm tôm,NHANES_2021_2023_VN_adapted,39.7,143.0,64.0
+nhanes_t2dm_0933,53,female,149.9,57.1,25.4,sedentary,lose,north,False,False,False,5.8,118.0,,,NHANES_2021_2023_VN_adapted,33.3,132.0,90.0
+nhanes_t2dm_0935,70,male,160.6,64.5,25.0,lightly_active,maintain,north,False,False,False,6.8,85.0,,gan,NHANES_2021_2023_VN_adapted,34.2,,
+nhanes_t2dm_0938,80,female,154.1,42.7,18.0,sedentary,lose,south,False,False,False,6.6,,,sầu riêng,NHANES_2021_2023_VN_adapted,25.5,,
+nhanes_t2dm_0939,59,female,147.2,59.6,27.5,sedentary,lose,south,False,False,False,7.1,158.0,,tim;mắm tôm;gan,NHANES_2021_2023_VN_adapted,37.2,,
+nhanes_t2dm_0941,64,male,168.6,65.9,23.2,sedentary,maintain,south,False,False,False,7.9,,,,NHANES_2021_2023_VN_adapted,33.2,,
+nhanes_t2dm_0942,63,male,169.2,75.9,26.5,sedentary,lose,central,False,False,False,11.9,,,,NHANES_2021_2023_VN_adapted,36.9,,
+nhanes_t2dm_0943,34,female,159.5,63.3,24.9,lightly_active,lose,north,False,False,False,5.9,100.0,,mắm tôm,NHANES_2021_2023_VN_adapted,33.5,,
+nhanes_t2dm_0944,59,female,154.3,83.3,35.0,sedentary,lose,south,False,False,False,7.3,,,lòng,NHANES_2021_2023_VN_adapted,45.9,,
+nhanes_t2dm_0945,63,male,171.6,53.0,18.0,sedentary,lose,south,False,False,False,6.1,109.0,,,NHANES_2021_2023_VN_adapted,26.3,,
+nhanes_t2dm_0946,70,male,172.0,67.2,22.7,lightly_active,maintain,central,False,False,False,7.3,161.0,,gan;lòng;bí đao,NHANES_2021_2023_VN_adapted,30.5,,
+nhanes_t2dm_0947,80,female,168.6,99.5,35.0,sedentary,maintain,north,False,False,False,8.1,,,gan,NHANES_2021_2023_VN_adapted,43.1,,
+nhanes_t2dm_0948,72,male,171.3,59.3,20.2,moderately_active,lose,south,False,False,False,6.2,,,,NHANES_2021_2023_VN_adapted,28.9,,
+nhanes_t2dm_0949,59,female,155.7,51.9,21.4,sedentary,lose,north,False,False,False,8.2,134.0,,,NHANES_2021_2023_VN_adapted,30.2,,
+nhanes_t2dm_0951,80,female,148.1,39.5,18.0,moderately_active,lose,north,False,False,False,5.8,,,tiết canh;sầu riêng,NHANES_2021_2023_VN_adapted,22.4,157.0,78.0
+nhanes_t2dm_0952,72,male,172.4,53.5,18.0,lightly_active,maintain,north,False,False,False,8.7,,,bí đao;mướp đắng,NHANES_2021_2023_VN_adapted,22.9,142.0,81.0
+nhanes_t2dm_0953,77,female,160.2,46.2,18.0,sedentary,maintain,north,False,False,False,6.0,104.0,,gan,NHANES_2021_2023_VN_adapted,26.9,,
+nhanes_t2dm_0954,80,male,167.0,90.6,32.5,lightly_active,lose,north,False,False,False,6.9,131.0,,,NHANES_2021_2023_VN_adapted,39.7,169.0,61.0
+nhanes_t2dm_0955,54,female,162.8,47.7,18.0,sedentary,maintain,central,False,False,False,6.7,142.0,,tiết canh;mướp đắng;mắm tôm,NHANES_2021_2023_VN_adapted,21.9,,
+nhanes_t2dm_0956,65,female,150.6,40.8,18.0,moderately_active,lose,central,False,False,False,6.5,,,,NHANES_2021_2023_VN_adapted,23.5,,
+nhanes_t2dm_0957,65,male,168.8,51.3,18.0,sedentary,maintain,south,False,False,False,6.6,144.0,,,NHANES_2021_2023_VN_adapted,25.9,,
+nhanes_t2dm_0958,54,female,147.5,39.2,18.0,lightly_active,maintain,south,False,False,False,8.3,,,mắm tôm,NHANES_2021_2023_VN_adapted,18.1,,
+nhanes_t2dm_0959,79,female,159.4,45.7,18.0,sedentary,maintain,central,False,False,False,,,,,NHANES_2021_2023_VN_adapted,23.5,160.0,79.0
+nhanes_t2dm_0961,64,male,180.4,68.7,21.1,lightly_active,maintain,north,False,False,False,5.6,110.0,,,NHANES_2021_2023_VN_adapted,31.6,,
+nhanes_t2dm_0962,79,male,173.4,69.2,23.0,lightly_active,lose,south,False,False,False,7.2,152.0,,lòng;sầu riêng;tiết canh,NHANES_2021_2023_VN_adapted,33.6,159.0,76.0
+nhanes_t2dm_0963,71,female,156.3,77.4,31.7,lightly_active,lose,north,False,False,False,6.2,124.0,,gan,NHANES_2021_2023_VN_adapted,41.7,,
+nhanes_t2dm_0964,39,female,157.4,84.5,34.1,sedentary,lose,north,False,False,False,5.5,,,mắm tôm;lòng;mướp đắng,NHANES_2021_2023_VN_adapted,44.8,,
+nhanes_t2dm_0965,68,male,178.9,67.5,21.1,lightly_active,maintain,north,False,False,False,7.1,,,,NHANES_2021_2023_VN_adapted,29.8,,
+nhanes_t2dm_0966,55,male,173.7,64.9,21.5,lightly_active,maintain,south,False,False,False,,,,mắm tôm,NHANES_2021_2023_VN_adapted,31.4,,
+nhanes_t2dm_0967,67,female,140.3,53.1,27.0,sedentary,lose,north,False,False,False,6.1,109.0,,mắm tôm,NHANES_2021_2023_VN_adapted,36.2,162.0,90.0
+nhanes_t2dm_0968,50,female,163.5,82.3,30.8,sedentary,lose,north,False,False,False,6.1,,,sầu riêng,NHANES_2021_2023_VN_adapted,40.0,,
+nhanes_t2dm_0970,56,male,157.3,86.1,34.8,lightly_active,lose,north,False,False,False,5.8,,,gan,NHANES_2021_2023_VN_adapted,45.1,,
+nhanes_t2dm_0971,65,female,164.2,52.6,19.5,lightly_active,lose,south,False,False,False,6.7,111.0,,tim,NHANES_2021_2023_VN_adapted,27.7,,
+nhanes_t2dm_0972,58,male,169.0,100.0,35.0,lightly_active,lose,north,False,False,False,6.7,129.0,,,NHANES_2021_2023_VN_adapted,50.5,,
+nhanes_t2dm_0973,70,female,153.7,65.4,27.7,moderately_active,lose,north,False,False,False,6.2,151.0,,bí đao,NHANES_2021_2023_VN_adapted,36.7,157.0,65.0
+nhanes_t2dm_0974,62,male,166.1,70.9,25.7,lightly_active,lose,central,False,False,False,7.7,,,sầu riêng,NHANES_2021_2023_VN_adapted,34.4,,
+nhanes_t2dm_0975,63,female,153.1,77.4,33.0,lightly_active,lose,south,False,False,False,8.4,198.0,,bí đao,NHANES_2021_2023_VN_adapted,42.2,,
+nhanes_t2dm_0977,47,female,156.4,85.6,35.0,sedentary,lose,north,False,False,False,6.8,,,bí đao,NHANES_2021_2023_VN_adapted,43.6,,
+nhanes_t2dm_0978,61,female,154.7,62.7,26.2,sedentary,lose,north,False,False,False,9.1,161.0,,,NHANES_2021_2023_VN_adapted,34.6,,
+nhanes_t2dm_0979,69,female,168.2,74.1,26.2,sedentary,lose,central,False,False,False,6.1,,,mắm tôm,NHANES_2021_2023_VN_adapted,35.0,,
+nhanes_t2dm_0980,74,male,175.0,65.5,21.4,sedentary,lose,central,False,False,False,7.4,119.0,,,NHANES_2021_2023_VN_adapted,28.2,148.0,80.0
+nhanes_t2dm_0981,71,male,174.8,55.0,18.0,sedentary,maintain,north,False,False,False,6.9,129.0,,,NHANES_2021_2023_VN_adapted,22.4,,
+nhanes_t2dm_0982,75,female,154.4,80.8,33.9,sedentary,lose,central,False,False,False,,,,bí đao;gan,NHANES_2021_2023_VN_adapted,42.4,148.0,72.0
+nhanes_t2dm_0984,50,male,171.8,67.0,22.7,sedentary,lose,north,False,False,False,5.9,115.0,,,NHANES_2021_2023_VN_adapted,31.0,170.0,107.0
+nhanes_t2dm_0985,80,female,147.5,44.4,20.4,sedentary,maintain,central,False,False,False,8.0,,,,NHANES_2021_2023_VN_adapted,29.8,152.0,68.0
+nhanes_t2dm_0986,59,male,176.9,96.4,30.8,lightly_active,lose,north,False,False,False,7.6,120.0,,mướp đắng;lòng,NHANES_2021_2023_VN_adapted,39.6,,
+nhanes_t2dm_0989,57,female,154.1,54.9,23.1,sedentary,maintain,south,False,False,False,7.2,,,tiết canh,NHANES_2021_2023_VN_adapted,31.8,,
+nhanes_t2dm_0990,62,female,140.0,42.7,21.8,moderately_active,maintain,north,False,False,False,7.5,155.0,,tiết canh;sầu riêng,NHANES_2021_2023_VN_adapted,31.4,,
+nhanes_t2dm_0991,71,male,159.5,45.8,18.0,lightly_active,lose,north,False,False,False,7.6,,,mướp đắng;tiết canh,NHANES_2021_2023_VN_adapted,22.7,,
+nhanes_t2dm_0992,74,female,152.1,59.0,25.5,lightly_active,lose,north,False,False,False,5.7,108.0,,tiết canh;bí đao;mắm tôm,NHANES_2021_2023_VN_adapted,34.1,154.0,72.0
+nhanes_t2dm_0993,38,female,151.8,41.5,18.0,moderately_active,maintain,north,False,False,False,7.4,,,sầu riêng,NHANES_2021_2023_VN_adapted,26.2,,
+nhanes_t2dm_0994,41,female,155.4,61.3,25.4,sedentary,lose,south,False,False,False,9.2,223.0,,,NHANES_2021_2023_VN_adapted,35.0,,
+nhanes_t2dm_0995,48,female,164.4,53.5,19.8,lightly_active,gain,south,False,False,False,12.8,348.0,,mắm tôm,NHANES_2021_2023_VN_adapted,30.7,,
+nhanes_t2dm_0996,70,female,158.3,74.4,29.7,sedentary,lose,north,False,False,False,6.3,158.0,,sầu riêng,NHANES_2021_2023_VN_adapted,39.8,155.0,78.0
+nhanes_t2dm_0997,74,female,156.7,58.2,23.7,moderately_active,lose,north,False,False,False,6.2,115.0,,,NHANES_2021_2023_VN_adapted,33.8,,
+nhanes_t2dm_0998,60,female,164.5,48.7,18.0,sedentary,maintain,south,False,False,False,6.6,137.0,,sầu riêng;bí đao,NHANES_2021_2023_VN_adapted,19.8,,
+nhanes_t2dm_0999,72,female,150.4,49.3,21.8,sedentary,lose,north,False,False,False,6.6,117.0,,mắm tôm;bí đao,NHANES_2021_2023_VN_adapted,32.1,,
+nhanes_t2dm_1000,59,male,159.3,88.8,35.0,sedentary,lose,south,False,False,False,7.4,141.0,,bí đao,NHANES_2021_2023_VN_adapted,46.9,,
+nhanes_t2dm_1001,37,female,151.3,80.1,35.0,sedentary,maintain,central,False,False,False,5.8,,,,NHANES_2021_2023_VN_adapted,45.1,,
+nhanes_t2dm_1002,73,female,164.1,94.3,35.0,lightly_active,maintain,north,False,False,False,6.1,125.0,,gan;lòng;bí đao,NHANES_2021_2023_VN_adapted,43.9,,
+nhanes_t2dm_1003,64,male,173.6,72.9,24.2,lightly_active,lose,central,False,False,False,6.7,154.0,,bí đao,NHANES_2021_2023_VN_adapted,34.9,,
+nhanes_t2dm_1004,62,male,170.2,101.4,35.0,lightly_active,lose,south,False,False,False,5.5,107.0,,gan;mướp đắng;mắm tôm,NHANES_2021_2023_VN_adapted,46.4,,
+nhanes_t2dm_1006,41,male,168.9,99.8,35.0,sedentary,maintain,central,False,False,False,6.1,,,gan,NHANES_2021_2023_VN_adapted,54.5,,
+nhanes_t2dm_1007,67,female,166.3,69.4,25.1,lightly_active,lose,north,False,False,False,10.4,151.0,,tim,NHANES_2021_2023_VN_adapted,32.7,,
+nhanes_t2dm_1009,57,female,147.1,75.7,35.0,sedentary,maintain,north,False,False,False,7.8,125.0,,,NHANES_2021_2023_VN_adapted,60.5,,
+nhanes_t2dm_1010,69,female,150.1,51.6,22.9,sedentary,lose,south,False,False,False,6.5,107.0,,sầu riêng,NHANES_2021_2023_VN_adapted,32.1,,
+nhanes_t2dm_1013,59,male,175.2,85.3,27.8,sedentary,lose,north,False,False,False,6.7,,,mướp đắng,NHANES_2021_2023_VN_adapted,37.5,,
+nhanes_t2dm_1014,49,female,153.2,43.9,18.7,sedentary,maintain,south,False,False,False,7.1,181.0,,mắm tôm,NHANES_2021_2023_VN_adapted,28.2,,
+nhanes_t2dm_1015,58,male,169.9,71.3,24.7,lightly_active,lose,north,False,False,False,5.9,114.0,,,NHANES_2021_2023_VN_adapted,33.4,,
+nhanes_t2dm_1016,63,female,158.9,49.7,19.7,sedentary,lose,north,False,False,False,8.0,155.0,,mắm tôm,NHANES_2021_2023_VN_adapted,29.7,,
+nhanes_t2dm_1017,72,female,151.6,80.4,35.0,lightly_active,maintain,south,False,False,False,7.1,158.0,,tiết canh,NHANES_2021_2023_VN_adapted,62.9,,
+nhanes_t2dm_1018,63,male,175.7,71.0,23.0,sedentary,maintain,central,False,False,False,5.8,119.0,,tiết canh,NHANES_2021_2023_VN_adapted,30.6,,
+nhanes_t2dm_1021,74,female,160.3,46.3,18.0,lightly_active,maintain,north,False,False,False,9.6,,,mắm tôm;sầu riêng;gan,NHANES_2021_2023_VN_adapted,21.4,148.0,71.0
+nhanes_t2dm_1022,36,female,144.4,73.0,35.0,lightly_active,lose,south,False,False,False,6.5,,,lòng,NHANES_2021_2023_VN_adapted,49.1,,
+nhanes_t2dm_1023,67,female,156.1,76.0,31.2,moderately_active,lose,south,False,False,False,5.8,91.0,,,NHANES_2021_2023_VN_adapted,38.6,123.0,90.0
+nhanes_t2dm_1025,73,male,170.5,52.3,18.0,lightly_active,lose,north,False,False,False,6.1,131.0,,,NHANES_2021_2023_VN_adapted,26.7,,
+nhanes_t2dm_1026,44,male,173.2,54.0,18.0,lightly_active,lose,north,False,False,False,11.2,,,lòng;mắm tôm,NHANES_2021_2023_VN_adapted,24.3,,
+nhanes_t2dm_1027,69,male,167.5,50.5,18.0,lightly_active,lose,south,False,False,False,6.7,,,,NHANES_2021_2023_VN_adapted,26.0,,
+nhanes_t2dm_1028,69,female,152.6,41.9,18.0,sedentary,lose,central,False,False,False,,,,tim;tiết canh;sầu riêng,NHANES_2021_2023_VN_adapted,24.7,153.0,65.0
+nhanes_t2dm_1029,60,male,167.6,93.5,33.3,sedentary,maintain,south,False,False,False,9.0,132.0,,,NHANES_2021_2023_VN_adapted,42.8,,
+nhanes_t2dm_1030,60,male,165.9,96.3,35.0,sedentary,gain,north,False,False,False,10.7,277.0,,mướp đắng,NHANES_2021_2023_VN_adapted,56.9,,
+nhanes_t2dm_1032,50,female,160.5,90.2,35.0,lightly_active,lose,north,False,False,False,6.2,118.0,,,NHANES_2021_2023_VN_adapted,44.1,,
+nhanes_t2dm_1033,75,female,155.9,85.1,35.0,sedentary,lose,central,False,False,False,6.2,112.0,,lòng;mắm tôm,NHANES_2021_2023_VN_adapted,46.6,,
+nhanes_t2dm_1034,55,male,170.5,54.7,18.8,lightly_active,lose,north,False,False,False,,,,mắm tôm;tiết canh;mướp đắng,NHANES_2021_2023_VN_adapted,26.4,,
+nhanes_t2dm_1035,67,female,146.3,38.5,18.0,moderately_active,maintain,north,False,False,False,5.4,122.0,,lòng;bí đao;sầu riêng,NHANES_2021_2023_VN_adapted,23.6,,
+nhanes_t2dm_1036,79,female,145.4,46.5,22.0,lightly_active,lose,central,False,False,False,8.1,218.0,,mướp đắng,NHANES_2021_2023_VN_adapted,29.9,142.0,59.0
+nhanes_t2dm_1039,65,female,162.9,78.0,29.4,lightly_active,lose,north,False,False,False,8.4,183.0,,tiết canh;gan;tim,NHANES_2021_2023_VN_adapted,40.0,,
+nhanes_t2dm_1040,71,female,161.6,61.1,23.4,sedentary,lose,south,False,False,False,5.1,,,mắm tôm,NHANES_2021_2023_VN_adapted,31.1,,
+nhanes_t2dm_1042,60,female,161.7,75.8,29.0,sedentary,maintain,south,False,False,False,6.5,129.0,,lòng;mướp đắng,NHANES_2021_2023_VN_adapted,39.3,,
+nhanes_t2dm_1043,67,female,156.6,80.7,32.9,sedentary,maintain,north,False,False,False,6.9,82.0,,,NHANES_2021_2023_VN_adapted,41.0,,
+nhanes_t2dm_1044,59,male,174.6,88.4,29.0,moderately_active,lose,north,False,False,False,6.6,135.0,,,NHANES_2021_2023_VN_adapted,39.0,,
+nhanes_t2dm_1045,69,female,158.9,59.6,23.6,moderately_active,maintain,south,False,False,False,7.2,173.0,,sầu riêng,NHANES_2021_2023_VN_adapted,32.7,150.0,84.0
+nhanes_t2dm_1046,56,male,157.6,84.9,34.2,sedentary,maintain,south,False,False,False,6.8,146.0,,mắm tôm,NHANES_2021_2023_VN_adapted,43.4,,
+nhanes_t2dm_1048,66,female,166.5,49.9,18.0,sedentary,maintain,central,False,False,False,5.3,81.0,,,NHANES_2021_2023_VN_adapted,27.1,,
+nhanes_t2dm_1049,67,female,159.7,79.1,31.0,lightly_active,maintain,central,False,False,False,7.0,145.0,,,NHANES_2021_2023_VN_adapted,39.2,146.0,78.0
+nhanes_t2dm_1050,21,male,161.7,91.5,35.0,sedentary,maintain,central,False,False,False,,,,tiết canh,NHANES_2021_2023_VN_adapted,44.1,,
+nhanes_t2dm_1052,44,female,153.1,62.8,26.8,lightly_active,lose,central,False,False,False,5.1,100.0,,,NHANES_2021_2023_VN_adapted,35.4,,
+nhanes_t2dm_1053,78,male,172.1,60.1,20.3,lightly_active,maintain,south,False,False,False,5.6,102.0,,,NHANES_2021_2023_VN_adapted,28.5,,
+nhanes_t2dm_1055,62,male,177.2,56.5,18.0,sedentary,lose,south,False,False,False,7.1,136.0,,gan,NHANES_2021_2023_VN_adapted,25.3,157.0,77.0
+nhanes_t2dm_1057,48,male,163.3,93.3,35.0,lightly_active,maintain,south,False,False,False,6.5,,,,NHANES_2021_2023_VN_adapted,46.6,,
+nhanes_t2dm_1058,68,female,158.1,71.7,28.7,sedentary,lose,north,False,False,False,6.6,131.0,,tim,NHANES_2021_2023_VN_adapted,38.4,,
+nhanes_t2dm_1059,77,male,160.9,53.1,20.5,lightly_active,lose,north,False,False,False,,,,mướp đắng;mắm tôm,NHANES_2021_2023_VN_adapted,30.3,,
+nhanes_t2dm_1060,43,male,170.8,102.1,35.0,lightly_active,lose,north,False,False,False,5.7,,,lòng,NHANES_2021_2023_VN_adapted,53.2,,
+nhanes_t2dm_1061,78,male,165.4,49.2,18.0,lightly_active,lose,south,False,False,False,8.2,167.0,,mắm tôm,NHANES_2021_2023_VN_adapted,26.4,,
+nhanes_t2dm_1062,54,female,160.1,84.3,32.9,sedentary,lose,south,False,False,False,9.1,243.0,,mắm tôm;tiết canh,NHANES_2021_2023_VN_adapted,41.4,,
+nhanes_t2dm_1063,33,male,166.5,73.7,26.6,sedentary,maintain,north,False,False,False,9.5,204.0,,tim,NHANES_2021_2023_VN_adapted,35.7,,
+nhanes_t2dm_1064,69,female,158.1,45.0,18.0,lightly_active,maintain,south,False,False,False,8.1,160.0,,gan;bí đao,NHANES_2021_2023_VN_adapted,27.9,,

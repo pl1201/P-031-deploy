@@ -353,7 +353,7 @@ export default function MealPlanReviewPage() {
                   </div>
                 </div>
                 <div className="nutrition-bar-wrap">
-                  <NutritionBar label="Năng lượng" value={nutrition.kcal} max={targetKcal} unit="kcal" colorClass="bar-kcal" />
+                  <NutritionBar label="Năng lượng" value={nutrition.kcal} max={targetKcal ?? undefined} unit="kcal" colorClass="bar-kcal" />
                   <NutritionBar label="Carbohydrate" value={nutrition.carb_g} unit="g" colorClass="bar-carb" />
                   <NutritionBar label="Protein" value={nutrition.protein_g} unit="g" colorClass="bar-protein" />
                   <NutritionBar label="Chất béo" value={nutrition.fat_g} unit="g" colorClass="bar-fat" />

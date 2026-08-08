@@ -4,7 +4,7 @@ import { useRouter, usePathname } from 'next/navigation'
 import Link from 'next/link'
 import { getSession, clearSession } from '@/lib/auth'
 
-const NAV = [
+const NAV: Array<{ href: string; label: string; icon: string; exact?: boolean; badge?: boolean }> = [
   { href: '/dietitian', label: 'Hàng chờ duyệt', icon: '◎', exact: true, badge: true },
   { href: '/dietitian/patients', label: 'Hồ sơ bệnh nhân', icon: '◈' },
   { href: '/dietitian/approvals', label: 'Nhật ký phê duyệt', icon: '✓' },
@@ -92,6 +92,7 @@ export default function DietitianLayout({ children }: { children: React.ReactNod
 
       {/* Main */}
       <main className="main-content">
+        <button className="mobile-menu-btn" aria-label="Mở menu" onClick={() => setMenuOpen(true)}>☰</button>
         {children}
       </main>
 

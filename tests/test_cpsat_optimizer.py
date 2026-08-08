@@ -16,7 +16,10 @@ from src.clinical.models import (
     ActivityLevel,
     Condition,
     ConditionCode,
+    DishCandidate,
+    FoodItem,
     MenuDraft,
+    MenuItem,
     PatientProfile,
     Sex,
 )
@@ -216,7 +219,7 @@ def test_pha_2_duoc_goi_khi_pha_1_vo_nghiem(foods, monkeypatch):
     sentinel = MenuDraft(items={list(opt._SLOTS)[0]: []})  # draft phân biệt được
     calls: list[dict] = []
 
-    def fake_try_solve(eligible, bounds):
+    def fake_try_solve(eligible, bounds, dish_totals=None):
         calls.append(bounds)
         return None if len(calls) == 1 else sentinel
 
@@ -227,3 +230,127 @@ def test_pha_2_duoc_goi_khi_pha_1_vo_nghiem(foods, monkeypatch):
     assert result is sentinel
     # Pha 1 dùng bounds đã siết kcal, pha 2 dùng bounds gốc (trần kcal rộng hơn).
     assert calls[0]["kcal_100g"][1] < calls[1]["kcal_100g"][1]
+
+
+# --------------------------------------------------------------------------
+# Trần gram/ngày mỗi nguyên liệu (bug audit 2026-08-07, xem DEVLOG)
+# --------------------------------------------------------------------------
+
+
+def test_khong_nguyen_lieu_nao_vuot_tran_gram_moi_ngay(menu_candidates):
+    """Trước khi sửa: CP-SAT có thể chọn cùng 1 nguyên liệu ở cả 4 bữa (VD
+    gừng 300g×4=1200g/ngày) — hợp lệ toán ràng buộc nhưng vô lý lâm sàng/ẩm
+    thực. Test trên dữ liệu thật (~150 ứng viên curated), không mock."""
+    import src.agents.optimizer as opt
+
+    profile = _profile()
+    targets = compute_targets(profile)
+
+    draft = CPSATMenuOptimizer().generate(profile, targets, menu_candidates, feedback=None)
+    totals: dict[int, float] = {}
+    for item in draft.all_items():
+        totals[item.food_id] = totals.get(item.food_id, 0.0) + item.grams
+    assert totals, "cần có lời giải thật để kiểm tra trần"
+    for food_id, grams in totals.items():
+        assert grams <= opt.MAX_GRAMS_PER_FOOD_PER_DAY, (
+            f"food_id={food_id} có {grams} g/ngày, vượt trần {opt.MAX_GRAMS_PER_FOOD_PER_DAY} g "
+            "— đúng bug đã audit (gừng 300g×4 bữa)"
+        )
+
+
+def test_tran_gram_ngay_thuc_su_duoc_ap_vao_model(menu_candidates):
+    """Hạ trần xuống rất thấp (50 g) — nếu ràng buộc thực sự nằm trong model
+    CP-SAT (không phải lọc hậu kỳ), solver phải tự tìm cách khác (dùng nhiều
+    nguyên liệu hơn thay vì lặp lại) hoặc báo vô nghiệm; không bao giờ trả về
+    một food_id vượt 50 g/ngày."""
+    import src.agents.optimizer as opt
+
+    with pytest.MonkeyPatch.context() as mp:
+        mp.setattr(opt, "MAX_GRAMS_PER_FOOD_PER_DAY", 50)
+        profile = _profile()
+        targets = compute_targets(profile)
+        draft = opt.CPSATMenuOptimizer().generate(profile, targets, menu_candidates, feedback=None)
+
+    totals: dict[int, float] = {}
+    for item in draft.all_items():
+        totals[item.food_id] = totals.get(item.food_id, 0.0) + item.grams
+    for food_id, grams in totals.items():
+        assert grams <= 50, f"food_id={food_id} có {grams} g — trần 50g đã ép không có hiệu lực trong model"
+
+
+# --------------------------------------------------------------------------
+# Món ăn hoàn chỉnh (DishCandidate) làm khung — hybrid dish + nguyên liệu thô
+# --------------------------------------------------------------------------
+
+
+def _dish(dish_id: str, name_vi: str, ingredients: list[MenuItem]) -> DishCandidate:
+    return DishCandidate(dish_id=dish_id, name_vi=name_vi, is_reviewed=False, ingredients=ingredients)
+
+
+def test_mon_hoan_chinh_duoc_chon_nguyen_ca_cong_thuc(foods):
+    """Khi optimizer chọn một `DishCandidate`, TOÀN BỘ nguyên liệu của món phải
+    xuất hiện trong draft — không được chọn nửa công thức."""
+    # Cơm tẻ (2) + Rau muống (65) + Đậu phụ (55) — id thật trong seed, dùng làm
+    # "món" tự chế để test không phụ thuộc nội dung dishes.csv có thể đổi.
+    dish = _dish(
+        "TEST-COM-RAU-DAUPHU",
+        "Cơm rau đậu phụ (test)",
+        [MenuItem(food_id=2, grams=150), MenuItem(food_id=65, grams=100), MenuItem(food_id=55, grams=80)],
+    )
+
+    profile = _profile()
+    targets = compute_targets(profile)
+    candidates = [f for f in foods.all() if f.id < USDA_BULK_ID_THRESHOLD]
+
+    draft = CPSATMenuOptimizer(dishes=[dish], foods=foods).generate(profile, targets, candidates, feedback=None)
+    assert draft.all_items(), "phải giải được với cả nguyên liệu thô lẫn 1 món hoàn chỉnh làm ứng viên"
+
+    all_food_ids = {item.food_id for item in draft.all_items()}
+    dish_food_ids = {ing.food_id for ing in dish.ingredients}
+    # Nếu món được chọn ở BẤT KỲ bữa nào, cả 3 nguyên liệu phải có mặt cùng nhau.
+    if dish_food_ids & all_food_ids:
+        assert dish_food_ids <= all_food_ids, "món hoàn chỉnh bị chọn nửa vời — vi phạm tính toàn vẹn công thức"
+
+
+def test_mon_co_di_ung_bi_loai_khoi_ung_vien(foods):
+    """Món chứa nguyên liệu dị ứng của bệnh nhân phải bị loại hoàn toàn, không
+    bao giờ được optimizer chọn (RULE R10.6 — dị ứng là ràng buộc cứng)."""
+    from src.clinical.nutrition import InMemoryFoodRepository
+
+    peanut_food = FoodItem(
+        id=999001,
+        name_vi="Lạc rang (test)",
+        kcal_100g=567.0,
+        protein_g=25.0,
+        carb_g=16.0,
+        fat_g=49.0,
+        fiber_g=8.0,
+        na_mg=5.0,
+        k_mg=700.0,
+        p_mg=380.0,
+        contains_allergens=["đậu phộng"],
+        source="curated",
+        source_ref="test",
+    )
+    fake_foods = InMemoryFoodRepository([*foods.all(), peanut_food])
+    dish = _dish("TEST-MON-DI-UNG", "Món có lạc (test)", [MenuItem(food_id=999001, grams=50)])
+
+    profile = _profile(allergies=["đậu phộng"])
+    eligible = _eligible_dishes_for_test(dishes=[dish], fake_foods=fake_foods, profile=profile)
+    assert eligible == [], "món có nguyên liệu dị ứng phải bị loại khỏi candidate ngay từ đầu"
+
+
+def _eligible_dishes_for_test(dishes, fake_foods, profile):
+    from src.agents.optimizer import _eligible_dishes
+
+    return _eligible_dishes(dishes, fake_foods, profile)
+
+
+def test_mon_bi_dislike_bi_loai_khoi_ung_vien(foods):
+    """Món trùng tên với `dislikes` của bệnh nhân phải bị loại — cùng cơ chế
+    lọc dislike đã áp cho nguyên liệu thô ở `retrieve_context`."""
+    dish = _dish("TEST-MON-GHET", "Món test không thích", [MenuItem(food_id=2, grams=100)])
+    profile = _profile(dislikes=["món test không thích"])
+
+    eligible = _eligible_dishes_for_test(dishes=[dish], fake_foods=foods, profile=profile)
+    assert eligible == [], "món trùng dislikes phải bị loại khỏi candidate"
