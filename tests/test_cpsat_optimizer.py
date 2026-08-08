@@ -18,6 +18,7 @@ from src.clinical.models import (
     ConditionCode,
     DishCandidate,
     FoodItem,
+    MealSlot,
     MenuDraft,
     MenuItem,
     PatientProfile,
@@ -294,6 +295,22 @@ def test_loader_loai_bo_bua_mau_khoi_catalog_mon():
     assert dishes
     assert all(not dish.dish_id.upper().startswith("MENU-") for dish in dishes)
     assert all(not dish.name_vi.lower().startswith(("bữa sáng", "bữa trưa", "bữa tối")) for dish in dishes)
+
+
+def test_t2dm_van_co_mon_cu_the_khi_du_lieu_duong_chua_day_du(foods):
+    """Thiếu sugar_g là cảnh báo dữ liệu, không được làm catalog món thành rỗng."""
+    from src.clinical.seeds import load_vn_dishes
+
+    profile = _profile(conditions=[Condition(code=ConditionCode.T2DM)])
+    targets = compute_targets(profile)
+    candidates = [food for food in foods.all() if food.id < USDA_BULK_ID_THRESHOLD]
+
+    draft = CPSATMenuOptimizer(dishes=load_vn_dishes(), foods=foods).generate(
+        profile, targets, candidates, feedback=None
+    )
+
+    assert set(draft.planned_dishes) == set(MealSlot)
+    assert all(len(draft.planned_dishes[slot]) == 1 for slot in MealSlot)
 
 
 def test_gia_vi_va_hat_co_tran_khau_phan_nho(foods):

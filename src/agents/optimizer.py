@@ -276,6 +276,14 @@ def _dish_nutrient_totals(
     return totals
 
 
+def _dish_has_complete_nutrient(dish: DishCandidate, foods: FoodRepository, field: str) -> bool:
+    """Return whether every ingredient has data for an optional nutrient."""
+    return all(
+        (food := foods.get(item.food_id)) is not None and getattr(food, field) is not None
+        for item in dish.ingredients
+    )
+
+
 def _solve_day(
     candidates: list[FoodItem],
     targets: ClinicalTargets,
@@ -304,7 +312,19 @@ def _solve_day(
     # validator's incomplete-data warning instead of making the whole menu
     # infeasible or treating unknown values as zero.
     for field in _OPTIONAL_FIELDS:
-        if field in bounds and sum(getattr(food, field) is not None for food in candidates) < len(_SLOTS):
+        if field not in bounds:
+            continue
+        complete_raw = sum(getattr(food, field) is not None for food in candidates)
+        complete_dishes = (
+            sum(_dish_has_complete_nutrient(dish, foods, field) for dish in dishes or [])
+            if foods is not None
+            else 0
+        )
+        # The review validator already represents incomplete sugar/purine as a
+        # soft data-quality finding. Do the same here. Keeping a bound that no
+        # usable dish can satisfy silently removes every concrete dish and
+        # sends the graph to its raw-food fallback (the UI then has 0 dishes).
+        if complete_raw < len(_SLOTS) or (dishes and complete_dishes < len(_SLOTS)):
             bounds.pop(field)
     if not bounds:
         # Không ràng buộc nào áp dụng được — không đủ căn cứ để chọn món.
