@@ -54,3 +54,8 @@ def test_moi_nguyen_lieu_deu_tra_duoc_nguon(repo, dishes):
         summary = compute_nutrition(menu, repo)
         assert summary.sources, f"{dish_id} không có nguồn"
         assert all(s.source_ref for s in summary.sources), f"{dish_id} có nguyên liệu thiếu nguồn"
+
+
+def test_khong_dung_bua_hoan_chinh_nhu_mot_mon():
+    candidates = load_dish_food_repository()
+    assert all("recipe:MENU-" not in item.source_ref for item in candidates.all())
