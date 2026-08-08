@@ -626,6 +626,16 @@
 - **Kiểm chứng:** migration chạy thật trên SQLite sạch (xác nhận `grams` nullable + đủ 8 cột mới); `validate_data.py` 0 lỗi; `ruff` sạch; toàn bộ **309 test pass**.
 - **Chưa làm:** Làn B (LLM mapper) chưa nối; frontend nhật ký + màn hàng chờ OOV chưa có; bảng `food_aliases` (học từ thao tác chuyên gia) chưa dựng — hiện alias vẫn nằm trong CSV.
 
+### [2026-08-08] · R4 · BE-07 — 3 màn hình frontend nhật ký OOV, và một endpoint thiếu
+
+- **Phát hiện khi nối frontend:** bệnh nhân **không có cách nào biết `profile_id` của mình** — session chỉ có `user_id`, mọi API dinh dưỡng lại khoá theo `profile_id`, và `GET /patients` yêu cầu quyền dietitian. Tức là không ghi được nhật ký. Đã thêm `GET /patients/me`. Lưu ý kỹ thuật: phải khai báo **trước** `/{profile_id}` vì FastAPI khớp theo thứ tự — đặt sau thì "me" bị hiểu là một id và luôn trả 404 (đã có test khoá).
+- **`/patient/diary`** — bệnh nhân chỉ gõ TÊN món, không phải tự tra CSDL. Ô gram được phép để trống ("thà ghi thiếu còn hơn ghi sai"). Ghi món chưa tra được thì hiện ngay rằng món đó **chưa được tính vào tổng**.
+- **`/dietitian/food-logs`** — hàng chờ giải quyết, kèm gợi ý matcher **có điểm và có lý do khớp** (`exact`/`alias`/`token`) để chuyên gia soi được chứ không phải tin mù. Nút "Không đủ dữ liệu" đặt ngang hàng với nút gán món — đó là câu trả lời hợp lệ, không phải đường cùng.
+- **`/patient`** — hiện `violations` mức soft. API đã trả field này từ lâu nhưng màn bệnh nhân **bỏ qua hoàn toàn**, nên bệnh nhân không hề biết thực đơn của mình có điểm gì cần lưu ý.
+- **Điểm hiển thị quan trọng nhất:** verdict `insufficient_data` **cố ý không dùng màu xanh và không dùng chữ "đạt"**. Khi còn món chưa tra được, tổng tính ra chỉ là **mức tối thiểu**, nên "chưa vượt ngưỡng" không đồng nghĩa "ổn". Hiển thị nhầm chỗ này biến một hệ thống trung thực thành một hệ thống trấn an sai. Mọi chỗ render `actual`/`limit` đều kiểm tra `!= null` trước — cảnh báo định tính không có số, hiện "0" là bịa.
+- **Kiểm chứng:** `npm run build` sạch (12 route, cả 2 route mới có mặt), `tsc` pass, `eslint` **không thêm vấn đề nào** — đã đối chiếu trực tiếp bằng cách stash thay đổi ra rồi chạy lại: cùng ra 5 problems/1 error, tức lỗi còn lại là của `reviews/[id]` có sẵn từ trước. `pytest` **313 passed**, `ruff` sạch.
+- **Hợp nhất:** PR #67 ban đầu base `develop` nên hiện **294 file/+104k** và CONFLICTING — vì `develop` lạc hậu 5 commit so với `main`, và **PR #64 đã merge DAT-24 vào main rồi**. Đã merge `main` vào nhánh và đổi base sang `main`: còn **36 file/+4.931**, hết xung đột.
+
 > ⚠️ **Ghi chú vận hành:** phiên này có **hai tiến trình agent chạy song song cùng thư mục** — `matching.py`/`diary.py`/`models.py` do phiên kia làm, và có lúc file bị sửa giữa hai lần chạy test cách nhau 4 giây khiến kết quả đo khác nhau. Đã chia việc lại theo yêu cầu của Hưng. Đội nên tránh chạy 2 agent cùng lúc trên cùng working tree.
 
 ---
