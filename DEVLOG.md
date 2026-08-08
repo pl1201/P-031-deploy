@@ -569,6 +569,18 @@
 - **Kết luận thẳng:** 314/348 dòng còn lại **không lấp được từ nguồn hiện có**. Đây là khoảng trống thật của dữ liệu thành phần thực phẩm Việt Nam (NIN 2017 không đo Na/K cho nhóm này), không phải việc kỹ thuật xử lý được — muốn có thì phải đo/mua dữ liệu hoặc R2 tra tay từng mục.
 - **Kiểm chứng:** `validate_data.py` 0 lỗi; `ruff` sạch; `pytest` 155 passed — 4 fail + 31 error còn lại đã xác nhận có sẵn từ trước (thiếu `passlib`), đã kiểm bằng cách stash thay đổi rồi chạy lại.
 
+### [2026-08-08] · R2 · DAT-24 (chốt) — chạy thật 388 công thức: nguồn monngonmoingay KHÔNG đạt 500 món
+
+- **Đã làm:** crawl 400 trang (388 có Recipe JSON-LD); sửa bộ khớp tên (cắt số lượng ước lệ, cắt nhãn `Gia vị:`/`Rau nêm:`/`Ăn kèm:`, cắt cách sơ chế `băm`/`thái`/`xay`); thêm nhóm rau thơm/gia vị được phép bỏ qua (chỉ thứ vừa rất ít khối lượng vừa gần như không năng lượng — **cố ý KHÔNG đưa dầu ăn/đường/muối/nước mắm vào nhóm này**); dựng `data/seeds/unit_conversions.csv` (20 dòng quy đổi đơn vị ước lệ, mỗi dòng dẫn `fdc_id` USDA).
+- **Đơn vị `M`/`m` không phải suy đoán:** chính trang nguồn ghi chú *"M: muỗng canh - m: muỗng cafe"* trên mọi công thức.
+- **Kết quả đo:** đủ định lượng toàn bộ nguyên liệu chính **35 món** (trước khi có bảng quy đổi: 5) — nhưng chỉ **4 món** qua được ngưỡng phủ `food_id` ≥ 80%. 348 món bị chặn vì còn nguyên liệu chính không định lượng; 31 món đủ định lượng nhưng thiếu `food_id`.
+- **🔴 Rào cản 1 — thuộc tính của nguồn, bảng quy đổi không chữa được:** **47% công thức** có dòng kiểu `Gia vị: dầu ăn, hạt nêm, tiêu` — **không định lượng dầu ăn**. Dầu ăn một món xào thường 1-2 muỗng canh = 14-27 g = **125-250 kcal**; bỏ qua là làm món bị ghi nhận thấp hơn năng lượng thật, đúng bug đã sửa 2026-08-07.
+- **Rào cản 2:** 31 món đủ định lượng vẫn trượt vì thiếu `food_id` cho `bắp hạt`, `bánh tráng`, `bún`, `hành tím`, `bơ lạt`, `tôm thẻ` — phần lớn nằm trong 355 dòng `food_items.csv` còn trống. Riêng `dầu ăn` là **lỗi alias**: kho có `Dầu ăn thực vật` (id 129) nhưng công thức ghi `Dầu ăn`, bộ khớp chỉ nhận tên CSDL nằm trọn trong tên công thức.
+- **Kết luận thẳng về mục tiêu 500 món:** ngoại suy 388 → 2.510 công thức, nguồn này cho **~26 món** ở chuẩn hiện tại và **tối đa ~226 món** nếu lấp hết khoảng trống `food_items` — **vẫn không đạt 500**, vì rào cản 1 là thuộc tính của nguồn chứ không phải hạn chế kỹ thuật.
+- **Cần R2 quyết (không phải việc kỹ thuật):** chốt mức dầu ăn/gia vị chuẩn theo loại món (xào/kho/canh/chiên), có nguồn dẫn (VD dữ liệu công thức FNDDS có định lượng chất béo thêm vào khi nấu), ghi thành ADR. Có quyết định đó thì phần lớn 348 món bị chặn sẽ mở ra.
+- **Đã ghi:** `data/seeds/dishes.mnmn.csv` (4 món, `verified_by=pending`), `dish_ingredients.mnmn.csv`, `dishes.mnmn.rejected.csv` (396 món kèm lý do từng món) — file staging riêng, **chưa nhập vào `dishes.csv`**.
+- **Kiểm chứng:** `validate_data.py` 0 lỗi; `ruff` sạch.
+
 ---
 
 ## 3. Quyết định kỹ thuật (Decision Log)

@@ -67,18 +67,83 @@ QTY_RE = re.compile(
     re.IGNORECASE,
 )
 
-# Dong chi liet ke gia vi khong dinh luong ("Muoi, duong, tieu, dau an").
-SEASONING_ONLY_RE = re.compile(
-    r"^\s*(muối|đường|tiêu|dầu ăn|nước mắm|hạt nêm|bột ngọt|gia vị|tương ớt|ớt|tỏi|hành|"
-    r"bột canh|giấm|chanh|nước tương|dầu mè|mè|rau thơm|ngò|hành lá)"
-    r"([\s,/và]+(muối|đường|tiêu|dầu ăn|nước mắm|hạt nêm|bột ngọt|gia vị|tương ớt|ớt|tỏi|"
-    r"hành|bột canh|giấm|chanh|nước tương|dầu mè|mè|rau thơm|ngò|hành lá))*\s*$",
+# Gia vi / rau thom AN TOAN KHI BO QUA neu cong thuc khong dinh luong.
+#
+# Vi sao duoc phep bo rieng nhom nay: day la thuc pham vua RAT IT khoi luong
+# trong mot suat (vai gram toi ~15 g) vua GAN NHU KHONG co nang luong, nen bo
+# di khong lam lech dang ke mat do dinh duong cua mon. Nguyen lieu khac (thit,
+# tinh bot, dau an, rau cu an chinh) KHONG duoc bo — bo la lam mon bi ghi nhan
+# thap hon nang luong that, dung bug da sua 2026-08-07.
+#
+# CO Y KHONG dua vao day: dau an / nuoc mam / duong / muoi — deu la nguon nang
+# luong hoac natri lon, phai co dinh luong that moi tinh.
+GARNISH_WORDS = (
+    "tiêu|ớt|ớt hiểm|ớt sừng|ớt bột|tương ớt|tỏi|hành|hành lá|hành tím|hành khô|"
+    "hành boaro|hành tây nhỏ|sả|gừng|riềng|ngò|ngò rí|ngò gai|rau thơm|rau răm|"
+    "húng quế|thì là|lá chanh|chanh|quất|rau mùi|tía tô|kinh giới|mùi tàu|"
+    "rau sống|rau ăn kèm|hẹ|đầu hành|gốc hành"
+)
+GARNISH_ONLY_RE = re.compile(
+    rf"^\s*(?:{GARNISH_WORDS})(?:[\s,/]+(?:và|hoặc)?[\s,/]*(?:{GARNISH_WORDS}))*\s*$",
     re.IGNORECASE,
 )
+
+# Dong chi liet ke gia vi khong dinh luong ("Muoi, duong, tieu, dau an") — dong
+# nay khong the tach ra tung thu, chap nhan bo qua ca dong.
+SEASONING_ONLY_RE = re.compile(
+    rf"^\s*(?:muối|đường|dầu ăn|nước mắm|hạt nêm|bột ngọt|gia vị|bột canh|giấm|"
+    rf"nước tương|dầu mè|dầu hào|mè|{GARNISH_WORDS})"
+    rf"(?:[\s,/]+(?:và|hoặc)?[\s,/]*(?:muối|đường|dầu ăn|nước mắm|hạt nêm|bột ngọt|"
+    rf"gia vị|bột canh|giấm|nước tương|dầu mè|dầu hào|mè|{GARNISH_WORDS}))+\s*$",
+    re.IGNORECASE,
+)
+
+# Tran so dong gia vi/rau thom duoc phep bo qua trong mot mon. Vuot nguong nay
+# thi phan bi bo khong con la "vai nhanh rau thom" nua va sai so tich luy dang ke.
+MAX_BO_QUA = 4
+
+# Mon co tong khoi luong parse duoc qua nho thuong la cong thuc nuoc cham/gia vi
+# hoac cong thuc bi doc thieu — khong phai mot suat an that.
+MIN_DISH_MASS_G = 150.0
+
+# Bang quy doi don vi uoc le -> gram, nap mot lan (xem _load_unit_conversions).
+UNIT_TABLE: dict[tuple[str, str], tuple[float, str]] = {}
 
 DISH_HEADER = ["dish_id", "name_vi", "region", "serving_g", "verified_by", "note"]
 ING_HEADER = ["dish_id", "food_id", "grams", "note"]
 REJECT_HEADER = ["url", "name_vi", "reason", "detail"]
+
+
+# Don vi uoc le tieng Viet — KHONG quy doi duoc ra gram, nhung phai cat khoi
+# TEN nguyen lieu, neu khong "ot hiem 2 trai" se khong bao gio khop noi "Ot".
+VAGUE_UNITS = (
+    "trái|quả|củ|cây|tai|cái|gói|chén|lát|nhánh|miếng|tép|bánh|vắt|hũ|bịch|"
+    "con|khúc|lá|bó|nắm|muỗng|thìa|bát|ly|cốc|hộp|lon|vỉ|xâu|m|M"
+)
+QTY_TAIL_RE = re.compile(
+    # BAT BUOC phai co chu so truoc don vi. Khong dung \b truoc don vi vi "1m"
+    # (1 muong, rat pho bien o nguon nay) khong co ranh gioi tu giua "1" va "m";
+    # nhung neu bo han rang buoc thi "cam" lai bi cat thanh "ca" — nen chot bang
+    # cach yeu cau it nhat mot chu so/phan so mo dau.
+    rf"(?:^|\s)[\d½¼⅓⅔¾][\d.,/½¼⅓⅔¾\s]*(?:{VAGUE_UNITS})(?![\wÀ-ỹ])\s*$"
+    rf"|^\s*[\d.,/½¼⅓⅔¾]+\s*(?:{VAGUE_UNITS})(?![\wÀ-ỹ])",
+)
+
+# Nguon nay hay them nhan phan loai o dau dong ("Gia vi: dau an, hat nem",
+# "Rau nem: ngo ri", "An kem: com trang") — phai cat de con lai ten thuc pham.
+LABEL_PREFIX_RE = re.compile(
+    r"^\s*(?:gia vị|rau nêm|rau ăn kèm|ăn kèm|nguyên liệu|phần\s+\w+|nước chấm|"
+    r"nguyên liệu chính|sơ chế|ướp)\s*:\s*",
+    re.IGNORECASE,
+)
+
+# Cach so che — khong doi ban chat thuc pham, phai bo khi so khop ten
+# ("toi bam" van la "Toi", "thit bo thai mong" van la thit bo).
+PREP_WORDS_RE = re.compile(
+    r"\b(băm|bằm|xay|thái|cắt|nhuyễn|mỏng|nhỏ|khúc|sợi|hạt lựu|bóc vỏ|làm sạch|"
+    r"rửa sạch|đập dập|giã|xắt|tươi|khô sẵn|rang sẵn)\b",
+    re.IGNORECASE,
+)
 
 
 def _norm(name: str) -> str:
@@ -88,12 +153,25 @@ def _norm(name: str) -> str:
     return re.sub(r"\s+", " ", name).strip()
 
 
+def _clean_name(name: str) -> str:
+    """Bo so luong uoc le va cach so che de con lai TEN thuc pham thuan."""
+    out = LABEL_PREFIX_RE.sub("", name).strip(" ,.:-")
+    for _ in range(3):  # co the co nhieu duoi lien tiep
+        new = QTY_TAIL_RE.sub(" ", out).strip(" ,.:-")
+        if new == out:
+            break
+        out = new
+    out = PREP_WORDS_RE.sub(" ", out)
+    return re.sub(r"\s+", " ", out).strip(" ,.:-")
+
+
 @dataclass
 class Ingredient:
     raw: str
     name: str
     grams: float | None = None
     food_id: int | None = None
+    unit_ref: str | None = None   # nguon quy doi neu gram den tu bang unit_conversions
 
 
 @dataclass
@@ -157,15 +235,74 @@ def parse_recipe_html(url: str, html: str) -> Recipe | None:
 # --------------------------------------------------------------------------
 # Buoc 3 — tach dinh luong; KHONG doan don vi uoc le
 # --------------------------------------------------------------------------
+FRACTIONS = {"½": 0.5, "¼": 0.25, "⅓": 1 / 3, "⅔": 2 / 3, "¾": 0.75}
+
+# So luong + don vi uoc le, VD "2 trai", "1/2 cu", "1m", "3 tai".
+VAGUE_QTY_RE = re.compile(rf"(?P<qty>\d+(?:\s*/\s*\d+)?(?:[.,]\d+)?|[½¼⅓⅔¾])\s*(?P<unit>{VAGUE_UNITS})(?![\wÀ-ỹ])")
+
+
+def _load_unit_conversions() -> dict[tuple[str, str], tuple[float, str]]:
+    """{(ten chuan hoa, don vi): (gram, source_ref)} tu unit_conversions.csv."""
+    table: dict[tuple[str, str], tuple[float, str]] = {}
+    path = SEEDS / "unit_conversions.csv"
+    if not path.exists():
+        return table
+    with open(path, newline="", encoding="utf-8") as f:
+        for row in csv.DictReader(f):
+            key = (_norm(row["ten_nguyen_lieu"]), row["don_vi"].strip())
+            table[key] = (float(row["gram"]), row["source_ref"])
+    return table
+
+
+def _parse_vague_amount(text: str) -> float | None:
+    text = text.strip()
+    if text in FRACTIONS:
+        return FRACTIONS[text]
+    if "/" in text:
+        try:
+            num, den = (p.strip() for p in text.split("/", 1))
+            return float(num) / float(den)
+        except (ValueError, ZeroDivisionError):
+            return None
+    try:
+        return float(text.replace(",", "."))
+    except ValueError:
+        return None
+
+
+def quy_doi_don_vi_uoc_le(raw: str, table: dict[tuple[str, str], tuple[float, str]]) -> tuple[float, str] | None:
+    """Quy doi "2 qua trung ga" -> (88 g, nguon). None neu khong co trong bang.
+
+    CHI dung bang tra `data/seeds/unit_conversions.csv` (moi dong co fdc_id USDA
+    lam nguon) — khong bao gio tu doan khoi luong mot "qua"/"cu"/"muong".
+    """
+    m = VAGUE_QTY_RE.search(raw)
+    if not m:
+        return None
+    amount = _parse_vague_amount(m.group("qty"))
+    if amount is None:
+        return None
+    # "qua" (Bac) va "trai" (Nam) la cung mot don vi dem; nguon nay dung lan lon.
+    unit = {"trái": "quả"}.get(m.group("unit"), m.group("unit"))
+    name = _clean_name(raw)
+    key_name = _norm(name)
+    for (ten, don_vi), (gram, ref) in table.items():
+        if don_vi != unit:
+            continue
+        if key_name == ten or re.search(rf"(?:^|\s){re.escape(ten)}(?:\s|$)", key_name):
+            return amount * gram, ref
+    return None
+
+
 def parse_quantity(raw: str) -> tuple[str, float | None]:
     """Tra ve (ten nguyen lieu, so gram) — grams=None neu khong quy doi duoc."""
     m = QTY_RE.search(raw)
     if not m:
-        return raw.strip(), None
+        return _clean_name(raw), None
     qty = float(m.group("qty").replace(",", "."))
     grams = qty * UNIT_TO_G[m.group("unit").lower()]
     name = (raw[: m.start()] + " " + raw[m.end() :]).strip(" ,.-")
-    return name, grams
+    return _clean_name(name), grams
 
 
 # --------------------------------------------------------------------------
@@ -178,9 +315,9 @@ def load_food_index() -> dict[str, int]:
         for row in csv.DictReader(f):
             if not (row.get("kcal_100g") or "").strip():
                 continue
-            # Giu dong bo voi bo loc ung vien trong src/agents/nodes/core.py:
-            # loai khoi USDA bulk, nhung GIU thuc pham NIN/curated du id lon.
-            if int(row["id"]) >= 100_000 and (row.get("source") or "") not in ("NIN", "curated"):
+            # Giu dong bo voi `_la_khoi_usda_bulk` trong src/agents/nodes/core.py:
+            # loai DUNG khoi bulk USDA, moi dong khac deu la ung vien.
+            if (row.get("source") or "") == "USDA" and int(row["id"]) >= 100_000:
                 continue
             for label in [row["name_vi"], *(row.get("aliases") or "").split("|")]:
                 key = _norm(label)
@@ -211,16 +348,32 @@ def match_food_id(name: str, idx: dict[str, int]) -> int | None:
 # --------------------------------------------------------------------------
 # Buoc 5 — quyet dinh mon co dung duoc khong
 # --------------------------------------------------------------------------
+def bo_qua_duoc(name: str) -> bool:
+    """True khi nguyen lieu khong dinh luong nay bo qua duoc ma khong lam sai mon.
+
+    Chi dung cho gia vi / rau thom: it khoi luong VA gan nhu khong nang luong.
+    """
+    text = name.strip()
+    return bool(GARNISH_ONLY_RE.match(text) or SEASONING_ONLY_RE.match(text))
+
+
 def evaluate(recipe: Recipe, idx: dict[str, int], min_mass_cover: float) -> tuple[bool, str, str]:
     parsed_mass = 0.0
     matched_mass = 0.0
     unparsed_main: list[str] = []
+    bo_qua: list[str] = []
 
     for ing in recipe.ingredients:
         name, grams = parse_quantity(ing.raw)
+        if grams is None:
+            quy_doi = quy_doi_don_vi_uoc_le(ing.raw, UNIT_TABLE)
+            if quy_doi is not None:
+                grams, ing.unit_ref = quy_doi
         ing.name, ing.grams = name, grams
         if grams is None:
-            if not SEASONING_ONLY_RE.match(name.strip()):
+            if bo_qua_duoc(name):
+                bo_qua.append(name)
+            else:
                 unparsed_main.append(ing.raw.strip())
             continue
         parsed_mass += grams
@@ -232,11 +385,16 @@ def evaluate(recipe: Recipe, idx: dict[str, int], min_mass_cover: float) -> tupl
         return False, "no_metric_qty", "khong co nguyen lieu nao ghi don vi g/kg/ml/l"
     if unparsed_main:
         return False, "unparsed_main_ingredient", "; ".join(unparsed_main[:4])
+    # Bo qua qua nhieu dong -> khong con la "vai nhanh rau thom" nua, tu choi.
+    if len(bo_qua) > MAX_BO_QUA:
+        return False, "qua_nhieu_dong_bo_qua", f"{len(bo_qua)} dong: {'; '.join(bo_qua[:4])}"
     cover = matched_mass / parsed_mass
     if cover < min_mass_cover:
         missing = [i.name for i in recipe.ingredients if i.grams is not None and i.food_id is None]
         return False, "low_food_id_cover", f"cover={cover:.2f} thieu: {', '.join(missing[:5])}"
-    return True, "", f"cover={cover:.2f}"
+    if parsed_mass < MIN_DISH_MASS_G:
+        return False, "khoi_luong_qua_nho", f"chi {parsed_mass:.0f} g — kho la mot suat that"
+    return True, "", f"cover={cover:.2f} bo_qua={len(bo_qua)}"
 
 
 def slugify_id(url: str) -> str:
@@ -263,6 +421,8 @@ def main() -> None:
 
     idx = load_food_index()
     print(f"Chi muc food_id ung vien CP-SAT: {len(idx)} nhan")
+    UNIT_TABLE.update(_load_unit_conversions())
+    print(f"Bang quy doi don vi uoc le: {len(UNIT_TABLE)} dong")
 
     accepted: list[Recipe] = []
     rejected: list[dict[str, str]] = []

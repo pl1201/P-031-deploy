@@ -127,6 +127,29 @@ Ba lớp chặn đã thêm: nhóm tính từ loại trừ nhau (white/yolk · ra
 
 **Kết luận thẳng:** 314/348 dòng còn lại **không lấp được từ nguồn hiện có**. Đây là khoảng trống thật của dữ liệu thành phần thực phẩm Việt Nam (NIN 2017 đơn giản là không đo Na/K cho nhóm này), không phải việc kỹ thuật xử lý được. Muốn có, phải đo hoặc mua dữ liệu, hoặc R2 tra tay từng mục.
 
+## 4d. Kết quả chạy thật trên 388 công thức (2026-08-08) — nguồn này KHÔNG đạt 500 món
+
+Đã crawl 400 trang (388 có Recipe JSON-LD), sau khi đã: sửa bộ khớp tên (cắt số lượng ước lệ, cắt nhãn `Gia vị:`/`Rau nêm:`, cắt cách sơ chế `băm`/`thái`), thêm nhóm rau thơm được phép bỏ qua, và dựng **bảng quy đổi đơn vị ước lệ có nguồn** (`data/seeds/unit_conversions.csv`, 20 dòng, mỗi dòng dẫn `fdc_id` USDA).
+
+> Đơn vị `M`/`m` không phải suy đoán: **chính trang nguồn ghi chú "M: muỗng canh - m: muỗng cafe"** trên mọi công thức.
+
+| Kết quả | Số món |
+|---|---|
+| Đủ định lượng toàn bộ nguyên liệu chính | **35** (trước khi có bảng quy đổi: 5) |
+| … trong đó qua được ngưỡng phủ `food_id` ≥ 80% | **4** |
+| Bị chặn vì còn nguyên liệu chính không định lượng | 348 |
+| Đủ định lượng nhưng thiếu `food_id` | 31 |
+
+**Rào cản 1 — thuộc tính của nguồn, bảng quy đổi không chữa được:** **47% công thức** có ít nhất một dòng kiểu `Gia vị: dầu ăn, hạt nêm, tiêu` — **không có định lượng cho dầu ăn**. Dầu ăn trong một món xào thường 1-2 muỗng canh = 14-27 g = **125-250 kcal**; bỏ qua là làm món bị ghi nhận thấp hơn năng lượng thật, đúng bug đã sửa 2026-08-07. Không thể tự đặt số.
+
+**Rào cản 2 — quay lại đúng khoảng trống nguyên liệu:** 31 món đã đủ định lượng vẫn trượt vì thiếu `food_id` cho `bắp hạt`, `bánh tráng`, `bún`, `hành tím`, `bơ lạt`, `tôm thẻ`… — phần lớn nằm trong 355 dòng `food_items.csv` còn bỏ trống. Riêng `dầu ăn` là **lỗi alias**: kho có `Dầu ăn thực vật` (id 129) nhưng công thức ghi `Dầu ăn`, bộ khớp chỉ chấp nhận tên CSDL nằm trọn trong tên công thức nên trượt.
+
+### Kết luận về mục tiêu 500 món
+
+Ngoại suy 388 → 2.510 công thức: nguồn này cho **~26 món** ở chuẩn hiện tại, và **tối đa ~226 món** nếu lấp hết khoảng trống `food_items` — **vẫn không đạt 500**, vì rào cản 1 là thuộc tính của nguồn.
+
+Muốn đạt 500 phải có **một quyết định của R2** (không phải việc kỹ thuật): chốt một mức dầu ăn/gia vị chuẩn theo loại món (xào/kho/canh/chiên), có nguồn dẫn (VD dữ liệu công thức FNDDS có định lượng chất béo thêm vào khi nấu), ghi thành ADR. Có quyết định đó thì phần lớn trong 348 món bị chặn sẽ mở ra.
+
 ## 5. Việc cần làm để thật sự đạt 500+ (theo thứ tự)
 
 1. **[Chặn đường găng] Mở rộng kho nguyên liệu Việt** từ 439 lên ~1.000-1.500.
