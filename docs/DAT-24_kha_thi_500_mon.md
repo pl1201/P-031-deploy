@@ -92,9 +92,63 @@ Bỏ bớt nguyên liệu ⇒ món bị ghi nhận **thấp hơn** năng lượn
 
 > Mì ăn liền, Bánh cuốn, Sắn luộc, Thịt gà (ức, bỏ da), Giò lụa, Chả quế, Cá lóc, Cá bống, Cá khô, Chao, Tương hột, Rau ngót…
 
-Lấp được 370 dòng này ⇒ kho ứng viên **521 → ~890**, và phần lớn nguyên liệu đang làm trượt món (`sườn non`, `giò sống`, `mực ống`, `thịt nạc vai`) nằm trong nhóm này.
+### Đã điều tra tới cùng (2026-08-08) — và kết quả không như kỳ vọng
 
-Cảnh báo khi làm: khớp tên chính xác với `scripts/nin2017_extracted.json` chỉ ra **2/370** — nghĩa là phải tra tay/khớp mờ có kiểm soát, **không** được khớp mờ hàng loạt rồi tin luôn (gán nhầm "Cá lóc" sang "Cá lóc khô" là sai hoàn toàn về natri). Trong 620 mục NIN 2017 chỉ **235** mục có đủ macro + Na/K/P.
+**348/370 dòng trống đều là mục NIN 2017 ĐÃ BIẾT MÃ**, bị chặn vì bản PDF gốc không phân tích vài trường:
+
+| Trường thiếu | Số dòng |
+|---|---|
+| `na_mg`, `k_mg` | 200 |
+| `fat_g` + `na_mg`, `k_mg` | 44 |
+| `na_mg`, `k_mg`, `p_mg` | 31 |
+| `fiber_g` + `na_mg`, `k_mg` | 29 |
+| còn lại (fat/fiber/p lẻ) | 44 |
+
+**Đã kiểm chứng trên chính file PDF** (trang 24, mã 01012 "Bánh mỳ"): tại toạ độ cột `NA`/`K` **không có token nào** — ô đó thật sự trống trong bảng gốc, **không phải lỗi trích xuất**. Ba số `0.10 / 0.07 / 0.7` nằm ở x≈918/955/994 là THIA/RIBF/NIA (vitamin B1/B2/B3).
+
+> ⚠️ **Và "trống" ở đây KHÔNG có nghĩa "không đáng kể".** Bánh mỳ có Na ≈ 490–600 mg/100 g (USDA). Điền 0 cho nhóm này sẽ sai nghiêm trọng đúng vào ngưỡng chặn cứng của THA/CKD.
+
+**Đã thử lấp bằng đối chiếu NIN → USDA** qua chính `name_en` mà NIN cung cấp (`scripts/fill_nin_gaps_from_usda.py`). Kết quả thực tế:
+
+| | |
+|---|---|
+| Tự động lấp (score ≥ 0,90) | **15** dòng — dầu ăn các loại, bột dong, bột sắn, tôm khô, sữa đặc, mãng cầu xiêm… |
+| Đưa R2 duyệt tay (0,70–0,90) | 19 dòng → `data/seeds/food_items.nin_gaps_can_R2_duyet.csv` |
+| Bỏ hẳn, không đủ căn cứ | 314 dòng → `data/seeds/food_items.nin_gaps_unresolved.csv` |
+
+Ba lần siết bộ khớp mới đủ an toàn, vì bản đầu tiên cho ra các khớp **sai nguy hiểm**:
+
+- `Dầu ngô` (Corn oil) → `Oil, olive` — sai loại dầu
+- `Lòng trắng trứng vịt` (Duck egg, **white**) → `Duck egg, cooked` — trắng ≠ nguyên quả
+- `Hạt dẻ tươi` (Chestnut, fresh) → `Flour, chestnut` — chất xơ 2,3 vs 8,7 g/100 g
+- `Mắm tôm loãng` (Shrimp sauce) → `Shrimp with **lobster sauce**` (món Hoa) — Na 1031 trong khi mắm tôm thật cao hơn nhiều lần
+
+Ba lớp chặn đã thêm: nhóm tính từ loại trừ nhau (white/yolk · raw/cooked/dried · loại dầu · leaf/root/seed), token dạng chế biến bắt buộc khớp hai chiều (flour/powder/skin/soup/sauce…), và kiểm tra xung đột trên token **thô** (vì `raw`/`cooked`/`dried` vừa là stopword vừa nằm trong nhóm loại trừ — nếu kiểm tra sau khi bỏ stopword thì nhóm đó không bao giờ chạy và `Shrimp dried` khớp được với `Shrimp, raw`).
+
+**Kết luận thẳng:** 314/348 dòng còn lại **không lấp được từ nguồn hiện có**. Đây là khoảng trống thật của dữ liệu thành phần thực phẩm Việt Nam (NIN 2017 đơn giản là không đo Na/K cho nhóm này), không phải việc kỹ thuật xử lý được. Muốn có, phải đo hoặc mua dữ liệu, hoặc R2 tra tay từng mục.
+
+## 4d. Kết quả chạy thật trên 388 công thức (2026-08-08) — nguồn này KHÔNG đạt 500 món
+
+Đã crawl 400 trang (388 có Recipe JSON-LD), sau khi đã: sửa bộ khớp tên (cắt số lượng ước lệ, cắt nhãn `Gia vị:`/`Rau nêm:`, cắt cách sơ chế `băm`/`thái`), thêm nhóm rau thơm được phép bỏ qua, và dựng **bảng quy đổi đơn vị ước lệ có nguồn** (`data/seeds/unit_conversions.csv`, 20 dòng, mỗi dòng dẫn `fdc_id` USDA).
+
+> Đơn vị `M`/`m` không phải suy đoán: **chính trang nguồn ghi chú "M: muỗng canh - m: muỗng cafe"** trên mọi công thức.
+
+| Kết quả | Số món |
+|---|---|
+| Đủ định lượng toàn bộ nguyên liệu chính | **35** (trước khi có bảng quy đổi: 5) |
+| … trong đó qua được ngưỡng phủ `food_id` ≥ 80% | **4** |
+| Bị chặn vì còn nguyên liệu chính không định lượng | 348 |
+| Đủ định lượng nhưng thiếu `food_id` | 31 |
+
+**Rào cản 1 — thuộc tính của nguồn, bảng quy đổi không chữa được:** **47% công thức** có ít nhất một dòng kiểu `Gia vị: dầu ăn, hạt nêm, tiêu` — **không có định lượng cho dầu ăn**. Dầu ăn trong một món xào thường 1-2 muỗng canh = 14-27 g = **125-250 kcal**; bỏ qua là làm món bị ghi nhận thấp hơn năng lượng thật, đúng bug đã sửa 2026-08-07. Không thể tự đặt số.
+
+**Rào cản 2 — quay lại đúng khoảng trống nguyên liệu:** 31 món đã đủ định lượng vẫn trượt vì thiếu `food_id` cho `bắp hạt`, `bánh tráng`, `bún`, `hành tím`, `bơ lạt`, `tôm thẻ`… — phần lớn nằm trong 355 dòng `food_items.csv` còn bỏ trống. Riêng `dầu ăn` là **lỗi alias**: kho có `Dầu ăn thực vật` (id 129) nhưng công thức ghi `Dầu ăn`, bộ khớp chỉ chấp nhận tên CSDL nằm trọn trong tên công thức nên trượt.
+
+### Kết luận về mục tiêu 500 món
+
+Ngoại suy 388 → 2.510 công thức: nguồn này cho **~26 món** ở chuẩn hiện tại, và **tối đa ~226 món** nếu lấp hết khoảng trống `food_items` — **vẫn không đạt 500**, vì rào cản 1 là thuộc tính của nguồn.
+
+Muốn đạt 500 phải có **một quyết định của R2** (không phải việc kỹ thuật): chốt một mức dầu ăn/gia vị chuẩn theo loại món (xào/kho/canh/chiên), có nguồn dẫn (VD dữ liệu công thức FNDDS có định lượng chất béo thêm vào khi nấu), ghi thành ADR. Có quyết định đó thì phần lớn trong 348 món bị chặn sẽ mở ra.
 
 ## 5. Việc cần làm để thật sự đạt 500+ (theo thứ tự)
 

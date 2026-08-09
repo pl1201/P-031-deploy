@@ -56,6 +56,7 @@ class ClinicalRule:
     severity: str
     guideline_ref: str
     guideline_grade: str = ""
+    verify_status: str = "verified"
     overridden_by: tuple[str, ...] = ()
     disabled_by_flag: tuple[str, ...] = ()
     requires_flag: tuple[str, ...] = ()
@@ -93,12 +94,28 @@ def _split(raw: str | None) -> tuple[str, ...]:
     return tuple(c.strip() for c in (raw or "").split(",") if c.strip())
 
 
-def load_rules(path: Path | None = None) -> list[ClinicalRule]:
+def load_rules(path: Path | None = None, *, verified_only: bool = False) -> list[ClinicalRule]:
+    """Load clinical rules.
+
+    ``verified_only=True`` giữ đúng nguyên tắc "fail closed on unverified
+    evidence" cho môi trường/thời điểm mà `clinical_rules.csv` đã có rule
+    `verified` thật. DEC-020 (2026-08-09, Hưng/R2 xác nhận): default hiện tại
+    đổi VỀ `False` vì toàn bộ 21 rule trong seed hiện tại đang `to_verify` —
+    giữ `True` làm mặc định khiến `compute_targets()` không tính được BẤT KỲ
+    ngưỡng lâm sàng nào ngoài năng lượng (đã xác nhận qua test hồi quy thật,
+    không phải lý thuyết). Khi R2 verify xong ít nhất một tập rule, cân nhắc
+    đổi lại default — đây không phải quyết định vĩnh viễn.
+    """
     path = path or DEFAULT_RULES_PATH
     rules: list[ClinicalRule] = []
+    source_rows = 0
     with open(path, newline="", encoding="utf-8") as f:
         for row in csv.DictReader(f):
             if not row.get("rule_id"):
+                continue
+            source_rows += 1
+            verify_status = (row.get("verify_status") or "to_verify").strip().lower()
+            if verified_only and verify_status != "verified":
                 continue
             stages = tuple(s.strip() for s in (row["stages"] or "").split(",") if s.strip())
             rules.append(
@@ -114,12 +131,13 @@ def load_rules(path: Path | None = None) -> list[ClinicalRule]:
                     severity=row["severity"].strip(),
                     guideline_ref=row["guideline_ref"].strip(),
                     guideline_grade=(row.get("guideline_grade") or "").strip(),
+                    verify_status=verify_status,
                     overridden_by=_split(row.get("overridden_by")),
                     disabled_by_flag=_split(row.get("disabled_by_flag")),
                     requires_flag=_split(row.get("requires_flag")),
                 )
             )
-    if not rules:
+    if source_rows == 0:
         raise ValueError(f"Không nạp được rule nào từ {path}")
     return rules
 
@@ -250,3 +268,25 @@ def compute_targets(profile: PatientProfile, rules: list[ClinicalRule] | None = 
         needs_expert_review=bool(conflicts),
         conflict_notes=conflicts,
     )
+
+
+def compute_targets_with_rule_gate(
+    profile: PatientProfile,
+    verified_rules: list[ClinicalRule] | None = None,
+    rule_inventory: list[ClinicalRule] | None = None,
+) -> tuple[ClinicalTargets, list[str]]:
+    """Compute targets and surface applicable unverified rules as review blockers."""
+    verified = verified_rules if verified_rules is not None else load_rules(verified_only=True)
+    inventory = rule_inventory if rule_inventory is not None else load_rules(verified_only=False)
+    targets = compute_targets(profile, verified)
+    applicable, disabled = _select_rules(profile, inventory)
+    unverified = sorted(rule.rule_id for rule in (*applicable, *disabled) if rule.verify_status != "verified")
+    if unverified:
+        targets = targets.model_copy(
+            update={
+                "needs_expert_review": True,
+                "conflict_notes": list(targets.conflict_notes)
+                + ["Applicable clinical rules are not verified: " + ", ".join(unverified)],
+            }
+        )
+    return targets, unverified

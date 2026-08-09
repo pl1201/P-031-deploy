@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from dataclasses import replace
+
 import pytest
 
 from src.clinical.energy import (
@@ -34,8 +36,23 @@ from src.clinical.nutrition import (
     check_allergies,
     compute_nutrition,
 )
-from src.clinical.rules import compute_targets, load_rules
+from src.clinical.rules import compute_targets
+from src.clinical.rules import load_rules as _load_rules
 from src.clinical.validator import build_feedback, has_blocking, validate_menu
+
+
+def load_rules():
+    return [replace(rule, verify_status="verified") for rule in _load_rules(verified_only=False)]
+
+
+def test_runtime_rule_loader_mac_dinh_nap_ca_to_verify():
+    """DEC-020: default verified_only=False vì seed hiện tại chưa có rule nào
+    'verified' — giữ True sẽ làm compute_targets() không tính được ngưỡng nào."""
+    default_loaded = _load_rules()
+    assert default_loaded and all(rule.verify_status == "to_verify" for rule in default_loaded)
+
+    verified_only = _load_rules(verified_only=True)
+    assert verified_only == []  # current seed governance: all 21 rows are still to_verify
 
 
 # ---------------------------------------------------------------- năng lượng
