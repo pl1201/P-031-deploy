@@ -30,7 +30,7 @@ Các tầng id KHÔNG chồng lấn nhau (kiểm chứng trên seed 2026-08-09, 
 430 dòng NIN 2017 tiếng Việt (id 1105898–1106327) được nối tiếp NGAY SAU khối
 USDA khi merge, nên một điều kiện kiểu `id >= 167516` sẽ xoá nhầm dữ liệu Việt
 thật. Đã kiểm chứng: tập id trong khoảng đóng khớp chính xác 6854 id của
-`data/seeds/food_items.usda_bulk.csv`.
+`data/reference/food_items.usda_bulk.csv`.
 """
 
 from __future__ import annotations

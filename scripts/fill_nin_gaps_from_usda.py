@@ -54,6 +54,7 @@ csv.field_size_limit(10**7)
 
 ROOT = Path(__file__).resolve().parents[1]
 SEEDS = ROOT / "data" / "seeds"
+QUARANTINE = ROOT / "data" / "quarantine"  # DAT-23
 USDA = ROOT / "data" / "FoodData_Central_csv_2025-12-18" / "FoodData_Central_csv_2025-12-18"
 NIN_JSON = ROOT / "scripts" / "nin2017_extracted.json"
 CACHE = ROOT / "data" / "cache" / "usda_generic.json"
@@ -344,7 +345,7 @@ def main() -> None:
         w.writeheader()
         w.writerows(rows)
 
-    review_path = SEEDS / "food_items.nin_gaps_can_R2_duyet.csv"
+    review_path = QUARANTINE / "food_items.nin_gaps_can_R2_duyet.csv"
     with open(review_path, "w", newline="", encoding="utf-8") as f:
         w = csv.DictWriter(
             f,
@@ -362,7 +363,7 @@ def main() -> None:
         w.writeheader()
         w.writerows(review)
 
-    unresolved_path = SEEDS / "food_items.nin_gaps_unresolved.csv"
+    unresolved_path = QUARANTINE / "food_items.nin_gaps_unresolved.csv"
     with open(unresolved_path, "w", newline="", encoding="utf-8") as f:
         w = csv.DictWriter(f, fieldnames=["id", "name_vi", "reason", "detail"])
         w.writeheader()

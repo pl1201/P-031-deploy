@@ -51,6 +51,7 @@ if hasattr(sys.stdout, "reconfigure"):
 
 ROOT = Path(__file__).resolve().parents[1]
 SEEDS = ROOT / "data" / "seeds"
+REFERENCE = ROOT / "data" / "reference"  # DAT-23
 CACHE = ROOT / "data" / "cache" / "mnmn"
 
 SITEMAP_INDEX = "https://monngonmoingay.com/sitemap_index.xml"
@@ -244,7 +245,7 @@ VAGUE_QTY_RE = re.compile(rf"(?P<qty>\d+(?:\s*/\s*\d+)?(?:[.,]\d+)?|[½¼⅓⅔�
 def _load_unit_conversions() -> dict[tuple[str, str], tuple[float, str]]:
     """{(ten chuan hoa, don vi): (gram, source_ref)} tu unit_conversions.csv."""
     table: dict[tuple[str, str], tuple[float, str]] = {}
-    path = SEEDS / "unit_conversions.csv"
+    path = REFERENCE / "unit_conversions.csv"
     if not path.exists():
         return table
     with open(path, newline="", encoding="utf-8") as f:
@@ -273,7 +274,7 @@ def _parse_vague_amount(text: str) -> float | None:
 def quy_doi_don_vi_uoc_le(raw: str, table: dict[tuple[str, str], tuple[float, str]]) -> tuple[float, str] | None:
     """Quy doi "2 qua trung ga" -> (88 g, nguon). None neu khong co trong bang.
 
-    CHI dung bang tra `data/seeds/unit_conversions.csv` (moi dong co fdc_id USDA
+    CHI dung bang tra `data/reference/unit_conversions.csv` (moi dong co fdc_id USDA
     lam nguon) — khong bao gio tu doan khoi luong mot "qua"/"cu"/"muong".
     """
     m = VAGUE_QTY_RE.search(raw)

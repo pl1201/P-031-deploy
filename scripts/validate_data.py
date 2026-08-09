@@ -26,7 +26,13 @@ if hasattr(sys.stdout, "reconfigure"):
 if hasattr(sys.stderr, "reconfigure"):
     sys.stderr.reconfigure(encoding="utf-8", errors="replace")
 
-SEEDS = Path(__file__).resolve().parents[1] / "data" / "seeds"
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+
+from src.clinical.tiers import NON_PATIENT_DISH_PREFIXES  # noqa: E402
+
+DATA = Path(__file__).resolve().parents[1] / "data"
+SEEDS = DATA / "seeds"
+QUARANTINE = DATA / "quarantine"  # nợ dữ liệu chờ R2, không seed (DAT-23)
 
 # RULE R40.3 — khoảng hợp lý cho 100 g thực phẩm.
 # Trần natri để cao vì nước mắm và bột canh thực sự rất mặn.
@@ -355,10 +361,127 @@ def check_usda_values(path: Path) -> None:
     print(f"  {path.name}: {len(rows)} món USDA")
 
 
+def check_dishes(path: Path) -> None:
+    """Món ăn (DAT-23). Trước đây validator KHÔNG đụng tới file này dòng nào —
+    đúng chỗ nợ `MENU-*` / `FNDDS-*` / `pending` đang nằm.
+
+    `dishes.csv` là dữ liệu chạm tới bệnh nhân: tên món hiện thẳng lên UI. Mọi
+    dòng không phải món Việt thật (mẫu bữa Excel `MENU-*`, khối khảo sát Mỹ
+    `FNDDS-*`) phải nằm ở `data/reference/` hoặc `data/quarantine/`, không phải
+    ở đây.
+    """
+    if not path.exists():
+        warn(f"{path.name}: chưa có file")
+        return
+
+    with open(path, newline="", encoding="utf-8") as f:
+        rows = list(csv.DictReader(f))
+
+    seen: set[str] = set()
+    pending = 0
+    for i, row in enumerate(rows, start=2):
+        dish_id = (row.get("dish_id") or "").strip()
+        loc = f"{path.name}:{i} [{dish_id or '?'}]"
+
+        if not dish_id:
+            err(f"{loc} thiếu dish_id")
+        elif dish_id in seen:
+            err(f"{loc} trùng dish_id — mỗi món chỉ một dòng")
+        seen.add(dish_id)
+
+        if dish_id.startswith(NON_PATIENT_DISH_PREFIXES):
+            err(
+                f"{loc} không phải món ăn cho bệnh nhân — MENU-* là mẫu bữa, "
+                f"FNDDS-* là khối khảo sát Mỹ. Chuyển sang data/reference/ "
+                f"hoặc data/quarantine/ (DAT-23)"
+            )
+
+        if not (row.get("name_vi") or "").strip():
+            err(f"{loc} thiếu name_vi — tên món hiện thẳng lên UI bệnh nhân")
+
+        serving_raw = (row.get("serving_g") or "").strip()
+        if serving_raw:
+            try:
+                if float(serving_raw) <= 0:
+                    err(f"{loc} serving_g={serving_raw} phải > 0")
+            except ValueError:
+                err(f"{loc} serving_g không phải số: '{serving_raw}'")
+        else:
+            warn(f"{loc} chưa có serving_g")
+
+        if (row.get("verified_by") or "").strip().lower() in {"", "pending"}:
+            pending += 1
+
+    if pending:
+        warn(f"{path.name}: {pending}/{len(rows)} món chưa được R2 rà công thức (verified_by=pending)")
+    print(f"  {path.name}: {len(rows)} món")
+
+
+def check_dish_ingredients(path: Path, dishes_path: Path, foods_path: Path) -> None:
+    """Nguyên liệu của món (DAT-23) — kiểm tra toàn vẹn tham chiếu.
+
+    Thiếu DÒNG nguyên liệu không bị RULE-2 bắt được (khác thiếu GIÁ TRỊ trên
+    dòng đã có): món vẫn "tính được" nhưng mật độ dinh dưỡng bị pha loãng sai.
+    Đây chính là cơ chế đã gây bug thực đơn thiếu năng lượng (DEVLOG 2026-08-07),
+    nên kiểm ở đây thay vì phát hiện muộn lúc chạy.
+    """
+    if not path.exists():
+        warn(f"{path.name}: chưa có file")
+        return
+
+    with open(path, newline="", encoding="utf-8") as f:
+        rows = list(csv.DictReader(f))
+
+    known_dishes: set[str] = set()
+    if dishes_path.exists():
+        with open(dishes_path, newline="", encoding="utf-8") as f:
+            known_dishes = {(r.get("dish_id") or "").strip() for r in csv.DictReader(f)}
+
+    known_foods: set[str] = set()
+    if foods_path.exists():
+        with open(foods_path, newline="", encoding="utf-8") as f:
+            known_foods = {(r.get("id") or "").strip() for r in csv.DictReader(f)}
+
+    dishes_with_items: set[str] = set()
+    for i, row in enumerate(rows, start=2):
+        dish_id = (row.get("dish_id") or "").strip()
+        food_id = (row.get("food_id") or "").strip()
+        loc = f"{path.name}:{i} [{dish_id or '?'}]"
+        dishes_with_items.add(dish_id)
+
+        if known_dishes and dish_id not in known_dishes:
+            err(f"{loc} dish_id không tồn tại trong {dishes_path.name}")
+        if not food_id.isdigit():
+            err(f"{loc} food_id='{food_id}' phải là số nguyên")
+        elif known_foods and food_id not in known_foods:
+            err(f"{loc} food_id={food_id} không tồn tại trong {foods_path.name}")
+
+        grams_raw = (row.get("grams") or "").strip()
+        try:
+            if float(grams_raw) <= 0:
+                err(f"{loc} grams={grams_raw} phải > 0")
+        except ValueError:
+            err(f"{loc} grams không phải số: '{grams_raw}'")
+
+    orphans = sorted(known_dishes - dishes_with_items - {""})
+    if orphans:
+        err(
+            f"{dishes_path.name}: {len(orphans)} món không có nguyên liệu nào — "
+            f"không tính được dinh dưỡng (RULE-1): {orphans[:5]}"
+        )
+    print(f"  {path.name}: {len(rows)} dòng nguyên liệu cho {len(dishes_with_items)} món")
+
+
 def main() -> int:
     print("Kiểm tra dữ liệu seed...")
     check_food_items(SEEDS / "food_items.csv")
-    check_food_items(SEEDS / "food_items.template.csv")
+    check_food_items(QUARANTINE / "food_items.template.csv")
+    check_dishes(SEEDS / "dishes.csv")
+    check_dish_ingredients(
+        SEEDS / "dish_ingredients.csv",
+        SEEDS / "dishes.csv",
+        SEEDS / "food_items.csv",
+    )
     check_clinical_rules(SEEDS / "clinical_rules.csv")
     check_drug_food(SEEDS / "drug_food_interactions.csv")
     check_food_food_interactions(SEEDS / "food_food_interactions.csv")
