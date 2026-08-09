@@ -150,12 +150,18 @@ class MealPlanOut(BaseModel):
                 )
                 for part in item.dish.ingredients
             ]
+            display_name = item.dish.name_vi
+            if item.dish_id and item.dish_id.startswith("MENU-"):
+                # Compatibility for plans generated before MENU-* aggregate
+                # rows were removed from the optimizer candidate set.
+                ingredient_names = [part.food.name_vi for part in item.dish.ingredients]
+                display_name = " + ".join(ingredient_names[:3]) or "Món tổng hợp"
             return MealPlanItemOut(
                 id=item.id,
                 slot=item.slot,
                 dish_id=item.dish_id,
                 grams=item.grams,
-                name_vi=item.dish.name_vi,
+                name_vi=display_name,
                 source="recipe",
                 source_ref=f"dish:{item.dish_id}",
                 is_estimated=False,
