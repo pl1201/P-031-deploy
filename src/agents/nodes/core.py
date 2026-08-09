@@ -144,23 +144,27 @@ def make_load_profile(profiles: ProfileRepository):
 
 
 def make_compute_targets(rules: list[ClinicalRule] | None = None):
-    """Node: compute_targets — LLM: NO. Deterministic hoàn toàn."""
-    verified_rules = (
-        [rule for rule in rules if rule.verify_status == "verified"]
-        if rules is not None
-        else load_rules(verified_only=True)
-    )
+    """Node: compute_targets — LLM: NO. Deterministic hoàn toàn.
+
+    DEC-014/DEC-020 (DEVLOG.md §3): dùng CẢ rule `to_verify` để tính ngưỡng —
+    không fail-closed tuyệt đối trên verify_status. Đối chiếu tài liệu kế
+    hoạch gốc (`KeHoachDuAn_VNutriCare_VMEC10_v3.docx` §6.4.1) xác nhận
+    `needs_expert_review` chỉ kích hoạt khi rule THẬT SỰ xung đột (min>max
+    sau hợp nhất), không phải cho mọi rule chưa verified — giữ fail-closed
+    tuyệt đối (bản trước) khiến `compute_targets()` chỉ còn tính được ngưỡng
+    năng lượng vì toàn bộ 21 rule trong seed hiện tại đều `to_verify`.
+    """
     rule_inventory = rules if rules is not None else load_rules(verified_only=False)
 
     def compute_targets_node(state: NutriState) -> dict:
-        targets = compute_targets(state["profile"], verified_rules)
+        targets = compute_targets(state["profile"], rule_inventory)
         applicable, disabled = _select_rules(state["profile"], rule_inventory)
         unverified = sorted(rule.rule_id for rule in (*applicable, *disabled) if rule.verify_status != "verified")
         out: dict = {
             "targets": targets,
             "target_conflicts": [TargetConflict(message=note) for note in targets.conflict_notes],
             "unverified_rule_ids": unverified,
-            "rule_version": _version_for_rules(verified_rules),
+            "rule_version": _version_for_rules(rule_inventory),
         }
         if targets.needs_expert_review:
             # Xung đột ngưỡng không giải được → không tự quyết (RULE R10.5)
@@ -172,13 +176,27 @@ def make_compute_targets(rules: list[ClinicalRule] | None = None):
 
 
 def target_gate(state: NutriState) -> dict:
-    """Fail closed before retrieval/generation when target evidence is unsafe."""
+    """Fail closed CHỈ khi ngưỡng có xung đột thật (DEC-014/DEC-020) — rule
+    `to_verify` không chặn, chỉ được ghi lại thành `SafetyFinding` P1 để
+    chuyên gia soát (`reviewer_override_allowed`), không phải lý do dừng
+    generator. Trước đây coi mọi `unverified_rule_ids` là lý do
+    `manual_review_required` — với seed hiện tại (21/21 rule `to_verify`)
+    nghĩa là MỌI thực đơn đều bị chặn trước generator, mâu thuẫn với DEC-020.
+    """
     targets = state["targets"]
-    reasons = list(targets.conflict_notes)
     unverified = state.get("unverified_rule_ids", [])
-    if unverified:
-        reasons.append("Unverified clinical rules: " + ", ".join(unverified))
-    if reasons or targets.needs_expert_review:
+    unverified_findings = [
+        SafetyFinding(
+            code="UNVERIFIED_RULE",
+            risk_level=RiskSeverity.P1,
+            category="unverified_rule",
+            message_vi=f"Quy tắc {rule_id} chưa được xác minh.",
+            rule_id=rule_id,
+            reviewer_override_allowed=True,
+        )
+        for rule_id in unverified
+    ]
+    if targets.conflict_notes or targets.needs_expert_review:
         findings = [
             SafetyFinding(
                 code="TARGET_CONFLICT",
@@ -187,24 +205,14 @@ def target_gate(state: NutriState) -> dict:
                 message_vi=reason,
             )
             for reason in targets.conflict_notes
-        ]
-        findings.extend(
-            SafetyFinding(
-                code="UNVERIFIED_RULE",
-                risk_level=RiskSeverity.P0,
-                category="unverified_rule",
-                message_vi=f"Quy tắc {rule_id} chưa được xác minh.",
-                rule_id=rule_id,
-            )
-            for rule_id in unverified
-        )
+        ] + unverified_findings
         return {
             "status": "manual_review_required",
             "needs_attention": True,
-            "target_gate_reasons": reasons,
+            "target_gate_reasons": list(targets.conflict_notes),
             "safety_findings": findings,
         }
-    return {"target_gate_reasons": [], "safety_findings": []}
+    return {"target_gate_reasons": [], "safety_findings": unverified_findings}
 
 
 # `food_items.csv` từ DAT-12 gồm ~150 dòng curated (id nội bộ tuần tự, nhỏ) +

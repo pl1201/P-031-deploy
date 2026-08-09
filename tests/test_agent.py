@@ -59,7 +59,11 @@ def _run(graph, patient_id="BN-DEMO-02"):
 
 # ------------------------------------------------------------------- luồng
 class TestAgentFlow:
-    def test_target_gate_chan_rule_to_verify_truoc_generator(self, foods, profile_htn, modest_menu):
+    def test_rule_to_verify_khong_chan_generator_chi_gan_co_p1(self, foods, profile_htn, modest_menu):
+        """DEC-014/DEC-020: rule `to_verify` KHÔNG fail-closed generator — chỉ
+        rule THẬT SỰ xung đột (min>max) mới chặn. Với seed hiện tại (21/21 rule
+        to_verify, không xung đột cho HTN đơn lẻ), generator phải chạy được và
+        unverified rule chỉ lên P1 (reviewer_override_allowed), không phải P0."""
         generator = ScriptedGenerator([modest_menu])
         graph = build_graph(
             profiles=FakeProfiles(profile_htn),
@@ -70,11 +74,12 @@ class TestAgentFlow:
         )
         out = _run(graph)
 
-        assert generator.calls == 0
+        assert generator.calls == 1
         assert out["status"] == "pending_review"
-        assert out["highest_risk"] == "P0"
         assert out["unverified_rule_ids"]
-        assert out["review_packet"].can_approve is False
+        assert out["highest_risk"] == "P1"
+        assert out["review_packet"].can_approve is True
+        assert any(f.category == "unverified_rule" for f in out["review_packet"].findings)
 
     def test_state_co_version_hash_attempt_va_audit_day_du(self, foods, profile_htn, modest_menu):
         graph = build_graph(
