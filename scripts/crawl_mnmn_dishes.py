@@ -480,7 +480,10 @@ def main() -> None:
     ing_path = SEEDS / f"dish_ingredients.{args.out_prefix}.csv"
     rej_path = SEEDS / f"dishes.{args.out_prefix}.rejected.csv"
 
-    with open(dish_path, "w", newline="", encoding="utf-8") as fd, open(ing_path, "w", newline="", encoding="utf-8") as fi:
+    with (
+        open(dish_path, "w", newline="", encoding="utf-8") as fd,
+        open(ing_path, "w", newline="", encoding="utf-8") as fi,
+    ):
         wd = csv.DictWriter(fd, fieldnames=DISH_HEADER)
         wi = csv.DictWriter(fi, fieldnames=ING_HEADER)
         wd.writeheader()
@@ -489,18 +492,20 @@ def main() -> None:
             did = slugify_id(r.url)
             total = sum(i.grams for i in r.ingredients if i.grams and i.food_id)
             serving = round(total / r.servings, 1) if r.servings else round(total, 1)
-            wd.writerow({
-                "dish_id": did,
-                "name_vi": r.name_vi,
-                "region": "",
-                "serving_g": serving,
-                "verified_by": "pending",
-                "note": (
-                    f"Trich JSON-LD schema.org/Recipe tu {r.url} (crawl 2026-08-08, robots.txt cho phep "
-                    f"ClaudeBot). Chi lay nguyen lieu ghi ro g/kg/ml/l; ml quy doi 1ml=1g. "
-                    f"R2 CAN DUYET gram truoc khi dung cho benh nhan."
-                ),
-            })
+            wd.writerow(
+                {
+                    "dish_id": did,
+                    "name_vi": r.name_vi,
+                    "region": "",
+                    "serving_g": serving,
+                    "verified_by": "pending",
+                    "note": (
+                        f"Trich JSON-LD schema.org/Recipe tu {r.url} (crawl 2026-08-08, robots.txt cho phep "
+                        f"ClaudeBot). Chi lay nguyen lieu ghi ro g/kg/ml/l; ml quy doi 1ml=1g. "
+                        f"R2 CAN DUYET gram truoc khi dung cho benh nhan."
+                    ),
+                }
+            )
             for i in r.ingredients:
                 if i.food_id and i.grams:
                     wi.writerow({"dish_id": did, "food_id": i.food_id, "grams": f"{i.grams:g}", "note": i.raw.strip()})
@@ -510,7 +515,9 @@ def main() -> None:
         wr.writeheader()
         wr.writerows(rejected)
 
-    print(f"\nDa ghi: {dish_path.name} ({len(accepted)} mon), {ing_path.name}, {rej_path.name} ({len(rejected)} bi loai)")
+    print(
+        f"\nDa ghi: {dish_path.name} ({len(accepted)} mon), {ing_path.name}, {rej_path.name} ({len(rejected)} bi loai)"
+    )
 
 
 if __name__ == "__main__":
