@@ -1,19 +1,82 @@
 'use client'
-import type { Metadata } from 'next'
+
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { createApiClient, ApiError } from '@/lib/api'
 import { saveSession, redirectByRole } from '@/lib/auth'
+import styles from './login.module.css'
+
+const DEMO_ACCOUNTS = [
+  {
+    role: 'Chuyên gia dinh dưỡng',
+    description: 'Lập và duyệt thực đơn',
+    email: 'dietitian1@nutricare.demo',
+    initials: 'CG',
+  },
+  {
+    role: 'Bệnh nhân',
+    description: 'Theo dõi kế hoạch cá nhân',
+    email: 'patient1@nutricare.demo',
+    initials: 'BN',
+  },
+] as const
+
+function MailIcon() {
+  return <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6.5h16v11H4zM4 7l8 6 8-6" /></svg>
+}
+
+function LockIcon() {
+  return <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="10" width="14" height="10" rx="2" /><path d="M8 10V7a4 4 0 0 1 8 0v3" /></svg>
+}
+
+function ClinicalPreview() {
+  return (
+    <div className={styles.preview} aria-hidden="true">
+      <div className={styles.previewGlow} />
+      <div className={styles.previewTopbar}>
+        <div className={styles.previewBrand}><span>V</span> VNUTRICARE</div>
+        <div className={styles.previewStatus}><i /> Clinical engine online</div>
+      </div>
+      <div className={styles.previewBody}>
+        <div className={styles.previewHeading}>
+          <span>Hồ sơ đang theo dõi</span>
+          <strong>Nguyễn Minh Anh</strong>
+          <small>ĐTĐ type 2 · Kế hoạch 08/08</small>
+        </div>
+        <div className={styles.nutritionDial}>
+          <div><strong>92</strong><span>% mục tiêu</span></div>
+        </div>
+        <div className={styles.macroGrid}>
+          <div><i className={styles.carb} /><span>Carb</span><strong>238 g</strong></div>
+          <div><i className={styles.protein} /><span>Protein</span><strong>112 g</strong></div>
+          <div><i className={styles.fiber} /><span>Chất xơ</span><strong>31 g</strong></div>
+        </div>
+        <div className={styles.approvalStrip}>
+          <span>✓</span>
+          <div><strong>Sẵn sàng chuyên gia duyệt</strong><small>Không phát hiện vi phạm cứng</small></div>
+        </div>
+      </div>
+    </div>
+  )
+}
 
 export default function LoginPage() {
   const router = useRouter()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
+  const [showPassword, setShowPassword] = useState(false)
+  const [remember, setRemember] = useState(true)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
+  const selectDemo = (account: (typeof DEMO_ACCOUNTS)[number]) => {
+    setEmail(account.email)
+    setPassword('Demo1234')
+    setError('')
+  }
+
+  const handleSubmit = async (event: React.FormEvent) => {
+    event.preventDefault()
     setError('')
     setLoading(true)
     try {
@@ -21,188 +84,104 @@ export default function LoginPage() {
       saveSession(session)
       router.push(redirectByRole(session.role))
     } catch (err) {
-      setError(err instanceof ApiError ? err.message : 'Không thể đăng nhập. Kiểm tra lại thông tin.')
+      setError(err instanceof ApiError ? err.message : 'Không thể đăng nhập. Vui lòng kiểm tra kết nối và thử lại.')
     } finally {
       setLoading(false)
     }
   }
 
   return (
-    <div style={{
-      minHeight: '100vh',
-      background: 'var(--c-bg)',
-      display: 'grid',
-      gridTemplateColumns: '1fr 1fr',
-    }}>
-      {/* Left — branding */}
-      <div style={{
-        background: 'var(--c-green)',
-        display: 'flex',
-        flexDirection: 'column',
-        justifyContent: 'space-between',
-        padding: '52px 56px',
-        color: '#e8f0eb',
-      }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
-          <div className="brand-icon" style={{ width: 44, height: 44, fontSize: 26 }}>V</div>
-          <div>
-            <div style={{ fontWeight: 700, fontSize: 18, letterSpacing: '.02em' }}>VNUTRICARE</div>
-            <div style={{ fontSize: 11, opacity: .5, letterSpacing: '.1em', textTransform: 'uppercase', marginTop: 2 }}>Clinical Nutrition AI</div>
+    <main className={styles.page}>
+      <div className={styles.ambientOne} />
+      <div className={styles.ambientTwo} />
+
+      <header className={styles.header}>
+        <div className={styles.logoMark}>V</div>
+        <div className={styles.logoText}>
+          <strong>VNUTRICARE</strong>
+          <span>Clinical Nutrition Intelligence</span>
+        </div>
+        <div className={styles.systemBadge}><i /> Hệ thống vận hành bình thường</div>
+      </header>
+
+      <section className={styles.shell}>
+        <div className={styles.story}>
+          <div className={styles.eyebrow}><span>✦</span> AI hỗ trợ quyết định lâm sàng</div>
+          <h1>Dinh dưỡng cá thể hóa.<br /><em>Quyết định có căn cứ.</em></h1>
+          <p className={styles.lead}>
+            Biến hồ sơ lâm sàng thành kế hoạch dinh dưỡng có thể kiểm chứng — từ tính toán, rà soát đến phê duyệt chuyên gia.
+          </p>
+          <ClinicalPreview />
+          <div className={styles.trustRow}>
+            <span><i>01</i>Dữ liệu có nguồn</span>
+            <span><i>02</i>Tính toán phía server</span>
+            <span><i>03</i>Chuyên gia phê duyệt</span>
           </div>
         </div>
 
-        <div>
-          <p style={{ fontSize: 11, opacity: .45, letterSpacing: '.1em', textTransform: 'uppercase', marginBottom: 16 }}>
-            VMEC-10 · AI20K Cohort 3 · P-031
-          </p>
-          <h1 style={{
-            fontFamily: 'var(--f-serif)',
-            fontSize: 'clamp(40px,5vw,60px)',
-            fontWeight: 400,
-            lineHeight: .95,
-            letterSpacing: 0,
-            marginBottom: 20,
-          }}>
-            Tư vấn<br />
-            <em style={{ color: 'var(--c-lime)', fontStyle: 'italic' }}>dinh dưỡng</em><br />
-            lâm sàng
-          </h1>
-          <p style={{ fontSize: 14, lineHeight: 1.7, opacity: .7, maxWidth: 380 }}>
-            AI Agent hỗ trợ chuyên gia lập và duyệt thực đơn cá thể hoá
-            cho bệnh nhân đái tháo đường type 2 — mọi con số có nguồn,
-            mọi thực đơn qua chuyên gia duyệt.
-          </p>
-        </div>
-
-        <div style={{ fontSize: 12, opacity: .35 }}>
-          <div style={{ display: 'flex', gap: 8, alignItems: 'center', marginBottom: 10 }}>
-            <span style={{ width: 6, height: 6, borderRadius: '50%', background: 'var(--c-lime)' }} />
-            LLM chỉ chọn món — Python tính số (RULE-1)
-          </div>
-          <div style={{ display: 'flex', gap: 8, alignItems: 'center', marginBottom: 10 }}>
-            <span style={{ width: 6, height: 6, borderRadius: '50%', background: 'var(--c-lime)' }} />
-            Mọi con số dinh dưỡng có nguồn truy vết (RULE-2)
-          </div>
-          <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-            <span style={{ width: 6, height: 6, borderRadius: '50%', background: 'var(--c-lime)' }} />
-            Chuyên gia duyệt trước khi đến bệnh nhân (RULE-3)
-          </div>
-        </div>
-      </div>
-
-      {/* Right — form */}
-      <div style={{
-        display: 'flex',
-        flexDirection: 'column',
-        justifyContent: 'center',
-        padding: '52px 72px',
-      }}>
-        <div style={{ maxWidth: 400, width: '100%' }}>
-          <p style={{ fontSize: 11, fontWeight: 700, letterSpacing: '.12em', textTransform: 'uppercase', color: 'var(--c-green2)', marginBottom: 8 }}>
-            ĐĂNG NHẬP HỆ THỐNG
-          </p>
-          <h2 style={{
-            fontFamily: 'var(--f-serif)',
-            fontSize: 32, fontWeight: 400,
-            letterSpacing: 0,
-            marginBottom: 32,
-          }}>
-            Xin chào,<br />
-            <em style={{ color: 'var(--c-green)', fontStyle: 'italic' }}>chuyên gia.</em>
-          </h2>
-
-          <form onSubmit={handleSubmit} style={{ display: 'grid', gap: 16 }}>
-            <div className="form-group">
-              <label className="form-label" htmlFor="email">Email</label>
-              <input
-                id="email"
-                type="email"
-                className="form-input"
-                placeholder="dietitian1@nutricare.demo"
-                value={email}
-                onChange={e => setEmail(e.target.value)}
-                required
-                autoFocus
-              />
-            </div>
-            <div className="form-group">
-              <label className="form-label" htmlFor="password">Mật khẩu</label>
-              <input
-                id="password"
-                type="password"
-                className="form-input"
-                placeholder="••••••••"
-                value={password}
-                onChange={e => setPassword(e.target.value)}
-                required
-              />
+        <div className={styles.authColumn}>
+          <div className={styles.authCard}>
+            <div className={styles.authIntro}>
+              <span className={styles.authKicker}>Đăng nhập hệ thống</span>
+              <h2>Chào mừng trở lại</h2>
+              <p>Tiếp tục không gian dinh dưỡng của bạn.</p>
             </div>
 
-            {error && (
-              <div style={{
-                padding: '10px 14px',
-                borderRadius: 'var(--r-md)',
-                background: '#fde8e8',
-                border: '1px solid #f5c6c6',
-                color: 'var(--c-red)',
-                fontSize: 13,
-              }}>
-                {error}
+            <form onSubmit={handleSubmit} className={styles.form}>
+              <label>
+                <span>Email</span>
+                <div className={styles.field}>
+                  <MailIcon />
+                  <input type="email" value={email} onChange={event => setEmail(event.target.value)} placeholder="name@nutricare.vn" autoComplete="username" required autoFocus />
+                </div>
+              </label>
+
+              <label>
+                <span>Mật khẩu</span>
+                <div className={styles.field}>
+                  <LockIcon />
+                  <input type={showPassword ? 'text' : 'password'} value={password} onChange={event => setPassword(event.target.value)} placeholder="Nhập mật khẩu" autoComplete="current-password" required />
+                  <button type="button" className={styles.passwordToggle} onClick={() => setShowPassword(value => !value)} aria-label={showPassword ? 'Ẩn mật khẩu' : 'Hiện mật khẩu'}>
+                    {showPassword ? 'Ẩn' : 'Hiện'}
+                  </button>
+                </div>
+              </label>
+
+              <div className={styles.formOptions}>
+                <label className={styles.remember}>
+                  <input type="checkbox" checked={remember} onChange={event => setRemember(event.target.checked)} />
+                  <span>Ghi nhớ đăng nhập</span>
+                </label>
+                <button type="button" className={styles.textButton} onClick={() => setError('Vui lòng liên hệ quản trị viên để được cấp lại mật khẩu.')}>Quên mật khẩu?</button>
               </div>
-            )}
 
-            <button type="submit" className="btn btn-primary btn-lg" disabled={loading} style={{ marginTop: 4 }}>
-              {loading ? <><span className="spinner" style={{ width: 16, height: 16 }} /> Đang đăng nhập...</> : 'Đăng nhập →'}
-            </button>
-          </form>
+              {error && <div className={styles.error} role="alert"><span>!</span>{error}</div>}
 
-          <div style={{ marginTop: 32, padding: 20, background: 'var(--c-surface)', borderRadius: 'var(--r-md)', border: '1px solid var(--c-border)' }}>
-            <p style={{ fontSize: 11, fontWeight: 700, color: 'var(--c-muted)', marginBottom: 10, letterSpacing: '.08em', textTransform: 'uppercase' }}>
-              Tài khoản demo (mật khẩu: Demo1234)
-            </p>
-            {[
-              ['dietitian1@nutricare.demo', 'Chuyên gia dinh dưỡng'],
-              ['patient1@nutricare.demo', 'Bệnh nhân ĐTĐ2'],
-            ].map(([em, label]) => (
-              <button
-                key={em}
-                type="button"
-                onClick={() => { setEmail(em); setPassword('Demo1234') }}
-                style={{
-                  display: 'block', width: '100%',
-                  padding: '8px 12px', marginBottom: 6,
-                  textAlign: 'left',
-                  borderRadius: 'var(--r-sm)',
-                  border: '1px solid var(--c-border)',
-                  background: 'transparent',
-                  fontSize: 12,
-                  cursor: 'pointer',
-                  transition: 'background .15s',
-                }}
-                onMouseOver={e => (e.currentTarget.style.background = 'rgba(0,0,0,.03)')}
-                onMouseOut={e => (e.currentTarget.style.background = 'transparent')}
-              >
-                <span style={{ fontWeight: 600 }}>{em}</span>
-                <span style={{ color: 'var(--c-muted)', marginLeft: 8 }}>{label}</span>
+              <button type="submit" className={styles.submit} disabled={loading}>
+                {loading ? <><span className={styles.spinner} /> Đang kết nối...</> : <>Đăng nhập <span>→</span></>}
               </button>
-            ))}
+            </form>
+
+            <div className={styles.divider}><span>Truy cập nhanh bản demo</span></div>
+            <div className={styles.demoGrid}>
+              {DEMO_ACCOUNTS.map(account => (
+                <button type="button" key={account.email} onClick={() => selectDemo(account)} className={`${styles.demoAccount} ${email === account.email ? styles.demoActive : ''}`}>
+                  <span className={styles.demoAvatar}>{account.initials}</span>
+                  <span className={styles.demoCopy}><strong>{account.role}</strong><small>{account.description}</small></span>
+                  <span className={styles.demoArrow}>↗</span>
+                </button>
+              ))}
+            </div>
+
+            <p className={styles.demoNote}><span>ⓘ</span> Bản demo sử dụng dữ liệu mô phỏng và không thay thế tư vấn y khoa.</p>
           </div>
-
-          <p className="disclaimer" style={{ marginTop: 20 }}>
-            ⚕️ <strong>Dữ liệu 100% mô phỏng.</strong> Hệ thống này không thay thế bác sĩ hoặc chuyên gia dinh dưỡng. Mọi thực đơn cần được chuyên gia duyệt trước khi đến tay bệnh nhân.
-          </p>
         </div>
-      </div>
+      </section>
 
-      <style>{`
-        @media (max-width: 768px) {
-          div[style*="gridTemplateColumns: 1fr 1fr"] {
-            grid-template-columns: 1fr !important;
-          }
-          div[style*="52px 56px"] { display: none !important; }
-          div[style*="52px 72px"] { padding: 40px 24px !important; }
-        }
-      `}</style>
-    </div>
+      <footer className={styles.footer}>
+        <span>© 2026 VNUTRICARE · Clinical Nutrition AI</span>
+        <span>Dữ liệu mô phỏng · Quy trình có chuyên gia giám sát</span>
+      </footer>
+    </main>
   )
 }
