@@ -87,6 +87,25 @@ Phần khảo sát trên phản ánh mặt bằng công nghệ chung. Để tài
 
 * **Tầng thị giác/VLM — lộ trình V2/V3, hiện ngoài phạm vi MVP.** Toàn bộ mục VLM và nhận diện ảnh món ăn ở trên là hướng đi **đã được ghi nhận cho phiên bản tương lai** (PRD §11.3 xếp ước tính khẩu phần từ ảnh vào V2/V3), nhưng **nằm ngoài MVP hiện tại** theo quyết định phạm vi của dự án (CLAUDE.md §7 và PRD §4.2: "không ước tính dinh dưỡng trực tiếp từ ảnh"). Lý do không phải thiếu công nghệ nhận diện — YOLOv10/ViT nhận *món* rất tốt (VietFood67 mAP50 0,92 \[16\]) — mà là bài toán ước lượng *khối lượng gram* từ ảnh 2D phẳng vẫn chưa đủ tin cậy lâm sàng: đội đã đo và ghi nhận sai số MAPE năng lượng khi để LLM ước tính từ ảnh dao động **35,8%–110%**. Ở 1.800 kcal, sai 36% là ±650 kcal — vượt xa biên an toàn cho bệnh nhân đái tháo đường. Vì vậy MVP dùng luồng nhập bằng văn bản + phân rã nguyên liệu; khi tích hợp thị giác ở V2/V3, ảnh được định vị làm **trợ lý gợi nhớ cho chuyên gia** đối chiếu, không phải nguồn con số dinh dưỡng — nhất quán với thiết kế nhật ký ăn uống (BE-07) hiện có.
 
+### **Áp Dụng Cụ Thể Cho Dự Án: Nên / Không Nên (rà soát 2026-08-09)**
+
+Đối chiếu từng phát hiện của tài liệu với trạng thái mã nguồn thực tế, để biến khảo sát thành quyết định hành động thay vì danh sách công nghệ chung chung. Bốn nhóm:
+
+| Phát hiện trong tài liệu | Kết luận áp dụng | Vị trí / lý do |
+|---|---|---|
+| LLM chỉ chọn, tầng tất định tính số \[1\] | **ĐÃ CÓ** (nền tảng) | RULE-1; `src/services/llm.py` structured output chỉ trả `food_id`+gram; `src/clinical/nutrition.py` tính bằng SQL. Dự án đi trước tài liệu. |
+| CP-SAT giải ràng buộc cứng | **ĐÃ CÓ + đi xa hơn** | `src/agents/optimizer.py`. Dự án đo được và chọn **feasibility-only** (0,1s vs 105s UNKNOWN) — chi tiết tài liệu không nêu. |
+| Đồ thị thay thế khi vô nghiệm | **ĐÃ CÓ** | `src/agents/equivalent.py` (thực đơn tương đương từ tủ lạnh, P2/AGT-12). |
+| Guardrail chặn chỉ định y khoa | **ĐÃ CÓ** | `src/agents/guardrail.py` (AGT-07), 2 tầng regex + LLM. |
+| Nguồn dữ liệu Bảng TP Việt Nam \[30\] | **ĐÃ CÓ + mở rộng** | Dự án dùng cả NIN 2007 **và** NIN 2017 (620 thực phẩm), `data/seeds/food_items.csv`. |
+| Chuẩn hoá văn bản VietNormalizer / Soe Vinorm \[39-42\] | **KHÔNG ÁP DỤNG** | Đã kiểm chứng: các thư viện này chuẩn hoá số cho **đọc thành tiếng (TTS)**, KHÔNG quy đổi đơn vị→gram. Bài toán thật của dự án (đơn vị ước lệ "quả/củ/muỗng"→gram) cần **bảng quy đổi có nguồn** — đã có `data/seeds/serving_sizes.csv` (và bảng `unit_conversions.csv` trên nhánh DAT-24, mỗi dòng dẫn `fdc_id` USDA), đúng RULE-2 hơn. Thêm thư viện BERT-CRF nặng cho việc regex đã làm là over-engineering (CLAUDE.md §7). |
+| VLM / nhận diện ảnh món ăn \[9-29\] | **LỘ TRÌNH V2/V3** | Ngoài MVP (PRD §4.2, §11.3). Xem mục đối chiếu ở trên. |
+| LLM tiếng Việt cục bộ (SeaLLM/Vistral) \[6\] | **CÂN NHẮC TƯƠNG LAI** | Ưu thế riêng tư/on-device thật, nhưng đổi khỏi Gemini là quyết định kiến trúc lớn — chỉ nên xét nếu yêu cầu bảo mật dữ liệu y tế trở nên bắt buộc chạy nội bộ. |
+| Pipeline thống kê cường tráng lấp khuyết dữ liệu \[1\] (repeated sampling + invariant guard + LP reconciliation) | **ĐỂ R2 QUYẾT** | Về lý thuyết có thể dùng để đề xuất giá trị cho ~314 dòng thực phẩm còn khuyết (DAT-13/DAT-24) kèm điểm tin cậy để R2 duyệt. NHƯNG **căng thẳng với DEC-008** ("để trống còn hơn đoán") — dự án hiện chọn lập trường bảo thủ hơn. Là quyết định dữ liệu lâm sàng, không phải kỹ thuật; cần R2 cân nhắc trước khi làm. |
+| Dataset gợi ý ViFoodRec \[32\] (5.509 món, 180k đánh giá) | **ĐÁNH GIÁ RIÊNG** | Có thể làm tín hiệu sở thích, nhưng là dữ liệu web-scrape — cần rà license/de-identification như mọi nguồn khác (bài học DAT-01) trước khi dùng. Ticket riêng, không dùng ngay. |
+
+**Kết luận áp dụng:** tài liệu xác nhận các lựa chọn kiến trúc cốt lõi của dự án là **có căn cứ trong y văn** (giá trị cho pitch/báo cáo), nhưng không mở ra hạng mục triển khai mới nào trong phạm vi MVP — hai công cụ được tài liệu nhấn mạnh (chuẩn hoá văn bản; ảnh) hoặc không hợp bài toán, hoặc đã được xếp lộ trình tương lai. Việc "áp dụng" đúng nghĩa ở đây là **ghi nhận quyết định** để đội không phải xét lại, chứ không phải thêm mã.
+
 ## **Tổng Kết Và Định Hướng Tương Lai**
 
 Nghiên cứu khẳng định rằng việc áp dụng đơn lẻ các Mô Hình Ngôn Ngữ (LLM, SLM) vào quá trình thiết kế thực đơn cho bệnh nhân đái tháo đường tuýp 2 là tiềm ẩn rủi ro y khoa khôn lường do bản chất ngẫu nhiên và ảo giác số học của chúng. Tuy nhiên, bằng cách chuyển đổi sang kiến trúc lai đa tác tử, các hệ thống công nghệ có thể phát huy sức mạnh vượt trội. LLM và VLM (đặc biệt là các mô hình tối ưu cho tiếng Việt như SeaLLM, Vistral, và Vintern-1B) đóng vai trò nền tảng trong thấu hiểu ngữ cảnh và giám sát hình ảnh. Các thư viện xử lý ngữ nghĩa phi cấu trúc (VietNormalizer) làm cầu nối dữ liệu, và công cụ tối ưu hóa tất định (CP-SAT/OR-Tools) đóng vai trò phòng tuyến tính toán cuối cùng.  
