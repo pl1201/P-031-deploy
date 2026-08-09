@@ -11,7 +11,7 @@ from dataclasses import dataclass
 from datetime import UTC, datetime, timedelta
 
 import jwt
-from fastapi import Depends, HTTPException, status
+from fastapi import Depends, HTTPException, Request, status
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from passlib.context import CryptContext
 
@@ -100,5 +100,54 @@ def require_role(*roles: str):
         if user.role not in roles:
             raise HTTPException(status.HTTP_403_FORBIDDEN, "Không đủ quyền cho hành động này")
         return user
+
+    return _dep
+
+
+class GuardrailBlocked(HTTPException):
+    """Guardrail tầng 1 chặn — trả 422 kèm câu trả lời an toàn.
+
+    Dùng HTTPException để FastAPI tự trả về, nhưng giữ `safe_response` và
+    `method` trong `detail` để client hiển thị đúng câu chuẩn (R10.2) thay vì
+    một thông báo lỗi kỹ thuật.
+    """
+
+    def __init__(self, safe_response: str, method: str) -> None:
+        super().__init__(
+            status.HTTP_422_UNPROCESSABLE_ENTITY,
+            {"blocked": True, "reply": safe_response, "method": method},
+        )
+
+
+def guard_free_text(field: str = "message"):
+    """Dependency factory chặn chỉ định y khoa trên MỌI ô nhập tự do.
+
+    Vì sao là dependency chứ không gọi `check_guardrail()` rải rác trong từng
+    route: guardrail là ranh giới an toàn (RULE-3, docs/rules/10-clinical-safety.md).
+    Gọi rải rác thì thêm một endpoint free-text mới là quên một chỗ — và không
+    có gì phát hiện được. Là dependency thì thiếu nó nhìn thấy ngay ở chữ ký hàm.
+
+    Dùng: `_: None = Depends(guard_free_text("free_text_vi"))`
+
+    `field` là tên field chứa văn bản tự do trong request body.
+    """
+
+    async def _dep(request: Request) -> None:
+        # Import trong hàm: src/agents/guardrail.py có thể nạp google.generativeai
+        # (tầng 2), không nên kéo vào lúc import module security.
+        from src.agents.guardrail import check_guardrail
+
+        try:
+            body = await request.json()
+        except (ValueError, TypeError):
+            return  # không phải JSON body — không có gì để kiểm
+        if not isinstance(body, dict):
+            return
+        text_value = body.get(field)
+        if not isinstance(text_value, str) or not text_value.strip():
+            return
+        result = check_guardrail(text_value)
+        if result.blocked:
+            raise GuardrailBlocked(result.safe_response, result.method)
 
     return _dep

@@ -150,6 +150,41 @@ export default function PatientDashboard() {
                 </div>
               )}
 
+              {/* Lưu ý từ chuyên gia — API đã trả `violations` từ lâu nhưng màn
+                  bệnh nhân trước đây bỏ qua hoàn toàn, nên bệnh nhân không hề
+                  biết thực đơn của mình có điểm nào cần chú ý. Chỉ hiện cảnh
+                  báo mềm (soft): thực đơn đã duyệt thì theo RULE-3 không thể
+                  còn vi phạm cứng. */}
+              {selected && selected.violations.filter(v => v.severity === 'soft').length > 0 && (
+                <div className="card">
+                  <div className="card-header"><h2 className="card-title">Điều cần lưu ý</h2></div>
+                  <div className="card-body" style={{ display: 'grid', gap: 12 }}>
+                    {selected.violations
+                      .filter(v => v.severity === 'soft')
+                      .map((v, i) => (
+                        <div key={i} style={{ fontSize: 13, lineHeight: 1.5 }}>
+                          <div style={{ display: 'flex', gap: 6, alignItems: 'flex-start' }}>
+                            <span className="badge badge-soft">Lưu ý</span>
+                            <span>{v.message_vi}</span>
+                          </div>
+                          {v.suggestion && (
+                            <div style={{ color: 'var(--c-muted)', fontSize: 12.5, marginTop: 4 }}>
+                              → {v.suggestion}
+                            </div>
+                          )}
+                          {/* actual/limit là null với cảnh báo định tính (tương tác
+                              thuốc–thực phẩm). Hiện "0" ở đây là bịa số — RULE-2. */}
+                          {v.actual != null && v.limit != null && (
+                            <div style={{ color: 'var(--c-muted)', fontSize: 12, marginTop: 2 }}>
+                              {v.actual} / {v.limit} {v.unit}
+                            </div>
+                          )}
+                        </div>
+                      ))}
+                  </div>
+                </div>
+              )}
+
               {plans.length > 1 && (
                 <div className="card">
                   <div className="card-header"><h2 className="card-title">Lịch sử</h2></div>

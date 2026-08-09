@@ -7,6 +7,7 @@ import { usePathname } from 'next/navigation'
 
 const NAV = [
   { href: '/patient', label: 'Thực đơn của tôi', icon: '◉', exact: true },
+  { href: '/patient/diary', label: 'Nhật ký ăn uống', icon: '✎', exact: true },
 ]
 
 export default function PatientLayout({ children }: { children: React.ReactNode }) {

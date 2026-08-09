@@ -44,7 +44,11 @@ from src.agents.state import (
     TokenUsage,
 )
 from src.clinical.integrity import hash_menu, hash_nutrition
-from src.clinical.interactions import load_drug_food_interactions
+from src.clinical.interactions import (
+    advisories_for,
+    check_drug_food_interactions,
+    load_drug_food_rules,
+)
 from src.clinical.models import (
     ClinicalTargets,
     MenuDraft,
@@ -212,8 +216,23 @@ def target_gate(state: NutriState) -> dict:
 # là thực phẩm Mỹ/quốc tế không phù hợp bối cảnh bệnh nhân Việt Nam.
 USDA_BULK_ID_THRESHOLD = 100_000
 
-# Nguồn được coi là "thực phẩm Việt Nam curated" — luôn là ứng viên, BẤT KỂ id.
+# Khối tham chiếu cần loại = ĐÚNG những dòng import bulk từ USDA (source="USDA"
+# VÀ id là fdc_id gốc ≥ ngưỡng). Mọi dòng khác — NIN, curated, estimated — đều
+# là thực phẩm Việt Nam do đội biên soạn và LÀ ứng viên, bất kể id.
 #
+# Sửa 2026-08-08 (DAT-24): ngưỡng id một mình là proxy cho "thuộc khối USDA
+# bulk", và proxy đó sai. Script merge NIN 2017 cấp id nối tiếp dãy fdc_id nên
+# 82 thực phẩm Việt Nam THẬT của Viện Dinh dưỡng (Vừng, Cà rốt, Cải thìa, Giá
+# đậu xanh, Ớt đỏ, Đậu tương…) nhận id ≥ 1.105.898 và bị loại nhầm khỏi ứng
+# viên CP-SAT — đúng nhóm nguyên liệu mà công thức món Việt cần nhất.
+USDA_BULK_SOURCE = "USDA"
+
+
+def _la_khoi_usda_bulk(food) -> bool:
+    """True khi dòng thuộc khối import bulk USDA (kho tham chiếu, không phải ứng viên)."""
+    return food.source == USDA_BULK_SOURCE and food.id >= USDA_BULK_ID_THRESHOLD
+
+
 # Sửa 2026-08-08 (DAT-24): ngưỡng id ở trên là proxy cho "thuộc khối USDA bulk",
 # và proxy đó đã sai. Script merge NIN 2017 cấp id nối tiếp dãy fdc_id nên 82
 # thực phẩm Việt Nam THẬT của Viện Dinh dưỡng (Vừng, Cà rốt, Cải thìa, Giá đậu
@@ -269,7 +288,7 @@ def make_retrieve_context(foods: FoodRepository):
         candidates = [
             f
             for f in all_items
-            if (f.id < USDA_BULK_ID_THRESHOLD or f.source in VN_CURATED_SOURCES)
+            if not _la_khoi_usda_bulk(f)
             and not any(a in profile.allergies for a in map(str.lower, f.contains_allergens))
             and f.name_vi.lower() not in profile.dislikes
         ]
@@ -486,6 +505,8 @@ def _finding_from_violation(violation) -> SafetyFinding:
 def make_validate(foods: FoodRepository, rules: list[ClinicalRule] | None = None):
     """Node: validate — LLM: NO. Guardrail tầng 3, fail closed."""
     rules = [rule for rule in rules if rule.verify_status == "verified"] if rules is not None else load_rules()
+    # Nạp một lần khi dựng graph, không đọc CSV lại mỗi lần validate (CLN-06).
+    drug_food_rules = load_drug_food_rules()
 
     def validate_node(state: NutriState) -> dict:
         nutrition = state.get("computed_nutrition")
@@ -508,8 +529,14 @@ def make_validate(foods: FoodRepository, rules: list[ClinicalRule] | None = None
                     )
                 ],
             }
+        profile = state["profile"]
         violations = validate_menu(nutrition, state["targets"], rules)
-        violations += check_allergies(draft, state["profile"], foods)
+        violations += check_allergies(draft, profile, foods)
+        # CLN-06: bảng 30 cặp tương tác đã seed từ lâu nhưng trước đây không có
+        # dòng code nào truy vấn — thuốc bệnh nhân đang dùng hoàn toàn không ảnh
+        # hưởng gì tới thực đơn sinh ra.
+        violations += check_drug_food_interactions(draft, profile, foods, drug_food_rules)
+        violations += advisories_for(profile, drug_food_rules)
         return {
             "violations": violations,
             "safety_findings": persistent_findings + [_finding_from_violation(v) for v in violations],

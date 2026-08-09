@@ -22,12 +22,32 @@ logger = logging.getLogger(__name__)
 # Tầng 1: Regex patterns tiếng Việt
 # ---------------------------------------------------------------------------
 
+# Tên hoạt chất dùng chung cho nhiều pattern. Trước đây mỗi pattern tự liệt kê
+# một danh sách khác nhau (pattern "liều thuốc" có 14 tên, pattern "ngừng thuốc"
+# chỉ có 2) — nghĩa là "ngừng uống atorvastatin" không bị chặn trong khi
+# "ngừng metformin" thì có. Gom về một chỗ để không lệch nữa.
+_DRUG_NAMES = (
+    "thuốc|insulin|liều|metformin|gliclazide|glibenclamide|acarbose|sitagliptin|"
+    "empagliflozin|dapagliflozin|warfarin|statin|atorvastatin|simvastatin|"
+    "amlodipine|captopril|enalapril|losartan|furosemide|spironolactone|allopurinol|"
+    "colchicine|levothyroxine|aspirin|clopidogrel"
+)
+
+# Động từ có thể chen giữa "ngừng/bỏ/tăng" và tên thuốc: "ngừng UỐNG metformin".
+_INTERVENING_VERB = r"(?:\s+(?:uống|dùng|sử dụng|tiêm|chích|nạp))?"
+
 _MEDICAL_PATTERNS: list[str] = [
     # Liều thuốc / chỉ số
-    r"(?i)(liều|mg|mcg|ml|đơn vị|unit|IU)\s*(thuốc|insulin|metformin|gliclazide|glibenclamide|acarbose|sitagliptin|empagliflozin|dapagliflozin|warfarin|statin|atorvastatin|simvastatin|amlodipine|captopril|enalapril|losartan)",
+    rf"(?i)(liều|mg|mcg|ml|đơn vị|unit|IU)\s*({_DRUG_NAMES})",
     r"(?i)uống\s*(?:bao nhiêu|mấy|bao lâu|khi nào)\s*(thuốc|viên|mg)",
     r"(?i)(nên|có nên|có thể|được không)\s*(uống|dùng|ngừng|dừng|bỏ|đổi|thay|tăng|giảm)\s*(thuốc|insulin|liều)",
-    r"(?i)(ngừng|dừng|bỏ|đổi|thay|tăng|giảm)\s*(thuốc|insulin|liều|metformin|gliclazide)",
+    # Ý ĐỊNH tự ngừng/đổi/tăng-giảm thuốc — nguy hiểm nhất trong nhóm này.
+    # Sửa 2026-08-08: bản cũ là `(ngừng|...)\s*(thuốc|insulin|liều|metformin|gliclazide)`,
+    # tức bắt buộc tên thuốc đứng NGAY sau động từ. "tôi muốn ngừng uống
+    # metformin, ăn gì thay thế?" LỌT hoàn toàn vì có chữ "uống" chen vào —
+    # đúng câu một bệnh nhân thật sẽ gõ. Nay cho phép động từ chen giữa và
+    # dùng danh sách hoạt chất đầy đủ.
+    rf"(?i)(ngừng|dừng|bỏ|ngưng|cắt|đổi|thay|tăng|giảm){_INTERVENING_VERB}\s+({_DRUG_NAMES})",
     # Chẩn đoán / xét nghiệm
     r"(?i)(bị bệnh gì|mắc bệnh gì|chẩn đoán|kết quả xét nghiệm|HbA1c của tôi|đường huyết của tôi|tôi có bị)",
     r"(?i)(tôi có bị|có phải tôi|tôi có mắc)\s*(đái tháo đường|tiểu đường|tăng huyết áp|bệnh thận|gout|ung thư|tim mạch)",

@@ -357,18 +357,47 @@ class MealPlanItem(Base):
 
 class FoodLog(Base):
     """Nhật ký ăn uống thật (BE-07) — khác `meal_plan_items` (thực đơn ĐỀ XUẤT).
+
     `food_id` có thể null khi bệnh nhân gõ tự do món chưa có trong DB (OOV, CLN-07).
+
+    Vì sao `grams` cũng phải nullable (mở rộng 2026-08-08):
+    với kho chỉ 461 thực phẩm Việt, OOV là trường hợp MẶC ĐỊNH chứ không phải
+    ngoại lệ. Bệnh nhân gõ "canh rau tập tàng, 1 bát" mà ta không tra được đơn
+    vị "bát" cho món đó thì **không có** con số gram nào đúng để ghi. Trước đây
+    `grams` bắt buộc nên buộc phải điền một số — tức là bịa (RULE-2/DEC-008).
+    Để null thì tầng tổng hợp ngày biết chắc đây là dòng "chưa đủ dữ liệu",
+    không thể vô tình cộng vào tổng.
     """
 
     __tablename__ = "food_logs"
 
     id: Mapped[str] = mapped_column(String(36), primary_key=True, default=_uuid)
     profile_id: Mapped[str] = mapped_column(ForeignKey("patient_profiles.id"), index=True)
-    logged_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+    logged_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, index=True)
     food_id: Mapped[int | None] = mapped_column(ForeignKey("food_items.id"), nullable=True)
+    dish_id: Mapped[str | None] = mapped_column(ForeignKey("dishes.dish_id"), nullable=True)
     free_text_vi: Mapped[str | None] = mapped_column(String(255), nullable=True)  # OOV: tên gõ tay
-    grams: Mapped[float] = mapped_column(Float)
+    slot: Mapped[str | None] = mapped_column(String(20), nullable=True)  # breakfast|lunch|dinner|snack
+    grams: Mapped[float | None] = mapped_column(Float, nullable=True)
     is_estimated: Mapped[bool] = mapped_column(Boolean, default=False)  # true nếu qua OOV Estimator
+
+    # --- Truy vết cách dòng này được khớp (CLN-07) ---
+    # unmatched: chưa tra được, KHÔNG có số → chờ chuyên gia giải quyết
+    # auto:      matcher tất định tự nhận (Làn A)
+    # llm:       LLM map trong danh sách ứng viên (Làn B)
+    # expert:    chuyên gia gán tay
+    # no_data:   chuyên gia xác nhận không đủ dữ liệu, cố ý không tính vào tổng
+    match_status: Mapped[str] = mapped_column(String(20), default="unmatched", index=True)
+    match_confidence: Mapped[float | None] = mapped_column(Float, nullable=True)
+
+    # Khẩu phần người dùng mô tả ("1 bát", "2 quả") — giữ NGUYÊN VĂN kể cả khi
+    # đã quy đổi được, để chuyên gia đối chiếu lại cách quy đổi.
+    portion_qty: Mapped[float | None] = mapped_column(Float, nullable=True)
+    portion_unit: Mapped[str | None] = mapped_column(String(30), nullable=True)
+    # RULE-2: quy đổi ra gram phải dẫn được nguồn (serving_sizes/unit_conversions).
+    grams_source_ref: Mapped[str | None] = mapped_column(Text, nullable=True)
+
+    note_vi: Mapped[str | None] = mapped_column(Text, nullable=True)
 
     profile: Mapped[PatientProfile] = relationship(back_populates="food_logs")
 
