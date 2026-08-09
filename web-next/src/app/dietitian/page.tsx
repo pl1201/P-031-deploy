@@ -98,9 +98,10 @@ export default function DietitianDashboard() {
               className="btn btn-secondary btn-sm"
               onClick={() => {
                 setLoading(true)
+                setError('')
                 const token = getToken()
                 if (!token) return
-                createApiClient(token).listPendingReviews().then(setPlans).finally(() => setLoading(false))
+                createApiClient(token).listPendingReviews().then(setPlans).catch(e => setError(e.message)).finally(() => setLoading(false))
               }}
             >
               ↻ Làm mới

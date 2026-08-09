@@ -122,8 +122,12 @@ def check_food_items(path: Path) -> None:
                 err(f"{loc} {col}={val} ngoài khoảng hợp lý [{lo}, {hi}]")
 
         # Kiểm tra chéo: tổng đa chất không được vượt quá 100 g / 100 g thực phẩm
+        # LƯU Ý: fiber_g (chất xơ) trong NIN 2017 (CHOCDF) đã là carbohydrate
+        # tổng, chất xơ là MỘT PHẦN của carb_g, không cộng dồn thêm — cộng
+        # riêng fiber_g sẽ đếm hai lần với thực phẩm khô/nhiều xơ (VD Măng
+        # khô, Hạt tiêu) và báo lỗi giả (DAT-22, phát hiện khi merge NIN 2017).
         try:
-            macro = sum(float(row.get(c) or 0) for c in ("protein_g", "carb_g", "fat_g", "fiber_g"))
+            macro = sum(float(row.get(c) or 0) for c in ("protein_g", "carb_g", "fat_g"))
             if macro > 105:
                 err(f"{loc} tổng đa chất {macro:.1f} g/100 g — bất khả thi")
         except ValueError:
