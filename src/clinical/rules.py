@@ -94,11 +94,17 @@ def _split(raw: str | None) -> tuple[str, ...]:
     return tuple(c.strip() for c in (raw or "").split(",") if c.strip())
 
 
-def load_rules(path: Path | None = None, *, verified_only: bool = True) -> list[ClinicalRule]:
-    """Load clinical rules, failing closed on unverified evidence by default.
+def load_rules(path: Path | None = None, *, verified_only: bool = False) -> list[ClinicalRule]:
+    """Load clinical rules.
 
-    ``verified_only=False`` is reserved for rule inventory/audit tooling and
-    isolated tests. Runtime target computation uses the verified-only default.
+    ``verified_only=True`` giữ đúng nguyên tắc "fail closed on unverified
+    evidence" cho môi trường/thời điểm mà `clinical_rules.csv` đã có rule
+    `verified` thật. DEC-020 (2026-08-09, Hưng/R2 xác nhận): default hiện tại
+    đổi VỀ `False` vì toàn bộ 21 rule trong seed hiện tại đang `to_verify` —
+    giữ `True` làm mặc định khiến `compute_targets()` không tính được BẤT KỲ
+    ngưỡng lâm sàng nào ngoài năng lượng (đã xác nhận qua test hồi quy thật,
+    không phải lý thuyết). Khi R2 verify xong ít nhất một tập rule, cân nhắc
+    đổi lại default — đây không phải quyết định vĩnh viễn.
     """
     path = path or DEFAULT_RULES_PATH
     rules: list[ClinicalRule] = []
