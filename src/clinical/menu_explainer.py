@@ -47,7 +47,9 @@ class MenuFacts(BaseModel):
     soft_notes: list[str] = Field(default_factory=list)
 
 
-def _nutrient_status(value: float, min_value: float | None, max_value: float | None) -> Literal["within", "over", "under"]:
+def _nutrient_status(
+    value: float, min_value: float | None, max_value: float | None
+) -> Literal["within", "over", "under"]:
     if max_value is not None and value > max_value:
         return "over"
     if min_value is not None and value < min_value:
