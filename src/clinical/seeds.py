@@ -14,6 +14,7 @@ from pathlib import Path
 
 from .models import DishCandidate, FoodItem, MealSlot, MenuDraft, MenuItem
 from .nutrition import InMemoryFoodRepository
+from .tiers import is_patient_facing_dish
 
 SEEDS_DIR = Path(__file__).resolve().parents[2] / "data" / "seeds"
 
@@ -94,6 +95,12 @@ def load_vn_dishes(path: Path | None = None, ingredients_path: Path | None = Non
     bên dưới) bị loại hẳn — không đủ căn cứ dùng làm candidate CP-SAT (audit
     2026-08-08, xem DEVLOG). Số món dùng được thật hiện rất mỏng (~28/2678
     dòng file) — cần R2 mở rộng, xem `docs/TICKETS.md`.
+
+    DAT-23/DEC-022: ranh giới tầng giờ lấy từ `clinical.tiers` thay vì tự suy ra
+    từ cột `verified_by`. Bộ lọc cũ dựa vào `verified_by` bắt đầu bằng
+    "USDA FNDDS" nên loại được `FNDDS-*` nhưng **bỏ lọt `MENU-*`** (các dòng này
+    có `verified_by="pending"`, không khớp) — đó là nguyên nhân trực tiếp của bug
+    tên món giả "Bữa sáng - Thực đơn 3 (TĐ 3+4)" hiện trên UI bệnh nhân.
     """
     path = path or SEEDS_DIR / "dishes.csv"
     ingredients_path = ingredients_path or SEEDS_DIR / "dish_ingredients.csv"
@@ -116,9 +123,9 @@ def load_vn_dishes(path: Path | None = None, ingredients_path: Path | None = Non
     dishes: list[DishCandidate] = []
     with open(path, newline="", encoding="utf-8") as f:
         for row in csv.DictReader(f):
+            if not is_patient_facing_dish(row["dish_id"]):
+                continue  # FNDDS-* (bulk Mỹ) và MENU-* (mẫu bữa, không phải món)
             verified = (row.get("verified_by") or "").strip()
-            if verified.upper().startswith("USDA FNDDS"):
-                continue  # khối bulk Mỹ lẫn trong dishes.csv, không phải món Việt
             note = row.get("note") or ""
             if any(marker in note for marker in incomplete_recipe_markers):
                 continue  # công thức tự ghi nhận chưa đủ nguyên liệu — chờ R2 rà
