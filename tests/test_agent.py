@@ -211,6 +211,7 @@ DETERMINISTIC_FILES = [
     "clinical/validator.py",
     "clinical/models.py",
     "agents/nodes/core.py",
+    "agents/equivalent.py",
 ]
 
 
