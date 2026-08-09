@@ -11,7 +11,7 @@ from sqlalchemy.orm import Session
 
 from src.api.clinical_bridge import to_clinical_profile
 from src.api.security import CurrentUser, get_current_user
-from src.clinical.rules import compute_targets
+from src.clinical.rules import compute_targets_with_rule_gate
 from src.db.base import get_db
 from src.db.models import PatientProfile as DbPatientProfile
 
@@ -53,7 +53,7 @@ def compute_targets_route(
     if user.role == "patient" and profile.user_id != user.id:
         raise HTTPException(status.HTTP_404_NOT_FOUND, "Không tìm thấy hồ sơ bệnh nhân")
 
-    result = compute_targets(to_clinical_profile(profile))
+    result, _unverified_rule_ids = compute_targets_with_rule_gate(to_clinical_profile(profile))
 
     return ComputeTargetsResponse(
         patient_id=payload.patient_id,

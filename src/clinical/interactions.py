@@ -108,6 +108,16 @@ class DrugFoodRule:
         parts = re.split(r"\s*(?:,|;|/|\bvà\b|\bhoặc\b)\s*", raw)
         return [p for p in (_norm(p) for p in parts) if len(p) >= 2]
 
+    @property
+    def interaction_id(self) -> str:
+        """Khoá ổn định cho 1 cặp thuốc–thực phẩm — dùng để trace/hash, không
+        phải khoá DB thật (bảng nguồn không có cột id riêng)."""
+        return f"{_norm(self.drug_name)}::{_norm(self.food_or_nutrient)}"
+
+    def applies_to(self, medication: str) -> bool:
+        """True khi tên thuốc bệnh nhân đang dùng khớp `drug_name`/dạng trong ngoặc."""
+        return _drug_matches(_norm(medication), self)
+
 
 def load_drug_food_rules(path: Path | None = None) -> list[DrugFoodRule]:
     """Nạp `drug_food_interactions.csv`. Bỏ qua dòng thiếu trường bắt buộc."""
