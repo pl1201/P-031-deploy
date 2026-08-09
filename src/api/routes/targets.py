@@ -166,7 +166,7 @@ def what_if_targets_route(
     db: Session = Depends(get_db),
     user: CurrentUser = Depends(require_role("dietitian", "admin")),
 ) -> WhatIfResponse:
-    """"Nếu CKD sang G4 thì ngưỡng đổi thế nào?" — không sửa gì trong DB.
+    """ "Nếu CKD sang G4 thì ngưỡng đổi thế nào?" — không sửa gì trong DB.
 
     LLM (target_assistant.parse_what_if) chỉ trả về `ProfileDelta` — không có
     field số nào (xem docstring `ProfileDelta`). Ngưỡng luôn tính LẠI bằng

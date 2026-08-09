@@ -19,7 +19,7 @@ Mọi con số ngưỡng thật luôn đến từ `compute_targets()` gọi LẠ
 from __future__ import annotations
 
 import logging
-from typing import Literal
+from typing import Literal, TypeVar
 
 from google import genai
 from google.genai import errors, types
@@ -144,12 +144,15 @@ def parse_what_if(question_vi: str, *, settings: Settings | None = None) -> Prof
 # ---------------------------------------------------------------------------
 # Gọi Gemini — xoay vòng key, giống khuôn src/services/llm.py
 # ---------------------------------------------------------------------------
+_SchemaT = TypeVar("_SchemaT", bound=BaseModel)
+
+
 def _call_gemini(
     prompt: str,
     system_prompt: str,
-    schema: type[BaseModel],
+    schema: type[_SchemaT],
     settings: Settings | None,
-) -> BaseModel:
+) -> _SchemaT:
     settings = settings or get_settings()
     keys = settings.gemini_keys()
     if not keys:

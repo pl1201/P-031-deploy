@@ -113,8 +113,8 @@ def explain_targets(
     for nutrient, t in targets.targets.items():
         applied: list[AppliedRuleExplanation] = []
         for rid in t.rule_ids:
-            rule = by_id.get(rid)
-            if rule is None:
+            applied_rule = by_id.get(rid)
+            if applied_rule is None:
                 if rid == "ENERGY-WHO-FAO-UNU":
                     applied.append(
                         AppliedRuleExplanation(
@@ -128,12 +128,12 @@ def explain_targets(
                 continue
             applied.append(
                 AppliedRuleExplanation(
-                    rule_id=rule.rule_id,
-                    guideline_ref=rule.guideline_ref,
-                    guideline_grade=rule.guideline_grade,
-                    bound=rule.bound,
-                    resolved_value=round(rule.resolve(weight_kg=weight, energy_kcal=energy), 2),
-                    unit=rule.unit_for_target(),
+                    rule_id=applied_rule.rule_id,
+                    guideline_ref=applied_rule.guideline_ref,
+                    guideline_grade=applied_rule.guideline_grade,
+                    bound=applied_rule.bound,
+                    resolved_value=round(applied_rule.resolve(weight_kg=weight, energy_kcal=energy), 2),
+                    unit=applied_rule.unit_for_target(),
                 )
             )
 
@@ -201,10 +201,11 @@ def diff_explanations(
         a = by_nutrient_after.get(nutrient)
         b_min, b_max = (b.min_value, b.max_value) if b else (None, None)
         a_min, a_max = (a.min_value, a.max_value) if a else (None, None)
+        either = a or b
         diffs.append(
             NutrientDiff(
                 nutrient=nutrient,
-                label_vi=(a or b).label_vi if (a or b) else nutrient,
+                label_vi=either.label_vi if either else nutrient,
                 before_min=b_min,
                 before_max=b_max,
                 after_min=a_min,

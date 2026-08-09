@@ -26,8 +26,7 @@ def test_chat_khong_co_token_tra_401(client) -> None:
     resp = client.post("/api/v1/chat", json={"message": "ăn phở bò được không"})
 
     assert resp.status_code == 401, (
-        "/chat phải yêu cầu đăng nhập — endpoint này nhận văn bản tự do và "
-        "tiêu API key Gemini ở guardrail tầng 2."
+        "/chat phải yêu cầu đăng nhập — endpoint này nhận văn bản tự do và tiêu API key Gemini ở guardrail tầng 2."
     )
 
 

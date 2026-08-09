@@ -79,14 +79,23 @@ class AttackClass(str, Enum):
 # Mẫu chỉ thị KHÔNG bao giờ nên xuất hiện trong một tên món/ghi chú thực phẩm.
 # Cố ý nhận diện cả tiếng Việt lẫn tiếng Anh: dữ liệu bulk USDA là tiếng Anh.
 _INJECTION_PATTERNS: list[tuple[AttackClass, str]] = [
-    (AttackClass.INSTRUCTION_OVERRIDE, r"(?i)\b(bỏ qua|phớt lờ|không cần theo)\b.{0,30}\b(hướng dẫn|quy tắc|chỉ dẫn|phía trên)"),
-    (AttackClass.INSTRUCTION_OVERRIDE, r"(?i)\bignore\b.{0,30}\b(previous|above|prior)\b.{0,20}\b(instruction|prompt|rule)"),
+    (
+        AttackClass.INSTRUCTION_OVERRIDE,
+        r"(?i)\b(bỏ qua|phớt lờ|không cần theo)\b.{0,30}\b(hướng dẫn|quy tắc|chỉ dẫn|phía trên)",
+    ),
+    (
+        AttackClass.INSTRUCTION_OVERRIDE,
+        r"(?i)\bignore\b.{0,30}\b(previous|above|prior)\b.{0,20}\b(instruction|prompt|rule)",
+    ),
     (AttackClass.INSTRUCTION_OVERRIDE, r"(?i)(quy tắc mới|chỉ thị mới|new instruction|new rule)\s*[:：]"),
     (AttackClass.INSTRUCTION_OVERRIDE, r"(?i)\b(disregard|override)\b.{0,25}\b(system|instruction|rule)"),
     (AttackClass.ROLE_HIJACK, r"(?i)(bạn (giờ|bây giờ) là|từ giờ bạn là|you are now|act as)\s"),
     (AttackClass.ROLE_HIJACK, r"(?i)</?(system|assistant|user)>"),
     (AttackClass.SCHEMA_ESCAPE, r"(?i)(trả (về|thêm)|thêm field|hãy ghi|output)\s.{0,25}(kcal|natri|sodium|calo)"),
-    (AttackClass.SECRET_EXFILTRATION, r"(?i)(api[_\s-]?key|jwt[_\s-]?secret|mật khẩu|password|token|biến môi trường|env var)"),
+    (
+        AttackClass.SECRET_EXFILTRATION,
+        r"(?i)(api[_\s-]?key|jwt[_\s-]?secret|mật khẩu|password|token|biến môi trường|env var)",
+    ),
     (AttackClass.APPROVAL_BYPASS, r"(?i)(tự động duyệt|bỏ qua duyệt|approve.{0,15}automatic|skip.{0,15}review)"),
 ]
 

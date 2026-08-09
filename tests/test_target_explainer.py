@@ -58,7 +58,9 @@ def test_rule_thieu_flag_co_ly_do_dung_la_thieu_flag_khong_phai_overridden(rules
     """Bug thật đã bắt được: T2DM-PRO-02 (requires_flag=elderly) bị loại vì
     bệnh nhân chưa đủ tuổi — KHÔNG phải vì bị CKD ghi đè (overridden_by rỗng
     trên chính rule này). Gộp chung 2 lý do sẽ in ra "Bị  thay thế" (rỗng)."""
-    p = _profile(age=60, conditions=[Condition(code=ConditionCode.T2DM), Condition(code=ConditionCode.CKD, stage="G3b")])
+    p = _profile(
+        age=60, conditions=[Condition(code=ConditionCode.T2DM), Condition(code=ConditionCode.CKD, stage="G3b")]
+    )
     targets = compute_targets(p, rules)
     ex = _find(explain_targets(p, targets, rules), "protein_g")
 
@@ -103,7 +105,9 @@ def test_rule_disabled_boi_co_an_toan_co_ly_do_dung(rules):
 
 def test_conflict_note_gan_dung_chat(rules):
     """Ca hẹp dải đã biết: người cao tuổi ĐTĐ+CKD — ADA sàn 0.8 g/kg, KDIGO trần 0.8 g/kg."""
-    p = _profile(age=70, conditions=[Condition(code=ConditionCode.T2DM), Condition(code=ConditionCode.CKD, stage="G3b")])
+    p = _profile(
+        age=70, conditions=[Condition(code=ConditionCode.T2DM), Condition(code=ConditionCode.CKD, stage="G3b")]
+    )
     targets = compute_targets(p, rules)
     if targets.needs_expert_review:
         ex = _find(explain_targets(p, targets, rules), "protein_g")
