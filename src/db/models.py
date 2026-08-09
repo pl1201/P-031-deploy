@@ -80,6 +80,7 @@ class PatientProfile(Base):
     allergies: Mapped[list[PatientAllergy]] = relationship(back_populates="profile")
     meal_plans: Mapped[list[MealPlan]] = relationship(back_populates="profile")
     food_logs: Mapped[list[FoodLog]] = relationship(back_populates="profile")
+    pantry_items: Mapped[list[PantryItem]] = relationship(back_populates="profile")
 
 
 class PatientMedication(Base):
@@ -302,10 +303,33 @@ class MealPlan(Base):
     targets: Mapped[dict] = mapped_column(JSON, default=dict)
     computed_nutrition: Mapped[dict] = mapped_column(JSON, default=dict)
     violations: Mapped[list] = mapped_column(JSON, default=list)
+    safety_findings: Mapped[list] = mapped_column(JSON, default=list)
+    review_packet: Mapped[dict] = mapped_column(JSON, default=dict)
+    citations: Mapped[list] = mapped_column(JSON, default=list)
+    explanation_vi: Mapped[str | None] = mapped_column(Text, nullable=True)
+    highest_risk: Mapped[str] = mapped_column(String(4), default="none")
     retry_count: Mapped[int] = mapped_column(Integer, default=0)
+    menu_version: Mapped[int] = mapped_column(Integer, default=0)
+    approved_menu_version: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    menu_hash: Mapped[str | None] = mapped_column(String(64), nullable=True)
+    nutrition_hash: Mapped[str | None] = mapped_column(String(64), nullable=True)
+    approved_menu_hash: Mapped[str | None] = mapped_column(String(64), nullable=True)
+    approved_nutrition_hash: Mapped[str | None] = mapped_column(String(64), nullable=True)
     reviewer_id: Mapped[str | None] = mapped_column(ForeignKey("users.id"), nullable=True)
     reviewer_notes: Mapped[str | None] = mapped_column(Text, nullable=True)
     trace_id: Mapped[str | None] = mapped_column(String(100), nullable=True)
+    run_id: Mapped[str | None] = mapped_column(String(36), nullable=True)
+    profile_snapshot_hash: Mapped[str | None] = mapped_column(String(64), nullable=True)
+    profile_version: Mapped[str | None] = mapped_column(String(32), nullable=True)
+    rule_version: Mapped[str | None] = mapped_column(String(32), nullable=True)
+    food_data_version: Mapped[str | None] = mapped_column(String(64), nullable=True)
+    interaction_version: Mapped[str | None] = mapped_column(String(32), nullable=True)
+    prompt_version: Mapped[str | None] = mapped_column(String(32), nullable=True)
+    attempt_history: Mapped[list] = mapped_column(JSON, default=list)
+    node_timings_ms: Mapped[dict] = mapped_column(JSON, default=dict)
+    token_usage: Mapped[dict] = mapped_column(JSON, default=dict)
+    last_error: Mapped[dict | None] = mapped_column(JSON, nullable=True)
+    audit_events: Mapped[list] = mapped_column(JSON, default=list)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
 
     profile: Mapped[PatientProfile] = relationship(back_populates="meal_plans")
@@ -378,6 +402,59 @@ class FoodLog(Base):
     profile: Mapped[PatientProfile] = relationship(back_populates="food_logs")
 
 
+class PantryItem(Base):
+    """Nguyên liệu bệnh nhân khai báo có sẵn — đầu vào cho thực đơn tương đương
+    (P2/AGT-12, `src/agents/equivalent.py`).
+
+    `free_text_vi` giữ chỗ cho nhập tự do (VD "còn nửa con gà") nhưng KHÔNG có
+    cơ chế tự khớp sang `food_id` trong lượt này — phụ thuộc `FoodMatcher`
+    (BE-07, chưa merge vào `main`). Dòng chỉ `free_text_vi` (food_id=None) bị
+    `solve_equivalent()` bỏ qua, không suy đoán (RULE-2).
+    """
+
+    __tablename__ = "pantry_items"
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=_uuid)
+    profile_id: Mapped[str] = mapped_column(ForeignKey("patient_profiles.id"), index=True)
+    food_id: Mapped[int | None] = mapped_column(ForeignKey("food_items.id"), nullable=True)
+    free_text_vi: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    qty: Mapped[float] = mapped_column(Float)
+    unit: Mapped[str] = mapped_column(String(20))
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+
+    profile: Mapped[PatientProfile] = relationship(back_populates="pantry_items")
+    food: Mapped[FoodItem | None] = relationship()
+
+
+class SubstitutionScope(Base):
+    """Phạm vi thay thế duyệt trước (RULE-3, DEC-018 — DEVLOG.md §3).
+
+    Chuyên gia duyệt MỘT CHÍNH SÁCH áp cho nhiều lần phát hành tự động, không
+    phải từng bản riêng lẻ. Thực đơn tương đương chỉ được tự phát hành (không
+    qua duyệt tay) khi ĐỒNG THỜI: còn hạn (`expires_at`), `validate_menu()`
+    không có vi phạm nào (kể cả soft), mọi nguyên liệu `is_estimated=False`,
+    nằm trong `tolerance`, `release_count < max_auto_releases`. Trượt bất kỳ
+    điều kiện nào → rơi về `pending_review`. Bảng này chỉ LƯU chính sách —
+    việc enforce nằm ở route gọi `solve_equivalent()`, không phải ở đây.
+    """
+
+    __tablename__ = "substitution_scopes"
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=_uuid)
+    profile_id: Mapped[str] = mapped_column(ForeignKey("patient_profiles.id"), index=True)
+    base_plan_id: Mapped[str] = mapped_column(ForeignKey("meal_plans.id"), index=True)
+    approved_by: Mapped[str] = mapped_column(ForeignKey("users.id"))
+    tolerance: Mapped[float] = mapped_column(Float, default=0.10)
+    max_auto_releases: Mapped[int] = mapped_column(Integer, default=5)
+    release_count: Mapped[int] = mapped_column(Integer, default=0)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+    expires_at: Mapped[datetime] = mapped_column(DateTime)
+    revoked_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
+
+    profile: Mapped[PatientProfile] = relationship()
+    base_plan: Mapped[MealPlan] = relationship()
+
+
 class AuditLog(Base):
     """Append-only theo R20.16/BE-08 — KHÔNG có API xoá/sửa ở tầng ứng dụng."""
 
@@ -402,9 +479,11 @@ __all__ = [
     "GuidelineChunk",
     "MealPlan",
     "MealPlanItem",
+    "PantryItem",
     "PatientAllergy",
     "PatientMedication",
     "PatientProfile",
     "ServingSize",
+    "SubstitutionScope",
     "User",
 ]
