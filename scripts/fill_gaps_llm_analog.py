@@ -188,8 +188,13 @@ class QuotaExhaustedError(Exception):
 
 
 def pick_analog(
-    client_keys: list[str], model: str, name_vi: str, name_en: str,
-    candidates: list[dict], samples: int, min_agree: int,
+    client_keys: list[str],
+    model: str,
+    name_vi: str,
+    name_en: str,
+    candidates: list[dict],
+    samples: int,
+    min_agree: int,
 ) -> tuple[int | None, float, str]:
     cand_text = "\n".join(f"- fdc_id={u['fdc_id']}: {u['desc']}" for u in candidates)
     prompt = _PROMPT.format(name_vi=name_vi, name_en=name_en, candidates=cand_text)
@@ -258,8 +263,12 @@ def main() -> None:
     ap.add_argument("--pilot", type=int, default=0, help="chỉ chạy N dòng đầu, không ghi")
     ap.add_argument("--offset", type=int, default=0, help="bỏ qua N dòng đầu (chạy theo lô)")
     ap.add_argument("--limit", type=int, default=0, help="chỉ xử lý N dòng từ offset (0 = hết)")
-    ap.add_argument("--samples", type=int, default=1,
-                     help="số lần lấy mẫu LLM/dòng (mặc định 1 — free-tier RPD/ngày quá thấp cho 3)")
+    ap.add_argument(
+        "--samples",
+        type=int,
+        default=1,
+        help="số lần lấy mẫu LLM/dòng (mặc định 1 — free-tier RPD/ngày quá thấp cho 3)",
+    )
     ap.add_argument("--apply", action="store_true")
     args = ap.parse_args()
     min_agree = 2 if args.samples >= 3 else 1
@@ -291,9 +300,7 @@ def main() -> None:
             remain.append({**_r(t), "reason": "không ứng viên USDA nào đủ trường cần"})
             continue
         try:
-            fid, conf, note = pick_analog(
-                keys, model, t["name_vi"], t["name_en"], cands, args.samples, min_agree
-            )
+            fid, conf, note = pick_analog(keys, model, t["name_vi"], t["name_en"], cands, args.samples, min_agree)
         except QuotaExhaustedError as exc:
             untouched = batch[i:]
             print(

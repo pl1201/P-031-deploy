@@ -70,9 +70,28 @@ QTY_RE = re.compile(
 # KHONG bi tinh la "unparsed_main_ingredient" (khong lam mon bi loai), nhung
 # cung KHONG bao gio duoc cong gram (vi von khong co gram) — an toan ca 2 chieu.
 SEASONING_ROOTS = (
-    "muối", "đường", "tiêu", "dầu ăn", "nước mắm", "hạt nêm", "bột ngọt",
-    "gia vị", "tương ớt", "ớt", "tỏi", "hành", "bột canh", "giấm", "chanh",
-    "nước tương", "dầu mè", "mè", "rau thơm", "ngò", "hành lá", "dầu hào",
+    "muối",
+    "đường",
+    "tiêu",
+    "dầu ăn",
+    "nước mắm",
+    "hạt nêm",
+    "bột ngọt",
+    "gia vị",
+    "tương ớt",
+    "ớt",
+    "tỏi",
+    "hành",
+    "bột canh",
+    "giấm",
+    "chanh",
+    "nước tương",
+    "dầu mè",
+    "mè",
+    "rau thơm",
+    "ngò",
+    "hành lá",
+    "dầu hào",
     "ăn kèm",
 )
 
