@@ -29,9 +29,7 @@ class DrugFoodInteraction:
         return drug in medication or medication in drug
 
 
-def load_drug_food_interactions(
-    path: Path | None = None, *, verified_only: bool = True
-) -> list[DrugFoodInteraction]:
+def load_drug_food_interactions(path: Path | None = None, *, verified_only: bool = True) -> list[DrugFoodInteraction]:
     rows: list[DrugFoodInteraction] = []
     with open(path or DEFAULT_INTERACTIONS_PATH, newline="", encoding="utf-8") as handle:
         for row in csv.DictReader(handle):

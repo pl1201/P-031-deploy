@@ -274,9 +274,7 @@ def compute_targets_with_rule_gate(
     inventory = rule_inventory if rule_inventory is not None else load_rules(verified_only=False)
     targets = compute_targets(profile, verified)
     applicable, disabled = _select_rules(profile, inventory)
-    unverified = sorted(
-        rule.rule_id for rule in (*applicable, *disabled) if rule.verify_status != "verified"
-    )
+    unverified = sorted(rule.rule_id for rule in (*applicable, *disabled) if rule.verify_status != "verified")
     if unverified:
         targets = targets.model_copy(
             update={

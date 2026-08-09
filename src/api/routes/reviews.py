@@ -85,7 +85,9 @@ def _draft_and_repository(plan: MealPlan):
     legacy_foods = load_food_repository()
     uses_dishes = all(item.dish_id for item in plan.items)
     if any(item.dish_id for item in plan.items) and not uses_dishes:
-        raise HTTPException(status.HTTP_422_UNPROCESSABLE_ENTITY, "Mixed dish/ingredient plans cannot be recomputed safely")
+        raise HTTPException(
+            status.HTTP_422_UNPROCESSABLE_ENTITY, "Mixed dish/ingredient plans cannot be recomputed safely"
+        )
     foods = dish_foods if uses_dishes else legacy_foods
     draft = MenuDraft()
     for item in plan.items:
@@ -171,11 +173,7 @@ def approve_review(
     if payload.edits:
         _recompute_downstream(plan, payload.edits, db)
 
-    if (
-        payload_has_p0(plan.violations, plan.highest_risk)
-        or not plan.menu_hash
-        or not plan.nutrition_hash
-    ):
+    if payload_has_p0(plan.violations, plan.highest_risk) or not plan.menu_hash or not plan.nutrition_hash:
         db.rollback()
         raise HTTPException(
             status.HTTP_422_UNPROCESSABLE_ENTITY,

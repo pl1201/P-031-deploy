@@ -26,7 +26,7 @@ import hashlib
 import json
 from datetime import UTC, datetime
 from pathlib import Path
-from typing import Protocol
+from typing import Literal, Protocol
 from uuid import uuid4
 
 from src.agents.state import (
@@ -61,7 +61,9 @@ from src.clinical.validator import build_feedback, validate_menu
 
 
 def _stable_hash(payload) -> str:
-    encoded = json.dumps(payload, ensure_ascii=False, sort_keys=True, separators=(",", ":"), default=str).encode("utf-8")
+    encoded = json.dumps(payload, ensure_ascii=False, sort_keys=True, separators=(",", ":"), default=str).encode(
+        "utf-8"
+    )
     return hashlib.sha256(encoded).hexdigest()
 
 
@@ -149,9 +151,7 @@ def make_compute_targets(rules: list[ClinicalRule] | None = None):
     def compute_targets_node(state: NutriState) -> dict:
         targets = compute_targets(state["profile"], verified_rules)
         applicable, disabled = _select_rules(state["profile"], rule_inventory)
-        unverified = sorted(
-            rule.rule_id for rule in (*applicable, *disabled) if rule.verify_status != "verified"
-        )
+        unverified = sorted(rule.rule_id for rule in (*applicable, *disabled) if rule.verify_status != "verified")
         out: dict = {
             "targets": targets,
             "target_conflicts": [TargetConflict(message=note) for note in targets.conflict_notes],
@@ -345,9 +345,7 @@ def make_build_safety_constraints(foods: FoodRepository):
             "safety_constraints": constraints,
             "candidate_ids": allowed_ids,
             "safety_findings": findings,
-            "interaction_version": _stable_hash(
-                [(item.interaction_id, item.verify_status) for item in inventory]
-            )[:16],
+            "interaction_version": _stable_hash([(item.interaction_id, item.verify_status) for item in inventory])[:16],
         }
 
     return build_safety_constraints
@@ -364,7 +362,11 @@ def make_generate_menu(generator: MenuGenerator, foods: FoodRepository):
         candidates = [food for food_id in state.get("candidate_ids", []) if (food := foods.get(food_id)) is not None]
         attempt_no = state.get("attempt_count", 0) + 1
         generator_name = type(generator).__name__.casefold()
-        source = "gemini" if "gemini" in generator_name or ("hybrid" in generator_name and state.get("feedback")) else "cpsat"
+        source: Literal["gemini", "cpsat"] = (
+            "gemini"
+            if "gemini" in generator_name or ("hybrid" in generator_name and state.get("feedback"))
+            else "cpsat"
+        )
         history = list(state.get("attempt_history", []))
         try:
             draft = generator.generate(
@@ -457,6 +459,7 @@ def make_compute_nutrition(foods: FoodRepository):
 
 
 def _finding_from_violation(violation) -> SafetyFinding:
+    category: Literal["incomplete_data", "allergy", "drug_food", "nutrient"]
     if violation.kind == "incomplete_data":
         level = RiskSeverity.P1
         category = "incomplete_data"
@@ -495,7 +498,8 @@ def make_validate(foods: FoodRepository, rules: list[ClinicalRule] | None = None
         if nutrition is None or draft is None:
             return {
                 "violations": [],
-                "safety_findings": persistent_findings + [
+                "safety_findings": persistent_findings
+                + [
                     SafetyFinding(
                         code="INVALID_DRAFT",
                         risk_level=RiskSeverity.P0,
@@ -615,10 +619,7 @@ def explain_with_citations(state: NutriState) -> dict:
     for finding in state.get("safety_findings", []):
         for ref in finding.evidence_refs:
             by_ref.setdefault(ref, set()).update([finding.rule_id] if finding.rule_id else [])
-    citations = [
-        Citation(source_ref=ref, rule_ids=sorted(rule_ids))
-        for ref, rule_ids in sorted(by_ref.items())
-    ]
+    citations = [Citation(source_ref=ref, rule_ids=sorted(rule_ids)) for ref, rule_ids in sorted(by_ref.items())]
     highest = state.get("highest_risk", "none")
     return {
         "citations": citations,

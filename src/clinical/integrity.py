@@ -36,9 +36,7 @@ def payload_has_p0(violations: list[dict[str, Any]] | None, highest_risk: str | 
     if highest_risk == "P0":
         return True
     return any(
-        finding.get("risk_level") == "P0"
-        or finding.get("severity") == "hard"
-        or finding.get("blocking") is True
+        finding.get("risk_level") == "P0" or finding.get("severity") == "hard" or finding.get("blocking") is True
         for finding in (violations or [])
     )
 

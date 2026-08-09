@@ -83,9 +83,7 @@ def test_graph_fake_khong_dat_thi_retry_roi_fallback(foods, profiles, verified_r
 
 
 def test_graph_khong_tim_thay_ho_so_thi_dung_som(foods, profiles, verified_rules):
-    graph = build_nutricare_graph(
-        profiles=profiles, generator=_FakeGenerator([1]), foods=foods, rules=verified_rules
-    )
+    graph = build_nutricare_graph(profiles=profiles, generator=_FakeGenerator([1]), foods=foods, rules=verified_rules)
     final = graph.invoke({"patient_id": "KHONG-TON-TAI", "trace_id": "t2"})
     assert final["status"] == "failed"
 
@@ -97,9 +95,7 @@ def test_graph_chay_voi_cpsat_that_khong_can_api_key(foods, profiles, verified_r
     duyệt HITL ngay lượt đầu, KHÔNG rơi vào fallback (đó mới là điểm ăn tiền so
     với vòng lặp đoán-rồi-thử của LLM).
     """
-    graph = build_nutricare_graph(
-        profiles=profiles, generator=CPSATMenuOptimizer(), foods=foods, rules=verified_rules
-    )
+    graph = build_nutricare_graph(profiles=profiles, generator=CPSATMenuOptimizer(), foods=foods, rules=verified_rules)
     final = graph.invoke({"patient_id": "BN-E2E", "trace_id": "t3"})
 
     assert final["status"] == "pending_review"
