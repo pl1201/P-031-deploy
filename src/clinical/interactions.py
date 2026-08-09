@@ -232,8 +232,7 @@ def _to_violation(rule: DrugFoodRule, food: FoodItem) -> Violation:
         kind="drug_food",
         severity=rule.effective_severity,
         message_vi=(
-            f"Bệnh nhân đang dùng {rule.drug_name}; thực đơn có {food.name_vi}. "
-            f"{rule.mechanism_vi}.{chua_xac_minh}"
+            f"Bệnh nhân đang dùng {rule.drug_name}; thực đơn có {food.name_vi}. {rule.mechanism_vi}.{chua_xac_minh}"
         ),
         suggestion=rule.recommendation_vi or None,
         source_ref=rule.source_ref,

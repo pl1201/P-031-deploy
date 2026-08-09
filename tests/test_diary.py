@@ -55,12 +55,8 @@ def targets() -> ClinicalTargets:
         bmr_kcal=1400.0,
         tdee_kcal=1900.0,
         targets={
-            "na_mg": NutrientTarget(
-                nutrient="na_mg", max_value=2000.0, unit="mg", rule_ids=["BASE-NA-01"]
-            ),
-            "protein_g": NutrientTarget(
-                nutrient="protein_g", min_value=60.0, unit="g", rule_ids=["BASE-PRO-01"]
-            ),
+            "na_mg": NutrientTarget(nutrient="na_mg", max_value=2000.0, unit="mg", rule_ids=["BASE-NA-01"]),
+            "protein_g": NutrientTarget(nutrient="protein_g", min_value=60.0, unit="g", rule_ids=["BASE-PRO-01"]),
         },
     )
 
@@ -129,9 +125,7 @@ def test_du_du_lieu_thi_ket_luan_binh_thuong_ca_hai_chieu(repo, targets) -> None
 
 def test_mon_chua_tra_duoc_khong_duoc_cong_thanh_0(repo, targets) -> None:
     """Món OOV phải nằm ngoài phép cộng, không phải cộng vào với giá trị 0."""
-    chi_com = summarize_day(
-        [LoggedFood("l1", food_id=1, grams=100.0, slot=MealSlot.LUNCH)], targets, repo
-    )
+    chi_com = summarize_day([LoggedFood("l1", food_id=1, grams=100.0, slot=MealSlot.LUNCH)], targets, repo)
     them_oov = summarize_day(
         [
             LoggedFood("l1", food_id=1, grams=100.0, slot=MealSlot.LUNCH),

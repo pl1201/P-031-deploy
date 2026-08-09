@@ -335,12 +335,7 @@ def list_unresolved(
     _user: CurrentUser = Depends(require_role("dietitian", "admin")),
 ) -> list[FoodLogOut]:
     """Các dòng nhật ký chưa tra được, kèm gợi ý để chuyên gia bấm một phát là xong."""
-    rows = (
-        db.query(FoodLog)
-        .filter(FoodLog.match_status == MATCH_UNMATCHED)
-        .order_by(FoodLog.logged_at.desc())
-        .all()
-    )
+    rows = db.query(FoodLog).filter(FoodLog.match_status == MATCH_UNMATCHED).order_by(FoodLog.logged_at.desc()).all()
     matcher = _get_matcher()
     out: list[FoodLogOut] = []
     for r in rows:

@@ -47,8 +47,23 @@ _PREP_RE = re.compile(rf"\b(?:{_PREP_WORDS})\b", re.IGNORECASE)
 # về chất béo). Tương tự "ăn" là phần phân biệt của "Dầu ăn".
 _STOPWORDS = frozenset(
     {
-        "và", "hoặc", "với", "của", "cái", "con", "quả", "trái", "củ", "cây",
-        "chút", "ít", "nhiều", "một", "hai", "ba", "kèm",
+        "và",
+        "hoặc",
+        "với",
+        "của",
+        "cái",
+        "con",
+        "quả",
+        "trái",
+        "củ",
+        "cây",
+        "chút",
+        "ít",
+        "nhiều",
+        "một",
+        "hai",
+        "ba",
+        "kèm",
     }
 )
 
@@ -121,9 +136,7 @@ class FoodMatcher:
                 akey = " ".join(sorted(_tokens(alias)))
                 if akey:
                     self._alias.setdefault(akey, item.id)
-            self._tokens[item.id] = _tokens(item.name_vi) | {
-                t for alias in item.aliases for t in _tokens(alias)
-            }
+            self._tokens[item.id] = _tokens(item.name_vi) | {t for alias in item.aliases for t in _tokens(alias)}
 
     def match(self, term: str, *, top_k: int = TOP_K) -> list[MatchCandidate]:
         """Trả danh sách ứng viên đã xếp hạng giảm dần. Rỗng nếu không có gì đáng gợi ý."""

@@ -171,7 +171,7 @@ class Ingredient:
     name: str
     grams: float | None = None
     food_id: int | None = None
-    unit_ref: str | None = None   # nguon quy doi neu gram den tu bang unit_conversions
+    unit_ref: str | None = None  # nguon quy doi neu gram den tu bang unit_conversions
 
 
 @dataclass

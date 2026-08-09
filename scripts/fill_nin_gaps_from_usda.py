@@ -76,7 +76,7 @@ FIELD_FROM_NIN = {
     "p_mg": "p_mg",
 }
 
-MIN_SCORE = 0.70   # duoi muc nay: bo han, khong dua ra ca de xuat
+MIN_SCORE = 0.70  # duoi muc nay: bo han, khong dua ra ca de xuat
 AUTO_SCORE = 0.90  # tu muc nay tro len moi TU DONG ap vao food_items.csv
 
 
@@ -96,8 +96,23 @@ def _norm_en(text: str) -> str:
 # Tu bi loai khi so khop: chi la trang thai che bien/mo ta, khong phan biet
 # duoc thuc pham nay voi thuc pham khac.
 STOPWORDS = {
-    "raw", "fresh", "cooked", "boiled", "nfs", "ns", "as", "to", "the", "and",
-    "with", "without", "type", "style", "commercial", "prepared", "unprepared",
+    "raw",
+    "fresh",
+    "cooked",
+    "boiled",
+    "nfs",
+    "ns",
+    "as",
+    "to",
+    "the",
+    "and",
+    "with",
+    "without",
+    "type",
+    "style",
+    "commercial",
+    "prepared",
+    "unprepared",
 }
 
 
@@ -125,10 +140,25 @@ EXCLUSIVE_GROUPS: tuple[frozenset[str], ...] = (
 # du diem chuoi cao. VD "Chestnut, fresh" vs "Flour, chestnut" (hat de tuoi vs
 # bot hat de: chat xo 2,3 vs 8,7 g/100g); "Chicken, thighs" vs "Chicken, skin";
 # "Chicken, canned" vs "Soup, chicken, canned" (sup da pha loang).
-FORM_TOKENS = frozenset({
-    "flour", "powder", "skin", "soup", "stew", "salad", "substitute",
-    "juice", "sauce", "paste", "chips", "rinds", "crepe", "candies", "bran",
-})
+FORM_TOKENS = frozenset(
+    {
+        "flour",
+        "powder",
+        "skin",
+        "soup",
+        "stew",
+        "salad",
+        "substitute",
+        "juice",
+        "sauce",
+        "paste",
+        "chips",
+        "rinds",
+        "crepe",
+        "candies",
+        "bran",
+    }
+)
 
 
 def _conflicts(a: set[str], b: set[str]) -> bool:
@@ -204,7 +234,9 @@ def main() -> None:
     ap.add_argument("--pilot", action="store_true")
     ap.add_argument("--apply", action="store_true")
     ap.add_argument("--min-score", type=float, default=MIN_SCORE, help="duoi nguong nay: bo han")
-    ap.add_argument("--auto-score", type=float, default=AUTO_SCORE, help="tu dong ap; giua 2 nguong -> file cho R2 duyet")
+    ap.add_argument(
+        "--auto-score", type=float, default=AUTO_SCORE, help="tu dong ap; giua 2 nguong -> file cho R2 duyet"
+    )
     args = ap.parse_args()
 
     nin_by_code = {d["code"]: d for d in json.loads(NIN_JSON.read_text(encoding="utf-8"))}
@@ -212,8 +244,7 @@ def main() -> None:
 
     rows = list(csv.DictReader(open(SEEDS / "food_items.csv", encoding="utf-8", newline="")))
     targets = [
-        r for r in rows
-        if not (r.get("kcal_100g") or "").strip() and "CHUA DU LIEU" in (r.get("source_ref") or "")
+        r for r in rows if not (r.get("kcal_100g") or "").strip() and "CHUA DU LIEU" in (r.get("source_ref") or "")
     ]
     print(f"\nDong can lap: {len(targets)}")
 
@@ -222,13 +253,17 @@ def main() -> None:
         m = re.search(r"ma (\d+)", row.get("source_ref") or "")
         nin = nin_by_code.get(m.group(1)) if m else None
         if nin is None:
-            unresolved.append({"id": row["id"], "name_vi": row["name_vi"], "reason": "khong tra duoc ma NIN", "detail": ""})
+            unresolved.append(
+                {"id": row["id"], "name_vi": row["name_vi"], "reason": "khong tra duoc ma NIN", "detail": ""}
+            )
             continue
 
         missing = [f for f, src in FIELD_FROM_NIN.items() if nin.get(src) is None]
         name_en = (nin.get("name_en") or "").strip()
         if not name_en:
-            unresolved.append({"id": row["id"], "name_vi": row["name_vi"], "reason": "NIN khong co name_en", "detail": ""})
+            unresolved.append(
+                {"id": row["id"], "name_vi": row["name_vi"], "reason": "NIN khong co name_en", "detail": ""}
+            )
             continue
 
         best = max(usda, key=lambda u: score(name_en, u["desc"]))
@@ -240,23 +275,37 @@ def main() -> None:
             # (mot mon Hoa) — natri 1031 mg/100g trong khi mam tom that cao hon
             # nhieu lan. Sai kieu nay di thang vao nguong chan cung cua THA/CKD.
             if best_score >= args.min_score and not any(best.get(f) is None for f in missing):
-                review.append({
-                    "id": row["id"], "name_vi": row["name_vi"], "name_en": name_en,
-                    "usda_desc": best["desc"], "fdc_id": best["fdc_id"],
-                    "score": f"{best_score:.2f}", "truong_can_lap": ", ".join(missing),
-                    "gia_tri_de_xuat": " ".join(f"{f}={best[f]:g}" for f in missing),
-                })
+                review.append(
+                    {
+                        "id": row["id"],
+                        "name_vi": row["name_vi"],
+                        "name_en": name_en,
+                        "usda_desc": best["desc"],
+                        "fdc_id": best["fdc_id"],
+                        "score": f"{best_score:.2f}",
+                        "truong_can_lap": ", ".join(missing),
+                        "gia_tri_de_xuat": " ".join(f"{f}={best[f]:g}" for f in missing),
+                    }
+                )
                 continue
-            unresolved.append({
-                "id": row["id"], "name_vi": row["name_vi"], "reason": "khong khop du nguong",
-                "detail": f"en='{name_en}' gan nhat='{best['desc']}' score={best_score:.2f}",
-            })
+            unresolved.append(
+                {
+                    "id": row["id"],
+                    "name_vi": row["name_vi"],
+                    "reason": "khong khop du nguong",
+                    "detail": f"en='{name_en}' gan nhat='{best['desc']}' score={best_score:.2f}",
+                }
+            )
             continue
         if any(best.get(f) is None for f in missing):
-            unresolved.append({
-                "id": row["id"], "name_vi": row["name_vi"], "reason": "USDA cung thieu truong can lap",
-                "detail": f"can {missing}, USDA co {[k for k in NUTRIENT_IDS if best.get(k) is not None]}",
-            })
+            unresolved.append(
+                {
+                    "id": row["id"],
+                    "name_vi": row["name_vi"],
+                    "reason": "USDA cung thieu truong can lap",
+                    "detail": f"can {missing}, USDA co {[k for k in NUTRIENT_IDS if best.get(k) is not None]}",
+                }
+            )
             continue
 
         for field, nin_key in FIELD_FROM_NIN.items():
@@ -297,7 +346,19 @@ def main() -> None:
 
     review_path = SEEDS / "food_items.nin_gaps_can_R2_duyet.csv"
     with open(review_path, "w", newline="", encoding="utf-8") as f:
-        w = csv.DictWriter(f, fieldnames=["id", "name_vi", "name_en", "usda_desc", "fdc_id", "score", "truong_can_lap", "gia_tri_de_xuat"])
+        w = csv.DictWriter(
+            f,
+            fieldnames=[
+                "id",
+                "name_vi",
+                "name_en",
+                "usda_desc",
+                "fdc_id",
+                "score",
+                "truong_can_lap",
+                "gia_tri_de_xuat",
+            ],
+        )
         w.writeheader()
         w.writerows(review)
 

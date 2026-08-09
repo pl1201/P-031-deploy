@@ -86,8 +86,7 @@ def test_do_duoc_dau_hieu_tan_cong(attack_class: AttackClass, payload: str) -> N
 
     assert incidents, f"Không dò ra gì với payload {attack_class.value}: {payload!r}"
     assert any(i.attack_class is attack_class for i in incidents), (
-        f"Dò ra nhưng phân loại sai: mong {attack_class.value}, "
-        f"nhận {[i.attack_class.value for i in incidents]}"
+        f"Dò ra nhưng phân loại sai: mong {attack_class.value}, nhận {[i.attack_class.value for i in incidents]}"
     )
 
 
