@@ -304,8 +304,8 @@ def make_retrieve_context(foods: FoodRepository):
 
 def make_build_safety_constraints(foods: FoodRepository):
     """Build hard, structured exclusions before either CP-SAT or Gemini sees candidates."""
-    verified = load_drug_food_interactions(verified_only=True)
-    inventory = load_drug_food_interactions(verified_only=False)
+    inventory = load_drug_food_rules()
+    verified = [rule for rule in inventory if rule.verify_status == "verified"]
 
     def build_safety_constraints(state: NutriState) -> dict:
         profile = state["profile"]
