@@ -1,14 +1,22 @@
-# DAT-13 — Phân loại 355 dòng trống trong `food_items.csv`
+# DAT-13 — Phân loại 344 dòng còn trống trong `food_items.csv`
 
 > Sinh tự động bởi `scripts/classify_food_gap_composite.py` — heuristic theo
 > từ khoá tên, KHÔNG tuyệt đối. R2 tự kiểm tra trước khi dùng để lên kế hoạch.
 
-Cả 355 dòng đều **trống hoàn toàn** (không số liệu, không `source_ref`) —
-xác nhận bằng tay 2026-08-10. Không tính được bằng công thức Atwater (cần
-biết trước protein/carb/fat) và không tự động phân rã được vì phần lớn là
-nguyên liệu đơn, không phải công thức món.
+**Lịch sử:** ban đầu (2026-08-10) có 355 dòng trống hoàn toàn. Đối chiếu
+chéo với Bảng TPTP VN 2017 phát hiện 341/355 đã khớp mã món nhưng thiếu
+Na/K — script merge cũ (DAT-22) cố ý không kích hoạt dòng thiếu trường.
+Trích thêm Bảng TPTP VN 2007 (`scripts/extract_nin2007.py`, khớp theo
+MÃ SỐ — ổn định giữa 2 ấn bản, không phụ thuộc tên tiếng Việt bị lỗi font
+trong PDF 2007) và merge (`scripts/merge_nin2007_into_food_items.py`) đã
+kích hoạt được **11 dòng** đủ cả 8 trường lõi. Số liệu dưới đây là phần
+**còn lại (344 dòng)** sau bước đó.
 
-## Nhóm A — Nguyên liệu thô (239 dòng)
+Các dòng còn lại vẫn **trống hoàn toàn hoặc thiếu ít nhất 1 trường lõi** —
+không tính được bằng Atwater (cần biết trước protein/carb/fat) và không tự
+động phân rã được vì phần lớn là nguyên liệu đơn, không phải công thức món.
+
+## Nhóm A — Nguyên liệu thô (228 dòng)
 
 Không có gì để "phân rã" — mỗi dòng là MỘT thực phẩm. Đường duy nhất là
 tra lại đúng thực phẩm đó trong NIN 2017 hoặc USDA FoodData Central.
@@ -31,7 +39,6 @@ tra lại đúng thực phẩm đó trong NIN 2017 hoặc USDA FoodData Central.
 - Mắm nêm
 - Đường thốt nốt
 - Bánh mỳ
-- Bánh phở
 - Bánh quẩy
 - Bún
 - Cốm
@@ -119,21 +126,16 @@ tra lại đúng thực phẩm đó trong NIN 2017 hoặc USDA FoodData Central.
 - Dưa cải sen
 - Dưa giá (đậu xanh)
 - Hành củ muối
-- Kiệu muối
 - Nhút (dưa muối từ mít non, lá đậu xanh non...)
 - Men bia khô
-- Men bia tươi
-- Nấm hương khô
 - Nấm hương tươi
 - Chuối khô
 - Dâu gia
-- Gioi
 - Hồng bì
 - Mắc coọc
 - Mít khô
 - Mít mật
 - Muỗm, quéo
-- Nhãn khô
 - Nho ta (nho chua)
 - Nhót
 - Quả bơ vỏ tím
@@ -141,7 +143,6 @@ tra lại đúng thực phẩm đó trong NIN 2017 hoặc USDA FoodData Central.
 - Quả thanh long
 - Quả trứng gà
 - Quất chín (cả vỏ)
-- Quít
 - Sấu chín
 - Vú sữa
 - Dầu thảo mộc (Lạc, vừng, cám...)
@@ -221,11 +222,8 @@ tra lại đúng thực phẩm đó trong NIN 2017 hoặc USDA FoodData Central.
 - Bánh con cá
 - Bánh khảo chay
 - Bánh trứng nhện
-- Đường kính
 - Mạch nha
 - Cary bột
-- Gừng khô (bột)
-- Nghệ khô, bột
 - ớt khô bột
 - Riềng
 - Mắm tôm đặc
@@ -240,7 +238,6 @@ tra lại đúng thực phẩm đó trong NIN 2017 hoặc USDA FoodData Central.
 - Cô nhắc (cồn 32 g)
 - Cốc tain (cồn 13 g)
 - Coca cola
-- Nước cam tươi
 - Nước dừa non tươi
 - Nước khoáng
 - Rượu cam, chanh (cồn 24,2 g)

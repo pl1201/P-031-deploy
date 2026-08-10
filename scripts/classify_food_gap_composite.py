@@ -36,7 +36,7 @@ if hasattr(sys.stdout, "reconfigure"):
 
 ROOT = Path(__file__).resolve().parents[1]
 GAP_FILE = ROOT / "data" / "quarantine" / "food_items.chua_co_so_lieu.csv"
-OUT_FILE = ROOT / "docs" / "DAT-13-phan-loai-355-dong-trong.md"
+OUT_FILE = ROOT / "docs" / "DAT-13-phan-loai-du-lieu-trong.md"
 
 # Từ khoá cho thấy đây là món ĐÃ chế biến/nhiều thành phần — có khả năng phân
 # rã thành nguyên liệu+gram nếu tìm được công thức tham khảo thật. Danh sách
@@ -140,15 +140,23 @@ def main() -> int:
     print(f"  Chế biến/tổng hợp (có thể phân rã NẾU có công thức nguồn):  {len(groups['che_bien'])}")
 
     lines = [
-        "# DAT-13 — Phân loại 355 dòng trống trong `food_items.csv`",
+        f"# DAT-13 — Phân loại {len(rows)} dòng còn trống trong `food_items.csv`",
         "",
         "> Sinh tự động bởi `scripts/classify_food_gap_composite.py` — heuristic theo",
         "> từ khoá tên, KHÔNG tuyệt đối. R2 tự kiểm tra trước khi dùng để lên kế hoạch.",
         "",
-        "Cả 355 dòng đều **trống hoàn toàn** (không số liệu, không `source_ref`) —",
-        "xác nhận bằng tay 2026-08-10. Không tính được bằng công thức Atwater (cần",
-        "biết trước protein/carb/fat) và không tự động phân rã được vì phần lớn là",
-        "nguyên liệu đơn, không phải công thức món.",
+        "**Lịch sử:** ban đầu (2026-08-10) có 355 dòng trống hoàn toàn. Đối chiếu",
+        "chéo với Bảng TPTP VN 2017 phát hiện 341/355 đã khớp mã món nhưng thiếu",
+        "Na/K — script merge cũ (DAT-22) cố ý không kích hoạt dòng thiếu trường.",
+        "Trích thêm Bảng TPTP VN 2007 (`scripts/extract_nin2007.py`, khớp theo",
+        "MÃ SỐ — ổn định giữa 2 ấn bản, không phụ thuộc tên tiếng Việt bị lỗi font",
+        "trong PDF 2007) và merge (`scripts/merge_nin2007_into_food_items.py`) đã",
+        "kích hoạt được **11 dòng** đủ cả 8 trường lõi. Số liệu dưới đây là phần",
+        f"**còn lại ({len(rows)} dòng)** sau bước đó.",
+        "",
+        "Các dòng còn lại vẫn **trống hoàn toàn hoặc thiếu ít nhất 1 trường lõi** —",
+        "không tính được bằng Atwater (cần biết trước protein/carb/fat) và không tự",
+        "động phân rã được vì phần lớn là nguyên liệu đơn, không phải công thức món.",
         "",
         f"## Nhóm A — Nguyên liệu thô ({len(groups['nguyen_lieu_tho'])} dòng)",
         "",
