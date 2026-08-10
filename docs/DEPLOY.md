@@ -15,6 +15,36 @@ Ngày 2026-08-09, R2 chụp màn hình trang "Thực đơn của tôi" trên b�
 
 ---
 
+## ⚠️ Deploy chạy từ fork cá nhân — bắt buộc sync trước khi tin bản vá đã tới nơi
+
+Dashboard Render/Vercel do đồng đội cấu hình, trỏ vào **bản fork cá nhân**, không phải repo đội. Hệ quả cần nhớ:
+
+> **Merge vào `main` của repo đội KHÔNG làm bản vá tới production.** Fork phải sync về rồi deploy lại.
+
+Điều này đặc biệt nguy hiểm với dữ liệu thực phẩm, vì **ứng viên món ăn được nạp từ `data/seeds/dishes.csv` trong chính bản repo được deploy** (`src/agents/assembly.py:66` — `load_vn_dishes()`), **không phải từ DB**.
+
+Nghĩa là nếu fork còn `dishes.csv` bản cũ (2677 dòng, có lẫn `MENU-*`), backend đang chạy sẽ **tiếp tục sinh thực đơn sai mới** — và ghi vào **cùng một DB Supabase dùng chung** với dev. Dọn dữ liệu cũ không chặn được việc này; chỉ sync code + dữ liệu mới chặn được.
+
+**Việc cần làm khi có bản vá dữ liệu/an toàn:**
+
+```bash
+# trong fork cá nhân
+git remote add upstream https://github.com/AI20K-Build-Phase-Cohort-3/P-031.git
+git fetch upstream && git merge upstream/main
+git push                      # Render/Vercel tự deploy lại
+```
+
+Sau đó xác minh bằng chính script trong repo:
+
+```bash
+python scripts/audit_menu_dish_refs.py   # phải báo approved: 0
+python scripts/validate_data.py          # phải 0 lỗi
+```
+
+**Lưu ý về DB dùng chung:** bảng `dishes` trên Supabase vẫn còn 15 dòng `MENU-*` và 2632 dòng `FNDDS-*`. **Không xoá chúng** — các dòng `meal_plan_items` được giữ lại làm dấu vết kiểm toán đang tham chiếu khoá ngoại tới đó (xem `scripts/revoke_menu_template_plans.py`). Chúng vô hại vì generator không đọc bảng này.
+
+---
+
 ## Cách nhận ra vấn đề đang xảy ra
 
 | Triệu chứng | Nguyên nhân |
