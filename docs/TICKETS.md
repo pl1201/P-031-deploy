@@ -1,6 +1,6 @@
 # TICKETS — BACKLOG & GIAO VIỆC
 
-> 54 ticket · 6 sprint · Ước tính tổng ≈ 438 giờ-người
+> 57 ticket · 6 sprint · Ước tính tổng ≈ 438 giờ-người (3 ticket mới 2026-08-09 chưa ước giờ: DAT-26, DAT-27, AGT-13)
 > Ký hiệu: **P0** = chặn dự án · **P1** = cần cho MVP · **P2** = nâng cao · **P3** = có thì tốt
 > Owner theo mã vai trò trong `TEAM.md` (R1–R4 · đội 4 người)
 
@@ -173,6 +173,20 @@ Audit 2026-08-08 (khi điều tra bug thực đơn thiếu năng lượng, xem D
 4. Mỗi món PHẢI qua R2 duyệt (`verified_by`) trước khi tính `is_reviewed=True` — không tự động coi món mới thêm là đã duyệt.
 **AC:** Không bịa gram/nguyên liệu khi không tra được nguồn (RULE-2/DEC-008) · Mỗi món có `source`/ghi chú nguồn công thức rõ ràng · `validate_data.py`/`pytest` sạch sau mỗi batch · Cập nhật tiến độ định kỳ trong ticket này (không phải 1 khối việc làm 1 lần).
 
+### `DAT-26` ✅ 263 món trích từ ViFoodRec — ĐÃ MERGE, CHỜ LICENSE + R2 duyệt để dùng
+**Owner:** R2 · **P2** · **Deps:** DAT-24 (dùng lại `crawl_mnmn_dishes.py` làm khuôn mẫu) · **PR:** [#76](https://github.com/AI20K-Build-Phase-Cohort-3/P-031/pull/76) (đã merge 2026-08-10)
+Hưng duyệt (2026-08-09) dùng dataset ViFoodRec (5.509 món, PACLIC 2024, `github.com/QuocAn55/DS300`) làm nguồn tên món/nguyên liệu bổ sung, với điều kiện: **chỉ lấy `dish_name`+`ingredients` (văn bản)**, KHÔNG dùng số dinh dưỡng sẵn có của ViFoodRec (là số tổng scrape từ web, không có nguồn/không tính từ nguyên liệu → vi phạm RULE-1/2 nếu dùng trực tiếp). `scripts/parse_vifoodrec_dishes.py` tự parse gram thật từ văn bản nguyên liệu + khớp `food_id` qua `food_items.csv`, dùng đúng cơ chế đã kiểm chứng ở DAT-24. Kết quả: **263/4000 món dùng được (6.6%)**, ghi vào `data/seeds/dishes.vifoodrec.csv`/`dish_ingredients.vifoodrec.csv` (3737 món bị loại kèm lý do trong `dishes.vifoodrec.rejected.csv`, phần lớn do lỗi hỏng đơn vị ngay trong bản scrape gốc của ViFoodRec — không đoán, đúng DEC-008).
+**Còn tồn trước khi dùng được:**
+1. **License repo nguồn chưa xác nhận** — `github.com/QuocAn55/DS300` không có file `LICENSE` (license=null qua GitHub API, kiểm tra 2026-08-09); paper chỉ ghi "publicly available for free access by the research community" trong văn bản, không phải license chính thức. Cần R2/pháp lý xác nhận trước khi dùng cho sản phẩm thật.
+2. **263 món đều `verified_by=pending`** — chưa gộp vào `dishes.csv`/`dish_ingredients.csv` chính (giữ đúng quy ước biên tập thủ công hiện có, giống mnmn/fndds_bulk/vn_llm_draft). R2 cần rà công thức trước khi merge.
+3. **Chặn bởi `DAT-27`** (bên dưới) — không merge vào `dishes.csv` chính tới khi `load_vn_dishes()` gate đúng theo `verified_by`.
+**AC:** Không merge vào `dishes.csv` chính tới khi có (1) xác nhận license, (2) `DAT-27` xong, và (3) R2 duyệt từng món · Không tự đổi `verified_by` sang trạng thái đã duyệt.
+
+### `DAT-27` Sửa `load_vn_dishes()` không gate theo `verified_by` — LỖ HỔNG AN TOÀN DỮ LIỆU
+**Owner:** R2 · **P1** · **Deps:** — (chặn `DAT-26` bước merge)
+Phát hiện khi làm `DAT-26`: `src/clinical/seeds.py::load_vn_dishes()` hiện KHÔNG gate theo `verified_by` — món `pending` vẫn được CP-SAT dùng ngay nếu đã nằm trong `dishes.csv`. Safety net thực tế chỉ dựa vào so khớp chuỗi con `"R2 cần rà"`/`"THIẾU"`/`"CHƯA GHÉP"` trong `note`, và note của cả `dishes.mnmn.csv` lẫn `dishes.vifoodrec.csv` hiện KHÔNG chứa đúng các chuỗi đó → nếu gộp vào `dishes.csv` trong tương lai mà không sửa, món chưa duyệt sẽ vào thẳng bộ giải mà không ai biết.
+**AC:** `load_vn_dishes()` loại món `verified_by == "pending"` khỏi tập ứng viên CP-SAT thay vì dựa vào so khớp chuỗi trong `note` · Test hồi quy: món `pending` không xuất hiện trong kết quả CP-SAT · Áp dụng ngay cả cho `dishes.mnmn.csv` hiện có (4 món, đang `pending`), không chỉ nguồn mới.
+
 ### `DAT-06` Ingest guideline vào RAG — KHÔNG GIỚI HẠN TRÊN
 **Owner:** R2 · **P1** · 8h+ (mở) · **Deps:** SET-05
 Thu thập tài liệu (BYT, ADA, KDIGO, AHA/DASH, ACR, tài liệu Viện Dinh dưỡng — ~15 là điểm khởi đầu, không phải đích). Chunk 500–800 token, overlap 100, embed, lưu `guideline_chunks` (pgvector) kèm metadata `{source, title, page, condition}`.
@@ -325,6 +339,14 @@ Research xác minh 21 dòng `clinical_rules.csv` (2026-08-06, dùng nguồn sơ 
 **Owner:** R1 · **P2?** · **Deps:** AGT-09 (CP-SAT)
 Chuyên gia chia định mức CẢ NGÀY thành 4 bữa theo tỷ lệ cố định — **Sáng 25% / Trưa 35% / Tối 30% / Phụ tối 10%** — áp dụng ĐỀU cho kcal và từng macro (P/L/G), không chỉ tổng ngày. Hệ thống hiện tại (`CPSATMenuOptimizer`, `validate_menu`) **chỉ kiểm tổng ngày**, không có ràng buộc/target theo từng bữa — 1 thực đơn có thể dồn hết carb vào 1 bữa mà vẫn "pass" nếu tổng ngày đúng, dù thực hành lâm sàng thật (đặc biệt ĐTĐ2, kiểm soát đường huyết sau ăn) quan tâm phân bổ theo bữa.
 **AC:** Bàn kỹ trước khi code — thêm ràng buộc per-slot vào CP-SAT làm bài toán CHẶT hơn, có thể tăng tỷ lệ infeasible (đã từng bị hồi quy hiệu năng 1 lần vì thêm ràng buộc/dữ liệu không tính trước tác động, xem DEVLOG DEC-017) · Nếu làm, nên bắt đầu bằng ràng buộc MỀM (soft, cảnh báo lệch tỷ lệ) trước khi làm cứng · Cần quyết định tỷ lệ 25/35/30/10% là cố định hay chỉ là 1 gợi ý mặc định có thể chỉnh theo bệnh nhân.
+
+### `AGT-13` Menu Explainer & Coaching — ticket B2 (LLM wording + API route)
+**Owner:** R1 · **P1** · **Deps:** `PR #77` (B1 — assembler + guard, chưa merge)
+Lớp 4 "Explainer & Coaching" của kiến trúc lai (xem `docs/Nghiên cứu ứng dụng LLM và CP-SAT...md`, mục "Đề Xuất Kiến Trúc Lai"). B1 (PR #77) đã làm phần deterministic: `src/clinical/menu_explainer.py::assemble_menu_facts()` + `src/services/menu_explanation_guard.py::check_grounded()`. Ticket này làm nốt phần LLM + route: `src/services/menu_coach.py::explain_menu_naturally(facts: MenuFacts) -> str` (Gemini, theo mẫu `target_assistant.explain_naturally()`, schema output không field số nào) + `GET /meal-plans/{plan_id}/explain` (`src/api/routes/menu_explainer.py`).
+**Quyết định kiến trúc:** endpoint gọi theo yêu cầu (on-demand), KHÔNG phải node trong LangGraph — mọi node hiện tại chạy trước khi duyệt (`to_review`/HITL), còn duyệt (`POST /reviews/{planId}/approve`) chỉ đổi `status` trên DB, không resume graph.
+**AC:** Gọi `check_grounded()` ngay sau khi LLM sinh văn bản — `ok=False` thì dùng bản render mẫu (template) từ `MenuFacts`, không phục vụ văn bản chưa qua kiểm, log lại để theo dõi · Route: 409 nếu `plan.status != "approved"`, 404 nếu bệnh nhân không phải chủ hồ sơ (mẫu `_get_pending_plan`/`targets.py`) · Response luôn có cả `facts` (structured) lẫn `text_vi` · Role: bệnh nhân (chủ hồ sơ) + chuyên gia/admin · Test LLM "nói dối" (chèn số không có trong facts) → guard chặn + route trả fallback · **KHÔNG** làm coaching hỏi-đáp tự do (free-text Q&A) trong ticket này (CLAUDE.md §7).
+
+> **Lộ trình sau MVP — model nền local + TokMem:** đặc tả trước (chưa code, chưa có hạ tầng GPU), xem `docs/Nghiên cứu ứng dụng LLM và CP-SAT tạo thực đơn cho người đái tháo đường.md` mục "Lộ Trình Model Nền & TokMem" và `docs/PLAN_WEEK_NEXT_v2v3.md` §3.
 
 ---
 
