@@ -273,6 +273,8 @@ DETERMINISTIC_FILES = [
     "clinical/diary.py",
     "clinical/interactions.py",
     "clinical/target_explainer.py",
+    "clinical/menu_explainer.py",
+    "services/menu_explanation_guard.py",
     "agents/nodes/core.py",
     "agents/equivalent.py",
 ]

@@ -5,6 +5,8 @@
 > Đầu vào: `VMEC-10 - Đề bài ban đầu.txt`, `de_an_ai_agent_dinh_duong.md`, `nghien_cuu_dinh_duong_ai_agent.md`, template AI20K Build Cohort 2
 >
 > ⚠️ **Tài liệu lịch sử (26/07).** Phạm vi bệnh lý mô tả trong file này (đa bệnh lý) đã bị thu hẹp còn **ĐTĐ2** bởi `docs/PRD.md` v2.1 (05/08). Đọc `docs/PRD.md` để biết phạm vi hiện hành; file này giữ lại làm bối cảnh quyết định cắt scope kỹ thuật ban đầu (§9), vẫn còn giá trị tham khảo.
+>
+> ⚠️ **Trạng thái mới nhất (2026-08-09):** xem `docs/PLAN_WEEK_NEXT_v2v3.md` để biết việc đang làm tuần này + định hướng v2/v3 — file đó là điểm vào cập nhật nhất, không phải file này.
 
 ---
 
