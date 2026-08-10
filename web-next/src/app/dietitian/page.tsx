@@ -1,192 +1,127 @@
 'use client'
-import { useEffect, useState } from 'react'
+
+import { useEffect, useMemo, useState } from 'react'
 import Link from 'next/link'
-import { createApiClient, type MealPlan } from '@/lib/api'
+import { createApiClient, type MealPlan, type PatientProfile } from '@/lib/api'
 import { getToken } from '@/lib/auth'
 
-function statusLabel(s: string) {
-  const map: Record<string, string> = {
-    pending_review: 'Chờ duyệt',
-    approved: 'Đã duyệt',
-    rejected: 'Từ chối',
-    drafting: 'Đang sinh',
-    failed: 'Thất bại',
-  }
-  return map[s] ?? s
-}
+type QueueFilter = 'all' | 'hard' | 'warning' | 'ready'
 
-function statusClass(s: string) {
-  const map: Record<string, string> = {
-    pending_review: 'badge-pending',
-    approved: 'badge-approved',
-    rejected: 'badge-rejected',
-    drafting: 'badge-draft',
-    failed: 'badge-failed',
-  }
-  return `badge ${map[s] ?? 'badge-draft'}`
+const STATUS_LABEL: Record<string, string> = {
+  pending_review: 'Chờ duyệt', approved: 'Đã duyệt', rejected: 'Từ chối', drafting: 'Đang sinh', failed: 'Thất bại',
 }
 
 export default function DietitianDashboard() {
   const [plans, setPlans] = useState<MealPlan[]>([])
+  const [patients, setPatients] = useState<Record<string, PatientProfile>>({})
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
+  const [query, setQuery] = useState('')
+  const [filter, setFilter] = useState<QueueFilter>('all')
+
+  const fetchData = async () => {
+    const token = getToken()
+    if (!token) return
+    const api = createApiClient(token)
+    try {
+      const [pending, patientResult] = await Promise.all([api.listPendingReviews(), api.listPatients(1, 100)])
+      setPlans(pending)
+      setPatients(Object.fromEntries(patientResult.items.map(patient => [patient.id, patient])))
+    } catch (errorValue) {
+      setError(errorValue instanceof Error ? errorValue.message : 'Không thể tải dữ liệu hàng chờ.')
+    } finally {
+      setLoading(false)
+    }
+  }
 
   useEffect(() => {
     const token = getToken()
     if (!token) return
-    createApiClient(token)
-      .listPendingReviews()
-      .then(setPlans)
-      .catch(e => setError(e.message))
+    const api = createApiClient(token)
+    Promise.all([api.listPendingReviews(), api.listPatients(1, 100)])
+      .then(([pending, patientResult]) => {
+        setPlans(pending)
+        setPatients(Object.fromEntries(patientResult.items.map(patient => [patient.id, patient])))
+      })
+      .catch(errorValue => setError(errorValue instanceof Error ? errorValue.message : 'Không thể tải dữ liệu hàng chờ.'))
       .finally(() => setLoading(false))
   }, [])
 
-  const hardCount = (plan: MealPlan) => plan.violations.filter(v => v.severity === 'hard').length
-  const softCount = (plan: MealPlan) => plan.violations.filter(v => v.severity === 'soft').length
+  const refreshData = () => {
+    setLoading(true)
+    setError('')
+    void fetchData()
+  }
 
-  return (
-    <>
-      <div className="topbar">
-        <div>
-          <p style={{ fontSize: 11, fontWeight: 700, letterSpacing: '.1em', textTransform: 'uppercase', color: 'var(--c-green2)', marginBottom: 4 }}>
-            TỔNG QUAN
-          </p>
-          <h1 className="page-title">Hàng chờ duyệt</h1>
+  const hardCount = (plan: MealPlan) => plan.violations.filter(item => item.severity === 'hard').length
+  const softCount = (plan: MealPlan) => plan.violations.filter(item => item.severity === 'soft').length
+  const totals = useMemo(() => ({
+    all: plans.length,
+    hard: plans.reduce((sum, plan) => sum + hardCount(plan), 0),
+    warning: plans.reduce((sum, plan) => sum + softCount(plan), 0),
+    ready: plans.filter(plan => hardCount(plan) === 0).length,
+  }), [plans])
+  const visiblePlans = plans.filter(plan => {
+    const patient = patients[plan.patient_id]
+    const matchesSearch = `${plan.id} ${plan.patient_id} ${plan.plan_date} ${patient?.conditions.map(item => item.code).join(' ') ?? ''}`.toLowerCase().includes(query.toLowerCase())
+    const matchesFilter = filter === 'all' || (filter === 'hard' && hardCount(plan) > 0) || (filter === 'warning' && softCount(plan) > 0) || (filter === 'ready' && hardCount(plan) === 0)
+    return matchesSearch && matchesFilter
+  })
+
+  return <>
+    <header className="topbar">
+      <div><p className="page-kicker">Clinical command center</p><h1 className="page-title">Tổng quan dinh dưỡng lâm sàng</h1></div>
+      <div className="topbar-actions"><span className="synthetic-label">DỮ LIỆU MÔ PHỎNG</span><Link href="/dietitian/patients" className="btn btn-primary btn-sm">+ Sinh thực đơn</Link></div>
+    </header>
+
+    <div className="page-body">
+      <section className="workspace-hero">
+        <div><span className="hero-kicker">Ưu tiên hôm nay</span><h2>Ra quyết định nhanh.<br /><em>Vẫn giữ đủ bằng chứng.</em></h2><p>Mỗi thực đơn đều được tính lại phía server, kiểm tra an toàn và lưu dấu vết trước khi đến bệnh nhân.</p></div>
+        <div className="hero-queue"><strong>{loading ? '—' : plans.length}</strong><span>ca cần chuyên gia xử lý</span><i /></div>
+      </section>
+
+      <section className="metric-grid queue-metrics" aria-label="Tóm tắt hàng chờ">
+        {([
+          ['all', 'Chờ quyết định', totals.all, 'Tổng trong hàng chờ', '#147fd1'],
+          ['hard', 'Vi phạm cứng', totals.hard, 'Cần xử lý trước duyệt', '#cb4338'],
+          ['warning', 'Cảnh báo mềm', totals.warning, 'Cần chuyên gia lưu ý', '#dc9b18'],
+          ['ready', 'Sẵn sàng duyệt', totals.ready, 'Không có vi phạm cứng', '#17a27a'],
+        ] as const).map(([key, label, value, note, color]) => <button key={key} className={`metric-card metric-button${filter === key ? ' selected' : ''}`} style={{ '--metric-color': color } as React.CSSProperties} onClick={() => setFilter(key)}>
+          <span className="metric-label">{label}</span><strong className="metric-value">{loading ? '—' : value}</strong><span className="metric-note">{note}</span>
+        </button>)}
+      </section>
+
+      <section className="queue-toolbar">
+        <div className="queue-search"><span>⌕</span><input value={query} onChange={event => setQuery(event.target.value)} placeholder="Tìm mã thực đơn, hồ sơ hoặc ngày..." aria-label="Tìm trong hàng chờ" /></div>
+        <div className="filter-pills" aria-label="Bộ lọc hàng chờ">
+          <button className={filter === 'all' ? 'active' : ''} onClick={() => setFilter('all')}>Tất cả</button>
+          <button className={filter === 'hard' ? 'active' : ''} onClick={() => setFilter('hard')}>Rủi ro cao</button>
+          <button className={filter === 'ready' ? 'active' : ''} onClick={() => setFilter('ready')}>Sẵn sàng duyệt</button>
         </div>
-        <div className="topbar-actions">
-          <span className="synthetic-label">DỮ LIỆU MÔ PHỎNG</span>
-          <Link href="/dietitian/patients" className="btn btn-primary btn-sm">
-            + Sinh thực đơn mới
-          </Link>
-        </div>
-      </div>
+        <button className="btn btn-secondary btn-sm" onClick={refreshData}>↻ Làm mới</button>
+      </section>
 
-      <div className="page-body">
-        {/* Stats row */}
-        <div className="stats-grid" style={{ marginBottom: 28 }}>
-          <div className="stat-cell">
-            <div className="stat-label">Chờ duyệt</div>
-            <div className="stat-value" style={{ color: loading ? 'var(--c-muted)' : 'var(--c-orange)' }}>
-              {loading ? '—' : plans.length}
-            </div>
-          </div>
-          <div className="stat-cell">
-            <div className="stat-label">Vi phạm cứng</div>
-            <div className="stat-value" style={{ color: 'var(--c-red)' }}>
-              {loading ? '—' : plans.reduce((acc, p) => acc + hardCount(p), 0)}
-            </div>
-          </div>
-          <div className="stat-cell">
-            <div className="stat-label">Cảnh báo mềm</div>
-            <div className="stat-value" style={{ color: 'var(--c-yellow)' }}>
-              {loading ? '—' : plans.reduce((acc, p) => acc + softCount(p), 0)}
-            </div>
-          </div>
-          <div className="stat-cell">
-            <div className="stat-label">Cần xem xét</div>
-            <div className="stat-value" style={{ color: 'var(--c-purple)' }}>
-              {loading ? '—' : plans.filter(p => hardCount(p) > 0).length}
-            </div>
-          </div>
-        </div>
-
-        {/* Table */}
-        <div className="card">
-          <div className="card-header">
-            <h2 className="card-title">Thực đơn chờ duyệt</h2>
-            <button
-              className="btn btn-secondary btn-sm"
-              onClick={() => {
-                setLoading(true)
-                setError('')
-                const token = getToken()
-                if (!token) return
-                createApiClient(token).listPendingReviews().then(setPlans).catch(e => setError(e.message)).finally(() => setLoading(false))
-              }}
-            >
-              ↻ Làm mới
-            </button>
-          </div>
-
-          {loading ? (
-            <div style={{ padding: 60, display: 'grid', placeItems: 'center' }}>
-              <span className="spinner" style={{ width: 28, height: 28, color: 'var(--c-green)' }} />
-            </div>
-          ) : error ? (
-            <div className="card-body">
-              <div className="safety-strip safety-strip-error">{error}</div>
-            </div>
-          ) : plans.length === 0 ? (
-            <div className="empty-state">
-              <div className="empty-icon">✓</div>
-              <div className="empty-title">Không có thực đơn chờ duyệt</div>
-              <div className="empty-desc">Tất cả thực đơn đã được xử lý.</div>
-            </div>
-          ) : (
-            <div className="table-wrap" style={{ borderRadius: 0, border: 'none', borderTop: '1px solid var(--c-border)' }}>
-              <table>
-                <thead>
-                  <tr>
-                    <th>Mã thực đơn</th>
-                    <th>Bệnh nhân</th>
-                    <th>Ngày</th>
-                    <th>Vi phạm</th>
-                    <th>Lần thử</th>
-                    <th>Trạng thái</th>
-                    <th></th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {plans.map(plan => (
-                    <tr key={plan.id}>
-                      <td>
-                        <span className="font-mono text-sm" style={{ color: 'var(--c-muted)' }}>
-                          #{plan.id.slice(0, 8)}
-                        </span>
-                      </td>
-                      <td>
-                        <span style={{ fontWeight: 500 }}>{plan.patient_id.slice(0, 12)}…</span>
-                      </td>
-                      <td style={{ color: 'var(--c-ink2)' }}>{plan.plan_date}</td>
-                      <td>
-                        <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap' }}>
-                          {hardCount(plan) > 0 && (
-                            <span className="badge badge-hard">{hardCount(plan)} cứng</span>
-                          )}
-                          {softCount(plan) > 0 && (
-                            <span className="badge badge-soft">{softCount(plan)} mềm</span>
-                          )}
-                          {hardCount(plan) === 0 && softCount(plan) === 0 && (
-                            <span className="badge badge-ok">✓ Sạch</span>
-                          )}
-                        </div>
-                      </td>
-                      <td>
-                        <span className="font-mono text-sm">{plan.retry_count}</span>
-                      </td>
-                      <td>
-                        <span className={statusClass(plan.status)}>{statusLabel(plan.status)}</span>
-                      </td>
-                      <td>
-                        <Link
-                          href={`/dietitian/reviews/${plan.id}`}
-                          className="btn btn-secondary btn-sm"
-                        >
-                          Xem & duyệt →
-                        </Link>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          )}
-        </div>
-
-        <p className="disclaimer" style={{ marginTop: 20 }}>
-          ⚕️ Chỉ thực đơn được chuyên gia duyệt mới hiển thị cho bệnh nhân. Kiểm tra kỹ vi phạm cứng (màu đỏ) trước khi duyệt.
-        </p>
-      </div>
-    </>
-  )
+      <section className="card queue-panel">
+        <div className="card-header"><div><h2 className="card-title">Hàng chờ phê duyệt</h2><p className="panel-subtitle">{visiblePlans.length} kết quả phù hợp</p></div><span className="live-data"><i /> Cập nhật từ API</span></div>
+        {loading ? <div className="queue-skeleton">{[1,2,3].map(item => <div key={item}><i /><span /><b /></div>)}</div>
+        : error ? <div className="card-body"><div className="safety-strip safety-strip-error">{error}</div></div>
+        : visiblePlans.length === 0 ? <div className="empty-state"><div className="empty-icon">✓</div><div className="empty-title">Không có ca phù hợp</div><div className="empty-desc">Thử thay đổi bộ lọc hoặc từ khóa tìm kiếm.</div></div>
+        : <div className="queue-list">
+          {visiblePlans.map(plan => {
+            const patient = patients[plan.patient_id]
+            const hard = hardCount(plan); const soft = softCount(plan)
+            return <article className="queue-case" key={plan.id}>
+              <div className="case-priority" data-level={hard ? 'hard' : soft ? 'warning' : 'ready'} />
+              <div className="case-patient"><div className="patient-mini-avatar">{patient?.sex === 'female' ? 'Nữ' : 'N'}</div><div><Link href={`/dietitian/patients/${plan.patient_id}`}>{patient ? `${patient.sex === 'male' ? 'Nam' : 'Nữ'}, ${patient.age} tuổi` : 'Hồ sơ bệnh nhân'}</Link><span>#{plan.patient_id.slice(0,8)} · {patient?.conditions.map(item => item.code).join(' · ') || 'Đang cập nhật'}</span></div></div>
+              <div className="case-plan"><span>Mã thực đơn</span><strong>#{plan.id.slice(0,8)}</strong></div>
+              <div className="case-plan"><span>Ngày kế hoạch</span><strong>{plan.plan_date}</strong></div>
+              <div className="case-findings">{hard > 0 && <span className="badge badge-hard">{hard} cứng</span>}{soft > 0 && <span className="badge badge-soft">{soft} mềm</span>}{hard === 0 && soft === 0 && <span className="badge badge-ok">✓ An toàn</span>}</div>
+              <span className="badge badge-pending">{STATUS_LABEL[plan.status] ?? plan.status}</span>
+              <Link href={`/dietitian/reviews/${plan.id}`} className="btn btn-primary btn-sm">Xem và duyệt →</Link>
+            </article>
+          })}
+        </div>}
+      </section>
+    </div>
+  </>
 }
