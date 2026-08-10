@@ -396,11 +396,19 @@ Research xác minh 21 dòng `clinical_rules.csv` (2026-08-06, dùng nguồn sơ 
 Chuyên gia chia định mức CẢ NGÀY thành 4 bữa theo tỷ lệ cố định — **Sáng 25% / Trưa 35% / Tối 30% / Phụ tối 10%** — áp dụng ĐỀU cho kcal và từng macro (P/L/G), không chỉ tổng ngày. Hệ thống hiện tại (`CPSATMenuOptimizer`, `validate_menu`) **chỉ kiểm tổng ngày**, không có ràng buộc/target theo từng bữa — 1 thực đơn có thể dồn hết carb vào 1 bữa mà vẫn "pass" nếu tổng ngày đúng, dù thực hành lâm sàng thật (đặc biệt ĐTĐ2, kiểm soát đường huyết sau ăn) quan tâm phân bổ theo bữa.
 **AC:** Bàn kỹ trước khi code — thêm ràng buộc per-slot vào CP-SAT làm bài toán CHẶT hơn, có thể tăng tỷ lệ infeasible (đã từng bị hồi quy hiệu năng 1 lần vì thêm ràng buộc/dữ liệu không tính trước tác động, xem DEVLOG DEC-017) · Nếu làm, nên bắt đầu bằng ràng buộc MỀM (soft, cảnh báo lệch tỷ lệ) trước khi làm cứng · Cần quyết định tỷ lệ 25/35/30/10% là cố định hay chỉ là 1 gợi ý mặc định có thể chỉnh theo bệnh nhân.
 
-### `AGT-13` Menu Explainer & Coaching — ticket B2 (LLM wording + API route)
-**Owner:** R1 · **P1** · **Deps:** `PR #77` (B1 — assembler + guard, chưa merge)
+### `AGT-13` ✅ Menu Explainer & Coaching — ticket B2 (LLM wording + API route) — ĐÃ LÀM
+**Owner:** R1 · **P1** · **Deps:** `PR #77` (B1 — assembler + guard, đã merge)
 Lớp 4 "Explainer & Coaching" của kiến trúc lai (xem `docs/Nghiên cứu ứng dụng LLM và CP-SAT...md`, mục "Đề Xuất Kiến Trúc Lai"). B1 (PR #77) đã làm phần deterministic: `src/clinical/menu_explainer.py::assemble_menu_facts()` + `src/services/menu_explanation_guard.py::check_grounded()`. Ticket này làm nốt phần LLM + route: `src/services/menu_coach.py::explain_menu_naturally(facts: MenuFacts) -> str` (Gemini, theo mẫu `target_assistant.explain_naturally()`, schema output không field số nào) + `GET /meal-plans/{plan_id}/explain` (`src/api/routes/menu_explainer.py`).
 **Quyết định kiến trúc:** endpoint gọi theo yêu cầu (on-demand), KHÔNG phải node trong LangGraph — mọi node hiện tại chạy trước khi duyệt (`to_review`/HITL), còn duyệt (`POST /reviews/{planId}/approve`) chỉ đổi `status` trên DB, không resume graph.
 **AC:** Gọi `check_grounded()` ngay sau khi LLM sinh văn bản — `ok=False` thì dùng bản render mẫu (template) từ `MenuFacts`, không phục vụ văn bản chưa qua kiểm, log lại để theo dõi · Route: 409 nếu `plan.status != "approved"`, 404 nếu bệnh nhân không phải chủ hồ sơ (mẫu `_get_pending_plan`/`targets.py`) · Response luôn có cả `facts` (structured) lẫn `text_vi` · Role: bệnh nhân (chủ hồ sơ) + chuyên gia/admin · Test LLM "nói dối" (chèn số không có trong facts) → guard chặn + route trả fallback · **KHÔNG** làm coaching hỏi-đáp tự do (free-text Q&A) trong ticket này (CLAUDE.md §7).
+
+**Đã làm (2026-08-10):** `src/services/gemini_client.py` mới (tách `call_gemini` dùng chung khỏi `target_assistant.py` — điểm dùng thứ 2 xuất hiện, đúng lúc tách, không phải trừu tượng hoá sớm). `src/services/menu_coach.py::explain_menu_naturally()` theo đúng khuôn. `src/api/routes/menu_explainer.py` — gate ownership TRƯỚC status (bệnh nhân không sở hữu không bao giờ phân biệt được 404 "không thấy" với 409 "chưa duyệt" qua mã lỗi).
+
+Hai lỗi thật phát hiện khi trở thành người gọi thật đầu tiên của code B1 (trước đó chỉ chạy với dict tay trong test, chưa từng chạm dữ liệu thật):
+1. `assemble_menu_facts()`: `bool` là subclass của `int` trong Python — cờ `purine_is_complete`/`sugar_is_complete`/`has_estimated` của `NutritionSummary.model_dump()` thật bị hiểu nhầm thành chất dinh dưỡng. Sửa: loại `bool` trước kiểm tra `isinstance(..., int | float)`.
+2. `check_grounded()`: chữ số trong `facts.plan_date` (VD "2026-08-12") bị coi là số bịa vì chưa từng nằm trong `_allowed_numbers()` — mọi văn bản nhắc tới ngày đều bị chặn nhầm. Sửa: thêm các phần ngày/tháng/năm (cả dạng có/không số 0 đứng đầu) vào tập số hợp lệ.
+
+Test: 8 test mới (`tests/test_menu_explainer.py` +2, `tests/test_api_menu_explainer.py` +6 file mới) + sửa 2 test cũ trong `tests/test_target_assistant.py` (mock theo tên hàm mới sau khi tách `gemini_client.py`). 420 passed, `ruff`/`mypy` sạch.
 
 > **Lộ trình sau MVP — model nền local + TokMem:** đặc tả trước (chưa code, chưa có hạ tầng GPU), xem `docs/Nghiên cứu ứng dụng LLM và CP-SAT tạo thực đơn cho người đái tháo đường.md` mục "Lộ Trình Model Nền & TokMem" và `docs/PLAN_WEEK_NEXT_v2v3.md` §3.
 

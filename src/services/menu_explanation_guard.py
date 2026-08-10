@@ -32,6 +32,17 @@ def extract_digit_sequences(text: str) -> set[str]:
 def _allowed_numbers(facts: MenuFacts) -> set[str]:
     allowed: set[str] = set()
 
+    # Ngày trong `facts.plan_date` (VD "2026-08-12") là dữ kiện thật, không phải
+    # số bịa — văn bản tự nhiên (mẫu render hay LLM) hay nhắc lại ngày. Không
+    # thêm riêng thì mọi văn bản nói tới ngày đều bị guard chặn nhầm (phát hiện
+    # khi AGT-13 lần đầu gọi guard với văn bản thật, không phải chuỗi tay
+    # trong test cũ vốn không nhắc ngày).
+    for part in facts.plan_date.replace("/", "-").split("-"):
+        part = part.strip()
+        if part:
+            allowed.add(part)  # dạng có số 0 đứng đầu, VD "08"
+            allowed.add(part.lstrip("0") or "0")  # dạng đã bỏ số 0 đứng đầu, VD "8"
+
     def _add(value: float | int | None) -> None:
         if value is None:
             return
