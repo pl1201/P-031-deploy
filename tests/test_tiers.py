@@ -69,7 +69,7 @@ def test_khoang_usda_khop_chinh_xac_file_bulk():
     import csv
     from pathlib import Path
 
-    bulk_path = Path(__file__).resolve().parents[1] / "data" / "seeds" / "food_items.usda_bulk.csv"
+    bulk_path = Path(__file__).resolve().parents[1] / "data" / "reference" / "food_items.usda_bulk.csv"
     with open(bulk_path, newline="", encoding="utf-8") as handle:
         ids = [int(row["id"]) for row in csv.DictReader(handle)]
     assert min(ids) == REFERENCE_FOOD_ID_MIN

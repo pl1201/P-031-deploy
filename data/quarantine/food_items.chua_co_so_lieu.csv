@@ -1,0 +1,356 @@
+id,name_vi,aliases,category,kcal_100g,protein_g,carb_g,fat_g,fiber_g,sugar_g,na_mg,k_mg,p_mg,purine_mg,purine_source_ref,gi_index,gi_source,gi_source_ref,contains_allergens,source,source_ref,is_estimated
+8,Mì ăn liền,mì tôm,ngũ cốc,,,,,,,,,,,,,,,gluten,,,FALSE
+9,Bánh cuốn,,ngũ cốc,,,,,,,,,,,,,,,,,,FALSE
+14,Sắn luộc,khoai mì|khoai mì luộc,ngũ cốc,,,,,,,,,,,,,,,,,,FALSE
+23,"Thịt gà (ức, bỏ da)",,thịt,,,,,,,,,,174.9,"USDA/ODS-NIH Purine DB R2.0 (2025) — Chicken breast, raw [USA]",,,,,,,FALSE
+29,Giò lụa,chả lụa,thịt,,,,,,,,,,,,,,,,,,FALSE
+30,Chả quế,,thịt,,,,,,,,,,,,,,,,,,FALSE
+37,Cá lóc,cá quả|cá chuối,thủy sản,,,,,,,,,,,,,,,cá,,,FALSE
+46,Cá bống,,thủy sản,,,,,,,,,,,,,,,cá,,,FALSE
+54,Cá khô,,thủy sản,,,,,,,,,,,,,,,cá,,,FALSE
+63,Chao,,đậu,,,,,,,,,,,,,,,đậu nành,,,FALSE
+64,Tương hột,,đậu,,,,,,,,,,,,,,,đậu nành,,,FALSE
+66,Rau ngót,bồ ngót,rau lá,,,,,,,,,,,,,,,,,,FALSE
+73,Rau mồng tơi,,rau lá,,,,,,,,,,,,,,,,,,FALSE
+77,Rau má,,rau lá,,,,,,,,,,,,,,,,,,FALSE
+80,Tía tô,,rau lá,,,,,,,,,,,,,,,,,,FALSE
+81,Kinh giới,,rau lá,,,,,,,,,,,,,,,,,,FALSE
+83,Rau răm,,rau lá,,,,,,,,,,,,,,,,,,FALSE
+90,Bí đao,bí xanh,rau củ,,,,,,,,,,,,,,,,,,FALSE
+124,Sữa tươi có đường,,sữa,,,,,,,,,,,,,,,sữa,,,FALSE
+145,Mắm nêm,,gia vị,,,,,,,,,,,,,,,cá,,,FALSE
+146,Mắm ruốc,,gia vị,,,,,,,,,,,,,,,hải sản,,,FALSE
+150,Đường thốt nốt,,gia vị,,,,,,,,,,,,,,,,,,FALSE
+1105900,Bánh bao nhân thịt,,,,,,,,,,,,,,,,,,,"[CHUA DU LIEU - can DAT-13] NIN 2017, ma 01009, tr.24 - PDF thieu: na_mg, k_mg",FALSE
+1105901,Bánh đa nem,,,,,,,,,,,,,,,,,,,"[CHUA DU LIEU - can DAT-13] NIN 2017, ma 01010, tr.24 - PDF thieu: na_mg, k_mg",FALSE
+1105902,Bánh đúc,,,,,,,,,,,,,,,,,,,"[CHUA DU LIEU - can DAT-13] NIN 2017, ma 01011, tr.24 - PDF thieu: na_mg, k_mg",FALSE
+1105903,Bánh mỳ,,,,,,,,,,,,,,,,,,,"[CHUA DU LIEU - can DAT-13] NIN 2017, ma 01012, tr.24 - PDF thieu: na_mg, k_mg",FALSE
+1105904,Bánh phở,,,,,,,,,,,,,,,,,,,"[CHUA DU LIEU - can DAT-13] NIN 2017, ma 01013, tr.24 - PDF thieu: fat_g, fiber_g",FALSE
+1105905,Bánh quẩy,,,,,,,,,,,,,,,,,,,"[CHUA DU LIEU - can DAT-13] NIN 2017, ma 01014, tr.26 - PDF thieu: na_mg, k_mg",FALSE
+1105906,Bún,,,,,,,,,,,,,,,,,,,"[CHUA DU LIEU - can DAT-13] NIN 2017, ma 01020, tr.26 - PDF thieu: fat_g, na_mg, k_mg",FALSE
+1105907,Cốm,,,,,,,,,,,,,,,,,,,"[CHUA DU LIEU - can DAT-13] NIN 2017, ma 01021, tr.26 - PDF thieu: na_mg, k_mg",FALSE
+1105908,Mỳ sợi,,,,,,,,,,,,,,,,,,,"[CHUA DU LIEU - can DAT-13] NIN 2017, ma 01022, tr.26 - PDF thieu: na_mg, k_mg",FALSE
+1105909,Ngô nếp luộc,bắp nếp luộc,,,,,,,,,,,,,,,,,,"[CHUA DU LIEU - can DAT-13] NIN 2017, ma 01023, tr.26 - PDF thieu: na_mg, k_mg",FALSE
+1105910,Củ ấu,,,,,,,,,,,,,,,,,,,"[CHUA DU LIEU - can DAT-13] NIN 2017, ma 02001, tr.30 - PDF thieu: na_mg, k_mg",FALSE
+1105913,Củ sắn dây,củ khoai mì dây,,,,,,,,,,,,,,,,,,"[CHUA DU LIEU - can DAT-13] NIN 2017, ma 02005, tr.30 - PDF thieu: na_mg, k_mg",FALSE
+1105914,Củ súng khô (đã bỏ vỏ),,,,,,,,,,,,,,,,,,,"[CHUA DU LIEU - can DAT-13] NIN 2017, ma 02006, tr.30 - PDF thieu: na_mg, k_mg",FALSE
+1105915,Củ từ,,,,,,,,,,,,,,,,,,,"[CHUA DU LIEU - can DAT-13] NIN 2017, ma 02007, tr.30 - PDF thieu: fat_g",FALSE
+1105916,Khoai nước,,,,,,,,,,,,,,,,,,,"[CHUA DU LIEU - can DAT-13] NIN 2017, ma 02011, tr.30 - PDF thieu: na_mg, k_mg",FALSE
+1105917,Khoai riềng,,,,,,,,,,,,,,,,,,,"[CHUA DU LIEU - can DAT-13] NIN 2017, ma 02012, tr.30 - PDF thieu: fat_g, na_mg, k_mg",FALSE
+1105919,Bột khoai lang,,,,,,,,,,,,,,,,,,,"[CHUA DU LIEU - can DAT-13] NIN 2017, ma 02017, tr.32 - PDF thieu: na_mg, k_mg",FALSE
+1105920,Bột khoai riềng (bột đao),,,,,,,,,,,,,,,,,,,"[CHUA DU LIEU - can DAT-13] NIN 2017, ma 02018, tr.32 - PDF thieu: fat_g, na_mg, k_mg",FALSE
+1105921,Bột khoai tây (lọc),,,,,,,,,,,,,,,,,,,"[CHUA DU LIEU - can DAT-13] NIN 2017, ma 02019, tr.32 - PDF thieu: na_mg, k_mg",FALSE
+1105923,Bột sắn dây,bột khoai mì dây,,,,,,,,,,,,,,,,,,"[CHUA DU LIEU - can DAT-13] NIN 2017, ma 02021, tr.32 - PDF thieu: fat_g, na_mg, k_mg",FALSE
+1105924,Sắn khô,khoai mì khô,,,,,,,,,,,,,,,,,,"[CHUA DU LIEU - can DAT-13] NIN 2017, ma 02025, tr.32 - PDF thieu: na_mg, k_mg",FALSE
+1105925,Trân châu sắn,trân châu khoai mì,,,,,,,,,,,,,,,,,,"[CHUA DU LIEU - can DAT-13] NIN 2017, ma 02026, tr.32 - PDF thieu: fat_g, na_mg, k_mg",FALSE
+1105926,Đậu cô ve (hạt),,,,,,,,,,,,,,,,,,,"[CHUA DU LIEU - can DAT-13] NIN 2017, ma 03003, tr.36 - PDF thieu: na_mg, k_mg",FALSE
+1105927,Đậu đen (hạt),,,,,,,,,,,,,,,,,,,"[CHUA DU LIEU - can DAT-13] NIN 2017, ma 03004, tr.36 - PDF thieu: na_mg, k_mg",FALSE
+1105928,Đậu đũa (hạt),đậu que (hạt),,,,,,,,,,,,,,,,,,"[CHUA DU LIEU - can DAT-13] NIN 2017, ma 03005, tr.36 - PDF thieu: na_mg, k_mg",FALSE
+1105931,Đậu trắng hạt (Đậu Tây),,,,,,,,,,,,,,,,,,,"[CHUA DU LIEU - can DAT-13] NIN 2017, ma 03008, tr.36 - PDF thieu: na_mg, k_mg",FALSE
+1105932,Đậu trứng cuốc,,,,,,,,,,,,,,,,,,,"[CHUA DU LIEU - can DAT-13] NIN 2017, ma 03009, tr.36 - PDF thieu: na_mg, k_mg, p_mg",FALSE
+1105934,Hạt dẻ tươi,,,,,,,,,,,,,,,,,,,"[CHUA DU LIEU - can DAT-13] NIN 2017, ma 03012, tr.36 - PDF thieu: fiber_g",FALSE
+1105935,Hạt dẻ khô,,,,,,,,,,,,,,,,,,,"[CHUA DU LIEU - can DAT-13] NIN 2017, ma 03013, tr.36 - PDF thieu: fiber_g",FALSE
+1105936,Hạt đen,,,,,,,,,,,,,,,,,,,"[CHUA DU LIEU - can DAT-13] NIN 2017, ma 03014, tr.38 - PDF thieu: na_mg, k_mg",FALSE
+1105937,Hạt mít,,,,,,,,,,,,,,,,,,,"[CHUA DU LIEU - can DAT-13] NIN 2017, ma 03016, tr.38 - PDF thieu: fiber_g, na_mg, k_mg",FALSE
+1105938,Quả đại hái tươi,,,,,,,,,,,,,,,,,,,"[CHUA DU LIEU - can DAT-13] NIN 2017, ma 03019, tr.38 - PDF thieu: na_mg, k_mg",FALSE
+1105941,Bột đậu tương rang chín,,,,,,,,,,,,,,,,,,,"[CHUA DU LIEU - can DAT-13] NIN 2017, ma 03022, tr.38 - PDF thieu: na_mg, k_mg",FALSE
+1105942,Đậu phụ chúc,,,,,,,,,,,,,,,,,,,"[CHUA DU LIEU - can DAT-13] NIN 2017, ma 03026, tr.38 - PDF thieu: na_mg, k_mg",FALSE
+1105943,Đậu phụ nướng,,,,,,,,,,,,,,,,,,,"[CHUA DU LIEU - can DAT-13] NIN 2017, ma 03027, tr.38 - PDF thieu: na_mg, k_mg",FALSE
+1105944,Hạt dưa đỏ rang (dưa hấu),,,,,,,,,,,,,,,,,,,"[CHUA DU LIEU - can DAT-13] NIN 2017, ma 03029, tr.40 - PDF thieu: na_mg, k_mg",FALSE
+1105945,"Hạt điều khô, chiên dầu",,,,,,,,,,,,,,,,,,,"[CHUA DU LIEU - can DAT-13] NIN 2017, ma 03030, tr.40 - PDF thieu: na_mg, k_mg",FALSE
+1105946,Sữa bột đậu nành,,,,,,,,,,,,,,,,,,,"[CHUA DU LIEU - can DAT-13] NIN 2017, ma 03031, tr.40 - PDF thieu: na_mg, k_mg",FALSE
+1105948,Bí đao (bí xanh),bí xanh (bí xanh),,,,,,,,,,,,,,,,,,"[CHUA DU LIEU - can DAT-13] NIN 2017, ma 04002, tr.44 - PDF thieu: fat_g",FALSE
+1105950,Cà rốt khô,,,,,,,,,,,,,,,,,,,"[CHUA DU LIEU - can DAT-13] NIN 2017, ma 04008, tr.44 - PDF thieu: na_mg, k_mg",FALSE
+1105951,Cải bắp khô,bắp cải khô,,,,,,,,,,,,,,,,,,"[CHUA DU LIEU - can DAT-13] NIN 2017, ma 04012, tr.44 - PDF thieu: na_mg, k_mg",FALSE
+1105954,Cần ta,,,,,,,,,,,,,,,,,,,"[CHUA DU LIEU - can DAT-13] NIN 2017, ma 04017, tr.46 - PDF thieu: fat_g, na_mg, k_mg",FALSE
+1105955,Củ cải đỏ,,,,,,,,,,,,,,,,,,,"[CHUA DU LIEU - can DAT-13] NIN 2017, ma 04020, tr.46 - PDF thieu: fat_g, na_mg, k_mg",FALSE
+1105956,Củ đậu,củ sắn,,,,,,,,,,,,,,,,,,"[CHUA DU LIEU - can DAT-13] NIN 2017, ma 04023, tr.46 - PDF thieu: fat_g, na_mg, k_mg",FALSE
+1105957,Củ niễng,,,,,,,,,,,,,,,,,,,"[CHUA DU LIEU - can DAT-13] NIN 2017, ma 04024, tr.46 - PDF thieu: fat_g, na_mg, k_mg",FALSE
+1105958,Dọc củ cải (non),,,,,,,,,,,,,,,,,,,"[CHUA DU LIEU - can DAT-13] NIN 2017, ma 04025, tr.46 - PDF thieu: fat_g, na_mg, k_mg",FALSE
+1105959,Dọc mùng,bạc hà,,,,,,,,,,,,,,,,,,"[CHUA DU LIEU - can DAT-13] NIN 2017, ma 04026, tr.46 - PDF thieu: fat_g, na_mg, k_mg, p_mg",FALSE
+1105960,Dưa gang,,,,,,,,,,,,,,,,,,,"[CHUA DU LIEU - can DAT-13] NIN 2017, ma 04028, tr.46 - PDF thieu: fat_g, na_mg, k_mg",FALSE
+1105961,Đậu rồng (quả non),,,,,,,,,,,,,,,,,,,"[CHUA DU LIEU - can DAT-13] NIN 2017, ma 04032, tr.48 - PDF thieu: na_mg, k_mg",FALSE
+1105962,Gấc,,,,,,,,,,,,,,,,,,,"[CHUA DU LIEU - can DAT-13] NIN 2017, ma 04034, tr.48 - PDF thieu: na_mg, k_mg",FALSE
+1105965,Hành lá (hành hoa),,,,,,,,,,,,,,,,,,,"[CHUA DU LIEU - can DAT-13] NIN 2017, ma 04038, tr.48 - PDF thieu: fat_g",FALSE
+1105966,Hoa chuối,,,,,,,,,,,,,,,,,,,"[CHUA DU LIEU - can DAT-13] NIN 2017, ma 04043, tr.48 - PDF thieu: fat_g, na_mg, k_mg",FALSE
+1105967,Hoa lý,,,,,,,,,,,,,,,,,,,"[CHUA DU LIEU - can DAT-13] NIN 2017, ma 04044, tr.48 - PDF thieu: fat_g, na_mg, k_mg",FALSE
+1105968,Lá me,,,,,,,,,,,,,,,,,,,"[CHUA DU LIEU - can DAT-13] NIN 2017, ma 04047, tr.48 - PDF thieu: fat_g, fiber_g, na_mg, k_mg, p_mg",FALSE
+1105969,Lá mơ lông,,,,,,,,,,,,,,,,,,,"[CHUA DU LIEU - can DAT-13] NIN 2017, ma 04048, tr.48 - PDF thieu: fat_g, na_mg, k_mg",FALSE
+1105970,Lá sắn tươi,lá khoai mì tươi,,,,,,,,,,,,,,,,,,"[CHUA DU LIEU - can DAT-13] NIN 2017, ma 04049, tr.50 - PDF thieu: fat_g, na_mg, k_mg",FALSE
+1105971,Măng khô,,,,,,,,,,,,,,,,,,,"[CHUA DU LIEU - can DAT-13] NIN 2017, ma 04051, tr.50 - PDF thieu: na_mg, k_mg",FALSE
+1105972,Mướp Nhật bản,,,,,,,,,,,,,,,,,,,"[CHUA DU LIEU - can DAT-13] NIN 2017, ma 04056, tr.50 - PDF thieu: na_mg, k_mg",FALSE
+1105973,Ngô bao tử,bắp bao tử,,,,,,,,,,,,,,,,,,"[CHUA DU LIEU - can DAT-13] NIN 2017, ma 04058, tr.50 - PDF thieu: na_mg, k_mg",FALSE
+1105974,Nụ mướp,,,,,,,,,,,,,,,,,,,"[CHUA DU LIEU - can DAT-13] NIN 2017, ma 04060, tr.50 - PDF thieu: fat_g, na_mg, k_mg",FALSE
+1105976,Quả dọc,,,,,,,,,,,,,,,,,,,"[CHUA DU LIEU - can DAT-13] NIN 2017, ma 04064, tr.50 - PDF thieu: fiber_g, na_mg, k_mg",FALSE
+1105977,Quả me chua,,,,,,,,,,,,,,,,,,,"[CHUA DU LIEU - can DAT-13] NIN 2017, ma 04065, tr.52 - PDF thieu: fat_g, na_mg, k_mg",FALSE
+1105980,"Rau giấp cá, diếp cá",,,,,,,,,,,,,,,,,,,"[CHUA DU LIEU - can DAT-13] NIN 2017, ma 04071, tr.52 - PDF thieu: fat_g, p_mg",FALSE
+1105983,Rau giền trắng,,,,,,,,,,,,,,,,,,,"[CHUA DU LIEU - can DAT-13] NIN 2017, ma 04074, tr.52 - PDF thieu: na_mg, k_mg",FALSE
+1105985,Rau kinh giới,,,,,,,,,,,,,,,,,,,"[CHUA DU LIEU - can DAT-13] NIN 2017, ma 04077, tr.52 - PDF thieu: fat_g",FALSE
+1105986,Rau má rừng,,,,,,,,,,,,,,,,,,,"[CHUA DU LIEU - can DAT-13] NIN 2017, ma 04078, tr.52 - PDF thieu: fat_g, na_mg, k_mg",FALSE
+1105987,"Rau má, má mơ",,,,,,,,,,,,,,,,,,,"[CHUA DU LIEU - can DAT-13] NIN 2017, ma 04079, tr.52 - PDF thieu: fat_g, na_mg, k_mg",FALSE
+1105989,Rau muống khô,,,,,,,,,,,,,,,,,,,"[CHUA DU LIEU - can DAT-13] NIN 2017, ma 04084, tr.54 - PDF thieu: na_mg, k_mg",FALSE
+1105990,Rau ngổ,,,,,,,,,,,,,,,,,,,"[CHUA DU LIEU - can DAT-13] NIN 2017, ma 04085, tr.54 - PDF thieu: fat_g",FALSE
+1105991,Rau ngót khô,bồ ngót khô,,,,,,,,,,,,,,,,,,"[CHUA DU LIEU - can DAT-13] NIN 2017, ma 04087, tr.54 - PDF thieu: na_mg, k_mg, p_mg",FALSE
+1105992,Rau rút,,,,,,,,,,,,,,,,,,,"[CHUA DU LIEU - can DAT-13] NIN 2017, ma 04089, tr.54 - PDF thieu: fat_g, na_mg, k_mg",FALSE
+1105994,Rau sam,,,,,,,,,,,,,,,,,,,"[CHUA DU LIEU - can DAT-13] NIN 2017, ma 04091, tr.54 - PDF thieu: fat_g, na_mg, k_mg",FALSE
+1105995,Rau sắng (chùa hương),,,,,,,,,,,,,,,,,,,"[CHUA DU LIEU - can DAT-13] NIN 2017, ma 04092, tr.54 - PDF thieu: fat_g, na_mg, k_mg",FALSE
+1105996,Rau tàu bay,,,,,,,,,,,,,,,,,,,"[CHUA DU LIEU - can DAT-13] NIN 2017, ma 04093, tr.54 - PDF thieu: fat_g, na_mg, k_mg",FALSE
+1105997,Rau thơm,,,,,,,,,,,,,,,,,,,"[CHUA DU LIEU - can DAT-13] NIN 2017, ma 04094, tr.54 - PDF thieu: fat_g",FALSE
+1105998,Sấu xanh,,,,,,,,,,,,,,,,,,,"[CHUA DU LIEU - can DAT-13] NIN 2017, ma 04095, tr.54 - PDF thieu: fat_g, fiber_g, na_mg, k_mg",FALSE
+1105999,Su hào khô,,,,,,,,,,,,,,,,,,,"[CHUA DU LIEU - can DAT-13] NIN 2017, ma 04097, tr.54 - PDF thieu: na_mg, k_mg, p_mg",FALSE
+1106002,Tỏi tây (cả lá),,,,,,,,,,,,,,,,,,,"[CHUA DU LIEU - can DAT-13] NIN 2017, ma 04104, tr.56 - PDF thieu: fat_g, na_mg, k_mg",FALSE
+1106003,Trám đen chín,,,,,,,,,,,,,,,,,,,"[CHUA DU LIEU - can DAT-13] NIN 2017, ma 04105, tr.56 - PDF thieu: na_mg, k_mg",FALSE
+1106004,"Trám xanh sống, trám trắng",,,,,,,,,,,,,,,,,,,"[CHUA DU LIEU - can DAT-13] NIN 2017, ma 04106, tr.56 - PDF thieu: na_mg, k_mg",FALSE
+1106005,Xương sông,,,,,,,,,,,,,,,,,,,"[CHUA DU LIEU - can DAT-13] NIN 2017, ma 04107, tr.56 - PDF thieu: fat_g",FALSE
+1106006,Cải ngọt,,,,,,,,,,,,,,,,,,,"[CHUA DU LIEU - can DAT-13] NIN 2017, ma 04108, tr.56 - PDF thieu: fiber_g, na_mg, k_mg",FALSE
+1106007,Ngọn su su,,,,,,,,,,,,,,,,,,,"[CHUA DU LIEU - can DAT-13] NIN 2017, ma 04110, tr.56 - PDF thieu: fiber_g, na_mg, k_mg",FALSE
+1106008,Đậu ván,,,,,,,,,,,,,,,,,,,"[CHUA DU LIEU - can DAT-13] NIN 2017, ma 04111, tr.56 - PDF thieu: fiber_g, na_mg, k_mg",FALSE
+1106009,Cà chua muối,,,,,,,,,,,,,,,,,,,"[CHUA DU LIEU - can DAT-13] NIN 2017, ma 04112, tr.56 - PDF thieu: fat_g, na_mg, k_mg, p_mg",FALSE
+1106010,Cà muối nén,,,,,,,,,,,,,,,,,,,"[CHUA DU LIEU - can DAT-13] NIN 2017, ma 04113, tr.58 - PDF thieu: fat_g, na_mg, k_mg",FALSE
+1106011,Cà muối sổi,,,,,,,,,,,,,,,,,,,"[CHUA DU LIEU - can DAT-13] NIN 2017, ma 04114, tr.58 - PDF thieu: fat_g, na_mg, k_mg, p_mg",FALSE
+1106012,Dưa cải bắp,dưa bắp cải,,,,,,,,,,,,,,,,,,"[CHUA DU LIEU - can DAT-13] NIN 2017, ma 04115, tr.58 - PDF thieu: fat_g, na_mg, k_mg",FALSE
+1106013,Dưa cải bẹ,,,,,,,,,,,,,,,,,,,"[CHUA DU LIEU - can DAT-13] NIN 2017, ma 04116, tr.58 - PDF thieu: fat_g, na_mg, k_mg",FALSE
+1106014,Dưa cải sen,,,,,,,,,,,,,,,,,,,"[CHUA DU LIEU - can DAT-13] NIN 2017, ma 04117, tr.58 - PDF thieu: fat_g, na_mg, k_mg",FALSE
+1106015,Dưa giá (đậu xanh),,,,,,,,,,,,,,,,,,,"[CHUA DU LIEU - can DAT-13] NIN 2017, ma 04119, tr.58 - PDF thieu: fat_g, na_mg, k_mg",FALSE
+1106016,Hành củ muối,,,,,,,,,,,,,,,,,,,"[CHUA DU LIEU - can DAT-13] NIN 2017, ma 04120, tr.58 - PDF thieu: fat_g, na_mg, k_mg",FALSE
+1106017,Kiệu muối,,,,,,,,,,,,,,,,,,,"[CHUA DU LIEU - can DAT-13] NIN 2017, ma 04121, tr.58 - PDF thieu: fat_g",FALSE
+1106018,"Nhút (dưa muối từ mít non, lá đậu xanh non...)",,,,,,,,,,,,,,,,,,,"[CHUA DU LIEU - can DAT-13] NIN 2017, ma 04122, tr.58 - PDF thieu: fat_g, na_mg, k_mg",FALSE
+1106019,Men bia khô,,,,,,,,,,,,,,,,,,,"[CHUA DU LIEU - can DAT-13] NIN 2017, ma 04123, tr.60 - PDF thieu: na_mg, k_mg",FALSE
+1106020,Men bia tươi,,,,,,,,,,,,,,,,,,,"[CHUA DU LIEU - can DAT-13] NIN 2017, ma 04124, tr.60 - PDF thieu: na_mg, k_mg",FALSE
+1106021,Nấm hương khô,,,,,,,,,,,,,,,,,,,"[CHUA DU LIEU - can DAT-13] NIN 2017, ma 04126, tr.60 - PDF thieu: na_mg, k_mg",FALSE
+1106022,Nấm hương tươi,,,,,,,,,,,,,,,,,,,"[CHUA DU LIEU - can DAT-13] NIN 2017, ma 04127, tr.60 - PDF thieu: na_mg, k_mg",FALSE
+1106025,Chuối khô,,,,,,,,,,,,,,,,,,,"[CHUA DU LIEU - can DAT-13] NIN 2017, ma 05005, tr.64 - PDF thieu: na_mg, k_mg, p_mg",FALSE
+1106026,Dâu gia,,,,,,,,,,,,,,,,,,,"[CHUA DU LIEU - can DAT-13] NIN 2017, ma 05008, tr.64 - PDF thieu: fat_g, fiber_g, na_mg, k_mg",FALSE
+1106027,Gioi,,,,,,,,,,,,,,,,,,,"[CHUA DU LIEU - can DAT-13] NIN 2017, ma 05018, tr.66 - PDF thieu: fat_g",FALSE
+1106028,Hồng bì,,,,,,,,,,,,,,,,,,,"[CHUA DU LIEU - can DAT-13] NIN 2017, ma 05019, tr.66 - PDF thieu: fat_g, na_mg, k_mg",FALSE
+1106031,Mắc coọc,,,,,,,,,,,,,,,,,,,"[CHUA DU LIEU - can DAT-13] NIN 2017, ma 05026, tr.66 - PDF thieu: fat_g, fiber_g, na_mg, k_mg",FALSE
+1106033,Mít khô,,,,,,,,,,,,,,,,,,,"[CHUA DU LIEU - can DAT-13] NIN 2017, ma 05029, tr.66 - PDF thieu: fat_g, na_mg, k_mg, p_mg",FALSE
+1106034,Mít mật,,,,,,,,,,,,,,,,,,,"[CHUA DU LIEU - can DAT-13] NIN 2017, ma 05030, tr.66 - PDF thieu: fat_g, na_mg, k_mg",FALSE
+1106035,"Muỗm, quéo",,,,,,,,,,,,,,,,,,,"[CHUA DU LIEU - can DAT-13] NIN 2017, ma 05033, tr.68 - PDF thieu: na_mg, k_mg",FALSE
+1106036,Nhãn khô,,,,,,,,,,,,,,,,,,,"[CHUA DU LIEU - can DAT-13] NIN 2017, ma 05036, tr.68 - PDF thieu: na_mg, k_mg",FALSE
+1106037,Nho ta (nho chua),,,,,,,,,,,,,,,,,,,"[CHUA DU LIEU - can DAT-13] NIN 2017, ma 05038, tr.68 - PDF thieu: fat_g",FALSE
+1106038,Nhót,,,,,,,,,,,,,,,,,,,"[CHUA DU LIEU - can DAT-13] NIN 2017, ma 05039, tr.68 - PDF thieu: fat_g, na_mg, k_mg",FALSE
+1106039,Quả bơ vỏ tím,,,,,,,,,,,,,,,,,,,"[CHUA DU LIEU - can DAT-13] NIN 2017, ma 05041, tr.68 - PDF thieu: na_mg, k_mg",FALSE
+1106040,Quả cóc,,,,,,,,,,,,,,,,,,,"[CHUA DU LIEU - can DAT-13] NIN 2017, ma 05043, tr.68 - PDF thieu: fat_g, na_mg, k_mg",FALSE
+1106041,Quả thanh long,,,,,,,,,,,,,,,,,,,"[CHUA DU LIEU - can DAT-13] NIN 2017, ma 05044, tr.68 - PDF thieu: fat_g, na_mg, k_mg",FALSE
+1106042,Quả trứng gà,,,,,,,,,,,,,,,,,,,"[CHUA DU LIEU - can DAT-13] NIN 2017, ma 05045, tr.68 - PDF thieu: fiber_g, na_mg, k_mg",FALSE
+1106043,Quất chín (cả vỏ),,,,,,,,,,,,,,,,,,,"[CHUA DU LIEU - can DAT-13] NIN 2017, ma 05046, tr.70 - PDF thieu: fat_g, na_mg, k_mg",FALSE
+1106044,Quít,,,,,,,,,,,,,,,,,,,"[CHUA DU LIEU - can DAT-13] NIN 2017, ma 05047, tr.70 - PDF thieu: fat_g",FALSE
+1106045,Sấu chín,,,,,,,,,,,,,,,,,,,"[CHUA DU LIEU - can DAT-13] NIN 2017, ma 05049, tr.70 - PDF thieu: fat_g, na_mg, k_mg",FALSE
+1106046,Vú sữa,,,,,,,,,,,,,,,,,,,"[CHUA DU LIEU - can DAT-13] NIN 2017, ma 05054, tr.70 - PDF thieu: fat_g, na_mg, k_mg",FALSE
+1106048,"Dầu thảo mộc (Lạc, vừng, cám...)","dầu thảo mộc (đậu phộng, vừng, cám...)|dầu thảo mộc (lạc, mè, cám...)",,,,,,,,,,,,,,,,,,"[CHUA DU LIEU - can DAT-13] NIN 2017, ma 06002, tr.74 - PDF thieu: na_mg, k_mg, p_mg",FALSE
+1106049,Mỡ lợn muối,mỡ heo muối,,,,,,,,,,,,,,,,,,"[CHUA DU LIEU - can DAT-13] NIN 2017, ma 06003, tr.74 - PDF thieu: na_mg, k_mg, p_mg",FALSE
+1106058,Dầu ngô,dầu bắp,,,,,,,,,,,,,,,,,,"[CHUA DU LIEU - can DAT-13] NIN 2017, ma 06013, tr.74 - PDF thieu: na_mg, k_mg, p_mg",FALSE
+1106061,Thịt bò loại II,,,,,,,,,,,,,,,,,,,"[CHUA DU LIEU - can DAT-13] NIN 2017, ma 07004, tr.78 - PDF thieu: na_mg, k_mg",FALSE
+1106067,Thịt gà rừng,,,,,,,,,,,,,,,,,,,"[CHUA DU LIEU - can DAT-13] NIN 2017, ma 07012, tr.78 - PDF thieu: na_mg, k_mg",FALSE
+1106070,Thịt trâu bắp,,,,,,,,,,,,,,,,,,,"[CHUA DU LIEU - can DAT-13] NIN 2017, ma 07024, tr.80 - PDF thieu: na_mg, k_mg",FALSE
+1106071,Thịt trâu cổ,,,,,,,,,,,,,,,,,,,"[CHUA DU LIEU - can DAT-13] NIN 2017, ma 07025, tr.80 - PDF thieu: na_mg, k_mg",FALSE
+1106072,Thịt trâu đùi,,,,,,,,,,,,,,,,,,,"[CHUA DU LIEU - can DAT-13] NIN 2017, ma 07026, tr.80 - PDF thieu: na_mg, k_mg",FALSE
+1106073,Thịt trâu thăn,,,,,,,,,,,,,,,,,,,"[CHUA DU LIEU - can DAT-13] NIN 2017, ma 07027, tr.80 - PDF thieu: na_mg, k_mg",FALSE
+1106074,Bì lợn,bì heo,,,,,,,,,,,,,,,,,,"[CHUA DU LIEU - can DAT-13] NIN 2017, ma 07031, tr.82 - PDF thieu: na_mg, k_mg",FALSE
+1106076,Đầu bò,,,,,,,,,,,,,,,,,,,"[CHUA DU LIEU - can DAT-13] NIN 2017, ma 07035, tr.82 - PDF thieu: na_mg, k_mg, p_mg",FALSE
+1106077,Đầu lợn,đầu heo,,,,,,,,,,,,,,,,,,"[CHUA DU LIEU - can DAT-13] NIN 2017, ma 07036, tr.82 - PDF thieu: na_mg, k_mg, p_mg",FALSE
+1106078,Đuôi bò,,,,,,,,,,,,,,,,,,,"[CHUA DU LIEU - can DAT-13] NIN 2017, ma 07037, tr.82 - PDF thieu: na_mg, k_mg",FALSE
+1106081,Gân chân bò,,,,,,,,,,,,,,,,,,,"[CHUA DU LIEU - can DAT-13] NIN 2017, ma 07043, tr.82 - PDF thieu: na_mg, k_mg, p_mg",FALSE
+1106083,Lòng lợn (ruột già),lòng heo (ruột già),,,,,,,,,,,,,,,,,,"[CHUA DU LIEU - can DAT-13] NIN 2017, ma 07046, tr.84 - PDF thieu: na_mg, k_mg",FALSE
+1106084,Lòng lợn (ruột non),lòng heo (ruột non),,,,,,,,,,,,,,,,,,"[CHUA DU LIEU - can DAT-13] NIN 2017, ma 07047, tr.84 - PDF thieu: na_mg, k_mg",FALSE
+1106091,Tiết bò,,,,,,,,,,,,,,,,,,,"[CHUA DU LIEU - can DAT-13] NIN 2017, ma 07058, tr.84 - PDF thieu: na_mg, k_mg",FALSE
+1106093,Tiết lợn sống,tiết heo sống,,,,,,,,,,,,,,,,,,"[CHUA DU LIEU - can DAT-13] NIN 2017, ma 07060, tr.84 - PDF thieu: na_mg, k_mg",FALSE
+1106094,Tủy xương bò,,,,,,,,,,,,,,,,,,,"[CHUA DU LIEU - can DAT-13] NIN 2017, ma 07061, tr.84 - PDF thieu: na_mg, k_mg, p_mg",FALSE
+1106095,Tủy xương lợn,tủy xương heo,,,,,,,,,,,,,,,,,,"[CHUA DU LIEU - can DAT-13] NIN 2017, ma 07062, tr.86 - PDF thieu: na_mg, k_mg, p_mg",FALSE
+1106097,Chả quế lợn,chả quế heo,,,,,,,,,,,,,,,,,,"[CHUA DU LIEU - can DAT-13] NIN 2017, ma 07065, tr.86 - PDF thieu: na_mg, k_mg",FALSE
+1106098,Dăm bông lợn,dăm bông heo,,,,,,,,,,,,,,,,,,"[CHUA DU LIEU - can DAT-13] NIN 2017, ma 07066, tr.86 - PDF thieu: na_mg, k_mg",FALSE
+1106099,Dồi lợn,dồi heo,,,,,,,,,,,,,,,,,,"[CHUA DU LIEU - can DAT-13] NIN 2017, ma 07067, tr.86 - PDF thieu: na_mg, k_mg",FALSE
+1106100,Giò bò,,,,,,,,,,,,,,,,,,,"[CHUA DU LIEU - can DAT-13] NIN 2017, ma 07068, tr.86 - PDF thieu: na_mg, k_mg",FALSE
+1106101,Giò thủ lợn,giò thủ heo,,,,,,,,,,,,,,,,,,"[CHUA DU LIEU - can DAT-13] NIN 2017, ma 07070, tr.86 - PDF thieu: na_mg, k_mg, p_mg",FALSE
+1106102,Lạp xường,,,,,,,,,,,,,,,,,,,"[CHUA DU LIEU - can DAT-13] NIN 2017, ma 07071, tr.86 - PDF thieu: na_mg, k_mg",FALSE
+1106103,Thịt trâu khô,,,,,,,,,,,,,,,,,,,"[CHUA DU LIEU - can DAT-13] NIN 2017, ma 07076, tr.88 - PDF thieu: na_mg, k_mg, p_mg",FALSE
+1106104,Bột cóc,,,,,,,,,,,,,,,,,,,"[CHUA DU LIEU - can DAT-13] NIN 2017, ma 07078, tr.88 - PDF thieu: na_mg, k_mg, p_mg",FALSE
+1106105,Châu chấu,,,,,,,,,,,,,,,,,,,"[CHUA DU LIEU - can DAT-13] NIN 2017, ma 07079, tr.88 - PDF thieu: na_mg, k_mg",FALSE
+1106107,Nhộng,,,,,,,,,,,,,,,,,,,"[CHUA DU LIEU - can DAT-13] NIN 2017, ma 07081, tr.88 - PDF thieu: na_mg, k_mg",FALSE
+1106109,"Thịt lợn, nạc vai","thịt heo, nạc vai",,,,,,,,,,,,,,,,,,"[CHUA DU LIEU - can DAT-13] NIN 2017, ma 07083, tr.88 - PDF thieu: fiber_g, na_mg, k_mg",FALSE
+1106110,"Thịt lợn, nạc mông","thịt heo, nạc mông",,,,,,,,,,,,,,,,,,"[CHUA DU LIEU - can DAT-13] NIN 2017, ma 07084, tr.88 - PDF thieu: fiber_g, na_mg, k_mg",FALSE
+1106111,"Thịt lợn, nạc thăn","thịt heo, nạc thăn",,,,,,,,,,,,,,,,,,"[CHUA DU LIEU - can DAT-13] NIN 2017, ma 07085, tr.88 - PDF thieu: fiber_g, na_mg, k_mg",FALSE
+1106112,"Thịt lợn nửa nạc, nửa mỡ, nướng","thịt heo nửa nạc, nửa mỡ, nướng",,,,,,,,,,,,,,,,,,"[CHUA DU LIEU - can DAT-13] NIN 2017, ma 07086, tr.88 - PDF thieu: fiber_g, na_mg, k_mg",FALSE
+1106113,"Thịt gà công nghiệp, cánh",,,,,,,,,,,,,,,,,,,"[CHUA DU LIEU - can DAT-13] NIN 2017, ma 07087, tr.88 - PDF thieu: fiber_g, na_mg, k_mg",FALSE
+1106114,"Thịt gà công nghiệp, đùi",,,,,,,,,,,,,,,,,,,"[CHUA DU LIEU - can DAT-13] NIN 2017, ma 07088, tr.90 - PDF thieu: fiber_g, na_mg, k_mg",FALSE
+1106115,"Thịt gà công nghiệp, lườn",,,,,,,,,,,,,,,,,,,"[CHUA DU LIEU - can DAT-13] NIN 2017, ma 07089, tr.90 - PDF thieu: fiber_g, na_mg, k_mg",FALSE
+1106116,Thịt ngan,,,,,,,,,,,,,,,,,,,"[CHUA DU LIEU - can DAT-13] NIN 2017, ma 07090, tr.90 - PDF thieu: fiber_g, na_mg, k_mg",FALSE
+1106117,Chả lá lốt,,,,,,,,,,,,,,,,,,,"[CHUA DU LIEU - can DAT-13] NIN 2017, ma 07091, tr.90 - PDF thieu: fiber_g, na_mg, k_mg",FALSE
+1106118,Cá chày,,,,,,,,,,,,,,,,,,,"[CHUA DU LIEU - can DAT-13] NIN 2017, ma 08002, tr.94 - PDF thieu: na_mg, k_mg",FALSE
+1106119,Cá dưa,,,,,,,,,,,,,,,,,,,"[CHUA DU LIEU - can DAT-13] NIN 2017, ma 08004, tr.94 - PDF thieu: na_mg, k_mg",FALSE
+1106120,Cá dầu,,,,,,,,,,,,,,,,,,,"[CHUA DU LIEU - can DAT-13] NIN 2017, ma 08005, tr.94 - PDF thieu: na_mg, k_mg",FALSE
+1106121,Cá đao,,,,,,,,,,,,,,,,,,,"[CHUA DU LIEU - can DAT-13] NIN 2017, ma 08007, tr.94 - PDF thieu: na_mg, k_mg",FALSE
+1106122,Cá đé,,,,,,,,,,,,,,,,,,,"[CHUA DU LIEU - can DAT-13] NIN 2017, ma 08008, tr.94 - PDF thieu: na_mg, k_mg",FALSE
+1106123,Cá đồng tiền,,,,,,,,,,,,,,,,,,,"[CHUA DU LIEU - can DAT-13] NIN 2017, ma 08010, tr.94 - PDF thieu: na_mg, k_mg",FALSE
+1106124,"Cá khô (chim, thu, nụ, đé)",,,,,,,,,,,,,,,,,,,"[CHUA DU LIEU - can DAT-13] NIN 2017, ma 08012, tr.94 - PDF thieu: na_mg, k_mg",FALSE
+1106125,Cá lác,,,,,,,,,,,,,,,,,,,"[CHUA DU LIEU - can DAT-13] NIN 2017, ma 08013, tr.94 - PDF thieu: na_mg, k_mg",FALSE
+1106126,Cá mòi (cá sardin),,,,,,,,,,,,,,,,,,,"[CHUA DU LIEU - can DAT-13] NIN 2017, ma 08015, tr.96 - PDF thieu: k_mg",FALSE
+1106127,Cá mỡ,,,,,,,,,,,,,,,,,,,"[CHUA DU LIEU - can DAT-13] NIN 2017, ma 08016, tr.96 - PDF thieu: na_mg, k_mg",FALSE
+1106128,Cá mối,,,,,,,,,,,,,,,,,,,"[CHUA DU LIEU - can DAT-13] NIN 2017, ma 08017, tr.96 - PDF thieu: na_mg, k_mg",FALSE
+1106129,Cá nạc,,,,,,,,,,,,,,,,,,,"[CHUA DU LIEU - can DAT-13] NIN 2017, ma 08018, tr.96 - PDF thieu: na_mg, k_mg",FALSE
+1106130,Cá phèn,,,,,,,,,,,,,,,,,,,"[CHUA DU LIEU - can DAT-13] NIN 2017, ma 08021, tr.96 - PDF thieu: na_mg, k_mg",FALSE
+1106131,Cá rô đồng,,,,,,,,,,,,,,,,,,,"[CHUA DU LIEU - can DAT-13] NIN 2017, ma 08023, tr.96 - PDF thieu: na_mg, k_mg",FALSE
+1106132,Cá thờn bơn,,,,,,,,,,,,,,,,,,,"[CHUA DU LIEU - can DAT-13] NIN 2017, ma 08025, tr.96 - PDF thieu: na_mg, k_mg",FALSE
+1106134,Cá trạch,,,,,,,,,,,,,,,,,,,"[CHUA DU LIEU - can DAT-13] NIN 2017, ma 08028, tr.96 - PDF thieu: na_mg, k_mg",FALSE
+1106138,Hải sâm,,,,,,,,,,,,,,,,,,,"[CHUA DU LIEU - can DAT-13] NIN 2017, ma 08036, tr.98 - PDF thieu: na_mg, k_mg",FALSE
+1106140,Ốc bươu,,,,,,,,,,,,,,,,,,,"[CHUA DU LIEU - can DAT-13] NIN 2017, ma 08041, tr.98 - PDF thieu: na_mg, k_mg",FALSE
+1106141,Ốc đá,,,,,,,,,,,,,,,,,,,"[CHUA DU LIEU - can DAT-13] NIN 2017, ma 08042, tr.98 - PDF thieu: na_mg, k_mg",FALSE
+1106142,Ốc vặn,,,,,,,,,,,,,,,,,,,"[CHUA DU LIEU - can DAT-13] NIN 2017, ma 08044, tr.98 - PDF thieu: na_mg, k_mg",FALSE
+1106143,"Rạm (muối, đồ)",,,,,,,,,,,,,,,,,,,"[CHUA DU LIEU - can DAT-13] NIN 2017, ma 08045, tr.98 - PDF thieu: na_mg, k_mg",FALSE
+1106144,Rạm tươi,,,,,,,,,,,,,,,,,,,"[CHUA DU LIEU - can DAT-13] NIN 2017, ma 08046, tr.98 - PDF thieu: na_mg, k_mg",FALSE
+1106145,Rươi,,,,,,,,,,,,,,,,,,,"[CHUA DU LIEU - can DAT-13] NIN 2017, ma 08047, tr.100 - PDF thieu: na_mg, k_mg",FALSE
+1106146,Tép gạo,,,,,,,,,,,,,,,,,,,"[CHUA DU LIEU - can DAT-13] NIN 2017, ma 08049, tr.100 - PDF thieu: na_mg, k_mg",FALSE
+1106147,Tép khô,,,,,,,,,,,,,,,,,,,"[CHUA DU LIEU - can DAT-13] NIN 2017, ma 08050, tr.100 - PDF thieu: na_mg, k_mg",FALSE
+1106150,Bánh phồng tôm rán,,,,,,,,,,,,,,,,,,,"[CHUA DU LIEU - can DAT-13] NIN 2017, ma 08055, tr.100 - PDF thieu: na_mg, k_mg",FALSE
+1106152,Bột cá,,,,,,,,,,,,,,,,,,,"[CHUA DU LIEU - can DAT-13] NIN 2017, ma 08057, tr.100 - PDF thieu: na_mg, k_mg",FALSE
+1106153,Ruốc cá quả,ruốc cá lóc|ruốc cá chuối,,,,,,,,,,,,,,,,,,"[CHUA DU LIEU - can DAT-13] NIN 2017, ma 08058, tr.100 - PDF thieu: na_mg, k_mg",FALSE
+1106154,Ruốc tôm,,,,,,,,,,,,,,,,,,,"[CHUA DU LIEU - can DAT-13] NIN 2017, ma 08059, tr.100 - PDF thieu: na_mg, k_mg, p_mg",FALSE
+1106155,Cá chim,,,,,,,,,,,,,,,,,,,"[CHUA DU LIEU - can DAT-13] NIN 2017, ma 08060, tr.100 - PDF thieu: na_mg, k_mg",FALSE
+1106156,Cá chim trắng,,,,,,,,,,,,,,,,,,,"[CHUA DU LIEU - can DAT-13] NIN 2017, ma 08061, tr.102 - PDF thieu: na_mg, k_mg",FALSE
+1106157,Cá điêu hồng,,,,,,,,,,,,,,,,,,,"[CHUA DU LIEU - can DAT-13] NIN 2017, ma 08062, tr.102 - PDF thieu: na_mg, k_mg",FALSE
+1106158,"Cá basa, phi lê",,,,,,,,,,,,,,,,,,,"[CHUA DU LIEU - can DAT-13] NIN 2017, ma 08063, tr.102 - PDF thieu: na_mg, k_mg",FALSE
+1106159,Chả cá basa,,,,,,,,,,,,,,,,,,,"[CHUA DU LIEU - can DAT-13] NIN 2017, ma 08064, tr.102 - PDF thieu: na_mg, k_mg",FALSE
+1106160,Con trùng trục,,,,,,,,,,,,,,,,,,,"[CHUA DU LIEU - can DAT-13] NIN 2017, ma 08065, tr.102 - PDF thieu: na_mg, k_mg",FALSE
+1106161,Ngao biển trắng,,,,,,,,,,,,,,,,,,,"[CHUA DU LIEU - can DAT-13] NIN 2017, ma 08066, tr.102 - PDF thieu: na_mg, k_mg, p_mg",FALSE
+1106163,Lòng đỏ trứng vịt,,,,,,,,,,,,,,,,,,,"[CHUA DU LIEU - can DAT-13] NIN 2017, ma 09005, tr.106 - PDF thieu: na_mg, k_mg",FALSE
+1106164,Lòng trắng trứng vịt,,,,,,,,,,,,,,,,,,,"[CHUA DU LIEU - can DAT-13] NIN 2017, ma 09006, tr.106 - PDF thieu: na_mg, k_mg",FALSE
+1106166,Trứng cá,,,,,,,,,,,,,,,,,,,"[CHUA DU LIEU - can DAT-13] NIN 2017, ma 09008, tr.106 - PDF thieu: na_mg, k_mg",FALSE
+1106168,Bột trứng,,,,,,,,,,,,,,,,,,,"[CHUA DU LIEU - can DAT-13] NIN 2017, ma 09011, tr.106 - PDF thieu: na_mg, k_mg",FALSE
+1106169,Trứng gà công nghiệp,,,,,,,,,,,,,,,,,,,"[CHUA DU LIEU - can DAT-13] NIN 2017, ma 09012, tr.106 - PDF thieu: fiber_g, na_mg, k_mg, p_mg",FALSE
+1106174,Chuối nước đường,,,,,,,,,,,,,,,,,,,"[CHUA DU LIEU - can DAT-13] NIN 2017, ma 11001, tr.114 - PDF thieu: na_mg, k_mg",FALSE
+1106177,Lạc chao dầu,đậu phộng chao dầu,,,,,,,,,,,,,,,,,,"[CHUA DU LIEU - can DAT-13] NIN 2017, ma 11004, tr.114 - PDF thieu: fiber_g, na_mg, k_mg, p_mg",FALSE
+1106178,Mắc coọc nước đường,,,,,,,,,,,,,,,,,,,"[CHUA DU LIEU - can DAT-13] NIN 2017, ma 11005, tr.114 - PDF thieu: na_mg, k_mg",FALSE
+1106180,Mứt bí ngô,mứt bí đỏ,,,,,,,,,,,,,,,,,,"[CHUA DU LIEU - can DAT-13] NIN 2017, ma 11007, tr.114 - PDF thieu: na_mg, k_mg",FALSE
+1106181,Mứt cam có vỏ,,,,,,,,,,,,,,,,,,,"[CHUA DU LIEU - can DAT-13] NIN 2017, ma 11008, tr.114 - PDF thieu: na_mg, k_mg",FALSE
+1106182,Mứt chuối,,,,,,,,,,,,,,,,,,,"[CHUA DU LIEU - can DAT-13] NIN 2017, ma 11009, tr.114 - PDF thieu: na_mg, k_mg",FALSE
+1106183,Mứt dứa,mứt thơm|mứt khóm,,,,,,,,,,,,,,,,,,"[CHUA DU LIEU - can DAT-13] NIN 2017, ma 11010, tr.114 - PDF thieu: na_mg, k_mg",FALSE
+1106184,Mứt đu đủ,,,,,,,,,,,,,,,,,,,"[CHUA DU LIEU - can DAT-13] NIN 2017, ma 11011, tr.114 - PDF thieu: na_mg, k_mg",FALSE
+1106185,Nhãn nước đường,,,,,,,,,,,,,,,,,,,"[CHUA DU LIEU - can DAT-13] NIN 2017, ma 11012, tr.114 - PDF thieu: na_mg, k_mg",FALSE
+1106187,Vải nước đường,,,,,,,,,,,,,,,,,,,"[CHUA DU LIEU - can DAT-13] NIN 2017, ma 11014, tr.116 - PDF thieu: na_mg, k_mg",FALSE
+1106188,Cá thu hộp,,,,,,,,,,,,,,,,,,,"[CHUA DU LIEU - can DAT-13] NIN 2017, ma 11015, tr.116 - PDF thieu: fiber_g, na_mg, k_mg",FALSE
+1106189,Cá trích hộp,,,,,,,,,,,,,,,,,,,"[CHUA DU LIEU - can DAT-13] NIN 2017, ma 11016, tr.116 - PDF thieu: fiber_g, na_mg, k_mg",FALSE
+1106190,Thịt bò hộp,,,,,,,,,,,,,,,,,,,"[CHUA DU LIEU - can DAT-13] NIN 2017, ma 11017, tr.116 - PDF thieu: fiber_g, na_mg, k_mg",FALSE
+1106191,Thịt gà hộp,,,,,,,,,,,,,,,,,,,"[CHUA DU LIEU - can DAT-13] NIN 2017, ma 11018, tr.116 - PDF thieu: fiber_g, na_mg, k_mg",FALSE
+1106192,Thịt lợn hộp,thịt heo hộp,,,,,,,,,,,,,,,,,,"[CHUA DU LIEU - can DAT-13] NIN 2017, ma 11019, tr.116 - PDF thieu: fiber_g, na_mg, k_mg",FALSE
+1106193,"Thịt lợn, thịt bò xay hộp","thịt heo, thịt bò xay hộp",,,,,,,,,,,,,,,,,,"[CHUA DU LIEU - can DAT-13] NIN 2017, ma 11020, tr.116 - PDF thieu: fiber_g, na_mg, k_mg",FALSE
+1106194,Thịt vịt hầm,,,,,,,,,,,,,,,,,,,"[CHUA DU LIEU - can DAT-13] NIN 2017, ma 11021, tr.116 - PDF thieu: fiber_g, na_mg, k_mg, p_mg",FALSE
+1106195,Bánh bích cốt,,,,,,,,,,,,,,,,,,,"[CHUA DU LIEU - can DAT-13] NIN 2017, ma 12001, tr.120 - PDF thieu: na_mg, k_mg",FALSE
+1106196,Bánh bích quy,,,,,,,,,,,,,,,,,,,"[CHUA DU LIEU - can DAT-13] NIN 2017, ma 12002, tr.120 - PDF thieu: na_mg, k_mg",FALSE
+1106197,Bánh chả,,,,,,,,,,,,,,,,,,,"[CHUA DU LIEU - can DAT-13] NIN 2017, ma 12003, tr.120 - PDF thieu: na_mg, k_mg",FALSE
+1106198,Bánh con cá,,,,,,,,,,,,,,,,,,,"[CHUA DU LIEU - can DAT-13] NIN 2017, ma 12004, tr.120 - PDF thieu: na_mg, k_mg",FALSE
+1106199,Bánh đậu xanh,,,,,,,,,,,,,,,,,,,"[CHUA DU LIEU - can DAT-13] NIN 2017, ma 12005, tr.120 - PDF thieu: na_mg, k_mg",FALSE
+1106200,Bánh kem xốp,,,,,,,,,,,,,,,,,,,"[CHUA DU LIEU - can DAT-13] NIN 2017, ma 12006, tr.120 - PDF thieu: na_mg, k_mg",FALSE
+1106201,Bánh khảo chay,,,,,,,,,,,,,,,,,,,"[CHUA DU LIEU - can DAT-13] NIN 2017, ma 12007, tr.120 - PDF thieu: na_mg, k_mg",FALSE
+1106202,Bánh quế,,,,,,,,,,,,,,,,,,,"[CHUA DU LIEU - can DAT-13] NIN 2017, ma 12008, tr.120 - PDF thieu: na_mg, k_mg",FALSE
+1106203,Bánh sô cô la,,,,,,,,,,,,,,,,,,,"[CHUA DU LIEU - can DAT-13] NIN 2017, ma 12009, tr.120 - PDF thieu: na_mg, k_mg",FALSE
+1106204,Bánh thỏi sô cô la,,,,,,,,,,,,,,,,,,,"[CHUA DU LIEU - can DAT-13] NIN 2017, ma 12010, tr.120 - PDF thieu: fiber_g, na_mg, k_mg",FALSE
+1106205,Bánh trứng nhện,,,,,,,,,,,,,,,,,,,"[CHUA DU LIEU - can DAT-13] NIN 2017, ma 12011, tr.120 - PDF thieu: na_mg, k_mg",FALSE
+1106207,Đường kính,,,,,,,,,,,,,,,,,,,"[CHUA DU LIEU - can DAT-13] NIN 2017, ma 12014, tr.122 - PDF thieu: fiber_g",FALSE
+1106208,Kẹo bơ cứng,,,,,,,,,,,,,,,,,,,"[CHUA DU LIEU - can DAT-13] NIN 2017, ma 12015, tr.122 - PDF thieu: fiber_g, na_mg, k_mg",FALSE
+1106209,Kẹo cà phê,,,,,,,,,,,,,,,,,,,"[CHUA DU LIEU - can DAT-13] NIN 2017, ma 12016, tr.122 - PDF thieu: fiber_g, na_mg, k_mg, p_mg",FALSE
+1106210,Kẹo cam chanh,,,,,,,,,,,,,,,,,,,"[CHUA DU LIEU - can DAT-13] NIN 2017, ma 12017, tr.122 - PDF thieu: na_mg, k_mg",FALSE
+1106211,Kẹo dừa mềm,,,,,,,,,,,,,,,,,,,"[CHUA DU LIEU - can DAT-13] NIN 2017, ma 12018, tr.122 - PDF thieu: na_mg, k_mg",FALSE
+1106212,Kẹo dứa mềm,kẹo thơm mềm|kẹo khóm mềm,,,,,,,,,,,,,,,,,,"[CHUA DU LIEU - can DAT-13] NIN 2017, ma 12019, tr.122 - PDF thieu: na_mg, k_mg",FALSE
+1106213,Kẹo lạc,kẹo đậu phộng,,,,,,,,,,,,,,,,,,"[CHUA DU LIEU - can DAT-13] NIN 2017, ma 12020, tr.122 - PDF thieu: na_mg, k_mg, p_mg",FALSE
+1106214,Kẹo Pastille (kẹo ngậm bạc hà),,,,,,,,,,,,,,,,,,,"[CHUA DU LIEU - can DAT-13] NIN 2017, ma 12021, tr.122 - PDF thieu: fiber_g, na_mg, k_mg",FALSE
+1106215,Kẹo sô cô la,,,,,,,,,,,,,,,,,,,"[CHUA DU LIEU - can DAT-13] NIN 2017, ma 12022, tr.122 - PDF thieu: na_mg, k_mg, p_mg",FALSE
+1106216,Kẹo sữa,,,,,,,,,,,,,,,,,,,"[CHUA DU LIEU - can DAT-13] NIN 2017, ma 12023, tr.122 - PDF thieu: fiber_g, na_mg, k_mg, p_mg",FALSE
+1106217,Kẹo vừng viên,kẹo mè viên,,,,,,,,,,,,,,,,,,"[CHUA DU LIEU - can DAT-13] NIN 2017, ma 12024, tr.122 - PDF thieu: na_mg, k_mg, p_mg",FALSE
+1106218,Mạch nha,,,,,,,,,,,,,,,,,,,"[CHUA DU LIEU - can DAT-13] NIN 2017, ma 12025, tr.122 - PDF thieu: na_mg, k_mg, p_mg",FALSE
+1106219,Mứt lạc,mứt đậu phộng,,,,,,,,,,,,,,,,,,"[CHUA DU LIEU - can DAT-13] NIN 2017, ma 12027, tr.122 - PDF thieu: na_mg, k_mg, p_mg",FALSE
+1106220,Cary bột,,,,,,,,,,,,,,,,,,,"[CHUA DU LIEU - can DAT-13] NIN 2017, ma 13001, tr.126 - PDF thieu: na_mg, k_mg",FALSE
+1106221,Gừng khô (bột),,,,,,,,,,,,,,,,,,,"[CHUA DU LIEU - can DAT-13] NIN 2017, ma 13002, tr.126 - PDF thieu: fiber_g",FALSE
+1106225,"Nghệ khô, bột",,,,,,,,,,,,,,,,,,,"[CHUA DU LIEU - can DAT-13] NIN 2017, ma 13006, tr.126 - PDF thieu: fiber_g",FALSE
+1106227,ớt khô bột,,,,,,,,,,,,,,,,,,,"[CHUA DU LIEU - can DAT-13] NIN 2017, ma 13008, tr.126 - PDF thieu: na_mg, k_mg",FALSE
+1106228,Riềng,,,,,,,,,,,,,,,,,,,"[CHUA DU LIEU - can DAT-13] NIN 2017, ma 13009, tr.126 - PDF thieu: fat_g, na_mg, k_mg",FALSE
+1106230,Mắm tôm đặc,,,,,,,,,,,,,,,,,,,"[CHUA DU LIEU - can DAT-13] NIN 2017, ma 13011, tr.126 - PDF thieu: fiber_g, p_mg",FALSE
+1106231,Mắm tôm loãng,,,,,,,,,,,,,,,,,,,"[CHUA DU LIEU - can DAT-13] NIN 2017, ma 13012, tr.126 - PDF thieu: fiber_g, na_mg, k_mg",FALSE
+1106232,Mắm tép chua,,,,,,,,,,,,,,,,,,,"[CHUA DU LIEU - can DAT-13] NIN 2017, ma 13013, tr.126 - PDF thieu: fiber_g, p_mg",FALSE
+1106233,Nước mắm cá (loại đặc biệt),,,,,,,,,,,,,,,,,,,"[CHUA DU LIEU - can DAT-13] NIN 2017, ma 13014, tr.128 - PDF thieu: fiber_g, na_mg, k_mg",FALSE
+1106234,Nước mắm loại I,,,,,,,,,,,,,,,,,,,"[CHUA DU LIEU - can DAT-13] NIN 2017, ma 13015, tr.128 - PDF thieu: na_mg, k_mg",FALSE
+1106235,Nước mắm loại II,,,,,,,,,,,,,,,,,,,"[CHUA DU LIEU - can DAT-13] NIN 2017, ma 13016, tr.128 - PDF thieu: na_mg, k_mg",FALSE
+1106237,Nước mắm cô,,,,,,,,,,,,,,,,,,,"[CHUA DU LIEU - can DAT-13] NIN 2017, ma 13018, tr.128 - PDF thieu: fat_g, na_mg, k_mg, p_mg",FALSE
+1106238,Tương ngô,tương bắp,,,,,,,,,,,,,,,,,,"[CHUA DU LIEU - can DAT-13] NIN 2017, ma 13019, tr.128 - PDF thieu: fiber_g, na_mg, k_mg, p_mg",FALSE
+1106239,Tương nếp,,,,,,,,,,,,,,,,,,,"[CHUA DU LIEU - can DAT-13] NIN 2017, ma 13020, tr.128 - PDF thieu: fiber_g, na_mg, k_mg, p_mg",FALSE
+1106242,Cô nhắc (cồn 32 g),,,,,,,,,,,,,,,,,,,"[CHUA DU LIEU - can DAT-13] NIN 2017, ma 14002, tr.132 - PDF thieu: na_mg, k_mg, p_mg",FALSE
+1106243,Cốc tain (cồn 13 g),,,,,,,,,,,,,,,,,,,"[CHUA DU LIEU - can DAT-13] NIN 2017, ma 14003, tr.132 - PDF thieu: fat_g, na_mg, k_mg",FALSE
+1106244,Coca cola,,,,,,,,,,,,,,,,,,,"[CHUA DU LIEU - can DAT-13] NIN 2017, ma 14004, tr.132 - PDF thieu: fat_g, na_mg, k_mg",FALSE
+1106245,Nước cam tươi,,,,,,,,,,,,,,,,,,,"[CHUA DU LIEU - can DAT-13] NIN 2017, ma 14005, tr.132 - PDF thieu: fiber_g",FALSE
+1106246,Nước dừa non tươi,,,,,,,,,,,,,,,,,,,"[CHUA DU LIEU - can DAT-13] NIN 2017, ma 14006, tr.132 - PDF thieu: na_mg, k_mg",FALSE
+1106248,Nước khoáng,,,,,,,,,,,,,,,,,,,"[CHUA DU LIEU - can DAT-13] NIN 2017, ma 14008, tr.132 - PDF thieu: na_mg, k_mg",FALSE
+1106250,"Rượu cam, chanh (cồn 24,2 g)",,,,,,,,,,,,,,,,,,,"[CHUA DU LIEU - can DAT-13] NIN 2017, ma 14010, tr.132 - PDF thieu: na_mg, k_mg, p_mg",FALSE
+1106251,Rượu nếp (80g/ 24 ml) (cồn 5 g),,,,,,,,,,,,,,,,,,,"[CHUA DU LIEU - can DAT-13] NIN 2017, ma 14011, tr.132 - PDF thieu: fat_g, na_mg, k_mg, p_mg",FALSE
+1106252,Rượu trắng (cồn 39 g),,,,,,,,,,,,,,,,,,,"[CHUA DU LIEU - can DAT-13] NIN 2017, ma 14012, tr.132 - PDF thieu: protein_g, fat_g, na_mg, k_mg, p_mg",FALSE
+1106253,"Rượu vang đỏ (cồn 9,5 g)",,,,,,,,,,,,,,,,,,,"[CHUA DU LIEU - can DAT-13] NIN 2017, ma 14013, tr.134 - PDF thieu: fat_g, na_mg, k_mg",FALSE
+1106256,"Rượu Whisky (cồn 35,2 g)",,,,,,,,,,,,,,,,,,,"[CHUA DU LIEU - can DAT-13] NIN 2017, ma 14016, tr.134 - PDF thieu: fat_g, na_mg, k_mg, p_mg",FALSE
+1106257,Bánh bao chiên có nhân,,,,,,,,,,,,,,,,,,,"[CHUA DU LIEU - can DAT-13] NIN 2017, ma 15001, tr.138 - PDF thieu: na_mg, k_mg",FALSE
+1106258,Bánh bèo,,,,,,,,,,,,,,,,,,,"[CHUA DU LIEU - can DAT-13] NIN 2017, ma 15002, tr.138 - PDF thieu: na_mg, k_mg",FALSE
+1106259,Bánh bột lọc,,,,,,,,,,,,,,,,,,,"[CHUA DU LIEU - can DAT-13] NIN 2017, ma 15003, tr.138 - PDF thieu: na_mg, k_mg",FALSE
+1106260,Bánh chay,,,,,,,,,,,,,,,,,,,"[CHUA DU LIEU - can DAT-13] NIN 2017, ma 15004, tr.138 - PDF thieu: na_mg, k_mg",FALSE
+1106261,Bánh chín tầng mây,,,,,,,,,,,,,,,,,,,"[CHUA DU LIEU - can DAT-13] NIN 2017, ma 15005, tr.138 - PDF thieu: na_mg, k_mg",FALSE
+1106262,Bánh chưng,,,,,,,,,,,,,,,,,,,"[CHUA DU LIEU - can DAT-13] NIN 2017, ma 15006, tr.138 - PDF thieu: na_mg, k_mg",FALSE
+1106263,Bánh chuối,,,,,,,,,,,,,,,,,,,"[CHUA DU LIEU - can DAT-13] NIN 2017, ma 15007, tr.138 - PDF thieu: na_mg, k_mg",FALSE
+1106264,Bánh cốm,,,,,,,,,,,,,,,,,,,"[CHUA DU LIEU - can DAT-13] NIN 2017, ma 15008, tr.138 - PDF thieu: na_mg, k_mg",FALSE
+1106265,Bánh cuốn nóng nhân thịt,,,,,,,,,,,,,,,,,,,"[CHUA DU LIEU - can DAT-13] NIN 2017, ma 15010, tr.138 - PDF thieu: na_mg, k_mg",FALSE
+1106266,Bánh dẻo nhân thập cẩm,,,,,,,,,,,,,,,,,,,"[CHUA DU LIEU - can DAT-13] NIN 2017, ma 15011, tr.138 - PDF thieu: na_mg, k_mg",FALSE
+1106267,Bánh dẻo nhân trứng,,,,,,,,,,,,,,,,,,,"[CHUA DU LIEU - can DAT-13] NIN 2017, ma 15012, tr.138 - PDF thieu: na_mg, k_mg",FALSE
+1106268,Bánh đúc nguội,,,,,,,,,,,,,,,,,,,"[CHUA DU LIEU - can DAT-13] NIN 2017, ma 15013, tr.140 - PDF thieu: na_mg, k_mg",FALSE
+1106269,Bánh đúc nóng,,,,,,,,,,,,,,,,,,,"[CHUA DU LIEU - can DAT-13] NIN 2017, ma 15014, tr.140 - PDF thieu: na_mg, k_mg",FALSE
+1106270,Bánh gai,,,,,,,,,,,,,,,,,,,"[CHUA DU LIEU - can DAT-13] NIN 2017, ma 15015, tr.140 - PDF thieu: na_mg, k_mg",FALSE
+1106271,Bánh gio,,,,,,,,,,,,,,,,,,,"[CHUA DU LIEU - can DAT-13] NIN 2017, ma 15016, tr.140 - PDF thieu: na_mg, k_mg",FALSE
+1106272,Bánh giò,,,,,,,,,,,,,,,,,,,"[CHUA DU LIEU - can DAT-13] NIN 2017, ma 15017, tr.140 - PDF thieu: na_mg, k_mg",FALSE
+1106273,Bánh khoai,,,,,,,,,,,,,,,,,,,"[CHUA DU LIEU - can DAT-13] NIN 2017, ma 15018, tr.140 - PDF thieu: na_mg, k_mg",FALSE
+1106274,Bánh khoái,,,,,,,,,,,,,,,,,,,"[CHUA DU LIEU - can DAT-13] NIN 2017, ma 15019, tr.140 - PDF thieu: na_mg, k_mg",FALSE
+1106275,Bánh khoai sọ chiên,,,,,,,,,,,,,,,,,,,"[CHUA DU LIEU - can DAT-13] NIN 2017, ma 15020, tr.140 - PDF thieu: na_mg, k_mg",FALSE
+1106276,Bánh khúc,,,,,,,,,,,,,,,,,,,"[CHUA DU LIEU - can DAT-13] NIN 2017, ma 15021, tr.142 - PDF thieu: na_mg, k_mg",FALSE
+1106277,Bánh mè,,,,,,,,,,,,,,,,,,,"[CHUA DU LIEU - can DAT-13] NIN 2017, ma 15022, tr.142 - PDF thieu: na_mg, k_mg",FALSE
+1106278,Bánh mì xíu mại,,,,,,,,,,,,,,,,,,,"[CHUA DU LIEU - can DAT-13] NIN 2017, ma 15023, tr.142 - PDF thieu: na_mg, k_mg",FALSE
+1106279,Bánh mỳ patê,,,,,,,,,,,,,,,,,,,"[CHUA DU LIEU - can DAT-13] NIN 2017, ma 15024, tr.142 - PDF thieu: na_mg, k_mg",FALSE
+1106280,Bánh nếp,,,,,,,,,,,,,,,,,,,"[CHUA DU LIEU - can DAT-13] NIN 2017, ma 15025, tr.142 - PDF thieu: na_mg, k_mg",FALSE
+1106281,Bánh nướng nhân thập cẩm,,,,,,,,,,,,,,,,,,,"[CHUA DU LIEU - can DAT-13] NIN 2017, ma 15026, tr.142 - PDF thieu: na_mg, k_mg",FALSE
+1106282,Bánh nướng nhân trứng đỗ xanh,,,,,,,,,,,,,,,,,,,"[CHUA DU LIEU - can DAT-13] NIN 2017, ma 15027, tr.142 - PDF thieu: na_mg, k_mg",FALSE
+1106283,"Bánh phu thê (su sê, xu xuê)",,,,,,,,,,,,,,,,,,,"[CHUA DU LIEU - can DAT-13] NIN 2017, ma 15028, tr.142 - PDF thieu: na_mg, k_mg",FALSE
+1106284,Bánh rán bọc đường,,,,,,,,,,,,,,,,,,,"[CHUA DU LIEU - can DAT-13] NIN 2017, ma 15029, tr.142 - PDF thieu: na_mg, k_mg",FALSE
+1106285,Bánh tẻ,,,,,,,,,,,,,,,,,,,"[CHUA DU LIEU - can DAT-13] NIN 2017, ma 15030, tr.142 - PDF thieu: na_mg, k_mg",FALSE
+1106286,Bánh tôm,,,,,,,,,,,,,,,,,,,"[CHUA DU LIEU - can DAT-13] NIN 2017, ma 15031, tr.144 - PDF thieu: na_mg, k_mg",FALSE
+1106287,Bánh trôi,,,,,,,,,,,,,,,,,,,"[CHUA DU LIEU - can DAT-13] NIN 2017, ma 15032, tr.144 - PDF thieu: na_mg, k_mg",FALSE
+1106288,Bún bò Nam bộ,,,,,,,,,,,,,,,,,,,"[CHUA DU LIEU - can DAT-13] NIN 2017, ma 15033, tr.144 - PDF thieu: na_mg, k_mg",FALSE
+1106289,Bún chả,,,,,,,,,,,,,,,,,,,"[CHUA DU LIEU - can DAT-13] NIN 2017, ma 15034, tr.144 - PDF thieu: na_mg, k_mg",FALSE
+1106290,Bún cua,,,,,,,,,,,,,,,,,,,"[CHUA DU LIEU - can DAT-13] NIN 2017, ma 15035, tr.144 - PDF thieu: fiber_g, na_mg, k_mg",FALSE
+1106291,Bún đậu,,,,,,,,,,,,,,,,,,,"[CHUA DU LIEU - can DAT-13] NIN 2017, ma 15036, tr.144 - PDF thieu: na_mg, k_mg",FALSE
+1106292,Bún dọc mùng,bún bạc hà,,,,,,,,,,,,,,,,,,"[CHUA DU LIEU - can DAT-13] NIN 2017, ma 15037, tr.144 - PDF thieu: fiber_g, na_mg, k_mg",FALSE
+1106293,Bún nem,,,,,,,,,,,,,,,,,,,"[CHUA DU LIEU - can DAT-13] NIN 2017, ma 15038, tr.144 - PDF thieu: na_mg, k_mg",FALSE
+1106294,Bún ốc,,,,,,,,,,,,,,,,,,,"[CHUA DU LIEU - can DAT-13] NIN 2017, ma 15039, tr.144 - PDF thieu: fiber_g, na_mg, k_mg",FALSE
+1106295,Caramen,,,,,,,,,,,,,,,,,,,"[CHUA DU LIEU - can DAT-13] NIN 2017, ma 15040, tr.144 - PDF thieu: na_mg, k_mg",FALSE
+1106296,Cháo lòng,,,,,,,,,,,,,,,,,,,"[CHUA DU LIEU - can DAT-13] NIN 2017, ma 15042, tr.144 - PDF thieu: na_mg, k_mg",FALSE
+1106297,Cháo sườn,,,,,,,,,,,,,,,,,,,"[CHUA DU LIEU - can DAT-13] NIN 2017, ma 15043, tr.144 - PDF thieu: na_mg, k_mg",FALSE
+1106298,Cháo trai,,,,,,,,,,,,,,,,,,,"[CHUA DU LIEU - can DAT-13] NIN 2017, ma 15044, tr.144 - PDF thieu: na_mg, k_mg",FALSE
+1106299,Chè bưởi,,,,,,,,,,,,,,,,,,,"[CHUA DU LIEU - can DAT-13] NIN 2017, ma 15045, tr.146 - PDF thieu: na_mg, k_mg",FALSE
+1106300,Chè chuối,,,,,,,,,,,,,,,,,,,"[CHUA DU LIEU - can DAT-13] NIN 2017, ma 15046, tr.146 - PDF thieu: na_mg, k_mg",FALSE
+1106301,Chè cốm,,,,,,,,,,,,,,,,,,,"[CHUA DU LIEU - can DAT-13] NIN 2017, ma 15047, tr.146 - PDF thieu: na_mg, k_mg",FALSE
+1106302,Chè đỗ đen,,,,,,,,,,,,,,,,,,,"[CHUA DU LIEU - can DAT-13] NIN 2017, ma 15048, tr.146 - PDF thieu: na_mg, k_mg",FALSE
+1106303,Chè đỗ đỏ,,,,,,,,,,,,,,,,,,,"[CHUA DU LIEU - can DAT-13] NIN 2017, ma 15049, tr.146 - PDF thieu: na_mg, k_mg",FALSE
+1106304,Chè đỗ xanh,,,,,,,,,,,,,,,,,,,"[CHUA DU LIEU - can DAT-13] NIN 2017, ma 15050, tr.146 - PDF thieu: na_mg, k_mg",FALSE
+1106305,Chè hạt sen,chè hột sen,,,,,,,,,,,,,,,,,,"[CHUA DU LIEU - can DAT-13] NIN 2017, ma 15051, tr.146 - PDF thieu: na_mg, k_mg",FALSE
+1106306,Chè khoai sọ,,,,,,,,,,,,,,,,,,,"[CHUA DU LIEU - can DAT-13] NIN 2017, ma 15052, tr.146 - PDF thieu: na_mg, k_mg",FALSE
+1106307,Chè ngô cốm,chè bắp cốm,,,,,,,,,,,,,,,,,,"[CHUA DU LIEU - can DAT-13] NIN 2017, ma 15053, tr.146 - PDF thieu: na_mg, k_mg",FALSE
+1106308,Chè sắn,chè khoai mì,,,,,,,,,,,,,,,,,,"[CHUA DU LIEU - can DAT-13] NIN 2017, ma 15054, tr.146 - PDF thieu: na_mg, k_mg",FALSE
+1106309,Chè Thái,,,,,,,,,,,,,,,,,,,"[CHUA DU LIEU - can DAT-13] NIN 2017, ma 15055, tr.146 - PDF thieu: na_mg, k_mg",FALSE
+1106310,Cơm rang,,,,,,,,,,,,,,,,,,,"[CHUA DU LIEU - can DAT-13] NIN 2017, ma 15056, tr.146 - PDF thieu: na_mg, k_mg",FALSE
+1106311,Gà tần,,,,,,,,,,,,,,,,,,,"[CHUA DU LIEU - can DAT-13] NIN 2017, ma 15057, tr.148 - PDF thieu: na_mg, k_mg",FALSE
+1106312,Miến lươn,,,,,,,,,,,,,,,,,,,"[CHUA DU LIEU - can DAT-13] NIN 2017, ma 15058, tr.148 - PDF thieu: na_mg, k_mg",FALSE
+1106313,Miến ngan,,,,,,,,,,,,,,,,,,,"[CHUA DU LIEU - can DAT-13] NIN 2017, ma 15059, tr.148 - PDF thieu: na_mg, k_mg",FALSE
+1106315,Mỳ xào,,,,,,,,,,,,,,,,,,,"[CHUA DU LIEU - can DAT-13] NIN 2017, ma 15061, tr.148 - PDF thieu: na_mg, k_mg",FALSE
+1106316,Nem lụi,,,,,,,,,,,,,,,,,,,"[CHUA DU LIEU - can DAT-13] NIN 2017, ma 15062, tr.148 - PDF thieu: na_mg, k_mg",FALSE
+1106317,Nem rán,,,,,,,,,,,,,,,,,,,"[CHUA DU LIEU - can DAT-13] NIN 2017, ma 15063, tr.148 - PDF thieu: na_mg, k_mg",FALSE
+1106318,Nộm tai lợn,nộm tai heo,,,,,,,,,,,,,,,,,,"[CHUA DU LIEU - can DAT-13] NIN 2017, ma 15064, tr.148 - PDF thieu: na_mg, k_mg",FALSE
+1106319,Phở bò chín,,,,,,,,,,,,,,,,,,,"[CHUA DU LIEU - can DAT-13] NIN 2017, ma 15065, tr.148 - PDF thieu: na_mg, k_mg",FALSE
+1106320,Phở bò tái,,,,,,,,,,,,,,,,,,,"[CHUA DU LIEU - can DAT-13] NIN 2017, ma 15066, tr.148 - PDF thieu: na_mg, k_mg",FALSE
+1106321,Phở gà,,,,,,,,,,,,,,,,,,,"[CHUA DU LIEU - can DAT-13] NIN 2017, ma 15067, tr.148 - PDF thieu: na_mg, k_mg",FALSE
+1106322,Thịt xiên nướng,,,,,,,,,,,,,,,,,,,"[CHUA DU LIEU - can DAT-13] NIN 2017, ma 15068, tr.148 - PDF thieu: na_mg, k_mg",FALSE
+1106323,Xôi đỗ xanh,,,,,,,,,,,,,,,,,,,"[CHUA DU LIEU - can DAT-13] NIN 2017, ma 15069, tr.150 - PDF thieu: na_mg, k_mg",FALSE
+1106324,Xôi gấc,,,,,,,,,,,,,,,,,,,"[CHUA DU LIEU - can DAT-13] NIN 2017, ma 15070, tr.150 - PDF thieu: na_mg, k_mg",FALSE
+1106325,Xôi lạc,xôi đậu phộng,,,,,,,,,,,,,,,,,,"[CHUA DU LIEU - can DAT-13] NIN 2017, ma 15071, tr.150 - PDF thieu: na_mg, k_mg",FALSE
+1106326,Xôi ngô,xôi bắp,,,,,,,,,,,,,,,,,,"[CHUA DU LIEU - can DAT-13] NIN 2017, ma 15072, tr.150 - PDF thieu: na_mg, k_mg",FALSE
+1106327,Xôi xéo,,,,,,,,,,,,,,,,,,,"[CHUA DU LIEU - can DAT-13] NIN 2017, ma 15073, tr.150 - PDF thieu: na_mg, k_mg",FALSE

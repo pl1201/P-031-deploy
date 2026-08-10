@@ -38,6 +38,12 @@ Thumbs.db
 # Data (ignore raw/large data files, but commit seeds)
 data/*
 !data/seeds/
+# DAT-23 — ba tầng dữ liệu, xem data/README.md:
+#   seeds/      = được seed vào DB, chạm tới bệnh nhân
+#   reference/  = tra cứu USDA/FNDDS, không seed, không load lúc chạy
+#   quarantine/ = nợ dữ liệu chờ R2 duyệt, không seed, không load
+!data/reference/
+!data/quarantine/
 !data/README.md
 !data/patients/
 !data/patients/*.csv

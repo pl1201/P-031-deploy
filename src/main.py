@@ -29,9 +29,14 @@ app = FastAPI(
 )
 
 settings = get_settings()
+# `.strip()` từng dòng: biến môi trường trên Render/Vercel hay được viết có
+# khoảng trắng sau dấu phẩy ("https://a.vercel.app, https://b.app"). Không cắt
+# khoảng trắng thì origin thứ hai không bao giờ khớp và trình duyệt chặn với
+# lỗi CORS khó truy — xem docs/DEPLOY.md (DAT-25).
+allowed_origins = [origin.strip() for origin in settings.cors_origins.split(",") if origin.strip()]
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=settings.cors_origins.split(","),
+    allow_origins=allowed_origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

@@ -63,7 +63,9 @@ def _menu(food_id: int, grams: float = 150.0) -> MenuDraft:
 # ---------------------------------------------------------------------------
 def test_nap_du_30_cap_tu_seed() -> None:
     rules = load_drug_food_rules()
-    assert len(rules) == 30
+    # `>=` chứ không `== 30`: mục tiêu là 80 cặp curated (ADR-005), nên mỗi lần
+    # R2 bổ sung dữ liệu, một assert số chính xác sẽ vỡ mà không chỉ ra lỗi thật.
+    assert len(rules) >= 30
     assert all(r.source_ref for r in rules), "RULE-2: mọi cặp tương tác phải dẫn được nguồn"
 
 
