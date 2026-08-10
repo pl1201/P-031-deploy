@@ -1,5 +1,7 @@
 # ARCHITECTURE — NutriCare Agent
 
+> Quyền sở hữu, quy trình ADR và scorecard đánh giá kiến trúc: `docs/ARCHITECTURE_GOVERNANCE.md`.
+
 > Deliverable #3 · Phiên bản 1.0 · 26/07/2026
 > Nguyên tắc bất biến: **LLM chọn món — Python tính số.**
 > Kiến trúc trong file này trung lập về bệnh lý (schema, luồng graph, nguyên tắc). Phạm vi bệnh lý nghiệm thu MVP xem `docs/PRD.md` v2.1 (trọng tâm ĐTĐ2).
