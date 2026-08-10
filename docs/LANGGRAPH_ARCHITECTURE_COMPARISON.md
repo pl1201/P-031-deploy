@@ -352,6 +352,9 @@ Thay đổi quan trọng nhất là state không còn chỉ mô tả “kết qu
 | Redis/distributed cache | Chưa triển khai | Repository có thể cache trong process |
 | Streaming node progress | Chưa triển khai | UI đang poll trạng thái plan |
 | Production LangGraph checkpointer | Chưa nối trong API runtime | Có MemorySaver utility cho dev/test |
+| Menu Explainer & Coaching (giải thích thực đơn `approved` cho bệnh nhân) | Đang triển khai | PR #76/#77 chờ merge (B1) + `AGT-13` (B2) — **cố ý KHÔNG phải node trong graph**, xem ghi chú dưới |
+
+> **Vì sao Menu Explainer không phải node 16:** mọi node hiện tại (1–15) chạy TRƯỚC khi duyệt — `to_review` là node cuối, sau đó là HITL interrupt. Việc duyệt (`POST /reviews/{planId}/approve`) chỉ đổi `status` trên DB trong `reviews.py`, hoàn toàn nằm ngoài vòng đời chạy graph, không resume checkpoint. Giải thích cho bệnh nhân chỉ có ý nghĩa SAU khi duyệt, nên thiết kế thành endpoint gọi theo yêu cầu (`GET /meal-plans/{id}/explain`) thay vì thêm node — tránh phải resume graph đã checkpoint, một thay đổi rủi ro/phức tạp hơn nhiều so với yêu cầu tính năng thật sự cần. Chi tiết: `docs/PRD.md` FR-16, `docs/TICKETS.md` `AGT-13`.
 
 ---
 
