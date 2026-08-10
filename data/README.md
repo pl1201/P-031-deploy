@@ -1,6 +1,34 @@
 # DATA — Nguồn, giấy phép và quy trình nhập liệu
 
-> Owner: **R2** · Ticket: DAT-00 → DAT-06
+> Owner: **R2** · Ticket: DAT-00 → DAT-06, DAT-23
+
+---
+
+## 📁 Ba tầng dữ liệu (DAT-23 / DEC-022)
+
+Nguyên tắc một câu: **`data/seeds/` là thứ chạm tới bệnh nhân. Mọi thứ khác không nằm ở đó.**
+
+| Thư mục | Nội dung | Được seed vào DB? | Loader đọc lúc chạy? |
+|---|---|---|---|
+| `data/seeds/` | Món Việt curated + NIN 2017 + rule lâm sàng + tương tác thuốc | ✅ có | ✅ có |
+| `data/reference/` | Khối tham chiếu USDA/FNDDS tiếng Anh (6854 food, 2632 dish) | ❌ không | ❌ không |
+| `data/quarantine/` | Nợ dữ liệu chờ R2 duyệt: mẫu thực đơn `MENU-*`, dòng chưa có số liệu | ❌ không | ❌ không |
+
+**Vì sao tách:** trước DAT-23, cả bốn nguồn nằm chung trong `food_items.csv` (7745 dòng, 89% tên tiếng Anh) và `dishes.csv` (2677 dòng, 98% FNDDS). Mỗi loader tự lọc rác theo cách riêng, lọc lệch nhau, và mẫu thực đơn `MENU-*` đã lọt lên UI bệnh nhân dưới dạng tên món ("Bữa sáng - Thực đơn 3 (TĐ 3+4)").
+
+**Ranh giới tầng** định nghĩa **một chỗ duy nhất** ở `src/clinical/tiers.py` — validator, loader và script tách đều dùng chung, không định nghĩa lại.
+
+⚠️ Khối USDA là **khoảng đóng `id 167516–1105897`**, không phải "mọi id lớn hơn ngưỡng". 430 dòng NIN 2017 tiếng Việt (id 1105898–1106327) nằm **ngay sau** khối USDA — mọi điều kiện kiểu `id >= 167516` sẽ xoá nhầm chúng.
+
+**Tách lại sau khi thêm dữ liệu mới:**
+
+```bash
+python scripts/split_data_tiers.py --dry-run   # xem bảng đối chiếu, chưa ghi
+python scripts/split_data_tiers.py             # tách thật
+python scripts/validate_data.py                # phải 0 lỗi
+```
+
+Script tất định, idempotent, và **từ chối chạy** nếu có dòng sai số cột hoặc món tầng `seeds` tham chiếu nguyên liệu ngoài tầng `seeds`.
 
 ---
 

@@ -31,6 +31,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 SEEDS = ROOT / "data" / "seeds"
+REFERENCE = ROOT / "data" / "reference"  # DAT-23
 FDC = ROOT / "data" / "FoodData_Central_csv_2025-12-18" / "FoodData_Central_csv_2025-12-18"
 
 # Xem `nutrient.csv` của USDA
@@ -106,7 +107,7 @@ def main() -> None:
     print("LUU Y: 'Total Sugars' KHONG dong nghia 'free sugars' cua WHO (DAT-07).")
     print("Chi 'Sugars, added' moi gan free sugars — va van khong dong nhat.")
 
-    out = SEEDS / "usda_sugar_coverage.csv"
+    out = REFERENCE / "usda_sugar_coverage.csv"
     with open(out, "w", newline="", encoding="utf-8") as f:
         w = csv.writer(f)
         w.writerow(["fdc_id", "total_sugar_g", "added_sugar_g"])
