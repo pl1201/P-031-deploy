@@ -105,7 +105,7 @@ def test_explain_naturally_rong_khong_goi_llm(monkeypatch):
     def _boom(*a, **k):
         raise AssertionError("Không được gọi Gemini khi danh sách rỗng")
 
-    monkeypatch.setattr(target_assistant, "_call_gemini", _boom)
+    monkeypatch.setattr(target_assistant, "call_gemini", _boom)
     result = target_assistant.explain_naturally([])
     assert "Chưa có" in result
 
@@ -123,7 +123,7 @@ def test_explain_naturally_dua_du_kien_that_vao_prompt(monkeypatch):
         captured["prompt"] = prompt
         return _FakeOutput()
 
-    monkeypatch.setattr(target_assistant, "_call_gemini", _fake_call)
+    monkeypatch.setattr(target_assistant, "call_gemini", _fake_call)
 
     explanations = [
         NutrientExplanation(

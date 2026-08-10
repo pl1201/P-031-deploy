@@ -56,6 +56,16 @@ class TestAssembleMenuFacts:
         facts = assemble_menu_facts("2026-08-10", _sample_items(), _sample_targets(), nutrition, [])
         assert {n.nutrient for n in facts.nutrients} == {"kcal", "na_mg"}
 
+    def test_bo_qua_field_bool_trong_nutrition(self):
+        """`bool` là subclass của `int` trong Python — nếu không loại riêng,
+        các cờ `purine_is_complete`/`sugar_is_complete`/`has_estimated` của
+        `NutritionSummary.model_dump()` thật sẽ bị hiểu nhầm thành chất dinh
+        dưỡng (bug phát hiện khi AGT-13 lần đầu dùng dữ liệu thật, không phải
+        dict tay)."""
+        nutrition = {**_sample_nutrition(), "purine_is_complete": True, "sugar_is_complete": False}
+        facts = assemble_menu_facts("2026-08-10", _sample_items(), _sample_targets(), nutrition, [])
+        assert {n.nutrient for n in facts.nutrients} == {"kcal", "na_mg"}
+
 
 class TestCheckGrounded:
     def _facts(self) -> MenuFacts:
@@ -77,6 +87,15 @@ class TestCheckGrounded:
         text = f"Thực đơn hôm nay gồm {len(self._facts().items)} món."
         result = check_grounded(text, self._facts())
         assert result.ok is True
+
+    def test_ngay_trong_plan_date_duoc_coi_la_hop_le(self):
+        """`facts.plan_date` là dữ kiện thật, không phải số bịa — văn bản tự
+        nhiên hay nhắc lại ngày (VD mẫu render/LLM). Bug phát hiện khi AGT-13
+        lần đầu gọi guard với văn bản thật có nhắc ngày (test cũ ở trên không
+        nhắc ngày nên chưa từng lộ ra)."""
+        text = f"Thực đơn ngày {self._facts().plan_date} cân đối dinh dưỡng."
+        result = check_grounded(text, self._facts())
+        assert result.ok is True, result.ungrounded_numbers
 
     def test_khop_so_thap_phan_du_viet_bang_dau_phay_hay_cham(self):
         facts = assemble_menu_facts(
