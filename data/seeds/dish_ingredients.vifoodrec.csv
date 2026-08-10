@@ -1,0 +1,376 @@
+dish_id,food_id,grams,note
+VFR-9,102,400,"Đùi ếch 400g, Ớt Đà Lạt xanh, đỏ, vàng 3 trái mỗi loại, Hành tây tím 1/2 củ, Gừng cắt nhuyễn 15g, Tỏi băm 1 muỗng, Củ kiệu chua cắt sợi 20g, Nước củ kiệu 2 muỗng"
+VFR-15,79,500,"Mì nưa 2 gói 500gr, Kim chi Hàn Quốc 300gr lấy 2 muỗng nước kim chi, Thịt bò phi lê cắt lát mỏng 200gr, Bông hẹ 50g, Hành lá, ngò rí 30g, Hành tỏi băm 1 muỗng"
+VFR-17,12,500,"Thịt ba chỉ rút sườn 500g, Cam mỹ 1 trái, Khoai tây 150g khoảng 1 củ, Hành tỏi băm 1 muỗng, Ớt sừng băm 2 muỗng, Hành lá 1 cây"
+VFR-24,121,300,"Mit non luôc 300g, Thit ba roi 200g, Rau răm 20g, Hanh tây 1/2 cu, Ơt sưng 2 qua, Chanh 1 qua, Đâu phộng rang gia bê 50g, Toi xay 2 muỗng"
+VFR-31,85,1000,"Cá tai tượng 1 con cỡ 1kg, Xốt ớt sambal 2 muỗng, Hành tím băm 2 muỗng, Tỏi băm 1 muỗng, Gừng băm 1 muỗng, Cà chua băm 4 muỗng, Tôm khô 1 muỗng, Ngò rí 2 muỗng, Tắc 2 quả"
+VFR-44,45,400,Phi lê cá hồi : 400g
+VFR-44,12,400,Khoai tây : 400g
+VFR-51,4030,100,"Mè trắng rửa sạch 100g, Bơ 30g, Bột mỳ 3 muỗng, Kem tươi 150g, Đường 4 muỗng, Vani 1 ống, Mứt dâu tây 50g, Kẹo màu trang trí 1 ít"
+VFR-64,101,700,"1 con cá điêu hồng 600 - 700g, Ngưu bàng cắt lát xéo 100g, Cà rốt cắt lát 10 lát, Nấm đông cô Nhật 2 tai, Hành tây 1/2 củ lớn, Gừng sợi 1 muỗng, Nước gừng 1 muỗng"
+VFR-84,11,100,"Khoai mỡ tím 100g, Khoai lang vàng 200g, Khoai mì 400g, Đậu xanh cà 100g, Dừa nạo chọn phần trắng 1kg, Lá dứa 4-5 cây, Đường phèn 300g, Màu củ dền và màu lá dứa mỗi loại 2 muỗng"
+VFR-86,70,250,"Thịt ba chỉ 250g, Thịt bò phi lê mềm 150g, Đậu hũ trắng 1 muỗngiếng, Cải thảo 350g, Nấm kim châm 350g, Nấm linh chi nâu 150g, Rau tần ô 200g"
+VFR-88,25,400,Thịt vịt: 400g
+VFR-88,4101,150,Củ cải muối: 150g
+VFR-88,86,50,Cà rốt: 50g
+VFR-88,152,30,Gừng: 30g
+VFR-93,49,500,Cua đồng làm sạch: 500g
+VFR-93,3015,300,Cải xoong: 300g
+VFR-93,100,50,Nấm rơm: 50g
+VFR-94,94,300,"Chả chay 300g, Khổ qua bỏ hạt 200g, Cà rốt 100g, Hành boaro 50g, Ớt hiểm 2 trái, Tiêu xanh 2 nhánh"
+VFR-102,58,300,"Phi lê cá cam 300g, Tôm khô 20g, Bánh phồng tôm 10 cái, Gạo nếp rang 50g, Đậu xanh cà vỏ rang 50g, Lá lốt 30g, Sả 2 cây, Ớt sừng 1 quả, Nước cốt chanh 1 muỗng"
+VFR-113,121,400,"Chân gà chẻ đôi 400g, Tắc trái 100g, Sả cây 8 cây, Ớt sừng 3 trái, Lá chanh 4 lá"
+VFR-126,85,300,"Thịt đùi ếch 300g, Lá giang 50g, Cà chua 1 quả, Rau om, ngò gai 1/2 chén, Ớt sừng 1 trái, Sả cây 2 cây, Sả băm, ớt hiểm băm 1 muỗng, 1 quả, Nước dùng 1 lít"
+VFR-131,95,350,"Cá gáy phi lê 350g, Sả băm 4 muỗng, Ớt băm 1 muỗng, Nước cốt chanh 1 muỗng, Lá chúc lá chanh thái 5 lá, Dưa leo ăn kèm"
+VFR-136,4019,150,"Củ sen non 1 củ khoảng150g, Hạt sen tươi 100g, Mè đen 1 muỗng, Húng lũi cắt nhỏ 1 muỗng, Nước cốt chanh 1 muỗng, Tỏi, ớt băm 1 muỗng, Húng lũi băm nhỏ 1/2 muỗng, Tỏi phi 1 muỗng, Tương ớt, tương cà, dầu ăn"
+VFR-143,4022,400,"Cá hồi 400g, Măng tây 100g, Ớt sừng 1 trái, Thì là 1 cây, Đầu hành lá, ớt hiểm băm, gừng"
+VFR-152,3047,200,"Tôm sú 200g, Cà chua bi 150g, Rau cần nước 1 bó, Lòng trắng trứng gà ta 1 quả, Mỡ nước 2 muỗng, Giò sống 50g, Hành tím 3 củ, Hành lá 1 ít"
+VFR-153,152,300,"Thịt ba chỉ 300g, Sả cây thường 2 cây, Gừng củ 1 muỗngiếng nhỏ, Hành tím củ 1 củ, Ớt sừng 1 trái, Ngò gai 1 muỗng, Tỏi 5 tép"
+VFR-155,58,80,"Lá hoành thánh 20 lá, Đậu xanh cà vỏ hấp chín 80g, Nấm mèo 3 tai nhỏ, Củ sắn bào mỏng vắt ráo 30g, Thịt nạc dăm xay 30g, Tôm tươi bóc vỏ 30g"
+VFR-156,137,250,"Tôm đất 250g, Nấm kim châm 100g, Hành tím băm 1 muỗng, Tỏi băm 1 muỗng, Đầu hành trắng băm 1 muỗng, Ớt sừng băm 1 muỗng, Đường, tiêu, tương ớt, nước mắm, dầu ăn, Bột ngọt AJI-NO-MOTO, Xốt Mayonnaise Aji-mayo Vị Nguyên Bản, Hạt nêm Aji-ngon Gà"
+VFR-162,94,200,Lá khổ qua rừng/lá nhái 200g
+VFR-162,52,2000,Nghêu còn vỏ 2 kg
+VFR-162,86,50,Cà rốt 50g
+VFR-163,79,20,"Cánh gà không lấy phần tỏi gà 10 cái, Củ năng thái hạt lựu nhỏ 3 củ 20g, Giò sống 100g, Tiêu xanh đập dập 1 nhánh nhỏ, Dưa leo 1 trái, Gừng đập dập 1 nhánh nhỏ, Hành lá, chanh"
+VFR-174,3046,500,"Cánh gà 500g, Lá é 100g, Sả cây 5 cây, Lòng đỏ trứng gà 1 quả, Tỏi băm, ớt xanh, chanh, Muối hột, tiêu, dầu ăn"
+VFR-175,70,200,"Thịt nghêu tươi 200g, Lá tía tô 50g, Kim chi cải thảo 200g, Nấm kim châm 50g, Đậu hũ non 1 muỗngiếng vừa, Hành boaro"
+VFR-180,137,300,"Cá bớp phi lê 300g, Xà lách Mỹ 50g, Dưa leo 1 quả, Cà chua 1 quả, Chanh vàng 1 quả, Húng lủi 1 ít, Nước mắm, dầu ăn, tiêu, Xốt Mayonnaise Aji-mayo Vị Nguyên Bản"
+VFR-198,12,200,"Cá chẻm fillet 200g, Khoai tây 400g 2 củ, Boaro phần lá 2 lá, Cà rốt 1/2 củ, Trứng gà 3 quả, Bột mì 1/2 chén, Bột xù 2 chén, Bơ lạt 100g, Sữa 100 muỗngl, Chanh 1 quả"
+VFR-206,3008,30,"Nấm kim châm 30g, Khoai tây 50g, Cà rốt 30g, Đậu hà lan 50g, Hành boaro 20g, Đậu hũ trắng 1/2 muỗngiếng, Mè trắng 1 muỗng, Dầu ăn, Hạt nêm Aji-ngon Nấm, Giấm gạo lên men Ajinomoto"
+VFR-214,137,500,"Lưỡi heo 500g, Cua xay 500g, Cà chua 2 trái, Đậu hũ 2 muỗngiếng, Huyết heo 100g, Hành lá, ngò gai, Hành tím củ, ớt xay, Tóp mỡ, mỡ nước, hành phi, Muối, đường, nước mắm, mắm tôm, dầu điều, dầu ăn"
+VFR-219,132,300,"Phi lê cá bống mú 300g, Gừng sợi 20g, Hành tây 1/2 củ nhỏ, Chuối sứ chín 1/2 trái, Đậu phộng rang 2 muỗng, Bơ đậu phộng 1/2 chén súp, Toi băm 1/2 muỗng, Ớt sừng băm 1 muỗng, Nước cốt chanh 1/2 muỗng"
+VFR-220,13,200,"Bánh bột chiên loại khoai môn 200g, Bắp hạt luộc sẵn 30g, Trứng gà 2 quả, Hành lá cắt nhỏ 1 cây, Đu đủ bào sợi 80g, Cà rốt bào sợi 20g"
+VFR-227,136,200,"Bột báng 200g, Nước lá cẩm 3 muỗng, Nước lá dứa 3 muỗng, Nước dành dành 3 muỗng, Nước cà rốt 3 muỗng, Đường cát 5 muỗng, Bột năng 5 muỗng, Nhân bánh và nước cốt dừa, Đậu xanh 150g ngâm mềm, nấu chín với nước dão dừa, lá dứa, muối, Đường cát 120g, Nước cốt dừa 1, 5 chén, Bột năng cho nhân bánh 1 muỗng, Dừa sợi 200g, Hành lá cắt nhỏ"
+VFR-228,102,600,"Sườn non 600g - 700g khoảng 4 cây, cắt khúc 8 cm, Cà chua 1 trái, Hành tây 1/2 củ, Dưa leo 1 trái, Lá hương thảo băm 1 muỗng, Rau xà lách 1 cây, Bơ lạt, tỏi băm, mật ong, dầu olive hoặc dầu mè"
+VFR-238,3024,200,"Gà ta 1/2 con, Măng chua 200g, Lá giang 150g, Cà chua chín 1 trái, Hành tím băm"
+VFR-243,132,300,"Mướp khía 300g, Mực ống 200g, Nấm mèo ngâm nở 30g, Đậu phộng rang 20g, Hành tím băm 1 muỗng, Gừng cắt sợi 1 muỗng, Ớt sừng 1 trái, Rau răm 1 ít"
+VFR-245,87,200,"Rau chùm ngây nhặt sạch 200g, Sườn non chặt khúc 3cm 150g, Củ cải trắng 100g, Cà rốt 100g, Hành tím củ bóc vỏ 2 củ"
+VFR-246,11,200,"Đậu hũ 200g, Bột khoai 150g, Nấm rơm 150g, Bí đỏ 150g, Khoai lang bí 150g, Khoai môn 100g, Hạt sen 100g, Đậu que 100g, Đậu phộng 50g, Táo đỏ 50g, Tàu hũ ky 20g, Nấm mèo 3 tai, Dừa nạo 1kg, Gừng cắt sợi 1 muỗng"
+VFR-248,55,200,Tàu hũ ky: 200g
+VFR-250,79,200,"Cá thác lác nạo 200g, Đậu que 50g, Ngò rí 15g, Cà ri dầu 1 muỗng, Ớt hiểm 1 quả, Đầu hành lá 4 cây, Lá cà ri 1 nhánh"
+VFR-251,79,350,"Cá lóc bông làm sạch 350g khoảng 4 khoanh, Sả băm 3 muỗng, Nước hành tỏi 1 muỗng, Tỏi ớt băm 1 muỗng, Hành lá cắt nhỏ hành hương 2 muỗng, Chanh không hạt 1 quả"
+VFR-260,79,300,"Cá chạch làm sạch 300gr, Lá húng quế 2 nhánh, Đầu hành lá băm 4 cái, Ớt sừng băm 1 muỗng, Me vắt lượt bỏ hạt 2 muỗng, Sữa đặc 1 muỗng"
+VFR-283,95,200,"Thịt bò băm 200g, Mắm bò hóc 30g, Lá lốt 10 lá, Bột năng 50g, Cà pháo 10 trái, Dưa leo 1 trái, Chanh 1 quả, Hành tỏi băm, sả xay, ớt bột, Tiêu, đường, dầu ăn"
+VFR-289,121,600,"Thịt ba chỉ rút sườn 600g, Hạt mắc khén rang xay thành bột 1 muỗng, Hành tím giã nhuyễn 2 muỗng, Sả giã nhuyễn 2 muỗng, Ớt giã nhuyễn 2 muỗng, Lá chanh Bắc / lá chúc 20 lá băm nhỏ 1 muỗng, còn lại để nguyên, Nước cốt chanh 1 muỗng"
+VFR-299,79,400,"Cá đổng cá hường biển 400g 4 con, Dưa cải chua chọn phần cọng nhiều 200g, Cà chua bi 100g, Hành tím băm 1 muỗng, Ớt hiểm 2 trái, Cà chua chín đỏ 1 trái, Hành lá 2 cây"
+VFR-302,102,150,"Bacon hun khói 150g, Bông cải trắng 100g, Măng tây tươi 100g, Cà rốt baby 150g, Hành tây ½ củ, Hành ngò"
+VFR-308,85,600,"Tôm sú to 600g Size 35- 40 con/kg, Lá cà ri tươi 10 nhánh khoảng 10g, Thơm cắt hạt lựu nhỏ 1/2 chén, Tiêu xanh giã dập 1 muỗng, Tiêu, đường, bột cà ri, dầu ăn, Nước cốt chanh, hành tỏi băm, xốt cà chua, Hạt nêm Aji-ngon Heo"
+VFR-318,76,800,"Cá chem 1 con khoảng 800g, Củ cải đỏ củ ra di 3 củ, Dưa leo baby 2 trái, Cần tây 1 cây, Cà rốt 50g, Xà lách xanh 50g, Mè rang 2 muỗng, Tỏi băm, ớt băm, 1 muỗngiêng chanh"
+VFR-319,132,200,"Bột bánh cuốn 200g, Lòng vịt 200g, Hành tây 100g, Cà rốt 100g, Hành lá 3 cây, Đậu phộng rang 50g, Gừng băm 2 muỗng, Ớt băm 1 muỗng, Màu nước dành dành 2 muỗng"
+VFR-328,101,300,"Rong biển 3 muỗngiếng, Đậu hũ trắng 1 muỗngiếng, Giò sống gà chay 300g, Cà rốt 30g, Nấm hương đã ngâm nở 30g, Bột gạo 1 muỗng, Tiêu xanh 1 nhánh nhỏ"
+VFR-329,12,200,"Cá hồi xông khói cắt lát 200g, Bưởi da xanh 100g, Rau bó xôi non 200g, Khoai tây 1 củ, Sữa chua có đường 1 hũ, Mù tạt vàng 1 muỗng, Nước cốt chanh 1 muỗng, Xà lách frise, xà lách radicchio"
+VFR-333,134,200,"Mì spaghetti 200g, Nấm rơm cắt nhỏ hạt lựu 50g, Sườn chay chiên vàng 30g, Đậu hũ cắt vuông 0.7cm, chiên vàng 1/2 chén, Cần tây cắt hạt lựu 1/2 chén, Cà rốt cắt hạt lựu 1/2 chén, Cà chua băm nhỏ 3 trái, Hạt điều rang, xay nhuyễn 3 muỗng, Boarô băm, lá quế tây tươi, lá oregano"
+VFR-342,101,100,"Ốc bươu đã tách vỏ 100g, Giò sống 250g, Mỡ heo 30g, Lá lốt 50 lá, Nấm mèo 1 muỗng, Nấm hương 1 muỗng, Tiêu xanh đập giập 2 muỗng, Rau dưa, salad, Mỡ hành 4 muỗng, Cà chua bi đỏ và vàng 6 trái"
+VFR-343,4019,100,"Nấm hương ngâm mềm 100g, Nấm đầu khỉ 150g, Táo đỏ khô 50g, Củ năng gọt sạch 100g, Ngưu bàng 100g, Hạt sen tươi Huế 100g, Nước lọc 1, 6 lít, Tiêu xanh 50g, Hành boaro 50g"
+VFR-344,4071,500,Lươn làm sạch: 500g
+VFR-344,13,200,Khoai môn cao: 200g
+VFR-344,58,50,Đậu xanh giã bể còn vỏ: 50g
+VFR-350,49,500,Cua đồng 500g
+VFR-350,65,100,Rau muống 100g
+VFR-350,3006,150,Khoai sọ nhỏ 150g
+VFR-355,121,600,"Thịt ba rọi 600g, Lá chanh 10 lá, Sả bào 2 muỗng, Ớt hiểm cắt nhỏ 1 muỗng, Hành tím cát lát 3 muỗng, Tỏi cô đơn cắt lát 3 muỗng, Kiệu chua cắt sợi 2 muỗng, Lá chanh cắt nhuyễn"
+VFR-357,52,500,"Nghêu: 500g, Rau mồng tơi, Sả, gừng, hành tím, ớt hiểm, Nước mắm, muối, tiêu, dầu ăn, Hạt nêm Aji-ngon Heo, Giấm gạo lên men Ajinomoto, Bột ngọt AJI-NO-MOTO"
+VFR-360,101,400,"Bầu non 400g, Giò thủ 100g, Nấm hương khô 5 tai, Ớt sừng 1 trái, Rau húng quế 1 nhánh, Hành tỏi băm 1 muỗng"
+VFR-382,34,200,"Hến thịt 200g, Thịt nạc dăm xay 100g, Giò sống 50g, Hành tím băm 5 củ, Cà rốt cắt sợi nhỏ 30g, Hành lá, rau răm cắt nhỏ 1 ít, Vỏ ram bánh tráng 1 xấp khoảng 25 muỗngiếng, Bún tàu ngâm mềm cắt nhỏ 1 lọn, Trứng vịt 1 quả, Trứng gà đánh tan 1 quả"
+VFR-386,55,50,"Đậu hũ chiên 2 muỗngiếng, Nấm bào ngư xám 50g, Nấm mèo ngâm nở 30g, Hành boaro 50g, Bột năng 1/2 muỗng, Gừng cắt sợi 10g, Ớt sừng 1 trái"
+VFR-388,3,50,"Bí Nhật 4 quả, Cơm gạo lứt 1, 5 chén, Nấm rơm búp 50g, Hạt sen 1/4 chén, Đậu bi 1/4 chén, Cà rốt hạt lựu 1/2 chén, Đậu hũ cắt hạt lựu 1/4 chén, Hành boaro băm 1 muỗng, Cọng ngò rí băm 1/2 muỗng"
+VFR-402,45,200,"Cá hồi phi lê 200g, Xoài 1/2 quả, Ớt sừng băm 1 muỗng, Nước cốt chanh 4 muỗng, Vỏ chanh mài 1/2 muỗng"
+VFR-415,6,100,"Miến dong 100g, Cua lột 100g, Rau cần nước 80g, Rau nhút nhặt sạch 80g, Hành lá 2 cây, Cà rốt 1/4 củ, Hành tỏi băm 1 muỗng, Dầu màu điều, Giấm gạo lên men Ajinomoto"
+VFR-425,102,200,"Giò heo 4 khoanh, Chả Huế cây 4 cây, Nạm bò 200g, Sả cây 5 cây, Hành tây 1/4 củ, Rau răm 20g, Hành lá 2 cây, Bún bò tươi 800g, Màu điều 1 muỗng"
+VFR-429,1106149,300,"Sun heo 300g, Me 2 muỗng, Măm tôm 1/2 muỗng, Riêng băm 1 muỗng, Nghê băm 2 muỗng, Hanh tim băm 1 muỗng, Toi băm 1 muỗng, La lôt 1 nhanh, Ca tim 1 trai nho"
+VFR-445,11,80,"Vỏ nem 6 lá, Khoai môn 80g, Khoai lang 40g, Cà rốt 20g, Nấm mèo ngâm nở 15g, Rong biển wakame ngâm nở 20g, Tàu hủ ki lá ngâm nở 30g, Hành boa-rô phi 5g, Tiêu 1g"
+VFR-456,102,150,"Hến đã luộc bóc vỏ 150g, Kim chi 250g, Hành tây 1/2 củ, Húng quế thái rối 1 chén, Tỏi tép 5 tép"
+VFR-458,33,200,"Sa kê 200g 1 trái, Hẹ lá cắt nhỏ 1/2 chén, Boa rô cắt lát, Ớt băm, Bánh phồng tôm chiên 4 cái, Trứng gà 2 quả, Đường, tương ớt, dầu ăn"
+VFR-460,121,300,"Cá kèo 300g, Rau răm 1 ít, Ớt sừng 1 quả, Nước cốt chanh dây 1 muỗng"
+VFR-468,33,300,"Nụ bí giống Nhật 300g, Giò sống 150g, Trứng gà 1 quả, Hành lá cắt nhỏ, Đâu hành lá băm, Ngò rí băm, Tiêu, nước mắm, tương ớt, dầu ăn, Xốt Mayonnaise Aji-mayo Vị Nguyên Bản"
+VFR-477,102,400,"Cá basa phi lê đông lạnh 400g, Hành tây 1 củ, Nước hành tím, nước tỏi 2 muỗng, Nước gừng 1/2 muỗng, Nước chanh 1 muỗng, Lá chanh Thái, băm nhuyễn 5 lá, Ớt bột mịn 1 muỗng"
+VFR-480,19,300,"Thịt heo nạc dăm 300g, Sả cây 10 cây, Bún tươi 400g, Dầu hành 1/2 chén, Sả băm, ớt băm, hành tỏi băm"
+VFR-495,45,300,"Cá hồi filet nguyên da 300g, Thịt ba rọi xông khói 150g, Mía chẻ 16 khúc đã cắt như làm chạo tôm, Mía chẻ 16 khúc đã cắt như làm chạo tôm"
+VFR-516,121,300,"Fillet cá điêu hồng bản to 300g, Jambon lát 100g, Lá chanh thái 5 lá, Chanh vàng 1 trái, Tăm ghim"
+VFR-522,33,150,"Ruốc biển tươi 150g, Thịt heo xay 100g, Trứng gà 1 quả, Lá quế 20g, Gốc hành lá băm 2 muỗng, Ớt băm 1 muỗng, Giò sống 50g"
+VFR-527,65,200,"Gà ta 1/2 con, Sứa ngâm chua 200g, Cải mầm rau muống 100g, Hoa chuối bào 50g, Ớt sừng 1 trái, Tắc 10 quả, Lá chanh 4 lá, Sả cây 3 cây, Ớt hiểm, hành phi, mè trắng rang, rau húng lủi, bánh đa nướng"
+VFR-532,101,50,"Sườn chay ngâm nở 50g, Nấm hương loại nhỏ 80g, Tiêu xanh 2 muỗng, Boa-ro cắt lát, Tiêu đen 2 muỗng"
+VFR-546,87,500,"Hủ tiếu khô 500g, Xương heo 500g, Xương gà 500g, Mực tươi 300g, Thịt xay 200g, Tôm khô 20g, Mực khô 1 con nhỏ, Cà rốt 1 củ, Hành tây 1/2 củ, Củ cải trắng 1/2 củ, Hành tím băm, hành lá, Hành phi, hành tím củ, tóp mỡ"
+VFR-557,85,400,"Bò phi lê 400g, Đậu bắp 100g, Tỏi củ 50g, Cà chua bi 70g, Nước cốt tỏi 1 muỗng, Nước cốt chanh 1 muỗng, Ngũ vị hương 1/3 muỗng"
+VFR-558,87,100,"Tôm tươi bóc vỏ 100g, Bí xanh 100g, Củ cải trắng 100g, Cà rốt 100g, Húng quế 20g, Hành tím băm 2 muỗng"
+VFR-561,130,150,"Thịt băm 150g, Mỡ heo 50g, Giò sống 150g, Lá lốt 8 lá, Hành, tỏi băm 2 muỗng, Ớt băm"
+VFR-567,102,300,"Tôm sú 300g, Hành tây 1 củ, Ớt sừng cắt sợi 1 muỗng, Lá chúc/ Lá chanh thái 5 lá, Lá chuối 5 lá, Chanh vàng 1 trái"
+VFR-568,3046,300,"Ếch 300g, Rau rừng các loại 100g, Xà lách mỡ 100g, Hành tây tím 1/2 củ, Hành tím căt lat 2 củ, Lòng đỏ trứng gà 2 cái, Tỏi ớt băm 1 muỗng, Ớt sợi, đậu phộng rang, hành tím phi, nước hành tỏi, Muối, đường, bột mì, nước mắm, dầu ăn"
+VFR-572,76,250,"Cá hồi không da 250g, Xà lách Đà Lạt 50g, Dưa leo cắt thanh 6cm 1 trái, Rau thơm 50g, Cải mầm cay 30g, Bún 200g, Chanh vàng 1 quả, Bánh tráng 20 cái, Ớt sừng cắt sợi 1 trái"
+VFR-575,79,500,"Thịt nạc dăm 500g, Mì udon 300g, Lá hoành thánh 6 lá, Hành tím băm, Hành lá, ớt khô, hành phi, Muối, đường, ngũ vị hương, dầu ăn"
+VFR-578,49,300,"Bánh đa đỏ 300g, Cua đồng 500g, Sườn non 300 g, Chả cá chiên 150g, Thịt nạc xay 150 g, Nấm mèo băm nhỏ 2 muỗng, Lá lốt 10 lá, Cà chua 2 trái, Tóp mỡ 3 muỗng, Hành lá, ngò rí cắt nhỏ, Hành tím củ, hành tím băm"
+VFR-581,98,50,"Cà tím 2 trái vừa, Tôm khô to 50g, Hẹ cắt nhỏ 1/2 chén, Chanh 1 muỗngiếng"
+VFR-592,122,300,"Nấm bào ngư 300g, Sả cây 10 cây, Gừng non 100g, Ớt sừng cắt sợi 1 trái, Nước dừa tươi 1 chén, Thơm 1/8 trái, Ớt Đà Lạt xanh, đỏ và vàng 50g mỗi loại, Rau răm"
+VFR-598,101,200,"Mì căn 3 cây, Bắp non 200g, Đậu Hà Lan trái 50g, Cà rốt tỉa hoa 50g, Ớt sừng 1 trái, Nấm đông cô 8 tai, Boaro có lá 2 cây, Mè trắng rang, bột bắp, ngò rí"
+VFR-602,31,150,"Bánh tráng dẻo 20 cái, Nem chua chay 150g, Mì căn 2 cây, Bánh tráng mè nướng 1 bánh, Ớt sừng, khế, chuối chat, chanh"
+VFR-603,1106162,200,"Tôm đất hoặc tôm sú nhỏ 200g, Mực lá 50g, Bông hẹ 30g, Ớt Đà Lạt đỏ, vàng 60g, Kim chi 100g, Nước kim chi 2 muỗng, Bánh phồng tôm bánh lớn 3 cái nướng giòn, cà mịn, Trứng gà ta 1 quả, Dầu ăn, ớt sừng cắt nhỏ"
+VFR-609,11,250,"Khoai lang vàng nướng chín 250g, Bi đo nương chin 250g, Hanh la căt nhuyên 2 muỗng, Nươc côt dưa 2 muỗng, Bột xù 100gr, Bôt mi 100gr, Phô mai cheddar 60gr, Bôt nêp 1 muỗng, Trứng gà 2 quả"
+VFR-624,132,200,"Bánh mì đặc ruột 2 ổ mỗi ổ 25cm, Đậu hũ trắng 1 muỗngiếng lớn, Củ sắn 200g, Nấm đông cô khô 50g, Cà rốt cắt sợi 50g, Sườn chay 50g đã ngâm nở, Nước dừa tươi 1 chén, Miến ngâm mềm 1 chén, Hẹ lá cắt nhỏ 30g, Boa rô cắt lát, boa rô phi, ớt băm, Đậu phộng rang, thính, Đường, dầu ăn"
+VFR-636,33,120,"Thịt nguội 120g, Phô mai cheddar 100g, Ức gà 1 cái, Trứng gà 1 quả"
+VFR-636,76,300,"Xà lách các loại: escarol / frisse / radicchio 300g, Cà chua bi 8 quả, Hành tím băm 1 muỗng, Nước cốt chanh 1 muỗng, Mù tạt vàng 1 muỗng, Muối, tiêu, đường, ớt bột Paprika, dầu salad, Giấm gạo lên men Ajinomoto"
+VFR-647,121,200,"Cá lòng tong 200g, Bông điên điển 100g, Rau mầm non 50g, Chanh 1 quả, Tỏi ớt băm 1 muỗng, Hành tím băm"
+VFR-656,101,150,"Giò sống chay 150g, Bột nếp lọc 250g, Nấm mèo trắng 5 tai, Củ năng 50g, Cà rốt 30g, Nấm hương 3 tai, Mè đen rang 2 muỗng, Boa rô phi 2 muỗng, Cọng ngò rí 1 muỗng, Lá chuối"
+VFR-664,122,120,"Cơm tấm gạo Tài Nguyên 4 chén, Sườn chay 4 muỗngiếng, Nước dừa tươi 1 trái, Sữa tươi 1/2 chén, Củ sắn cắt lát 120g, Đậu hũ trắng 1 muỗngiếng, Miến 20g, Thính gạo rang 1 muỗng, Boa rô cắt nhỏ 1 muỗng, Sả cây đập dập 3 cây, Lá dứa, nước dừa, tỏi ớt băm, Củ kiệu chua, hẹ lá, đồ chua, boarô phi có dầu 2 muỗng"
+VFR-666,102,150,"Bún mè đen loại khô 150g, Nghêu tươi còn vỏ 1kg, Bông mướp 200g, Bông hẹ 50g, ỚT chuông đỏ 1/2 trái, Hành tây 1/2 củ, Tỏi băm, sả cây"
+VFR-674,33,500,"Bánh phở 500g, Tôm sú 150g, Mực 100g, Hành tây 50g, Ớt chuông xanh 50g, Cà chua 1 trái, Thơm 1/4 trái, Trứng gà 2 quả, Hành lá, tỏi băm"
+VFR-678,12,700,"Thịt bắp bò 700g, Pate gan 1 hộp, Tiêu xanh 10 nhánh, Cà rốt 200g, Khoai tây 250g, Hành tây 1 củ, Bơ 50g, Nước dừa tươi 1 trái, Cà chua hộp 1/2 hộp, Hành tỏi băm, Muối, đường, tiêu, dầu ăn, ngũ vị hương"
+VFR-684,79,100,"Đậu hũ trắng 100g, Cá thác lát 150g, Thịt cua 100g, Khoai mỡ tím 50g, Tóp mỡ 20g, Hành lá 2 nhánh, Lòng đỏ trứng 1 quả, Bột năng 1 muỗng"
+VFR-691,33,500,"Sườn non 0.5kg, Rượu Brandy 1 muỗng, Trứng gà 1 quả, Nước hành tỏi 2 muỗng, Ớt chuông xanh, đỏ, vàng 1/4 quả mỗi loại, Hành tây 1/2 củ, Hành tỏi băm, Dầu hào, tương ớt, tương cà, xốt tabasco, mè rang, Muối, đường, tiêu, bột năng, dầu mè đen, Giấm gạo lên men Ajinomoto"
+VFR-692,3015,400,"Cải xoong 400g, Tôm tươi 200g, Nấm đùi gà 100g, Ớt sừng 1 trái, Tỏi đập dập 10 tép, Hành tím băm 1 muỗng, Ngò rí cắt nhỏ 1 muỗng"
+VFR-715,102,150,"Salad lolo xanh 150g, Cam mỹ 1 trái, Tôm sú 200g, Cà rốt 100g, Ớt chuông đỏ 70g, Ớt chuông xanh 70g, Hành tây 50g"
+VFR-723,33,500,"Cánh gà 500g, Bột bắp 100g, Bột mì đa dụng 100g, Kem béo whipping cream 100 muỗngl, Trứng gà 1 quả"
+VFR-726,4019,500,"Thịt chân giò rút xương 500g, Nước dùng 1.5 lít, Hồng sâm 2 củ, Đương quy 10g, Kỷ tử 10g, Táo đỏ 10g, Hạt sen tươi 50g, Cà rốt 1 củ, Củ sen gọt vỏ 100g, Hành khô băm 1 muỗng, Gừng củ 100g, Tiêu sọ đập dập 20g, Rau mùi Muối"
+VFR-733,102,150,"Càng cua 8 cái, Giò sống 150g, Hành tây 1/4 củ, Mè đen 1/2 muỗng"
+VFR-734,102,300,"Mực trứng size nhỏ 300g, Hành tây 1 củ nhỏ, Ớt sừng 2 trái, Rau răm 50g, Tỏi tép 1 củ, Ớt hiểm băm 1 muỗng"
+VFR-738,137,300,"Sươn non 300g, Sa ơt xay nhuyễn 4 muỗng, Đâu hanh la băm 5 cây, Toi xay nhuyễn 1 muỗng, Bôt năng 1 muỗng, Nươc soda 4 muỗng, Đường, tiêu, nước mắm, dầu ăn"
+VFR-742,102,300,"Cá nục 300g, Cà chua chín 500g, Hành tây 150g, Cà paste 50g, Nước dừa tươi 500 muỗngl, Tỏi băm 1 muỗng, Đường, muối, tiêu, ớt bột, nước mắm, dầu ăn"
+VFR-746,79,600,"Sườn cây 4 cây 600gr, Hành tím xay 1 muỗng, Tỏi xay 1/2 muỗng, Sả bào 1 muỗng, Hành lá 100g, Mỡ heo 100g, Bột ngũ vị hương 1/3 muỗng, Bột baking soda 1/3 muỗng"
+VFR-753,79,200,"Tôm bóc vỏ băm nhỏ 200g, Mướp hương 300g, Đầu hành lá băm nhỏ 1 muỗng, Ngò rí 5 cây, Ớt sừng thái chỉ 1/2 trái"
+VFR-759,12,100,"Tôm tươi lột vỏ 100g, Mực tươi 100g, Khoai tây tím 500g, Hành tây 50g, Bánh tráng bò bía tươi 1 xấp, Trứng vịt muối 5 quả, Hành lá 2 cây, Hành tím băm 1 muỗng"
+VFR-761,137,150,"Thịt ốc bươu 150g, Giò sống 100g, Nạc dăm xay 30g, Nấm mèo băm nhỏ 3 muỗng, Lòng trắng trứng 1qua, Hành tím băm, tiêu xanh đập giập, tỏi ớt băm, Gừng non băm nhỏ, Lá chanh băm nhỏ, Đường, nước mắm, dầu ăn"
+VFR-773,136,150,"Đùi ếch to 8 cặp, Lá cách/ Lá nghệ 150g, Hành tỏi băm 2 muỗng, Sả băm 1 muỗng, Ớt băm 1 muỗng, Nước cốt dừa 3 muỗng"
+VFR-780,12,400,"Thịt nạm bò 400g, Cà rốt 100g, Hành tây 1 củ, Khoai tây 300g, Đậu bi 50g, Cà chua 2 quả, Hành tím băm 1 muỗng, Hành lá, ngò gai, Xốt cà chua hộp, bơ lạt, muối, tiêu, đường, dầu màu điều"
+VFR-785,101,50,"Nước dùng rau củ 1, 5 lít, Củ năng 50g, Cà rốt 50g, Đậu hũ non 1 muỗngiếng, Nấm rơm búp 100g, Nấm mèo 1 muỗngiếng, Ngưu bàng tươi 1 khúc 2 tấc, Nấm hương sapa 3 tai"
+VFR-797,33,200,"Tôm đất 200g, Thịt nạc dăm 100g, Tôm khô 50g, Củ sắn 400g, Hẹ 50g, Ớt sừng 1 quả, Trứng gà 2 quả, Bắp hạt Mỹ đã luộc 1 chén"
+VFR-798,102,200,"Cá hồi 200g, Tiêu xanh 3 nhánh, Nấm linh chi 50g, Hành tây 30g, Hành tỏi băm 1 muỗng, Gừng băm 1 muỗng, Bột năng 1 muỗng"
+VFR-799,32,100,"Ức gà 2 cái còn phần da, Xúc xích xông khói 2 cây, Giò sống 100g, Cà rốt cắt que 1/2 củ, Cần tàu 8 cọng chọn loại cọng to, Nước cốt chanh, nước hành tỏi, hạt xuyên tiêu"
+VFR-801,102,50,"Nấm mỡ 50g, Nấm đùi gà 50g, Bò chay lát đã ngâm 30g, Bí ngòi 2 muỗngàu vàng xanh 1/2 trái, Ớt chuông đỏ 1/2 trái, Hành tây tím 1/2 củ, Nước dừa 1/2 chén, Hành boaro, ngò rí, ớt cắt lát"
+VFR-806,34,20,"Xương bọng gà 1 cái, Gà ta 1/2 con, Tôm khô rang 20g, Nấm hương ngâm 50g, Chả lụa 50g, Trứng vịt 1 quả, Lòng đỏ trứng muối luộc 1 cái, Chà bông tôm 20g, Nước bột năng 1 muỗng, Hành lá, rau răm, chanh, ớt, Hành tím củ, gừng tươi, Muối, đường phèn, tiêu, dầu ăn, rượu trắng"
+VFR-809,102,200,"Giò sống 200g, Tôm bóc vỏ, cắt hạt lựu 100g, Tôm nguyên con, bóc vỏ 4 con, Hạt sen Huế tươi 150g, Nấm rơm búp 100g, Cà rốt 1/2 củ, Hành tây 1/4 củ, Nước dùng 1 lít, Hành tím băm, hành ngò, ớt băm, cọng ngò băm"
+VFR-829,101,70,"Cải thảo 15 lá, Thịt nạc dăm xay 70g, Thịt ức gà xay 100g, Bắp Mĩ 1/2 trái, Hành lá 10 cọng lấy phần lá xanh, dài khoảng 20 cm, Nấm hương 30g, Cà rốt băm nhỏ 20g"
+VFR-831,137,200,"Ức vịt 1/2 bộ khoảng 200g, Giò sống 30g Cà rốt, 1 củ nhỏ Đậu que 50g, Gừng cắt sợi 30g, Riềng cắt sợi 20g, Lá lốt 10 lá, Sả băm, nước cốt chanh, Hành tím băm, ớt hiểm băm, Đường, nước mắm, ngũ vị hương, dầu ăn"
+VFR-843,102,300,"Thịt heo đầu vai 300g, Hành tây 1/4 củ, Que xiên tre 10 cái, Hành tỏi băm 2 muỗng, Hành lá cắt nhỏ 1/2 chén"
+VFR-846,137,1000,"Đuôi bò 1 kg, Bắp bò 150g, Lá sách bò 150g, Bò viên 150g, Nấm rơm 100g, Măng luộc 200g, Ngò gai, rau om, húng quế, lá chanh, Sả băm, ớt hiểm băm, tỏi băm, Sả cây cắt khúc, gừng đập dập, Dầu điều, nước mắm, muối, đường"
+VFR-847,132,300,"Tai heo 300g, Chuối chát 2 trái, Khế chua xanh 4 trái, Dưa kiệu chua 100g, Ớt sừng cắt sợi 1 trái, Cần tàu 5 cọng, Cần tây 30g, Hành tây tím, hành tím củ bào mỏng, chanh, rau răm, Lá chúc, lá chanh cắt nhỏ, tỏi ớt băm, Ớt xiêm xanh băm nhỏ, đậu phộng rang giã bể, hành phi"
+VFR-852,3023,50,"Giò sống 50g, Cá thác lác 150g, Nấm mèo 1 tai lớn, Mè trắng 2 muỗng, Mè đen 1 muỗng, Lá lốt 5 lá, Ớt sừng băm 1 muỗng, Que xiên tre dài 5-8cm"
+VFR-857,3018,200,"Giò sống 200g, Lá rong biển 1 lá, Da heo 1 muỗngiếng 20x20cm, Lòng đỏ trứng muối 3 cái lấy lòng đỏ sống, Cà rốt cắt thanh 0.8cm 1/2 củ, Đậu cô ve Nhật 100g, Bí ngòi vàng cắt thanh 1 trái, Bột năng 1 muỗng, Tiêu sọ hạt, đường, nước mắm"
+VFR-871,39,400,"Cá chép 1 con khoảng 400g, Cà chua bi 100g, Rau cần nước 200g, Hành lá 2 cây, Hành tỏi băm 2 muỗng, Ớt sừng cắt lát 1 muỗng, Tỏi phi 2 muỗng"
+VFR-872,103,100,"Hạt chia 2 muỗng, Xà lách giòn 100g, Nho khô 1 muỗng, Chuối già 1 quả, Xoài chín giòn 1/2 trái, Sả cây 2 cây, Dâu tây 6-8 trái"
+VFR-889,102,100,"Gà ta 1/2 con, Rau quế 100g, Hành tây 1 củ nhỏ, Hành lá 2 cây, Ớt hiểm xanh 10 trái, Ớt hiểm đỏ 5 trái, Dừa tươi 1 trái, Tỏi phi, ngò gai, sả băm, tỏi băm"
+VFR-907,1106162,150,"Bánh tráng gạo loại mỏng 1 gói, Tôm sú tươi bóc vỏ 150g, Tôm đông lạnh 50g, Trứng gà ta 1 quả, Giò sống 50g, Cà rốt cắt hạt lựu 1 muỗng, Đậu cô ve cắt nhỏ 2 muỗng, Ớt sừng 1 trái, Bột xù 1 muỗng, Hành tỏi phi, đầu hành lá, ngò rí cắt nhỏ"
+VFR-916,111,300,"Thịt ba chỉ da mỏng, ít mỡ 300g, Thơm 1/2 trái, ép lấy 1 chén, Thơm cắt hạt lựu pha nước chấm 1 muỗng"
+VFR-919,102,300,"Phi lê cá ngừ 300g, Ớt chuông vàng 50g, Ớt chuông đỏ 50g, Hành tây 1/2 củ, Tỏi củ 15g, Nước cốt chanh 2 muỗng, Mù tạt vàng 1 muỗng, Bơ 10g"
+VFR-930,48,400,"Tôm sú 400g, Củ nén 30g, Lá húng chanh tần dày lá 20 lá, Ớt hiểm 2 trái, Hành tím băm 1 muỗng"
+VFR-931,1105984,50,"Nước dùng chay 1.5 lít, Me vắt 50g, Mì Udon 3 gói, Thịt bò chay lát 100g, Cá viên chay 200g, Hành boaro cắt lát 1 cây, Nấm kim châm 100g, Rau húng quế, ngò gai, ớt hiểm băm nhỏ, dầu ăn"
+VFR-954,79,40,"Thịt hàu sữa con nhỏ 8 con, Mù tạt xanh wasabi 1 muỗng, Nước tỏi 1/2 muỗng, Đầu hành lá ngâm nước lạnh 8 cọng, Lá tía tô 8 lá, Củ cải, cà rốt mỗi loại 40g"
+VFR-961,79,100,"Tôm sú nhỏ size 50 12 con, Mọc giò sống 100g, Nấm mèo đen 1 tai, Tiêu xanh 1 nhánh, Bánh tráng ủ lá chuối 6 cái, Đầu hành lá băm nhỏ 1 muỗng"
+VFR-971,4,1000,"Bún tươi 1kg, Xương xí quách luộc chín nước luộc 1kg, Mỡ thịt cắt nhỏ 200g, Hành tím 100g, Tỏi băm 1 muỗng, Ớt xanh băm 1 muỗng"
+VFR-972,102,300,"Mướp hương 300g, Tim heo 100g, Hành tây 1/2 củ, Rau quế 30g, Hành tỏi băm 2 muỗng, Ớt băm 1 muỗng"
+VFR-978,101,100,"Bò lát chay 100g, Cải thảo 8 bẹ, Poa rô 1 cây, Cà rốt 100g, Nấm đông cô tươi 8 tai, Đậu hũ trắng 1 muỗngiếng, Tần ô 200g, Tàu hũ ky chiên giòn 2 muỗngiếng, Nấm kim châm 100g, Mì udon hoặc bún nưa shirataki 1 gói"
+VFR-989,87,1300,"Gà ta 1 con khoảng 1.3kg, Sả cây 4 cây, Nước dừa tươi 2 trái, Hành tây bi 200g, Củ cải trắng 1 củ nhỏ, Ớt hiểm xanh 40g, Nấm đông cô khô 20g, Kỷ tử 1 muỗng, Hành tỏi băm, Muối hột, dầu ăn"
+VFR-994,79,30,"Cơm dẻo 1 chén, Mè rang 2 muỗng, Hành lá 30g, Phô mai mozzarella sợi 70g, Ớt sừng 1 quả, Thịt xay 50g, Dầu ăn, tương cà"
+VFR-1018,33,50,"Tôm sú tươi 6 con, Nấm kim châm 50g, Nấm bào ngư 30g, Nấm linh chi nâu 50g, Chanh dây 1 trái, Trứng gà 1 quả, Lá quế thái chỉ 1 muỗng, Xốt Mayonnaise Aji-mayo Vị Nguyên Bản"
+VFR-1020,79,300,"Cua xay không nêm muối 300g, Cà chua 2 quả, Tôm đất 200g, Mực ống 1 con, Đậu hũ bi chiên 100g, Bắp bò hoa 1 cái, Lá tàu hũ ky chiên giòn 1 lá, Hành tím băm, hành lá, ớt hiểm"
+VFR-1022,85,500,"Đuôi heo 1 cái khoảng 500g, Chao trắng 3 viên, Đậu bắp 100g, Cà tím 1 quả nhỏ, Cà chua bi 100g, Hành tỏi băm, Lá tía tô"
+VFR-1024,45,250,"Cá hồi phi lê còn da 250g, Chanh vàng 2 quả chọn chanh núm của Mỹ, trái dài vỏ dầy"
+VFR-1030,123,300,"Gan heo 300g, Sữa tươi không đường 1 gói, Hành tây 1 củ nhỏ, Hẹ lá 50g, Ớt sừng 1 trái, Tỏi 2 củ, Tỏi băm 2 muỗng"
+VFR-1034,126,100,"Cánh gà 4 cái, Ngũ cốc hạt 100g loại hạt cho sữa vào ăn sáng, Nước cốt chanh 1 muỗng, Sữa chua 1 muỗng, Nước cốt hành tím, Cọng ngò rí, Hành tỏi băm, Tiêu, nước mắm, tương ớt, dầu ăn"
+VFR-1046,132,150,"Đậu hũ 1 muỗngiếng 150g, Củ sắn 100g, Khoai tây 100g, Khoai tây 100g, Thính gạo rang 1 muỗng, Nước dừa 1 chén, Đậu phộng rang giã dập, Dầu hành lá, Tỏi ớt băm, nước cốt chanh, Muối, tiêu xay, đường"
+VFR-1050,87,500,"Thịt giò heo 500g, Củ cải trắng 200g, Bắp non 100g, Hành tỏi băm 3 muỗng, Ớt sừng 1 trái, Hành lá 2 cây, Gừng cắt sợi 1 muỗng"
+VFR-1052,101,150,"Bí đỏ 150g, Tàu hũ ki 50g, Nấm đông cô khô 5 tai, Hành tây 40g, Boaro phi 2 muỗng, Ham chay 200g, Phô mai miếng 4 lát, Bánh mì burger 4 cái, Muối, đường, bột chiên xù, dầu ăn"
+VFR-1058,101,600,"Giò heo gân chặt khoanh 600g, Hạt sen 100g, Bạch quả tươi 50g, Nấm hương khô 10g, Củ năng 150g, Nước dừa tươi 500 muỗngl, Nước cốt hành tím 2 muỗng, Hành củ nướng 3 củ, Húng quế, ngò rí, Muối, dầu ăn"
+VFR-1060,102,500,"Sườn non thịt dày 500g, Hành tây 1/2 trái, Ớt sừng 1 trái, Ngò gai 2 cây, Tỏi củ 1 củ to, Nước cốt hành tỏi 2 muỗng"
+VFR-1063,4076,2000,"Vịt 1/2 con khoảng 1, 2kg, Sả cây 3 cây, Lá chúc cắt nhỏ 1 muỗng, Mật ong 2 muỗng, Nước cốt tắc 2 muỗng, Vỏ tắc băm 2 trái, Hành tỏi băm 2 muỗng, Nước sả 2 muỗng, Ớt hiểm băm 1 muỗng"
+VFR-1066,132,150,"Sườn chay đã ngâm 150g, Nấm đùi gà 1 cái, Chả lụa chay 100g, Củ sắn 200g, Bánh hỏi 200g, Rau rừng các loại 500g, Nước dừa tươi 1 chén, Ớt sừng cắt sợi 1 quả, Hẹ lá cắt nhỏ 1/2 chén, Bông hẹ chần 12 cọng, Boa-ro băm, ớt băm, Đậu phộng rang giã bể, Muối, đường, tiêu, dầu hào chay, dầu ăn"
+VFR-1070,34,200,"Bánh tráng bột gạo 4 cái, Bánh tráng bột gạo nướng 4 cái, Thịt heo phần nách 200g, Trứng vịt luộc 4 cái, Thơm băm nhuyễn 1 chén nhỏ, Chả lụa 100g, Nước cốt chanh 1 muỗng, Tỏi băm, ớt băm, hành tím, sả băm"
+VFR-1075,49,350,"Cải cầu vồng 1 gói 350g, Cua đồng xay không nêm muối 200g, Giò sống 100g, Nấm linh chi trắng 100g, Đầu hành lá 3 cái, Hành tím băm 1 muỗng"
+VFR-1085,79,350,"Cá hố cắt lát 350g, Hành lá 2 cây, Gừng củ 1 củ vừa, Ớt sừng 1 trái, Ớt hiểm 1 trái"
+VFR-1093,3020,200,"Gà ta 1/2 con, Đu đủ xanh bào sợi 200g, Xoài xanh 100g, Dưa leo 200g, Cà rốt 100g, Ớt sưng cắt sợi 1 trái, Nước dừa tươi 1 chén"
+VFR-1095,123,300,"Bắp bào mỏng 300g, Sữa tươi không đường 100g, Nước cốt dừa lon 100g, Lá dứa 2 lá, Khoai lang tím 1 củ nhỏ, Nước bột năng 2 muỗng"
+VFR-1101,78,100,"Tôm đất 100g, Mực lá 100g, Bí ngòi 50g, Cà rốt 25g, Kim chi 100g, Tiêu, dầu ăn, Ngò rí, tỏi ớt băm"
+VFR-1105,101,30,"Sườn chay khô 30g, Nấm đùi gà 50g, Nấm hương khô 20g, Nấm linh chi nâu 50g, Tiêu xanh 3 nhánh, Bắp mỹ 1/2 trái, Ngò rí 50g, Dừa tươi 1 trái, Ớt sừng 1 trái, Hành boaro 1 nhánh"
+VFR-1108,40,200,"Củ sen bào vỏ 200g, Chả cá basa 100g, Giò sống 100g, Cọng ngò băm 1 muỗng, Ớt sừng băm 1 muỗng, Đầu hành lá băm 1 muỗng, Bột xù 1 gói"
+VFR-1109,38,1000,"Cá rô phi 1 con 1kg, Hành tím băm 3 muỗng, Hạt mắc khén 2 muỗng, Húng lủi cắt nhỏ 2 muỗng, Húng quế cắt nhỏ 2 muỗng, Sả băm 2 muỗng, Ớt sừng bỏ hạt, cắt nhỏ 1 quả"
+VFR-1111,125,50,"Tôm sú 20-30 4 con, Sả cây 2 cây, Dâu tây 2 quả, Nước cốt chanh dây 1 muỗng, Xà lách xoăn 2 lá, Bắp cải tím cắt sợi 50g, Sữa đặc có đường 1 muỗng"
+VFR-1113,33,600,"Mực ống 6 con 600g, Tôm sú 100g, Giò sống 100g, Hạnh nhân cắt lát 200g, Ớt sừng băm 1 muỗng, Nấm mèo băm nhỏ 1 muỗng, Trứng gà 2 quả, Bột mì, trứng gà, ngò rí băm"
+VFR-1117,1106162,150,"Cá cơm loại cá nhỏ 150g, Trứng gà ta 1 trứng, Bông hẹ 50g, Bông điên điển 50g, Me vắt 100g, Tỏi băm 1 muỗng, Ớt hiểm 1 trái, Hành tây 1/4 củ"
+VFR-1123,33,250,"Mực lá dày 250g, Râu mực 1 cái, Giò sống 100g, Mỡ gáy 20g, Bắp non 50g, Trứng gà 1 quả, Bánh mì sandwich lạt 5 lát, Bột xù 2 muỗng, Cà chua bi, ớt sừng băm, thì là, ngò rí"
+VFR-1132,2,30,"Đùi gà góc 4 2 cái, Lá dứa thắt gút 2 cái, Nước gừng 30g, Nước cốt tỏi 1 muỗng, Gừng lát 2 lát, Mỡ gà 100g, Cơm trắng 4 chén, Tỏi băm 1 muỗng"
+VFR-1140,3018,30,"Bắp Mỹ 1 trái, Bắp nếp 1 trái, Xúc xích xông khói 1 cây, Tôm khô 30g, Lòng đỏ trứng muối 3 quả, Hành lá cắt nhỏ 3 muỗng, Bơ margarine 1 muỗng, Đậu cô ve Nhật 100g, Đầu hành lá băm 2 muỗng, Ớt đỏ 1 muỗng"
+VFR-1181,4071,300,Lươn 300Gr
+VFR-1181,93,300,Mướp hương 300Gr
+VFR-1181,79,10,Hành lá 10Gr
+VFR-1181,151,5,Tỏi 5Gr
+VFR-1216,86,100,Cà rốt 100gr
+VFR-1216,111,100,Thơm 100gr
+VFR-1216,95,100,Dưa leo 100gr
+VFR-1216,102,50,Hành tây 50gr
+VFR-1328,101,200,Chân nấm hương khô 200gr
+VFR-1330,121,1500,Chanh giấy 1.5kg
+VFR-1330,1106224,800,Muối hột 800gr
+VFR-1333,95,150,Dưa leo 150gr
+VFR-1333,86,100,Cà rốt 100gr
+VFR-1333,87,100,Củ cải trắng 100gr
+VFR-1333,1106224,23,Muối 23gr
+VFR-1333,149,40,Đường trắng 40gr
+VFR-1336,134,500,Hạt điều nguyên hạt 500gr
+VFR-1336,4109,350,Đường cát 350gr
+VFR-1336,1106224,10,Muối 10gr
+VFR-1442,3014,1000,Cà pháo 1kg
+VFR-1442,152,20,Gừng 20gr
+VFR-1442,151,20,Tỏi 20gr
+VFR-1531,121,1000,Chanh leo 1kg
+VFR-1536,101,150,Chân nấm hương 150gr
+VFR-1544,79,400,"Hào sữa 400gr, Nấm rơm 150gr, Gạo tẻ 200gr, Gạo nếp 1 nắm nhỏ, Hành lá, ngò, rau răm, giá, Hành tím, tỏi, ớt"
+VFR-1546,87,500,"Chả cá Nha Trang chiên 500gr, Sườn heo 500gr, Bánh canh bột gạo 500gr, Củ cải trắng, cà rốt, Giá, hành ngò, hành tím"
+VFR-1563,134,600,"Vỏ bánh, Bột mì số 8 600gr, Nước đường 400gr, Dầu ăn 100gr, Bơ đậu phộng 20gr, Bột sữa trứng lion 40gr, Nhân bánh, Hạt điều, hạt dưa, hạt bí, mứt chanh, mứt gừng 100gr mỗi loại, Mứt tắc, chà bông gà, bột bánh dẻo hạt sen, mỡ gáy đường 100gr mỗi loại, Mè trắng, jambon, lạp xưởng 200gr mỗi loại, Gà quay 300gr"
+VFR-1588,135,500,Hạt sen già 500gr
+VFR-1588,1106224,70,Muối hột 70gr
+VFR-1665,121,500,"500 gr cá chễm phi Lê, 3 trái chanh dây, 50 gr bơ nhạt, 10 gr bột năng"
+VFR-1667,3016,1000,"1 kg bún gạo khô, 500g cải bắp, Củ cà rốt, cải thìa cải ngọt, hẹ, tùy theo sở thích"
+VFR-1700,122,1000,"Nạm bò 1 kg, Sả cây 200gr, Sate tôm 1 hủ, Thơm 1/2 quả, Cà rốt 2 củ, Nước dừa 1.5 lít, Gia vị bò kho 1 gói, Hành tím 5 củ, Cà chua chin 3 qủa"
+VFR-1736,102,1000,"500gram xương vụn nhớ là xương vụn đừng mua xương thịt, 1 kg chả cá Thu, 1 củ hành tây, hành, ngò, hành phi"
+VFR-1740,79,1000,"1 kg cá hú, 4-6 trái bần chín bần già, đầu hành lá, hành tím, tỏi băm để ướp cá"
+VFR-1798,12,500,"Thịt bò 500gr, 2 củ khoai tây, 1 củ cà rốt, 1 quả cà chua, Rau mùi 100gr"
+VFR-1850,119,1000,"bơ: 1kg, cốt dừa 1 lọ 400 muỗngl, bột năng 6 thìa, sữa đặc 6 thìa, sữa tươi không đường 1/2 túi, 1/2 bát con lạc rang giã nát"
+VFR-1868,55,200,200gr đậu hũ non
+VFR-1872,98,300,Cà tím 300 Gr
+VFR-1872,85,200,Cà chua 200 Gr
+VFR-1895,152,250,Gừng 250 Gr
+VFR-1895,149,200,Đường trắng 200 Gr
+VFR-1911,96,150,Đậu que 150 Gr
+VFR-1911,86,50,Cà rốt 50 Gr
+VFR-1911,151,3,Tỏi 3 Gr
+VFR-1911,101,5,Hạt nêm chay Knorr Nấm hương 5 Gr
+VFR-1913,96,200,Đậu que 200 Gr
+VFR-1913,101,10,Hạt nêm chay Knorr Nấm hương 10 Gr
+VFR-1924,86,100,Cà rốt 100 Gr
+VFR-1924,101,5,Nấm đông cô 5 Gr
+VFR-1924,148,3,Dầu hào 3 Gr
+VFR-1924,101,3,Hạt nêm chay Knorr Nấm hương 3 Gr
+VFR-1952,97,200,Đậu bắp 200 Gr
+VFR-1959,91,700,Bí đỏ 700 Gr
+VFR-1959,136,200,Nước cốt dừa 200 Gr
+VFR-1959,101,5,Hạt nêm chay Knorr Nấm hương 5 Gr
+VFR-1959,149,15,Đường trắng 15 Gr
+VFR-1959,1106224,5,Muối 5 Gr
+VFR-1971,4022,300,Măng tây 300 Gr
+VFR-1971,86,100,Cà rốt baby 100 Gr
+VFR-1971,101,200,Nấm hương 200 Gr
+VFR-1972,152,1000,Gừng 1 Kg
+VFR-1972,149,2000,Đường trắng 1/2 Kg
+VFR-1995,3016,500,Cải thìa 500 Gr
+VFR-1996,79,50,Hành lá 50 Gr
+VFR-1996,101,5,Hạt nêm chay Knorr Nấm hương 5 Gr
+VFR-1996,55,100,Đậu hũ chiên 100 Gr
+VFR-2053,4025,500,Ngó sen 500 Gr
+VFR-2073,149,300,Đường trắng 300 Gr
+VFR-2082,70,200,Cải thảo 200 Gr
+VFR-2082,101,20,Nấm hương 20 Gr
+VFR-2106,12,500,Khoai tây 500 Gr
+VFR-2106,86,200,Cà rốt 200 Gr
+VFR-2106,85,150,Cà chua 150 Gr
+VFR-2106,82,50,Thì là 50 Gr
+VFR-2114,1106224,250,Muối hột 250 Gr
+VFR-2175,111,400,Thơm 400 Gr
+VFR-2175,152,200,Gừng 200 Gr
+VFR-2175,149,150,Đường trắng 150 Gr
+VFR-2178,3019,500,Đậu đũa 500 Gr
+VFR-2178,1106224,10,Muối 10 Gr
+VFR-2199,94,400,Khổ qua 400 Gr
+VFR-2200,3016,100,Cải thìa 100 Gr
+VFR-2200,101,5,Hạt nêm chay Knorr Nấm hương 5 Gr
+VFR-2204,3016,300,Cải thìa 300 Gr
+VFR-2294,58,100,Đậu xanh 100 Gr
+VFR-2294,1106224,1,Muối 1 Gr
+VFR-2295,87,300,Củ cải trắng 300 Gr
+VFR-2309,91,300,Bí đỏ 300 Gr
+VFR-2309,59,100,Đậu đen 100 Gr
+VFR-2309,1105898,100,Gạo nếp 100 Gr
+VFR-2309,149,150,Đường trắng 150 Gr
+VFR-2328,52,1500,Nghêu 1.50 Kg
+VFR-2329,99,500,Măng tươi 500 Gr
+VFR-2329,3023,30,Lá lốt 30 Gr
+VFR-2476,97,250,Đậu bắp 250 Gr
+VFR-2491,91,150,Bí đỏ 150 Gr
+VFR-2491,16,40,Bột mì 40 Gr
+VFR-2491,149,5,Đường trắng 5 Gr
+VFR-2504,1,500,Gạo tẻ 500 Gr
+VFR-2549,87,800,Củ cải trắng 800 Gr
+VFR-2549,86,200,Cà rốt 200 Gr
+VFR-2549,149,200,Đường trắng 200 Gr
+VFR-2621,115,1000,Ổi 1 Kg
+VFR-2621,149,300,Đường trắng 300 Gr
+VFR-2640,4030,1000,Dâu tây 1 Kg
+VFR-2640,149,400,Đường trắng 400 Gr
+VFR-2749,16,300,Bột mì 300 Gr
+VFR-2749,119,20,Bơ 20 Gr
+VFR-2749,149,15,Đường trắng 15 Gr
+VFR-2749,1106224,4,Muối 4 Gr
+VFR-2752,4,1000,Bún tươi 1 Kg
+VFR-2752,99,300,Măng tươi 300 Gr
+VFR-2752,4,1000,Bún tươi 1 Kg
+VFR-2786,32,200,Xúc xích Deli Sumo Le Gourmet 200 Gr
+VFR-2790,24,500,Thịt gà 500 Gr
+VFR-2833,91,500,Bí đỏ 500 Gr
+VFR-2841,3006,200,Khoai sọ 200 Gr
+VFR-2841,16,150,Bột mì 150 Gr
+VFR-2841,149,30,Đường trắng 30 Gr
+VFR-2841,1106224,1,Muối 1 Gr
+VFR-2841,60,15,Bột đậu đỏ 15 Gr
+VFR-2858,119,70,Bơ 70 Gr
+VFR-2858,16,105,Bột mì 105 Gr
+VFR-2858,1106224,2,Muối 1/2 Gr
+VFR-2863,99,400,Măng tươi 400 Gr
+VFR-2863,132,50,Lạc rang 50 Gr
+VFR-2863,133,50,Vừng trắng 50 Gr
+VFR-2899,1106224,150,Muối 150 Gr
+VFR-2901,11,1000,Khoai lang 1 Kg
+VFR-2959,149,300,Đường trắng 300 Gr
+VFR-2967,3016,500,Cải thìa 500 Gr
+VFR-3024,11,800,Khoai lang 800 Gr
+VFR-3024,58,100,Đậu xanh không vỏ 100 Gr
+VFR-3024,149,100,Đường trắng 100 Gr
+VFR-3025,11,400,Khoai lang 400 Gr
+VFR-3025,58,100,Đậu xanh không vỏ 100 Gr
+VFR-3025,149,100,Đường trắng 100 Gr
+VFR-3077,134,250,Hạt điều 250 Gr
+VFR-3114,87,300,Củ cải trắng 300 Gr
+VFR-3114,86,200,Cà rốt 200 Gr
+VFR-3114,149,200,Đường trắng 200 Gr
+VFR-3168,1105898,1500,Gạo nếp 1.50 Kg
+VFR-3168,58,500,Đậu xanh 500 Gr
+VFR-3211,106,300,Vỏ bưởi tươi 300 Gr
+VFR-3211,149,400,Đường trắng 400 Gr
+VFR-3211,1106224,100,Muối 100 Gr
+VFR-3264,16,300,Bột mì 300 Gr
+VFR-3264,79,100,Hành lá 100 Gr
+VFR-3419,16,300,Bột mì 300 Gr
+VFR-3419,126,125,Sữa chua 125 Gr
+VFR-3419,33,75,Trứng gà 75 Gr
+VFR-3419,149,45,Đường trắng 45 Gr
+VFR-3419,1106224,3,Muối 3 Gr
+VFR-3439,11,150,Khoai lang 150 Gr
+VFR-3439,16,400,Bột mì 400 Gr
+VFR-3439,149,30,Đường trắng 30 Gr
+VFR-3466,60,350,Đậu đỏ 350 Gr
+VFR-3466,149,30,Đường trắng 30 Gr
+VFR-3466,16,700,Bột mì 700 Gr
+VFR-3466,119,15,Bơ 15 Gr
+VFR-3485,16,500,Bột mì 500 Gr
+VFR-3485,60,300,Nhân đậu đỏ 300 Gr
+VFR-3485,91,250,Bí đỏ 250 Gr
+VFR-3485,149,30,Đường trắng 30 Gr
+VFR-3488,55,1000,Tàu hũ ky 1 Kg
+VFR-3528,79,2000,Hành lá 2 Kg
+VFR-3532,42,500,Cá ngừ 500 Gr
+VFR-3532,111,200,Thơm 200 Gr
+VFR-3532,85,200,Cà chua 200 Gr
+VFR-3532,4,500,Bún tươi 500 Gr
+VFR-3532,76,100,Xà lách 100 Gr
+VFR-3532,62,100,Giá đỗ 100 Gr
+VFR-3532,79,20,Hành lá 20 Gr
+VFR-3594,149,50,Đường trắng 50 Gr
+VFR-3597,11,2000,Khoai lang 2 Kg
+VFR-3666,152,1000,Gừng 1 Kg
+VFR-3666,149,300,Đường trắng 300 Gr
+VFR-3699,3026,300,Rau bí 300 Gr
+VFR-3724,52,300,Nghêu 300 Gr
+VFR-3724,65,200,Rau muống 200 Gr
+VFR-3795,4030,900,Dâu tây 900 Gr
+VFR-3795,149,800,Đường trắng 800 Gr
+VFR-3823,149,380,Đường trắng 380 Gr
+VFR-3865,16,300,Bột mì 300 Gr
+VFR-3865,1106224,3,Muối 3 Gr
+VFR-3865,149,10,Đường trắng 10 Gr
+VFR-3971,11,450,Khoai lang 450 Gr
