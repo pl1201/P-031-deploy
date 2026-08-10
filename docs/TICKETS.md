@@ -163,6 +163,29 @@ Trích `data/Bang-thanh-phan-dinh-duong-Thuc-pham-VN-2017-27-4-17.pdf` bằng `p
 Đề xuất từ `DAT-22`: `scripts/nin2017_purine_findings.md` xác nhận bảng "Thành phần khác" (tr.219-248) có số liệu purine thật cho nhóm Thịt/Thủy sản, nhưng số cột mỗi dòng không cố định — rủi ro đọc nhầm cột Phytosterol thành Purine nếu merge tự động như các trường khác.
 **AC:** Đối chiếu số cột theo TỪNG dòng trước khi gán giá trị (không giả định layout cố định) · Giá trị merge vào `purine_mg` kèm `purine_source_ref="NIN 2017, mã {code}"` · Đối chiếu chéo với `purine_db_reference.csv`/`purine_values.csv` hiện có cho vài món trùng tên để xác nhận không lệch cột trước khi merge hàng loạt.
 
+### `DAT-25` ✅ Tách `data/` thành ba tầng + Việt hoá + validator phủ 100% seeds — ĐÃ LÀM
+**Owner:** R2 · **P0** · **Deps:** DAT-24 (liên quan trực tiếp: cùng đụng `dishes.csv`)
+Xuất phát từ bug R2 phát hiện trên UI bệnh nhân: thực đơn hiện tên **mẫu thực đơn** ("Bữa sáng - Thực đơn 3 (TĐ 3+4) — 300 g") thay vì tên món ăn.
+
+Nguyên nhân trực tiếp: hai loader lọc rác theo hai tiêu chí khác nhau — `clinical/dishes.py` lọc theo tiền tố `dish_id` (đúng), còn `clinical/seeds.py::load_vn_dishes()` lọc theo cột `verified_by`; các dòng `MENU-*` ghi `verified_by="pending"` nên không khớp và lọt thành `DishCandidate` cho CP-SAT.
+
+Nguyên nhân sâu hơn: `data/seeds/` là bãi chứa chung của bốn nguồn khác bản chất, và `validate_data.py` không kiểm tra `dishes*.csv`/`dish_ingredients*.csv` một dòng nào — đúng chỗ toàn bộ nợ đang nằm.
+
+Đã làm (4 PR, xem DEVLOG DEC-022):
+- `src/clinical/tiers.py` — nguồn DUY NHẤT định nghĩa ranh giới tầng; loader, validator, script tách đều import từ đó.
+- Tách `data/` thành `seeds/` (chạm bệnh nhân) · `reference/` (tra cứu USDA, không seed) · `quarantine/` (nợ chờ R2). `data/seeds/` 28→11 file, food 7745→536 dòng, dish 2677→30.
+- Việt hoá: tên tiếng Anh tầng tham chiếu chuyển sang cột `name_en` mới, `name_vi` để rỗng — không dịch máy, không bịa (RULE-2).
+- `scripts/split_data_tiers.py` — tất định, idempotent, hợp nhất theo khoá, từ chối chạy nếu tổng dòng lệch hoặc có tham chiếu chéo tầng.
+- `check_dishes()` + `check_dish_ingredients()` cho validator: **2647 ERROR → 0**.
+- `scripts/audit_menu_dish_refs.py` — CHỈ ĐỌC, đếm dữ liệu bệnh nhân đã persist còn trỏ ra ngoài tầng.
+
+Đo được: test suite **12 phút → 70 giây** (397 pass) vì `test_seed_db.py` không còn nạp 7745 dòng. Mục tiêu "giảm phình test" đạt bằng dữ liệu gọn, không phải bằng cách xoá lớp bảo vệ.
+
+⚠️ **Bẫy mất dữ liệu — ai đụng `food_items` phải đọc:** khối tham chiếu USDA là **khoảng ĐÓNG `id 167516–1105897`**, không phải "mọi id ≥ 167516". 430 dòng NIN 2017 **tiếng Việt** nằm ngay sau (`1105898–1106327`). Một `WHERE id >= 167516` sẽ xoá nhầm dữ liệu Việt thật.
+
+**Còn lại, chờ R2 quyết định (KHÔNG tự làm — RULE-3):** audit DB thật cho thấy 33/160 dòng `meal_plan_items` có `dish_id` là `MENU-*`, trong đó **25 dòng thuộc thực đơn `approved` trên 3 hồ sơ bệnh nhân** — thực đơn đã tới tay bệnh nhân, sửa hay thu hồi là quyết định lâm sàng. Cũng cần xác nhận Render/Vercel đã deploy code hiện tại chưa (ảnh chụp ban đầu cho thấy shim hiển thị `_item_out()` chưa chạy trên bản deploy).
+**AC:** Ranh giới tầng chỉ định nghĩa một chỗ · `seed_db.py` không bao giờ đọc ngoài `data/seeds/` (có test tĩnh) · `validate_data.py` 0 lỗi · Không tự sửa/xoá dữ liệu bệnh nhân đã persist.
+
 ### `DAT-24` Mở rộng `dishes.csv`/`dish_ingredients.csv` — 28 món dùng được là quá mỏng cho CP-SAT
 **Owner:** R2 · **P1** · **Deps:** DAT-22 (nguồn nguyên liệu 620 món), vn-food-data skill
 Audit 2026-08-08 (khi điều tra bug thực đơn thiếu năng lượng, xem DEVLOG cùng ngày): `dishes.csv` có 2678 dòng nhưng CP-SAT (`load_vn_dishes()`) chỉ dùng được **28 món** — 2632 dòng bị gán nhãn sai `"USDA FNDDS"` (không phải món Việt, đã biết từ trước), và 17/45 món curated còn lại tự ghi chú thiếu nguyên liệu (đã bị loại tạm trong `load_vn_dishes()`, xem commit cùng ngày). Tương tự, `food_items.csv` có 7375 dòng nhưng ứng viên nguyên liệu thô CP-SAT dùng được chỉ 439 dòng (cố ý loại khối USDA bulk id≥100000 — đây KHÔNG phải vấn đề, chỉ ghi chú để R2 hiểu rõ phạm vi).
