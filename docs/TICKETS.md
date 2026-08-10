@@ -173,8 +173,8 @@ Audit 2026-08-08 (khi điều tra bug thực đơn thiếu năng lượng, xem D
 4. Mỗi món PHẢI qua R2 duyệt (`verified_by`) trước khi tính `is_reviewed=True` — không tự động coi món mới thêm là đã duyệt.
 **AC:** Không bịa gram/nguyên liệu khi không tra được nguồn (RULE-2/DEC-008) · Mỗi món có `source`/ghi chú nguồn công thức rõ ràng · `validate_data.py`/`pytest` sạch sau mỗi batch · Cập nhật tiến độ định kỳ trong ticket này (không phải 1 khối việc làm 1 lần).
 
-### `DAT-26` ⏳ 263 món trích từ ViFoodRec — CÓ DỮ LIỆU, CHỜ REVIEW PR, CHỜ LICENSE + R2
-**Owner:** R2 · **P2** · **Deps:** DAT-24 (dùng lại `crawl_mnmn_dishes.py` làm khuôn mẫu) · **PR:** [#76](https://github.com/AI20K-Build-Phase-Cohort-3/P-031/pull/76) (chưa merge)
+### `DAT-26` ✅ 263 món trích từ ViFoodRec — ĐÃ MERGE, CHỜ LICENSE + R2 duyệt để dùng
+**Owner:** R2 · **P2** · **Deps:** DAT-24 (dùng lại `crawl_mnmn_dishes.py` làm khuôn mẫu) · **PR:** [#76](https://github.com/AI20K-Build-Phase-Cohort-3/P-031/pull/76) (đã merge 2026-08-10)
 Hưng duyệt (2026-08-09) dùng dataset ViFoodRec (5.509 món, PACLIC 2024, `github.com/QuocAn55/DS300`) làm nguồn tên món/nguyên liệu bổ sung, với điều kiện: **chỉ lấy `dish_name`+`ingredients` (văn bản)**, KHÔNG dùng số dinh dưỡng sẵn có của ViFoodRec (là số tổng scrape từ web, không có nguồn/không tính từ nguyên liệu → vi phạm RULE-1/2 nếu dùng trực tiếp). `scripts/parse_vifoodrec_dishes.py` tự parse gram thật từ văn bản nguyên liệu + khớp `food_id` qua `food_items.csv`, dùng đúng cơ chế đã kiểm chứng ở DAT-24. Kết quả: **263/4000 món dùng được (6.6%)**, ghi vào `data/seeds/dishes.vifoodrec.csv`/`dish_ingredients.vifoodrec.csv` (3737 món bị loại kèm lý do trong `dishes.vifoodrec.rejected.csv`, phần lớn do lỗi hỏng đơn vị ngay trong bản scrape gốc của ViFoodRec — không đoán, đúng DEC-008).
 **Còn tồn trước khi dùng được:**
 1. **License repo nguồn chưa xác nhận** — `github.com/QuocAn55/DS300` không có file `LICENSE` (license=null qua GitHub API, kiểm tra 2026-08-09); paper chỉ ghi "publicly available for free access by the research community" trong văn bản, không phải license chính thức. Cần R2/pháp lý xác nhận trước khi dùng cho sản phẩm thật.
