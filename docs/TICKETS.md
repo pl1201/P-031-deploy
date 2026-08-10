@@ -205,10 +205,13 @@ Hưng duyệt (2026-08-09) dùng dataset ViFoodRec (5.509 món, PACLIC 2024, `gi
 3. **Chặn bởi `DAT-27`** (bên dưới) — không merge vào `dishes.csv` chính tới khi `load_vn_dishes()` gate đúng theo `verified_by`.
 **AC:** Không merge vào `dishes.csv` chính tới khi có (1) xác nhận license, (2) `DAT-27` xong, và (3) R2 duyệt từng món · Không tự đổi `verified_by` sang trạng thái đã duyệt.
 
-### `DAT-27` Sửa `load_vn_dishes()` không gate theo `verified_by` — LỖ HỔNG AN TOÀN DỮ LIỆU
+### `DAT-27` ✅ Sửa `load_vn_dishes()` không gate theo `verified_by` — ĐÃ LÀM
 **Owner:** R2 · **P1** · **Deps:** — (chặn `DAT-26` bước merge)
 Phát hiện khi làm `DAT-26`: `src/clinical/seeds.py::load_vn_dishes()` hiện KHÔNG gate theo `verified_by` — món `pending` vẫn được CP-SAT dùng ngay nếu đã nằm trong `dishes.csv`. Safety net thực tế chỉ dựa vào so khớp chuỗi con `"R2 cần rà"`/`"THIẾU"`/`"CHƯA GHÉP"` trong `note`, và note của cả `dishes.mnmn.csv` lẫn `dishes.vifoodrec.csv` hiện KHÔNG chứa đúng các chuỗi đó → nếu gộp vào `dishes.csv` trong tương lai mà không sửa, món chưa duyệt sẽ vào thẳng bộ giải mà không ai biết.
 **AC:** `load_vn_dishes()` loại món `verified_by == "pending"` khỏi tập ứng viên CP-SAT thay vì dựa vào so khớp chuỗi trong `note` · Test hồi quy: món `pending` không xuất hiện trong kết quả CP-SAT · Áp dụng ngay cả cho `dishes.mnmn.csv` hiện có (4 món, đang `pending`), không chỉ nguồn mới.
+
+**Đã làm (2026-08-10):** thêm tham số `include_pending: bool = False` cho `load_vn_dishes()`. Mặc định (dùng ở mọi luồng chạm bệnh nhân thật — `src/agents/assembly.py`, `src/api/routes/equivalent.py`) loại HẲN món `verified_by` rỗng/`"pending"` khỏi kết quả, không chỉ gắn cờ `is_reviewed=False` như trước. Hiện toàn bộ 100 món trong `dishes.csv` (kể cả 70 món mới `DAT-13` Nhóm B) đều `pending` → `load_vn_dishes()` mặc định trả về **rỗng**. Đã xác nhận an toàn: `dishes` là tham số tuỳ chọn của CP-SAT (`_eligible_dishes()` trả `[]` khi `not dishes`), sinh thực đơn từ nguyên liệu thô (`food_items.csv`) vẫn hoạt động bình thường — chỉ tắt tạm lớp "món trọn gói" cho tới khi có món thật sự được `dietitian` duyệt qua HITL. `include_pending=True` chỉ dành cho eval/demo, không dùng ở code path có khả năng tới bệnh nhân thật.
+Test: `tests/test_tiers.py::test_load_vn_dishes_mac_dinh_loai_mon_chua_duyet` (khẳng định rỗng — đúng thực trạng dữ liệu) + `test_load_vn_dishes_include_pending_true_van_tra_ve_mon_cho_eval`. 412 passed, `validate_data.py` 0 lỗi.
 
 ### `DAT-06` Ingest guideline vào RAG — KHÔNG GIỚI HẠN TRÊN
 **Owner:** R2 · **P1** · 8h+ (mở) · **Deps:** SET-05

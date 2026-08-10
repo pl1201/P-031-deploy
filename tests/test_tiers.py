@@ -85,7 +85,36 @@ def test_load_vn_dishes_khong_tra_ve_mau_thuc_don_hay_khoi_my():
     """Hồi quy: `MENU-*` từng lọt qua `load_vn_dishes()` vì bộ lọc cũ dựa vào
     cột `verified_by` (các dòng MENU-* ghi "pending", không khớp "USDA FNDDS").
     Đó là nguyên nhân UI bệnh nhân hiện "Bữa sáng - Thực đơn 3 (TĐ 3+4)".
+
+    Dùng `include_pending=True` vì toàn bộ 100 món hiện tại đều `pending`
+    (DAT-27) — bài test này chỉ kiểm tra bộ lọc tầng (tiền tố dish_id), không
+    kiểm tra gate `verified_by` (xem `test_load_vn_dishes_mac_dinh_*` bên dưới).
     """
-    dish_ids = [dish.dish_id for dish in load_vn_dishes()]
+    dish_ids = [dish.dish_id for dish in load_vn_dishes(include_pending=True)]
     assert dish_ids, "seed không còn món Việt nào dùng được — kiểm tra lại bộ lọc"
     assert not [d for d in dish_ids if d.startswith(("MENU-", "FNDDS-"))]
+
+
+def test_load_vn_dishes_mac_dinh_loai_mon_chua_duyet():
+    """DAT-27: `load_vn_dishes()` mặc định (`include_pending=False`) — dùng cho
+    mọi luồng chạm bệnh nhân thật (`assembly.py`, `equivalent.py`) — PHẢI loại
+    HẲN món `verified_by` rỗng hoặc "pending" khỏi kết quả, không chỉ gắn cờ
+    cảnh báo. Trước fix này, món pending vẫn lọt vào ứng viên CP-SAT — an toàn
+    thực tế chỉ dựa vào so khớp chuỗi con trong `note`, dễ bị bỏ lọt (đúng cơ
+    chế đã gây bug MENU-*, DEC-022).
+
+    Hiện toàn bộ 100 món trong seeds đều pending, nên assert này thực chất
+    khẳng định "không có món pending nào lọt qua" bằng cách khẳng định KẾT QUẢ
+    RỖNG — khẳng định mạnh hơn "không có phần tử X", đúng thực trạng dữ liệu.
+    """
+    assert load_vn_dishes() == []
+
+
+def test_load_vn_dishes_include_pending_true_van_tra_ve_mon_cho_eval():
+    """`include_pending=True` CHỈ dành cho eval/demo/nội bộ — không bao giờ
+    dùng ở code path có khả năng tới bệnh nhân thật. Test khẳng định cờ này
+    vẫn hoạt động (không bị gate chặn luôn, tách biệt với is_patient_facing_dish
+    ở tầng khác)."""
+    dishes = load_vn_dishes(include_pending=True)
+    assert dishes, "include_pending=True phải trả về món pending cho eval/demo"
+    assert all(d.is_reviewed is False for d in dishes), "toàn bộ 100 món hiện tại đều pending"
