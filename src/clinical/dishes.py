@@ -9,6 +9,7 @@ from pathlib import Path
 from src.clinical.models import FoodItem
 from src.clinical.nutrition import InMemoryFoodRepository
 from src.clinical.seeds import SEEDS_DIR, load_food_repository
+from src.clinical.tiers import is_patient_facing_dish
 
 
 @dataclass(frozen=True)
@@ -63,8 +64,10 @@ def load_dish_food_repository(
             for row in csv.DictReader(handle)
             # MENU-* rows imported from spreadsheets describe an entire meal,
             # not a prepared dish. Letting the optimizer select them creates
-            # labels such as "Bữa trưa" inside the dinner slot.
-            if not row["dish_id"].startswith(("FNDDS-", "MENU-"))
+            # labels such as "Bữa trưa" inside the dinner slot. Ranh giới tầng
+            # định nghĩa ở `clinical.tiers` (DAT-23) — dùng chung với
+            # `seeds.load_vn_dishes()` để hai loader không lệch nhau nữa.
+            if is_patient_facing_dish(row["dish_id"])
         ]
 
     items: list[FoodItem] = []
