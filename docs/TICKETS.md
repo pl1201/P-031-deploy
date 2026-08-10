@@ -247,6 +247,20 @@ Script: `scripts/extract_nin2007.py` (trích 526/567 trang, khớp con số 526 
 
 **Việc tiếp theo cần R2 quyết định:** ~25 dòng có Na/K từ 2007 nhưng còn thiếu 1 trường khác (thường `fat_g`) — có đáng tìm nguồn thứ 3 (USDA analog, đánh dấu `is_estimated`) để hoàn thiện nốt không? Xem chi tiết pattern thiếu trường trong `docs/DAT-13-phan-loai-du-lieu-trong.md`.
 
+**Cập nhật 2026-08-10, lần 3 — Nhóm B (116 món chế biến/tổng hợp):** R2 xác nhận dùng quy trình LLM đề xuất + R2 duyệt (như 30 món hiện có). Trước khi soạn công thức, đã kiểm tra không có nguồn định lượng thật sẵn có:
+- `data/Bảng xác định nhu cầu dinh dưỡng + thực đơn.xlsx` (9 sheet, kể cả sheet `"Bảng TP có phospho"` — đúng tên trong ticket gốc): không có công thức riêng món nào — `tđ1`/`TĐ 3+4`/... chỉ là tổ hợp CẢ BỮA ĂN (VD "Bún tươi + Thịt lợn + Rau ngót + Dầu ăn"), không phải công thức riêng cho từng món. Cột khoáng chất trong `"Bảng TP có phospho"` xác nhận khớp tuyệt đối với NIN đã trích — cùng nguồn, cùng lỗ hổng, không có gì mới.
+- Web search: chỉ trả về chính bản PDF 2007 đã có (nguồn công bố trên `fao.org`) — không có sổ tay công thức định lượng nào khác. Đúng bản chất: Bảng TPTP đo trực tiếp món đã nấu (lab đo mẫu), không phải cộng từ nguyên liệu — nên không tồn tại "nguồn công thức" kiểu này ở dạng công bố chính thức.
+
+Tinh chỉnh phân loại trước khi soạn: tách 34 món **sản phẩm công nghiệp đóng gói** (kẹo, bánh quy, đồ hộp, mứt, dăm bông/lạp xường công nghiệp) ra khỏi phạm vi — bịa tỷ lệ nhà máy còn tệ hơn để trống, cần tra trực tiếp (USDA/nhãn sản phẩm), không phải phân rã công thức. Còn lại **82 món nhà làm** thật sự decomposable.
+
+`scripts/propose_dish_recipes.py` — soạn công thức cho 72/82 món (10 món còn lại: `Bánh bột lọc`/`Bánh phu thê` cần "Bột sắn dây" chưa có trong `food_items.csv`, phần còn lại nằm ngoài batch đầu). Nguyên tắc an toàn:
+- Chỉ dùng nguyên liệu đã có `food_id` thật — không tự thêm food_item mới.
+- `serving_g` **luôn tính tự động** = tổng gram nguyên liệu, không gõ tay riêng — tránh đúng bẫy đã gây bug thực đơn `MENU-*` (hệ số scale sai khi `grams` phục vụ khác tổng công thức, xem DEC-022).
+- Mọi món ghi `verified_by="pending"` + note "LLM đề xuất — CHƯA R2 duyệt, không dùng cho bệnh nhân thật cho tới khi rà xong".
+- Đã tự rà bằng `compute_nutrition()` cho cả 70 món trước khi ghi thật, bắt được 1 lỗi: `Chả lá lốt` dùng "Thịt lợn ba chỉ" (518 kcal/100g, quá béo cho món chả) cho ra 477 kcal/100g bất thường — sửa sang thịt nạc + chút mỡ, còn 230 kcal/100g.
+
+Kết quả: `dishes.csv` 30→100 món, `dish_ingredients.csv` +246 dòng. `validate_data.py` 0 lỗi, `pytest` 410 passed. **Toàn bộ 70 món mới CHƯA được R2 duyệt** — không được dùng cho bệnh nhân thật cho tới khi rà công thức, đúng cảnh báo trong `note` từng dòng.
+
 ### `DAT-14` ✅ Mở rộng `purine_mg` từ Purine DB 2025 — ĐÃ LÀM (32 dòng mới, curated 1-152)
 **Owner:** R2 · **Trạng thái:** Đã merge phần curated, còn phần NIN bulk (id 2000+) chưa làm
 `data/PURINEDATABASEANDDATASOURCES2025.xlsx` ("USDA and ODS-NIH Database for the Purine Content of Common Foods" R2.0, 2025, 608 dòng NAm+nonNAm+alcohol) đã được trích thành `data/seeds/purine_db_reference.csv` (`scripts/extract_purine_db.py`, 475 dòng có số + trích dẫn `Table6`). Đã map thủ công (có review từng dòng, KHÔNG tự động) 32/366 dòng curated còn thiếu `purine_mg` — chỉ nhận match cùng loài/loại rõ ràng, bỏ qua match mơ hồ (VD "cải xanh" bị bỏ vì các dòng gần giống trong bảng nguồn thực ra khác loài thực vật). Script: `scripts/map_purine_to_food_items.py` (idempotent, có `--dry-run`).
