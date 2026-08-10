@@ -1,0 +1,379 @@
+# DAT-13 — Phân loại 355 dòng trống trong `food_items.csv`
+
+> Sinh tự động bởi `scripts/classify_food_gap_composite.py` — heuristic theo
+> từ khoá tên, KHÔNG tuyệt đối. R2 tự kiểm tra trước khi dùng để lên kế hoạch.
+
+Cả 355 dòng đều **trống hoàn toàn** (không số liệu, không `source_ref`) —
+xác nhận bằng tay 2026-08-10. Không tính được bằng công thức Atwater (cần
+biết trước protein/carb/fat) và không tự động phân rã được vì phần lớn là
+nguyên liệu đơn, không phải công thức món.
+
+## Nhóm A — Nguyên liệu thô (239 dòng)
+
+Không có gì để "phân rã" — mỗi dòng là MỘT thực phẩm. Đường duy nhất là
+tra lại đúng thực phẩm đó trong NIN 2017 hoặc USDA FoodData Central.
+
+- Sắn luộc
+- Thịt gà (ức, bỏ da)
+- Cá lóc
+- Cá bống
+- Cá khô
+- Chao
+- Tương hột
+- Rau ngót
+- Rau mồng tơi
+- Rau má
+- Tía tô
+- Kinh giới
+- Rau răm
+- Bí đao
+- Sữa tươi có đường
+- Mắm nêm
+- Đường thốt nốt
+- Bánh mỳ
+- Bánh phở
+- Bánh quẩy
+- Bún
+- Cốm
+- Mỳ sợi
+- Ngô nếp luộc
+- Củ ấu
+- Củ sắn dây
+- Củ súng khô (đã bỏ vỏ)
+- Củ từ
+- Khoai nước
+- Khoai riềng
+- Bột khoai lang
+- Bột khoai riềng (bột đao)
+- Bột khoai tây (lọc)
+- Bột sắn dây
+- Sắn khô
+- Trân châu sắn
+- Đậu cô ve (hạt)
+- Đậu đen (hạt)
+- Đậu đũa (hạt)
+- Đậu trắng hạt (Đậu Tây)
+- Đậu trứng cuốc
+- Hạt dẻ tươi
+- Hạt dẻ khô
+- Hạt đen
+- Hạt mít
+- Quả đại hái tươi
+- Bột đậu tương rang chín
+- Đậu phụ chúc
+- Đậu phụ nướng
+- Hạt dưa đỏ rang (dưa hấu)
+- Hạt điều khô, chiên dầu
+- Sữa bột đậu nành
+- Bí đao (bí xanh)
+- Cà rốt khô
+- Cải bắp khô
+- Cần ta
+- Củ cải đỏ
+- Củ đậu
+- Củ niễng
+- Dọc củ cải (non)
+- Dọc mùng
+- Dưa gang
+- Đậu rồng (quả non)
+- Gấc
+- Hành lá (hành hoa)
+- Hoa chuối
+- Hoa lý
+- Lá me
+- Lá mơ lông
+- Lá sắn tươi
+- Măng khô
+- Mướp Nhật bản
+- Ngô bao tử
+- Nụ mướp
+- Quả dọc
+- Quả me chua
+- Rau giấp cá, diếp cá
+- Rau giền trắng
+- Rau kinh giới
+- Rau má rừng
+- Rau má, má mơ
+- Rau muống khô
+- Rau ngổ
+- Rau ngót khô
+- Rau rút
+- Rau sam
+- Rau sắng (chùa hương)
+- Rau tàu bay
+- Rau thơm
+- Sấu xanh
+- Su hào khô
+- Tỏi tây (cả lá)
+- Trám đen chín
+- Trám xanh sống, trám trắng
+- Xương sông
+- Cải ngọt
+- Ngọn su su
+- Đậu ván
+- Cà chua muối
+- Cà muối nén
+- Cà muối sổi
+- Dưa cải bắp
+- Dưa cải bẹ
+- Dưa cải sen
+- Dưa giá (đậu xanh)
+- Hành củ muối
+- Kiệu muối
+- Nhút (dưa muối từ mít non, lá đậu xanh non...)
+- Men bia khô
+- Men bia tươi
+- Nấm hương khô
+- Nấm hương tươi
+- Chuối khô
+- Dâu gia
+- Gioi
+- Hồng bì
+- Mắc coọc
+- Mít khô
+- Mít mật
+- Muỗm, quéo
+- Nhãn khô
+- Nho ta (nho chua)
+- Nhót
+- Quả bơ vỏ tím
+- Quả cóc
+- Quả thanh long
+- Quả trứng gà
+- Quất chín (cả vỏ)
+- Quít
+- Sấu chín
+- Vú sữa
+- Dầu thảo mộc (Lạc, vừng, cám...)
+- Mỡ lợn muối
+- Dầu ngô
+- Thịt bò loại II
+- Thịt gà rừng
+- Thịt trâu bắp
+- Thịt trâu cổ
+- Thịt trâu đùi
+- Thịt trâu thăn
+- Bì lợn
+- Đầu bò
+- Đầu lợn
+- Đuôi bò
+- Gân chân bò
+- Lòng lợn (ruột già)
+- Lòng lợn (ruột non)
+- Tiết bò
+- Tiết lợn sống
+- Tủy xương bò
+- Tủy xương lợn
+- Thịt trâu khô
+- Bột cóc
+- Châu chấu
+- Nhộng
+- Thịt lợn, nạc vai
+- Thịt lợn, nạc mông
+- Thịt lợn, nạc thăn
+- Thịt lợn nửa nạc, nửa mỡ, nướng
+- Thịt gà công nghiệp, cánh
+- Thịt gà công nghiệp, đùi
+- Thịt gà công nghiệp, lườn
+- Thịt ngan
+- Cá chày
+- Cá dưa
+- Cá dầu
+- Cá đao
+- Cá đé
+- Cá đồng tiền
+- Cá khô (chim, thu, nụ, đé)
+- Cá lác
+- Cá mòi (cá sardin)
+- Cá mỡ
+- Cá mối
+- Cá nạc
+- Cá phèn
+- Cá rô đồng
+- Cá thờn bơn
+- Cá trạch
+- Hải sâm
+- Ốc bươu
+- Ốc đá
+- Ốc vặn
+- Rạm (muối, đồ)
+- Rạm tươi
+- Rươi
+- Tép gạo
+- Tép khô
+- Bột cá
+- Cá chim
+- Cá chim trắng
+- Cá điêu hồng
+- Cá basa, phi lê
+- Con trùng trục
+- Ngao biển trắng
+- Lòng đỏ trứng vịt
+- Lòng trắng trứng vịt
+- Trứng cá
+- Bột trứng
+- Trứng gà công nghiệp
+- Chuối nước đường
+- Lạc chao dầu
+- Mắc coọc nước đường
+- Nhãn nước đường
+- Vải nước đường
+- Bánh con cá
+- Bánh khảo chay
+- Bánh trứng nhện
+- Đường kính
+- Mạch nha
+- Cary bột
+- Gừng khô (bột)
+- Nghệ khô, bột
+- ớt khô bột
+- Riềng
+- Mắm tôm đặc
+- Mắm tôm loãng
+- Mắm tép chua
+- Nước mắm cá (loại đặc biệt)
+- Nước mắm loại I
+- Nước mắm loại II
+- Nước mắm cô
+- Tương ngô
+- Tương nếp
+- Cô nhắc (cồn 32 g)
+- Cốc tain (cồn 13 g)
+- Coca cola
+- Nước cam tươi
+- Nước dừa non tươi
+- Nước khoáng
+- Rượu cam, chanh (cồn 24,2 g)
+- Rượu nếp (80g/ 24 ml) (cồn 5 g)
+- Rượu trắng (cồn 39 g)
+- Rượu vang đỏ (cồn 9,5 g)
+- Rượu Whisky (cồn 35,2 g)
+- Bánh chuối
+- Bánh mè
+- Bánh mỳ patê
+- Bánh nếp
+
+## Nhóm B — Chế biến/tổng hợp (116 dòng)
+
+CÓ THỂ phân rã thành nguyên liệu + gram nếu R2 xác nhận được công thức
+tham khảo THẬT (sách nấu ăn định lượng, tiêu chuẩn NIN, hoặc nguồn tương
+đương). Không được để LLM tự suy đoán tỷ lệ nguyên liệu (RULE-1/RULE-2) —
+mọi công thức dùng để tính phải dẫn được nguồn, giống hệt cách `dishes.csv`
+hiện tại yêu cầu `source_ref` cho từng nguyên liệu.
+
+- Mì ăn liền
+- Bánh cuốn
+- Giò lụa
+- Chả quế
+- Mắm ruốc
+- Bánh bao nhân thịt
+- Bánh đa nem
+- Bánh đúc
+- Chả quế lợn
+- Dăm bông lợn
+- Dồi lợn
+- Giò bò
+- Giò thủ lợn
+- Lạp xường
+- Chả lá lốt
+- Bánh phồng tôm rán
+- Ruốc cá quả
+- Ruốc tôm
+- Chả cá basa
+- Mứt bí ngô
+- Mứt cam có vỏ
+- Mứt chuối
+- Mứt dứa
+- Mứt đu đủ
+- Cá thu hộp
+- Cá trích hộp
+- Thịt bò hộp
+- Thịt gà hộp
+- Thịt lợn hộp
+- Thịt lợn, thịt bò xay hộp
+- Thịt vịt hầm
+- Bánh bích cốt
+- Bánh bích quy
+- Bánh chả
+- Bánh đậu xanh
+- Bánh kem xốp
+- Bánh quế
+- Bánh sô cô la
+- Bánh thỏi sô cô la
+- Kẹo bơ cứng
+- Kẹo cà phê
+- Kẹo cam chanh
+- Kẹo dừa mềm
+- Kẹo dứa mềm
+- Kẹo lạc
+- Kẹo Pastille (kẹo ngậm bạc hà)
+- Kẹo sô cô la
+- Kẹo sữa
+- Kẹo vừng viên
+- Mứt lạc
+- Bánh bao chiên có nhân
+- Bánh bèo
+- Bánh bột lọc
+- Bánh chay
+- Bánh chín tầng mây
+- Bánh chưng
+- Bánh cốm
+- Bánh cuốn nóng nhân thịt
+- Bánh dẻo nhân thập cẩm
+- Bánh dẻo nhân trứng
+- Bánh đúc nguội
+- Bánh đúc nóng
+- Bánh gai
+- Bánh gio
+- Bánh giò
+- Bánh khoai
+- Bánh khoái
+- Bánh khoai sọ chiên
+- Bánh khúc
+- Bánh mì xíu mại
+- Bánh nướng nhân thập cẩm
+- Bánh nướng nhân trứng đỗ xanh
+- Bánh phu thê (su sê, xu xuê)
+- Bánh rán bọc đường
+- Bánh tẻ
+- Bánh tôm
+- Bánh trôi
+- Bún bò Nam bộ
+- Bún chả
+- Bún cua
+- Bún đậu
+- Bún dọc mùng
+- Bún nem
+- Bún ốc
+- Caramen
+- Cháo lòng
+- Cháo sườn
+- Cháo trai
+- Chè bưởi
+- Chè chuối
+- Chè cốm
+- Chè đỗ đen
+- Chè đỗ đỏ
+- Chè đỗ xanh
+- Chè hạt sen
+- Chè khoai sọ
+- Chè ngô cốm
+- Chè sắn
+- Chè Thái
+- Cơm rang
+- Gà tần
+- Miến lươn
+- Miến ngan
+- Mỳ xào
+- Nem lụi
+- Nem rán
+- Nộm tai lợn
+- Phở bò chín
+- Phở bò tái
+- Phở gà
+- Thịt xiên nướng
+- Xôi đỗ xanh
+- Xôi gấc
+- Xôi lạc
+- Xôi ngô
+- Xôi xéo

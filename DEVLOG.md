@@ -681,6 +681,10 @@
 - **Kiểm chứng:** 29 test mới (10 explainer + 11 assistant + 8 API, mock Gemini không tốn quota). Toàn bộ suite **343 passed**, `ruff` sạch.
 - **Chưa làm:** thực đơn tương đương từ tủ lạnh (Q3 phần còn lại) — chỉ có đặc tả, bàn giao cho agent kế tiếp qua prompt (xem plan file). Cần R2 chốt "phạm vi thay thế duyệt trước" trước khi code.
 
+### 2026-08-10
+
+- **DAT-13 — R2 hỏi có tính được số liệu cho 355 dòng trống bằng công thức (Atwater, phân rã nguyên liệu) không.** Kiểm tra tay: **cả 355 dòng trống hoàn toàn**, kể cả `source_ref` — không có protein/carb/fat để dùng Atwater (kcal=4P+4C+9F, cần số đầu vào đã biết), và đa số là nguyên liệu đơn (rau, củ, cá, thịt) chứ không phải công thức món nên không có gì để "phân rã". Viết `scripts/classify_food_gap_composite.py` (heuristic từ khoá tên, không tuyệt đối) tách 355 dòng thành **239 nguyên liệu thô** (chỉ tra lại NIN/USDA được) và **116 chế biến/tổng hợp** (bánh chưng, phở, giò lụa, chè...) — nhóm sau CÓ THỂ phân rã thành nguyên liệu+gram nếu R2 xác nhận công thức tham khảo thật, theo đúng quy trình đã dùng cho `dishes.csv` (không để LLM tự suy đoán tỷ lệ — RULE-1/RULE-2). Danh sách đầy đủ: `docs/DAT-13-phan-loai-355-dong-trong.md`. Không tự điền số nào.
+
 ---
 
 ## 3. Quyết định kỹ thuật (Decision Log)
