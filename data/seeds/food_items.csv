@@ -440,6 +440,7 @@ id,name_vi,aliases,category,kcal_100g,protein_g,carb_g,fat_g,fiber_g,sugar_g,na_
 4115,Mỡ lợn nước,mỡ heo nước,dầu mỡ,902,0,0,100,0,,0,0,0,,,,,,,USDA,"Khớp chéo ngôn ngữ (không phải khớp trực tiếp) — USDA FoodData Central 'Lard' (fdcId:171401), lý do khớp: mỡ lợn nước đã thắng = lard, khớp trực tiếp. CẦN R2 xác nhận độ phù hợp trước khi dùng cho bệnh nhân.",TRUE
 1105898,Gạo nếp (loại thường),,,350,8.4,75.4,1.6,0.5,,3,282,130,,,,,,,NIN,"NIN 2017, ma 01002, tr.24",FALSE
 1105899,Ngô bắp tươi,,,200,4.1,40.8,2.3,1.2,,3,306,187,,,,,,,NIN,"NIN 2017, ma 01007, tr.24",FALSE
+1105904,Bánh phở,,,141,3.2,32.1,0.4,0,,3,15,64,,,,,,,NIN,"NIN 2017, ma 01013, tr.24; bo sung Na/K/P tu NIN 2007, ma 01013, tr.26",FALSE
 1105911,Củ cái,,,134,3.1,30.18,0.12,1.8,,12,397,32,,,,,,,NIN,"NIN 2017, ma 02002, tr.30",FALSE
 1105912,Củ dong,,,129,1.4,30.8,0.2,2.4,,73,299,21,,,,,,,estimated,"NIN 2017 mã 02003 (năng lượng/đa chất); fat_g lấy từ USDA FDC #168490 'Arrowroot, raw' do NIN 2017 không phân tích các trường này — khớp theo name_en NIN 'Arrow root, raw', score=1.00. ƯỚC TÍNH, R2 cần duyệt.",TRUE
 1105918,Bột dong lọc,,,343,0.6,85.2,0.1,0.5,,2,11,18,,,,,,,estimated,"NIN 2017 mã 02016 (năng lượng/đa chất); fat_g, na_mg, k_mg lấy từ USDA FDC #170684 'Arrowroot flour' do NIN 2017 không phân tích các trường này — khớp theo name_en NIN 'Arrow root flour', score=1.00. ƯỚC TÍNH, R2 cần duyệt.",TRUE
@@ -465,11 +466,17 @@ id,name_vi,aliases,category,kcal_100g,protein_g,carb_g,fat_g,fiber_g,sugar_g,na_
 1105993,Rau sà lách,,,18,1.5,2.43,0.27,0.5,,59,333,34,,,,,,,NIN,"NIN 2017, ma 04090, tr.54",FALSE
 1106000,Súp lơ trắng,bông cải trắng,,34,2.5,5.65,0.15,0.9,,20,349,51,,,,,,,NIN,"NIN 2017, ma 04099, tr.54",FALSE
 1106001,Tỏi ta,,,126,6,24.65,0.35,1.5,,18,373,181,,,,,,,NIN,"NIN 2017, ma 04103, tr.56",FALSE
+1106017,Kiệu muối,,,29,1.3,5.9,0.2,1.2,,812,120,35,,,,,,,NIN,"NIN 2017, ma 04121, tr.58; bo sung Na/K/P tu NIN 2007, ma 04121, tr.223",FALSE
+1106020,Men bia tươi,,,103,16.2,6.5,1.3,2,,12,322,272,,,,,,,NIN,"NIN 2017, ma 04124, tr.60; bo sung Na/K/P tu NIN 2007, ma 04124, tr.226",FALSE
+1106021,Nấm hương khô,,,342,36,40.5,4,17,,5,318,606,,,,,,,NIN,"NIN 2017, ma 04126, tr.60; bo sung Na/K/P tu NIN 2007, ma 04126, tr.228",FALSE
 1106023,Nấm mỡ (Nấm tây),,,37,4,4.5,0.3,1.1,,12,322,80,,,,,,,NIN,"NIN 2017, ma 04128, tr.60",FALSE
 1106024,Nấm thường tươi,,,48,4.6,5.7,0.8,3.5,,5,318,59,,,,,,,NIN,"NIN 2017, ma 04130, tr.60",FALSE
+1106027,Gioi,,,27,0.4,6.4,0.3,2.9,,0,123,6,,,,,,,NIN,"NIN 2017, ma 05018, tr.66; bo sung Na/K/P tu NIN 2007, ma 05018, tr.248",FALSE
 1106029,Hồng đỏ,,,38,0.7,8.6,0.1,2.5,,4,214,19,,,,,,,NIN,"NIN 2017, ma 05020, tr.66",FALSE
 1106030,Mãng cầu xiêm,,,58,1.8,12.6,0.3,1.9,,4,382,14,,,,,,,estimated,"NIN 2017 mã 05025 (năng lượng/đa chất); fat_g lấy từ USDA FDC #167761 'Soursop, raw' do NIN 2017 không phân tích các trường này — khớp theo name_en NIN 'Soursop', score=0.96. ƯỚC TÍNH, R2 cần duyệt.",TRUE
 1106032,Mận tím,,,23,0.6,4.6,0.2,0.7,,0,157,20,,,,,,,NIN,"NIN 2017, ma 05027, tr.66",FALSE
+1106036,Nhãn khô,,,292,4.3,67.6,0.5,1.7,,48,658,117,,,,,,,NIN,"NIN 2017, ma 05036, tr.68; bo sung Na/K/P tu NIN 2007, ma 05036, tr.266",FALSE
+1106044,Quít,,,40,0.8,9.2,0.3,0.6,,4,111,17,,,,,,,NIN,"NIN 2017, ma 05047, tr.70; bo sung Na/K/P tu NIN 2007, ma 05047, tr.277",FALSE
 1106047,Quả kiwi,,,68,1.14,14.66,0.52,3,,3,312,34,,,,,,,NIN,"NIN 2017, ma 05056, tr.70",FALSE
 1106050,Bơ thực vật,,,729,0.5,0.1,80.7,0,,2,25,13,,,,,,,NIN,"NIN 2017, ma 06005, tr.74",FALSE
 1106051,Dầu bông,,,900,0,0,100,0,,0,0,0,,,,,,,estimated,"NIN 2017 mã 06006 (năng lượng/đa chất); na_mg, k_mg, p_mg lấy từ USDA FDC #171024 'Oil, cottonseed, salad or cooking' do NIN 2017 không phân tích các trường này — khớp theo name_en NIN 'Cottonseed oil, salad or cooking', score=0.97. ƯỚC TÍNH, R2 cần duyệt.",TRUE
@@ -522,14 +529,18 @@ id,name_vi,aliases,category,kcal_100g,protein_g,carb_g,fat_g,fiber_g,sugar_g,na_
 1106179,Mận nước đường,,,62,0.3,14.9,0.1,1.8,,20,93,15,,,,,,,NIN,"NIN 2017, ma 11006, tr.114",FALSE
 1106186,Nước dứa hộp,nước thơm hộp|nước khóm hộp,,41,0.3,9.74,0.06,0.4,,2,130,12,,,,,,,NIN,"NIN 2017, ma 11013, tr.116",FALSE
 1106206,Bột ca cao,,,423,23.3,44.2,17,4.6,,21,1524,734,,,,,,,NIN,"NIN 2017, ma 12012, tr.120",FALSE
+1106207,Đường kính,,,397,0,99.3,0,0,,0,2,0,,,,,,,NIN,"NIN 2017, ma 12014, tr.122; bo sung Na/K/P tu NIN 2007, ma 12014, tr.510",FALSE
+1106221,Gừng khô (bột),,,346,7.6,72.4,2.9,12.5,,32,1343,148,,,,,,,NIN,"NIN 2017, ma 13002, tr.126; bo sung Na/K/P tu NIN 2007, ma 13002, tr.527",FALSE
 1106222,Gừng tươi,,,41,0.4,8.59,0.51,3.3,,7,316,8,,,,,,,NIN,"NIN 2017, ma 13003, tr.126",FALSE
 1106223,Hạt tiêu,,,365,7,67.6,7.4,33.5,,44,1259,44,,,,,,,NIN,"NIN 2017, ma 13004, tr.126",FALSE
 1106224,Muối,,,0,0,0,0,0,,38758,4,70,,,,,,,NIN,"NIN 2017, ma 13005, tr.126",FALSE
+1106225,"Nghệ khô, bột",,,360,6.3,72.1,5.1,21.1,,38,2525,284,,,,,,,NIN,"NIN 2017, ma 13006, tr.126; bo sung Na/K/P tu NIN 2007, ma 13006, tr.531",FALSE
 1106226,Nghệ tươi,,,377,0,82.5,5.2,0.9,,5,356,22,,,,,,,NIN,"NIN 2017, ma 13007, tr.126",FALSE
 1106229,Magi,,,65,10,6.1,0.1,0,,5586,212,130,,,,,,,NIN,"NIN 2017, ma 13010, tr.126",FALSE
 1106236,Nước mắm cá,,,35,5.06,3.64,0.01,0,,7720,288,7,,,,,,,NIN,"NIN 2017, ma 13017, tr.128",FALSE
 1106240,Sốt mayonnaise,,,701,0,0.1,77.8,0,,486,14,25,,,,,,,NIN,"NIN 2017, ma 13023, tr.128",FALSE
 1106241,"Bia (cồn: 4,5 g)",,,43,0.5,2.3,0,0,,4,27,26,,,,,,,NIN,"NIN 2017, ma 14001, tr.132",FALSE
+1106245,Nước cam tươi,,,23,0.7,4.7,0.2,0.2,,1,200,16,,,,,,,NIN,"NIN 2017, ma 14005, tr.132; bo sung Na/K/P tu NIN 2007, ma 14005, tr.555",FALSE
 1106247,Nước ép cà chua,,,21,0.8,3,0.6,0.4,,10,229,13,,,,,,,NIN,"NIN 2017, ma 14007, tr.132",FALSE
 1106249,Nước quít tươi,,,25,0.4,5.3,0.2,0.2,,1,178,24,,,,,,,NIN,"NIN 2017, ma 14009, tr.132",FALSE
 1106254,"Rượu vang trắng (cồn 9,5 g)",,,66,0.1,0.2,0,0,,4,61,6,,,,,,,NIN,"NIN 2017, ma 14014, tr.134",FALSE
