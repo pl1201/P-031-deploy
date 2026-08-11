@@ -33,7 +33,7 @@ import openpyxl
 
 ROOT = Path(__file__).resolve().parents[1]
 SRC = ROOT / "data" / "PURINEDATABASEANDDATASOURCES2025.xlsx"
-OUT = ROOT / "data" / "seeds" / "purine_db_reference.csv"
+OUT = ROOT / "data" / "reference" / "purine_db_reference.csv"
 
 SHEETS = {
     "Table1_Food data_NAm sources": "NAm",

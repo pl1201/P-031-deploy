@@ -35,6 +35,7 @@ flowchart TD
     REJECT --> FIX
 
     APPROVE --> DOIT(["Giao thực đơn đã duyệt<br/>cho bệnh nhân!"])
+    DOIT --> EXPLAIN["Bệnh nhân xem giải thích thực đơn<br/>Menu Explainer &amp; Coaching<br/>GET /meal-plans/id/explain · CHỈ khi status=approved<br/>đang phát triển: PR #76/#77 + AGT-13"]
 
     classDef terminal fill:#fff,stroke:#000,stroke-width:2px,color:#000
     classDef decision fill:#fff,stroke:#000,stroke-width:2px,color:#000
@@ -42,6 +43,7 @@ flowchart TD
     classDef doit fill:#000,stroke:#000,stroke-width:2px,color:#fff,font-weight:bold
     classDef doctor fill:#e6f4ea,stroke:#2e7d32,stroke-width:2px,color:#000
     classDef patient fill:#e8f0fe,stroke:#1a56db,stroke-width:2px,color:#000
+    classDef pending fill:#fff8e1,stroke:#f57f17,stroke-width:2px,stroke-dasharray: 5 5,color:#000
 
     class START,STOP1 terminal
     class Q1,Q2,Q3,Q4,Q5,Q6,Q7 decision
@@ -49,4 +51,9 @@ flowchart TD
     class DOIT doit
     class BS_IN doctor
     class PT_IN patient
+    class EXPLAIN pending
 ```
+
+> **Ghi chú 2026-08-09:**
+> - Nhánh `EXPLAIN` (nét đứt = đang phát triển, chưa merge `main`) mô tả tính năng Menu Explainer & Coaching — bệnh nhân xem giải thích thực đơn bằng ngôn ngữ tự nhiên SAU khi đã duyệt. Chi tiết: `docs/PRD.md` FR-16, `docs/TICKETS.md` `AGT-13`.
+> - `PT_IN` ("thực đơn / thành phần thực phẩm") hiện là luồng nhập **bằng văn bản**. Luồng chụp ảnh mâm cơm/món ăn (VLM) **KHÔNG được vẽ thêm vào đây** — R2 đang đánh giá lại có điều kiện (Gemma 4 E2B), nhưng CHƯA có quyết định chính thức đổi phạm vi MVP. Xem `docs/Nghiên cứu ứng dụng LLM và CP-SAT tạo thực đơn cho người đái tháo đường.md` mục "Tầng thị giác/VLM" trước khi thêm nhánh ảnh vào flow này.

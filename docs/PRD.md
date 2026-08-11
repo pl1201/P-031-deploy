@@ -189,9 +189,9 @@ Không hỏi tổng thu nhập gia đình. Sản phẩm chỉ cần ngân sách 
 
 ### FR-05. Sinh thực đơn nháp
 
-**Mô tả:** LangGraph chọn món Việt và gram từ danh sách ứng viên theo mục tiêu, sở thích, vùng miền, dị ứng và ngân sách nếu có.
+**Mô tả:** LangGraph chọn món Việt và gram từ danh sách ứng viên theo mục tiêu, sở thích, vùng miền, dị ứng và ngân sách nếu có. **Đã triển khai** dạng hybrid (`HybridMenuGenerator`, `src/agents/hybrid.py`): ưu tiên giải bằng OR-Tools CP-SAT chế độ feasibility-only (đo được nhanh hơn nhiều so với chế độ tối đa hoá hàm mục tiêu — ~0,1s OPTIMAL so với ~105s UNKNOWN), Gemini chỉ tham gia khi CP-SAT không tìm được nghiệm khả thi hoặc để chọn giữa các nghiệm hợp lệ.
 
-**Luồng:** hồ sơ + targets + ứng viên + feedback lần trước -> LLM structured output -> ID + gram theo bữa.
+**Luồng:** hồ sơ + targets + ứng viên + feedback lần trước -> CP-SAT/LLM structured output -> ID + gram theo bữa.
 
 **Nghiệm thu:**
 
@@ -300,6 +300,30 @@ Không hỏi tổng thu nhập gia đình. Sản phẩm chỉ cần ngân sách 
 - Thay đổi tạo phiên bản mới, không sửa ngầm kết quả lịch sử.
 - Có thể quay về phiên bản trước mà không xóa audit.
 
+### FR-15. Thực đơn tương đương từ tủ lạnh (đã triển khai — P2/AGT-12)
+
+**Mô tả:** khi tủ lạnh/nguyên liệu sẵn có của bệnh nhân không đủ để nấu đúng thực đơn đã duyệt, hệ thống tạo thực đơn tương đương bằng CP-SAT với tập ứng viên và dải ràng buộc thu hẹp quanh thực đơn gốc — không dùng LLM để phán đoán "món nào tương đương" (RULE-1 giữ nguyên).
+
+**Luồng:** chuyên gia tạo phạm vi thay thế (`substitution scope`, mặc định theo DEC-018) cho một thực đơn gốc đã duyệt -> bệnh nhân khai tủ lạnh -> CP-SAT giải trong dải ±dung sai của thực đơn gốc -> tự phát hành nếu đủ điều kiện, hoặc trả lý do không tạo được nếu tủ lạnh không đủ.
+
+**Nghiệm thu:**
+
+- Chỉ hoạt động trong phạm vi (`scope`) chuyên gia đã tạo và còn hiệu lực; `scope` thu hồi được.
+- "Tương đương" được định nghĩa bằng ràng buộc toán học (ngưỡng lâm sàng + dải ±dung sai của thực đơn gốc), không phải độ tương tự ngữ nghĩa do LLM chọn.
+- Tủ lạnh không đủ nguyên liệu thì trả lý do rõ ràng, không tự bịa thực đơn.
+
+### FR-16. Giải thích thực đơn cho bệnh nhân (Menu Explainer & Coaching)
+
+> Trạng thái: **đang phát triển** — phần tất định (assembler + guard chống bịa số) ở [PR #77](https://github.com/AI20K-Build-Phase-Cohort-3/P-031/pull/77), phần LLM + API route (`AGT-13`, xem `docs/PLAN_WEEK_NEXT_v2v3.md`) chưa bắt đầu.
+
+**Mô tả:** khác FR-10 (giải thích cho chuyên gia trước khi duyệt), tính năng này giải thích thực đơn **đã `approved`** cho bệnh nhân bằng ngôn ngữ tự nhiên, đồng cảm, mang tính động viên tuân thủ — theo mô hình lớp 4 "Explainer & Coaching" của kiến trúc lai đã nghiên cứu (`docs/Nghiên cứu ứng dụng LLM và CP-SAT tạo thực đơn cho người đái tháo đường.md`).
+
+**Nghiệm thu (khi hoàn thành):**
+
+- LLM chỉ được văn phong hoá dữ kiện đã tính sẵn (`MenuFacts`) — schema output không có field số nào.
+- Mọi số xuất hiện trong văn bản LLM phải khớp số đã có sẵn trong `MenuFacts`; số không khớp bị chặn, hệ thống dùng bản render mẫu thay thế (không phục vụ văn bản chưa qua kiểm).
+- Chỉ hoạt động trên thực đơn `status == "approved"` (RULE-3) — trả lỗi rõ ràng ở trạng thái khác, không phải trả rỗng âm thầm.
+
 ## 8. Luồng nghiệp vụ end-to-end
 
 1. Chuyên gia tạo/chọn hồ sơ mô phỏng ĐTĐ2.
@@ -387,10 +411,11 @@ Kết quả thực tế phải ghi tại `eval/results/report.md`, gồm cỡ m�
 
 ### 11.3. V2/V3
 
-- Ảnh và ước tính khẩu phần; voice/TTS; đọc đơn thuốc từ ảnh.
+- Ảnh và ước tính khẩu phần; voice/TTS; đọc đơn thuốc từ ảnh. **Cập nhật 2026-08-09: đang được R2 đánh giá lại có điều kiện** (không phải quyết định lại từ đầu) — Gemma 4 E2B (Google, 2026-04-02, Apache 2.0) đa phương thức thật (nhận ảnh, chạy được trên mobile) khiến câu hỏi này đáng bench lại, nhưng quyết định "ngoài MVP" ở §4.2 hiện tại **giữ nguyên cho tới khi có số đo mới** đạt ngưỡng an toàn xác định trước. Chi tiết phương pháp + điều kiện: `docs/Nghiên cứu ứng dụng LLM và CP-SAT tạo thực đơn cho người đái tháo đường.md` mục "Tầng thị giác/VLM".
 - InBody/BIA, wearable, HealthKit/Health Connect và bệnh án điện tử.
 - Dữ liệu bệnh nhân thật, nghiên cứu outcome và pilot tại bệnh viện.
 - Hỗ trợ đái tháo đường type 2, CKD, gout và đa bệnh lý.
+- **Mới (2026-08-09):** Model nền LLM local + TokMem cho lớp Orchestrator — dự án dự kiến sẽ cần tự host local model (không chỉ cân nhắc); bước 1 chọn model nền chạy được trên mobile (ứng viên Gemma 4 E2B), bước 2 áp TokMem nén các "procedure" lặp lại. Cần hạ tầng GPU tự host trước khi bắt đầu, chưa có tại thời điểm ghi chú. Chi tiết: `docs/Nghiên cứu ứng dụng LLM và CP-SAT tạo thực đơn cho người đái tháo đường.md` mục "Lộ Trình Model Nền & TokMem".
 
 ## 12. Lộ trình 6 tuần
 

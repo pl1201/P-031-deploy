@@ -91,43 +91,66 @@ graph TB
 
 ## 3. Luồng LangGraph Agent
 
-```mermaid
-graph TD
-    START([Yêu cầu lập thực đơn]) --> N1[1. load_profile<br/>hồ sơ + bệnh lý + thuốc + dị ứng]
-    N1 --> N2[2. compute_targets<br/>DETERMINISTIC · không LLM]
-    N2 --> N3[3. retrieve_context<br/>hybrid RAG guideline + food candidates SQL]
-    N3 --> N4[4. generate_menu<br/>LLM · structured output: food_id + gram]
-    N4 --> N5[5. compute_nutrition<br/>DETERMINISTIC · SQL sum]
-    N5 --> N6{6. validate<br/>bounds + dị ứng + tương tác thuốc}
-    N6 -->|FAIL và retry lt 3| N7[7. build_feedback<br/>lỗi cụ thể vào prompt]
-    N7 --> N4
-    N6 -->|FAIL và retry eq 3| FB[fallback: thực đơn mẫu theo bệnh lý<br/>gắn cờ needs_attention]
-    N6 -->|PASS| N8[8. explain<br/>LLM · diễn giải kèm citation]
-    FB --> HITL
-    N8 --> HITL[[interrupt — HITL QUEUE]]
-    HITL -->|Chuyên gia APPROVE| PUB([Phát hành cho bệnh nhân])
-    HITL -->|Chuyên gia EDIT| N5
-    HITL -->|Chuyên gia REJECT + lý do| N7
+> **Cập nhật 2026-08-09:** mục này trước đây mô tả graph 8-node ban đầu (thiết kế lúc lập kiến trúc). Graph thật trong `src/agents/graph.py` hiện có **15 node** (an toàn hơn: fail-closed có kiểm soát, gate ngưỡng lâm sàng tách riêng, phân loại rủi ro P0/P1/P2, audit đầy đủ). Đặc tả chi tiết từng lớp thay đổi + lý do: `docs/LANGGRAPH_ARCHITECTURE_COMPARISON.md`. Bản Mermaid dưới đây đồng bộ lại cho khớp `main`.
 
-    style N2 fill:#c8e6c9
-    style N5 fill:#c8e6c9
-    style N6 fill:#c8e6c9
-    style N4 fill:#bbdefb
-    style N8 fill:#bbdefb
+```mermaid
+flowchart TD
+    S([START]) --> LP[1. load_profile]
+    LP -->|failed| E([END])
+    LP -->|continue| CT[2. compute_targets<br/>DETERMINISTIC]
+
+    CT --> TG{3. target_gate<br/>DETERMINISTIC}
+    TG -->|conflict / unverified| MR[12. prepare_manual_review]
+    TG -->|safe| RC[4. retrieve_context_bundle<br/>hybrid RAG + food candidates SQL]
+
+    RC --> SC[5. build_safety_constraints]
+    SC --> GM[6. generate_menu<br/>CP-SAT / Gemini hybrid]
+    GM --> CN[7. compute_nutrition<br/>DETERMINISTIC · SQL sum]
+    CN --> SV[8. safety_validate<br/>bounds + dị ứng + tương tác thuốc]
+    SV --> RT{9. risk_triage<br/>P0/P1/P2}
+
+    RT -->|không P0| EX[13. explain_with_citations<br/>LLM · diễn giải kèm citation]
+    RT -->|P0 và retry lt 3| BF[10. build_feedback<br/>lỗi cụ thể vào prompt]
+    BF --> GM
+    RT -->|P0 và retry gte 3| FB[11. fallback_template<br/>gắn cờ needs_attention]
+    FB --> CN
+
+    MR --> EX
+    EX --> RP[14. prepare_review_packet]
+    RP --> HITL[[15. to_review — interrupt HITL QUEUE]]
+    HITL -->|Chuyên gia APPROVE| PUB([Phát hành cho bệnh nhân])
+    HITL -->|Chuyên gia EDIT| CN
+    HITL -->|Chuyên gia REJECT + lý do| BF
+
+    style CT fill:#c8e6c9
+    style CN fill:#c8e6c9
+    style SV fill:#c8e6c9
+    style GM fill:#bbdefb
+    style EX fill:#bbdefb
     style HITL fill:#ffe0b2,stroke:#e65100,stroke-width:3px
 ```
 
-### Vì sao node 5 tách khỏi node 4
+### `generate_menu` — CP-SAT/hybrid (đã triển khai, không phải chỉ LLM)
 
-LLM ở node 4 chỉ trả về JSON dạng:
+`src/agents/hybrid.py::HybridMenuGenerator` là generator thật đang dùng trong `generate_menu` (wired qua `AGT-10`) — ưu tiên giải bằng OR-Tools **CP-SAT chế độ feasibility-only** (đo được nhanh hơn nhiều so với chế độ tối đa hoá hàm mục tiêu: ~0,1s OPTIMAL so với ~105s rồi UNKNOWN), Gemini chỉ được gọi khi CP-SAT không tìm được nghiệm khả thi hoặc để chọn giữa các nghiệm hợp lệ (structured output, chỉ `food_id`+gram — RULE-1 vẫn giữ nguyên qua lớp này). Khi bài toán vô nghiệm vì tủ lạnh/nguyên liệu sẵn có không đủ, `src/agents/equivalent.py` (thực đơn tương đương, P2/AGT-12) tái dùng CP-SAT với tập ứng viên và dải ràng buộc thu hẹp quanh thực đơn gốc — "tương đương" được định nghĩa bằng ràng buộc toán học, không phải LLM phán đoán ngữ nghĩa.
+
+### Vì sao node 7 (`compute_nutrition`) tách khỏi node 6 (`generate_menu`)
+
+LLM/CP-SAT ở node 6 chỉ trả về JSON dạng:
 
 ```json
 {"meals": [{"slot": "breakfast", "items": [{"food_id": 1042, "grams": 180}]}]}
 ```
 
-Node 5 tự truy vấn SQL và tính tổng. **LLM không bao giờ nhìn thấy hay sinh ra con số kcal.** Đây là cơ chế chống bịa số ở tầng kiến trúc, không phải ở tầng prompt — mạnh hơn nhiều so với việc dặn LLM "đừng bịa".
+Node 7 tự truy vấn SQL và tính tổng. **LLM không bao giờ nhìn thấy hay sinh ra con số kcal.** Đây là cơ chế chống bịa số ở tầng kiến trúc, không phải ở tầng prompt — mạnh hơn nhiều so với việc dặn LLM "đừng bịa".
+
+### Explainer & Coaching cho bệnh nhân — dịch vụ ngoài graph (đang xây, chưa merge)
+
+Khác với `explain_with_citations` (node 13, giải thích cho chuyên gia TRƯỚC khi duyệt), tính năng "Menu Explainer & Coaching" đang phát triển (PR #77 — B1 deterministic, `AGT-13` — B2 LLM+route) giải thích **thực đơn đã `approved`** cho bệnh nhân bằng ngôn ngữ tự nhiên. Đây là **endpoint gọi theo yêu cầu (`GET /meal-plans/{id}/explain`), KHÔNG phải node trong graph** — vì mọi node hiện tại chạy trước khi duyệt, còn việc duyệt (`POST /reviews/{planId}/approve`) chỉ đổi `status` trên DB, không resume graph. `src/clinical/menu_explainer.py` (assembler tất định) + `src/services/menu_explanation_guard.py` (chặn bịa số) + `src/services/menu_coach.py` (LLM văn phong hoá, B2) theo đúng mẫu đã dùng cho `target_assistant.py` (P1).
 
 ### State schema
+
+> Cập nhật 2026-08-09: state thật trong `src/agents/graph.py` đã mở rộng nhiều so với bản thiết kế ban đầu bên dưới — thêm version/hash để audit, `target_gate`/`risk_triage`/`review_packet` cho luồng 15-node. Xem đặc tả nhóm trường đầy đủ + lý do mở rộng: `docs/LANGGRAPH_ARCHITECTURE_COMPARISON.md` §6 ("State hiện tại"). Khối dưới đây giữ lại làm ví dụ khái niệm ban đầu, không phải state thật hiện tại.
 
 ```python
 class NutriState(TypedDict):
@@ -590,7 +613,7 @@ graph TB
 |---|---|---|---|
 | ADR-001 | Postgres + pgvector, không dùng Qdrant | Qdrant, Milvus, Chroma | Dưới 5.000 chunk; giảm 1 service; 1 connection string |
 | ADR-002 | LLM chỉ trả `food_id` + gram | Cho LLM trả cả giá trị dinh dưỡng | Nghiên cứu chứng minh LLM lệch định lượng hệ thống; đây là chống bịa ở tầng kiến trúc |
-| ADR-003 | 1 graph 8 node, không 5 agent rời | Multi-agent CrewAI | Debug được, latency thấp, vẫn thể hiện được agentic loop |
+| ADR-003 | 1 graph (nay 15 node, mở rộng từ thiết kế ban đầu 8 node — xem `docs/LANGGRAPH_ARCHITECTURE_COMPARISON.md`), không 5 agent rời | Multi-agent CrewAI | Debug được, latency thấp, vẫn thể hiện được agentic loop |
 | ADR-004 | HITL bằng LangGraph `interrupt` + checkpointer | Bảng status thuần | Đúng chuẩn LangGraph, resume được state; **có fallback nếu quá phức tạp** |
 | ADR-005 | Drug-food curated 80 cặp thay vì DDID 23.950 | Import DDID | License chưa rõ; 80 cặp đủ bao phủ 4 nhóm bệnh của đề bài |
 | ADR-006 | Render + Vercel, không K8s | AWS EKS, GCP GKE | 6 tuần, free tier, không được thêm điểm nếu dùng K8s |
