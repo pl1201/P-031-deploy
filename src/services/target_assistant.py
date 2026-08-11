@@ -18,18 +18,14 @@ Mọi con số ngưỡng thật luôn đến từ `compute_targets()` gọi LẠ
 
 from __future__ import annotations
 
-import logging
-from typing import Literal, TypeVar
+from typing import Literal
 
-from google import genai
-from google.genai import errors, types
 from pydantic import BaseModel, Field
 
 from src.clinical.models import Condition, ConditionCode, PatientProfile
 from src.clinical.target_explainer import NutrientExplanation
-from src.config import Settings, get_settings
-
-logger = logging.getLogger(__name__)
+from src.config import Settings
+from src.services.gemini_client import call_gemini
 
 _CLINICAL_FLAGS = Literal["frailty_sarcopenia", "metabolically_unstable", "sodium_wasting"]
 
@@ -115,7 +111,7 @@ def explain_naturally(explanations: list[NutrientExplanation], *, settings: Sett
         return "Chưa có ngưỡng nào để giải thích."
     facts = _explanation_facts_text(explanations)
     prompt = f"Dữ kiện (đã tính sẵn, không được thêm số nào ngoài đây):\n{facts}\n\nHãy viết lại thành đoạn văn."
-    result = _call_gemini(prompt, _EXPLAIN_SYSTEM_PROMPT, _ExplainOutput, settings)
+    result = call_gemini(prompt, _EXPLAIN_SYSTEM_PROMPT, _ExplainOutput, settings)
     return result.text_vi
 
 
@@ -138,46 +134,4 @@ nếu có nhắc tới. KHÔNG được tự suy đoán ra thông tin không có
 
 
 def parse_what_if(question_vi: str, *, settings: Settings | None = None) -> ProfileDelta:
-    return _call_gemini(question_vi, _WHAT_IF_SYSTEM_PROMPT, ProfileDelta, settings)
-
-
-# ---------------------------------------------------------------------------
-# Gọi Gemini — xoay vòng key, giống khuôn src/services/llm.py
-# ---------------------------------------------------------------------------
-_SchemaT = TypeVar("_SchemaT", bound=BaseModel)
-
-
-def _call_gemini(
-    prompt: str,
-    system_prompt: str,
-    schema: type[_SchemaT],
-    settings: Settings | None,
-) -> _SchemaT:
-    settings = settings or get_settings()
-    keys = settings.gemini_keys()
-    if not keys:
-        raise ValueError("Chưa cấu hình GEMINI_API_KEY nào trong .env")
-
-    config = types.GenerateContentConfig(
-        temperature=settings.llm_temperature,
-        response_mime_type="application/json",
-        response_schema=schema,
-        system_instruction=system_prompt,
-    )
-
-    last_error: errors.APIError | None = None
-    for i, key in enumerate(keys):
-        client = genai.Client(api_key=key)
-        try:
-            resp = client.models.generate_content(model=settings.gemini_model, contents=prompt, config=config)
-        except errors.ClientError as exc:
-            if exc.code == 429 and i < len(keys) - 1:
-                logger.warning("Gemini key #%d het quota (429), doi key ke tiep.", i + 1)
-                last_error = exc
-                continue
-            raise
-        parsed = resp.parsed
-        if isinstance(parsed, schema):
-            return parsed
-        return schema.model_validate_json(resp.text or "{}")
-    raise RuntimeError("Tất cả key Gemini đều hết quota") from last_error
+    return call_gemini(question_vi, _WHAT_IF_SYSTEM_PROMPT, ProfileDelta, settings)

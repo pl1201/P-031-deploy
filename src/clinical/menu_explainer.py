@@ -81,7 +81,13 @@ def assemble_menu_facts(
 
     nutrient_facts: list[NutrientFact] = []
     for nutrient, value in nutrition.items():
-        if not isinstance(value, int | float):
+        # `bool` là subclass của `int` trong Python — `isinstance(True, int)` là
+        # True, nên phải loại bool TRƯỚC kiểm tra số, nếu không các cờ
+        # `purine_is_complete`/`sugar_is_complete`/`has_estimated` của
+        # `NutritionSummary.model_dump()` sẽ bị hiểu nhầm thành chất dinh dưỡng
+        # (phát hiện khi AGT-13 lần đầu gọi hàm này với dữ liệu thật, không
+        # phải dict tay trong test — xem tests/test_menu_explainer.py).
+        if isinstance(value, bool) or not isinstance(value, int | float):
             continue
         target = targets.get(nutrient) or {}
         min_value = target.get("min_value")
