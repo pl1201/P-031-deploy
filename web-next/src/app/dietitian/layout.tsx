@@ -25,19 +25,12 @@ function Icon({ name }: { name: IconName }) {
 type NavItem = { href: string; label: string; icon: IconName; exact?: boolean; badge?: boolean }
 type NavGroup = { label: string; items: NavItem[] }
 
-const NAV_GROUPS: NavGroup[] = [
-  {
-    label: 'Không gian lâm sàng',
-    items: [
-      { href: '/dietitian', label: 'Tổng quan', icon: 'overview' as const, exact: true, badge: true },
-      { href: '/dietitian/patients', label: 'Hồ sơ bệnh nhân', icon: 'patients' as const },
-      { href: '/dietitian/reviews', label: 'Nhật ký phê duyệt', icon: 'audit' as const },
-    ],
-  },
-  {
-    label: 'Vận hành hệ thống',
-    items: [{ href: '/dietitian/eval', label: 'Chất lượng hệ thống', icon: 'quality' as const }],
-  },
+const NAV: Array<{ href: string; label: string; icon: string; exact?: boolean; badge?: boolean }> = [
+  { href: '/dietitian', label: 'Hàng chờ duyệt', icon: '◎', exact: true, badge: true },
+  { href: '/dietitian/patients', label: 'Hồ sơ bệnh nhân', icon: '◈' },
+  { href: '/dietitian/food-logs', label: 'Món chờ đối chiếu', icon: '✎' },
+  { href: '/dietitian/approvals', label: 'Nhật ký phê duyệt', icon: '✓' },
+  { href: '/eval', label: 'Báo cáo Eval', icon: '◫' },
 ]
 
 export default function DietitianLayout({ children }: { children: React.ReactNode }) {

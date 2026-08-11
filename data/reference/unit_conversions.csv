@@ -1,0 +1,21 @@
+ten_nguyen_lieu,don_vi,gram,ghi_chu,source,source_ref,is_estimated
+trứng gà,quả,44,"USDA cỡ ""medium"" — chọn medium thay vì large vì trứng gà Việt Nam nhỏ hơn trứng Mỹ; chọn large (50g) sẽ ước tính vượt",USDA,"USDA FDC #171287 'Egg, whole, raw, fresh' — portion '1 medium' = 44.0 g",TRUE
+trứng vịt,quả,70,"Trứng vịt lớn hơn trứng gà; USDA 'Egg, duck, whole' 1 egg = 70 g",USDA,"USDA FDC #172189 'Egg, duck, whole, fresh, raw' — portion '1 egg' = 70.0 g",TRUE
+trứng cút,quả,9,"USDA 'Egg, quail, whole' 1 egg = 9 g",USDA,"USDA FDC #172191 'Egg, quail, whole, fresh, raw' — portion '1 egg' = 9.0 g",TRUE
+hành tây,củ,110,"USDA cỡ ""medium"" (2-1/2"" dia)",USDA,"USDA FDC #170000 'Onions, raw' — portion '1 medium (2-1/2"" dia)' = 110.0 g",TRUE
+cà rốt,củ,61,"USDA cỡ ""medium""",USDA,"USDA FDC #170393 'Carrots, raw' — portion '1 medium' = 61.0 g",TRUE
+cà chua,quả,123,"USDA cỡ ""medium whole"" (2-3/5"" dia)",USDA,"USDA FDC #170457 'Tomatoes, red, ripe, raw' — portion '1 medium whole (2-3/5"" dia)' = 123.0 g",TRUE
+khoai tây,củ,213,"USDA cỡ ""medium"" (2-1/4"" đến 3-1/4"" dia)",USDA,"USDA FDC #170026 'Potatoes, flesh and skin, raw' — portion '1 Potato medium' = 213.0 g",TRUE
+dưa leo,quả,301,"USDA cả quả 8-1/4""; dưa leo Việt Nam thường nhỏ hơn — R2 nên rà lại trước khi dùng cho ngưỡng kali",USDA,"USDA FDC #168409 'Cucumber, with peel, raw' — portion '1 cucumber (8-1/4"")' = 301.0 g",TRUE
+dầu ăn,M,13.6,M = muỗng canh (tablespoon) theo chú thích của chính nguồn công thức,USDA,"USDA FDC #171411 'Oil, soybean, salad or cooking' — portion '1 tbsp' = 13.6 g",TRUE
+dầu ăn,m,4.5,m = muỗng cà phê (teaspoon) theo chú thích của chính nguồn công thức,USDA,"USDA FDC #171411 'Oil, soybean, salad or cooking' — portion '1 tsp' = 4.5 g",TRUE
+đường,M,12.6,1 muỗng canh = 3 muỗng cà phê × 4.2 g,USDA,"USDA FDC #169655 'Sugars, granulated' — portion '1 tsp' = 4.2 g (×3)",TRUE
+đường,m,4.2,,USDA,"USDA FDC #169655 'Sugars, granulated' — portion '1 tsp' = 4.2 g",TRUE
+muối,M,18,,USDA,"USDA FDC #173468 'Salt, table' — portion '1 tbsp' = 18.0 g",TRUE
+muối,m,6,,USDA,"USDA FDC #173468 'Salt, table' — portion '1 tsp' = 6.0 g",TRUE
+nước mắm,M,18,"Natri rất cao — sai số ở đây ảnh hưởng trực tiếp ngưỡng THA/CKD, R2 phải rà",USDA,"USDA FDC #174531 'Sauce, fish, ready-to-serve' — portion '1 tbsp' = 18.0 g",TRUE
+nước mắm,m,6,Suy ra 1/3 muỗng canh,USDA,"USDA FDC #174531 'Sauce, fish, ready-to-serve' — portion '1 tbsp' = 18.0 g (÷3)",TRUE
+nước cốt chanh,M,15.1,1 muỗng canh = 1/2 fl oz,USDA,"USDA FDC #168156 'Lime juice, raw' — portion '1 fl oz' = 30.8 g (÷2)",TRUE
+nước cốt chanh,m,5,Suy ra 1/3 muỗng canh,USDA,"USDA FDC #168156 'Lime juice, raw' — portion '1 fl oz' = 30.8 g (÷6)",TRUE
+chanh,quả,44,Lượng nước cốt vắt ra từ 1 trái chanh,USDA,"USDA FDC #168156 'Lime juice, raw' — portion '1 lime yields' = 44.0 g",TRUE
+thơm,quả,1002,"Dứa nguyên quả — công thức thường chỉ dùng một phần, R2 rà lại",USDA,"USDA FDC #168193 'Pineapple, raw, traditional varieties' — portion '1 fruit' = 1002.0 g",TRUE

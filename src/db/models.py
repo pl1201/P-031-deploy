@@ -81,6 +81,7 @@ class PatientProfile(Base):
     allergies: Mapped[list[PatientAllergy]] = relationship(back_populates="profile")
     meal_plans: Mapped[list[MealPlan]] = relationship(back_populates="profile")
     food_logs: Mapped[list[FoodLog]] = relationship(back_populates="profile")
+    pantry_items: Mapped[list[PantryItem]] = relationship(back_populates="profile")
     observations: Mapped[list[PatientObservation]] = relationship(back_populates="profile")
     clinical_notes: Mapped[list[ClinicalNote]] = relationship(back_populates="profile")
     review_events: Mapped[list[MealPlanReviewEvent]] = relationship(back_populates="profile")
@@ -306,21 +307,21 @@ class MealPlan(Base):
     targets: Mapped[dict] = mapped_column(JSON, default=dict)
     computed_nutrition: Mapped[dict] = mapped_column(JSON, default=dict)
     violations: Mapped[list] = mapped_column(JSON, default=list)
-    retry_count: Mapped[int] = mapped_column(Integer, default=0)
-    reviewer_id: Mapped[str | None] = mapped_column(ForeignKey("users.id"), nullable=True)
-    reviewer_notes: Mapped[str | None] = mapped_column(Text, nullable=True)
-    trace_id: Mapped[str | None] = mapped_column(String(100), nullable=True)
+    safety_findings: Mapped[list] = mapped_column(JSON, default=list)
+    review_packet: Mapped[dict] = mapped_column(JSON, default=dict)
+    citations: Mapped[list] = mapped_column(JSON, default=list)
+    explanation_vi: Mapped[str | None] = mapped_column(Text, nullable=True)
     highest_risk: Mapped[str] = mapped_column(String(4), default="none")
+    retry_count: Mapped[int] = mapped_column(Integer, default=0)
     menu_version: Mapped[int] = mapped_column(Integer, default=0)
     approved_menu_version: Mapped[int | None] = mapped_column(Integer, nullable=True)
     menu_hash: Mapped[str | None] = mapped_column(String(64), nullable=True)
     nutrition_hash: Mapped[str | None] = mapped_column(String(64), nullable=True)
     approved_menu_hash: Mapped[str | None] = mapped_column(String(64), nullable=True)
     approved_nutrition_hash: Mapped[str | None] = mapped_column(String(64), nullable=True)
-    safety_findings: Mapped[list] = mapped_column(JSON, default=list)
-    review_packet: Mapped[dict] = mapped_column(JSON, default=dict)
-    citations: Mapped[list] = mapped_column(JSON, default=list)
-    explanation_vi: Mapped[str | None] = mapped_column(Text, nullable=True)
+    reviewer_id: Mapped[str | None] = mapped_column(ForeignKey("users.id"), nullable=True)
+    reviewer_notes: Mapped[str | None] = mapped_column(Text, nullable=True)
+    trace_id: Mapped[str | None] = mapped_column(String(100), nullable=True)
     run_id: Mapped[str | None] = mapped_column(String(36), nullable=True)
     profile_snapshot_hash: Mapped[str | None] = mapped_column(String(64), nullable=True)
     profile_version: Mapped[str | None] = mapped_column(String(32), nullable=True)
@@ -360,27 +361,111 @@ class MealPlanItem(Base):
 
 class FoodLog(Base):
     """Nhật ký ăn uống thật (BE-07) — khác `meal_plan_items` (thực đơn ĐỀ XUẤT).
+
     `food_id` có thể null khi bệnh nhân gõ tự do món chưa có trong DB (OOV, CLN-07).
+
+    Vì sao `grams` cũng phải nullable (mở rộng 2026-08-08):
+    với kho chỉ 461 thực phẩm Việt, OOV là trường hợp MẶC ĐỊNH chứ không phải
+    ngoại lệ. Bệnh nhân gõ "canh rau tập tàng, 1 bát" mà ta không tra được đơn
+    vị "bát" cho món đó thì **không có** con số gram nào đúng để ghi. Trước đây
+    `grams` bắt buộc nên buộc phải điền một số — tức là bịa (RULE-2/DEC-008).
+    Để null thì tầng tổng hợp ngày biết chắc đây là dòng "chưa đủ dữ liệu",
+    không thể vô tình cộng vào tổng.
     """
 
     __tablename__ = "food_logs"
 
     id: Mapped[str] = mapped_column(String(36), primary_key=True, default=_uuid)
     profile_id: Mapped[str] = mapped_column(ForeignKey("patient_profiles.id"), index=True)
-    logged_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+    logged_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, index=True)
     food_id: Mapped[int | None] = mapped_column(ForeignKey("food_items.id"), nullable=True)
+    dish_id: Mapped[str | None] = mapped_column(ForeignKey("dishes.dish_id"), nullable=True)
     free_text_vi: Mapped[str | None] = mapped_column(String(255), nullable=True)  # OOV: tên gõ tay
-    grams: Mapped[float] = mapped_column(Float)
+    slot: Mapped[str | None] = mapped_column(String(20), nullable=True)  # breakfast|lunch|dinner|snack
+    grams: Mapped[float | None] = mapped_column(Float, nullable=True)
     is_estimated: Mapped[bool] = mapped_column(Boolean, default=False)  # true nếu qua OOV Estimator
 
+    # --- Truy vết cách dòng này được khớp (CLN-07) ---
+    # unmatched: chưa tra được, KHÔNG có số → chờ chuyên gia giải quyết
+    # auto:      matcher tất định tự nhận (Làn A)
+    # llm:       LLM map trong danh sách ứng viên (Làn B)
+    # expert:    chuyên gia gán tay
+    # no_data:   chuyên gia xác nhận không đủ dữ liệu, cố ý không tính vào tổng
+    match_status: Mapped[str] = mapped_column(String(20), default="unmatched", index=True)
+    match_confidence: Mapped[float | None] = mapped_column(Float, nullable=True)
+
+    # Khẩu phần người dùng mô tả ("1 bát", "2 quả") — giữ NGUYÊN VĂN kể cả khi
+    # đã quy đổi được, để chuyên gia đối chiếu lại cách quy đổi.
+    portion_qty: Mapped[float | None] = mapped_column(Float, nullable=True)
+    portion_unit: Mapped[str | None] = mapped_column(String(30), nullable=True)
+    # RULE-2: quy đổi ra gram phải dẫn được nguồn (serving_sizes/unit_conversions).
+    grams_source_ref: Mapped[str | None] = mapped_column(Text, nullable=True)
+
+    note_vi: Mapped[str | None] = mapped_column(Text, nullable=True)
+
     profile: Mapped[PatientProfile] = relationship(back_populates="food_logs")
+
+
+class PantryItem(Base):
+    """Nguyên liệu bệnh nhân khai báo có sẵn — đầu vào cho thực đơn tương đương
+    (P2/AGT-12, `src/agents/equivalent.py`).
+
+    `free_text_vi` giữ chỗ cho nhập tự do (VD "còn nửa con gà") nhưng KHÔNG có
+    cơ chế tự khớp sang `food_id` trong lượt này — phụ thuộc `FoodMatcher`
+    (BE-07, chưa merge vào `main`). Dòng chỉ `free_text_vi` (food_id=None) bị
+    `solve_equivalent()` bỏ qua, không suy đoán (RULE-2).
+    """
+
+    __tablename__ = "pantry_items"
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=_uuid)
+    profile_id: Mapped[str] = mapped_column(ForeignKey("patient_profiles.id"), index=True)
+    food_id: Mapped[int | None] = mapped_column(ForeignKey("food_items.id"), nullable=True)
+    free_text_vi: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    qty: Mapped[float] = mapped_column(Float)
+    unit: Mapped[str] = mapped_column(String(20))
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+
+    profile: Mapped[PatientProfile] = relationship(back_populates="pantry_items")
+    food: Mapped[FoodItem | None] = relationship()
+
+
+class SubstitutionScope(Base):
+    """Phạm vi thay thế duyệt trước (RULE-3, DEC-018 — DEVLOG.md §3).
+
+    Chuyên gia duyệt MỘT CHÍNH SÁCH áp cho nhiều lần phát hành tự động, không
+    phải từng bản riêng lẻ. Thực đơn tương đương chỉ được tự phát hành (không
+    qua duyệt tay) khi ĐỒNG THỜI: còn hạn (`expires_at`), `validate_menu()`
+    không có vi phạm nào (kể cả soft), mọi nguyên liệu `is_estimated=False`,
+    nằm trong `tolerance`, `release_count < max_auto_releases`. Trượt bất kỳ
+    điều kiện nào → rơi về `pending_review`. Bảng này chỉ LƯU chính sách —
+    việc enforce nằm ở route gọi `solve_equivalent()`, không phải ở đây.
+    """
+
+    __tablename__ = "substitution_scopes"
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=_uuid)
+    profile_id: Mapped[str] = mapped_column(ForeignKey("patient_profiles.id"), index=True)
+    base_plan_id: Mapped[str] = mapped_column(ForeignKey("meal_plans.id"), index=True)
+    approved_by: Mapped[str] = mapped_column(ForeignKey("users.id"))
+    tolerance: Mapped[float] = mapped_column(Float, default=0.10)
+    max_auto_releases: Mapped[int] = mapped_column(Integer, default=5)
+    release_count: Mapped[int] = mapped_column(Integer, default=0)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+    expires_at: Mapped[datetime] = mapped_column(DateTime)
+    revoked_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
+
+    profile: Mapped[PatientProfile] = relationship()
+    base_plan: Mapped[MealPlan] = relationship()
 
 
 class PatientObservation(Base):
     """Giá trị lâm sàng theo thời gian; không ghi đè lịch sử trong profile JSON."""
 
     __tablename__ = "patient_observations"
-    __table_args__ = (Index("ix_patient_observations_profile_type_measured", "profile_id", "observation_type", "measured_at"),)
+    __table_args__ = (
+        Index("ix_patient_observations_profile_type_measured", "profile_id", "observation_type", "measured_at"),
+    )
 
     id: Mapped[str] = mapped_column(String(36), primary_key=True, default=_uuid)
     profile_id: Mapped[str] = mapped_column(ForeignKey("patient_profiles.id"))
@@ -466,10 +551,12 @@ __all__ = [
     "MealPlan",
     "MealPlanItem",
     "MealPlanReviewEvent",
+    "PantryItem",
     "PatientAllergy",
     "PatientMedication",
     "PatientObservation",
     "PatientProfile",
     "ServingSize",
+    "SubstitutionScope",
     "User",
 ]

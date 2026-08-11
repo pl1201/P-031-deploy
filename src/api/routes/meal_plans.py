@@ -139,7 +139,7 @@ class MealPlanOut(BaseModel):
                 slot=item.slot,
                 dish_id=item.dish_id,
                 grams=item.grams,
-                name_vi=item.dish.name_vi,
+                name_vi=display_name,
                 source="recipe",
                 source_ref=f"dish:{item.dish_id}",
                 is_estimated=False,

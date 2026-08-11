@@ -8,6 +8,9 @@ là smoke test riêng trên dữ liệu THẬT, đánh dấu `slow` (xem `pyproj
 
 from __future__ import annotations
 
+import csv
+from pathlib import Path
+
 import pytest
 from sqlalchemy import create_engine
 from sqlalchemy.orm import Session
@@ -21,6 +24,7 @@ from scripts.seed_db import (
     seed_food_items,
     seed_serving_sizes,
 )
+from src.clinical.tiers import is_patient_facing_dish, is_patient_facing_food
 from src.db.models import (
     Base,
     ClinicalRule,
@@ -154,3 +158,36 @@ def test_seed_bo_qua_dish_ingredient_thieu_food_item(tmp_path):
 
         assert n == 1
         assert skipped == 1
+
+
+def test_seed_db_chi_doc_data_seeds_khong_cham_reference_hay_quarantine():
+    """DAT-23: `seed_db.py` chỉ được đọc `data/seeds/`.
+
+    Đây là lưới an toàn cho RULE-3. `data/reference/` (khối USDA tiếng Anh) và
+    `data/quarantine/` (mẫu thực đơn `MENU-*`, dòng chưa có số liệu) đã được
+    tách ra chính vì chúng không được phép tới bệnh nhân — nếu ai đó vô tình
+    trỏ một hàm seed sang đó, test này phải đỏ ngay thay vì để dữ liệu sai
+    chảy vào DB rồi mới phát hiện trên UI.
+    """
+    source = (Path(__file__).resolve().parents[1] / "scripts" / "seed_db.py").read_text(encoding="utf-8")
+    assert "data/reference" not in source and "REFERENCE" not in source
+    assert "data/quarantine" not in source and "QUARANTINE" not in source
+    # Chỉ có đúng một hằng đường dẫn, trỏ vào data/seeds.
+    assert source.count('/ "data" / "seeds"') == 1
+
+
+def test_seed_thuc_te_khong_con_mon_ngoai_tang_benh_nhan():
+    """DAT-23: sau khi tách tầng, `data/seeds/dishes.csv` phải sạch tuyệt đối.
+
+    Hồi quy cho bug UI hiện "Bữa sáng - Thực đơn 3 (TĐ 3+4)": trước đây các
+    dòng này nằm ngay trong file được seed vào DB.
+    """
+    seeds = Path(__file__).resolve().parents[1] / "data" / "seeds"
+    with open(seeds / "dishes.csv", newline="", encoding="utf-8") as handle:
+        dish_ids = [row["dish_id"] for row in csv.DictReader(handle)]
+    assert dish_ids, "dishes.csv rỗng — kiểm tra lại bước tách tầng"
+    assert all(is_patient_facing_dish(dish_id) for dish_id in dish_ids)
+
+    with open(seeds / "food_items.csv", newline="", encoding="utf-8") as handle:
+        food_ids = [int(row["id"]) for row in csv.DictReader(handle)]
+    assert all(is_patient_facing_food(food_id) for food_id in food_ids)

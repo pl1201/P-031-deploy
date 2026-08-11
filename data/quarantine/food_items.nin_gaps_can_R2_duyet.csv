@@ -1,0 +1,20 @@
+id,name_vi,name_en,usda_desc,fdc_id,score,truong_can_lap,gia_tri_de_xuat
+1105903,Bánh mỳ,"Bread, French style","Bread, French or Vienna",2707610,0.81,"na_mg, k_mg",na_mg=602 k_mg=117
+1105904,Bánh phở,"Rice noodles, raw","Rice noodles, dry",169742,0.84,"fat_g, fiber_g",fat_g=0.56 fiber_g=1.6
+1106020,Men bia tươi,Baker’s yeast compressed,"Leavening agents, yeast, baker's, compressed",175042,0.75,"na_mg, k_mg",na_mg=30 k_mg=601
+1106058,Dầu ngô,"Corn oil, salad or cooking","Oil, corn, industrial and retail, all purpose salad or cooking",171029,0.71,"na_mg, k_mg, p_mg",na_mg=0 k_mg=0 p_mg=0
+1106074,Bì lợn,Pork skin,"Pork, belly, with skin, raw",2727576,0.78,"na_mg, k_mg",na_mg=49.7 k_mg=207.9
+1106098,Dăm bông lợn,Ham pork,"Pork, ham hocks",2705900,0.78,"na_mg, k_mg",na_mg=1040 k_mg=257
+1106113,"Thịt gà công nghiệp, cánh","Chicken, wing","Chicken wing, stewed",2706061,0.82,"fiber_g, na_mg, k_mg",fiber_g=0 na_mg=374 k_mg=138
+1106188,Cá thu hộp,"Mackerel, canned","Fish, mackerel, canned",2706268,0.84,"fiber_g, na_mg, k_mg",fiber_g=0 na_mg=379 k_mg=194
+1106190,Thịt bò hộp,"Beef, canned","Beef, cured, corned beef, canned",170602,0.71,"fiber_g, na_mg, k_mg",fiber_g=0 na_mg=897 k_mg=136
+1106191,Thịt gà hộp,"Chicken, canned","Chicken, canned, no broth",171110,0.82,"fiber_g, na_mg, k_mg",fiber_g=0 na_mg=482 k_mg=153
+1106192,Thịt lợn hộp,"Pork, canned","Luncheon meat, pork, canned",174571,0.72,"fiber_g, na_mg, k_mg",fiber_g=0 na_mg=1289 k_mg=215
+1106203,Bánh sô cô la,Chocolate filled,"Chocolate candy, cream filled",2710344,0.75,"na_mg, k_mg",na_mg=26 k_mg=168
+1106207,Đường kính,Granulated sugar,"Sugar, white, granulated or lump",2710258,0.70,fiber_g,fiber_g=0
+1106213,Kẹo lạc,Peanut candy,"Candy, peanut brittle",2710357,0.75,"na_mg, k_mg, p_mg",na_mg=445 k_mg=168 p_mg=106
+1106218,Mạch nha,Malt,"Syrups, malt",169660,0.71,"na_mg, k_mg, p_mg",na_mg=35 k_mg=320 p_mg=236
+1106231,Mắm tôm loãng,Shrimp sauce,Shrimp with lobster sauce,2706455,0.80,"fiber_g, na_mg, k_mg",fiber_g=0 na_mg=1031 k_mg=114
+1106245,Nước cam tươi,"Orange juice, fresh","Orange juice, 100%, NFS",2709186,0.82,fiber_g,fiber_g=0.3
+1106263,Bánh chuối,Banana cake,"Cake or cupcake, banana",2707856,0.74,"na_mg, k_mg",na_mg=280 k_mg=75
+1106310,Cơm rang,Fried rice with egg and pork,"Rice, fried, with pork",2708954,0.73,"na_mg, k_mg",na_mg=316 k_mg=122

@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import ast
+from dataclasses import replace
 from pathlib import Path
 
 import pytest
@@ -10,9 +11,14 @@ from langgraph.checkpoint.memory import MemorySaver
 
 from src.agents.graph import build_graph
 from src.clinical.models import MealSlot, MenuDraft, MenuItem, PatientProfile
-from src.clinical.rules import load_rules
+from src.clinical.rules import load_rules as _load_rules
 
 SRC = Path(__file__).resolve().parents[1] / "src"
+
+
+def load_rules():
+    """Exercise rule mechanics with explicitly trusted test copies."""
+    return [replace(rule, verify_status="verified") for rule in _load_rules(verified_only=False)]
 
 
 # ------------------------------------------------------------------ doubles
@@ -53,6 +59,49 @@ def _run(graph, patient_id="BN-DEMO-02"):
 
 # ------------------------------------------------------------------- luồng
 class TestAgentFlow:
+    def test_rule_to_verify_khong_chan_generator_chi_gan_co_p1(self, foods, profile_htn, modest_menu):
+        """DEC-014/DEC-020: rule `to_verify` KHÔNG fail-closed generator — chỉ
+        rule THẬT SỰ xung đột (min>max) mới chặn. Với seed hiện tại (21/21 rule
+        to_verify, không xung đột cho HTN đơn lẻ), generator phải chạy được và
+        unverified rule chỉ lên P1 (reviewer_override_allowed), không phải P0."""
+        generator = ScriptedGenerator([modest_menu])
+        graph = build_graph(
+            profiles=FakeProfiles(profile_htn),
+            foods=foods,
+            generator=generator,
+            fallback_provider=StaticFallback(None),
+            rules=None,
+        )
+        out = _run(graph)
+
+        assert generator.calls == 1
+        assert out["status"] == "pending_review"
+        assert out["unverified_rule_ids"]
+        assert out["highest_risk"] == "P1"
+        assert out["review_packet"].can_approve is True
+        assert any(f.category == "unverified_rule" for f in out["review_packet"].findings)
+
+    def test_state_co_version_hash_attempt_va_audit_day_du(self, foods, profile_htn, modest_menu):
+        graph = build_graph(
+            profiles=FakeProfiles(profile_htn),
+            foods=foods,
+            generator=ScriptedGenerator([modest_menu]),
+            fallback_provider=StaticFallback(None),
+            rules=load_rules(),
+        )
+        out = _run(graph)
+
+        assert out["run_id"] and out["profile_snapshot_hash"]
+        assert out["rule_version"] and out["food_data_version"] and out["interaction_version"]
+        assert out["menu_hash"] and out["nutrition_hash"]
+        assert out["menu_version"] == 1
+        assert out["attempt_count"] == 1
+        assert len(out["attempt_history"]) == 1
+        assert "candidate_foods" not in out, "checkpoint chỉ được giữ candidate_ids, không giữ object lớn"
+        assert len(out["candidate_ids"]) <= 100
+        assert out["node_timings_ms"]["generate_menu"] >= 0
+        assert [event.node for event in out["audit_events"]][-1] == "to_review"
+
     def test_thuc_don_dat_ngay_lan_dau_thi_khong_retry(self, foods, profile_htn, modest_menu):
         gen = ScriptedGenerator([modest_menu])
         graph = build_graph(
@@ -101,6 +150,15 @@ class TestAgentFlow:
         assert out["used_fallback"] is True
         assert out["needs_attention"] is True
         assert out["status"] == "pending_review"
+        nodes = [event.node for event in out["audit_events"]]
+        fallback_at = nodes.index("fallback_template")
+        assert nodes[fallback_at : fallback_at + 5] == [
+            "fallback_template",
+            "compute_nutrition",
+            "safety_validate",
+            "risk_triage",
+            "explain_with_citations",
+        ]
 
     def test_khong_co_fallback_thi_that_bai_chu_khong_phat_hanh_thuc_don_sai(self, foods, profile_htn, salty_menu):
         """Fail closed: thà không có thực đơn còn hơn có thực đơn vi phạm."""
@@ -112,8 +170,9 @@ class TestAgentFlow:
             rules=load_rules(),
         )
         out = _run(graph)
-        assert out["status"] == "failed"
+        assert out["status"] == "pending_review"
         assert out["needs_attention"] is True
+        assert out["draft_menu"] is None
 
     def test_llm_bia_food_id_thi_bi_ep_sinh_lai(self, foods, profile_htn, modest_menu):
         bogus = MenuDraft(items={MealSlot.LUNCH: [MenuItem(food_id=99999, grams=100)]})
@@ -210,7 +269,14 @@ DETERMINISTIC_FILES = [
     "clinical/nutrition.py",
     "clinical/validator.py",
     "clinical/models.py",
+    "clinical/matching.py",
+    "clinical/diary.py",
+    "clinical/interactions.py",
+    "clinical/target_explainer.py",
+    "clinical/menu_explainer.py",
+    "services/menu_explanation_guard.py",
     "agents/nodes/core.py",
+    "agents/equivalent.py",
 ]
 
 

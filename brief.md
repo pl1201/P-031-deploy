@@ -5,6 +5,8 @@
 **Định hướng công nghệ:** Neuro-Symbolic AI (LangGraph + Deterministic Engine)
 
 > Bản cập nhật theo `docs/PRD.md` v2.2 (2026-08-06) — trọng tâm MVP đã chuyển sang **đái tháo đường type 2 (ĐTĐ2)**, dùng dữ liệu thực tế NHANES 2021-2023 (de-identified). Xem `CLAUDE.md` §1 để biết lý do đổi phạm vi.
+>
+> ⚠️ **Trạng thái mới nhất (2026-08-09):** xem `docs/PLAN_WEEK_NEXT_v2v3.md` để biết việc đang làm tuần này + định hướng v2/v3.
 
 ## 1. Tổng Quan & Bối Cảnh (Context)
 
