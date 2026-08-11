@@ -4,10 +4,15 @@ import { useRouter } from 'next/navigation'
 import { getSession, clearSession } from '@/lib/auth'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
+import { LeafMark } from '@/components/brand-artwork'
 
 const NAV = [
-  { href: '/patient', label: 'Thực đơn của tôi', icon: '◉', exact: true },
-  { href: '/patient/diary', label: 'Nhật ký ăn uống', icon: '✎', exact: true },
+  { href: '/patient', label: 'Tổng quan', icon: '▦', exact: true },
+  { href: '/patient', label: 'Thực đơn', icon: '⌑', exact: false },
+  { href: '/patient/diary', label: 'Nhật ký ăn uống', icon: '▣', exact: true },
+  { href: '/patient', label: 'Tiến độ', icon: '↗', exact: false },
+  { href: '/patient', label: 'Tin nhắn', icon: '◌', exact: false },
+  { href: '/patient', label: 'Tài khoản', icon: '♙', exact: false },
 ]
 
 export default function PatientLayout({ children }: { children: React.ReactNode }) {
@@ -30,11 +35,8 @@ export default function PatientLayout({ children }: { children: React.ReactNode 
     <div className="app-shell">
       <aside className="sidebar">
         <div className="sidebar-brand">
-          <div className="brand-icon">V</div>
-          <div>
-            <div className="brand-name">VNUTRICARE</div>
-            <div className="brand-sub">Bệnh nhân</div>
-          </div>
+          <LeafMark />
+          <div className="brand-name">VNUTRICARE</div>
         </div>
         <nav>
           {NAV.map(item => (
@@ -51,15 +53,10 @@ export default function PatientLayout({ children }: { children: React.ReactNode 
         <div className="sidebar-footer">
           <div className="user-avatar">BN</div>
           <div>
-            <div className="user-name">Bệnh nhân</div>
-            <div className="user-role">Bệnh nhân ĐTĐ2</div>
+            <div className="user-name">Tài khoản người bệnh</div>
+            <div className="user-role">Người bệnh</div>
           </div>
           <button onClick={handleLogout} style={{ color: 'rgba(255,255,255,.4)', fontSize: 13 }} title="Đăng xuất">⏏</button>
-        </div>
-        <div style={{ marginTop: 16, padding: 12, background: 'rgba(0,0,0,.1)', borderRadius: 'var(--r-md)' }}>
-          <p className="disclaimer" style={{ fontSize: 10, background: 'transparent', border: 'none', color: 'rgba(255,255,255,.45)' }}>
-            Dữ liệu 100% mô phỏng. Không thay thế bác sĩ.
-          </p>
         </div>
       </aside>
       <main className="main-content">{children}</main>

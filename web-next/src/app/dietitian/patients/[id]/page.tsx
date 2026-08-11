@@ -91,7 +91,6 @@ export default function PatientDetailPage() {
         </div>
         <div className="topbar-actions">
           <Link href="/dietitian/patients" className="btn btn-secondary">← Danh sách</Link>
-          <Link href="/dietitian/patients" className="btn btn-primary">+ Sinh thực đơn mới</Link>
         </div>
       </div>
 
@@ -129,7 +128,7 @@ export default function PatientDetailPage() {
           <section className="card">
             <div className="card-header"><div><h2 className="card-title">Lịch sử thực đơn</h2><p className="page-subtitle">Bao gồm bản đang sinh, chờ duyệt, đã duyệt và bị từ chối.</p></div><span className="badge badge-draft">{plans.length} bản</span></div>
             <div className="card-body">
-              {plans.length === 0 ? <div className="empty-state"><div className="empty-icon">◇</div><div className="empty-title">Chưa có thực đơn</div><div className="empty-desc">Sinh thực đơn đầu tiên từ hồ sơ này.</div></div> : (
+              {plans.length === 0 ? <div className="empty-state"><div className="empty-icon">◇</div><div className="empty-title">Chưa có thực đơn</div><div className="empty-desc">Chưa có lịch sử thực đơn liên kết với hồ sơ này.</div></div> : (
                 <div className="plan-history-grid">
                   {plans.map(plan => {
                     const hard = plan.violations.filter(item => item.severity === 'hard').length

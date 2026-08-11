@@ -174,7 +174,7 @@ export default function MealPlanReviewPage() {
     return acc
   }, {}) ?? {}
 
-  const targetKcal = plan?.targets?.kcal?.max_value ?? undefined
+  const targetKcal = plan?.targets?.targets?.kcal?.max_value ?? undefined
 
   if (loading) return (
     <div style={{ display: 'grid', placeItems: 'center', height: '60vh' }}>
