@@ -82,25 +82,37 @@ def load_dish_menus(path: Path | None = None) -> dict[str, MenuDraft]:
     return {did: MenuDraft(items={MealSlot.LUNCH: items}) for did, items in by_dish.items()}
 
 
-def load_vn_dishes(path: Path | None = None, ingredients_path: Path | None = None) -> list[DishCandidate]:
+def load_vn_dishes(
+    path: Path | None = None,
+    ingredients_path: Path | None = None,
+    *,
+    include_pending: bool = False,
+) -> list[DishCandidate]:
     """Nạp danh sách món ăn Việt Nam curated thật từ `dishes.csv`.
 
     `dishes.csv` hiện lẫn 2 nhóm dưới cùng file: ~2630 dòng `verified_by`=
     "USDA FNDDS (nguồn chính thức)" là khối import bulk khảo sát thực phẩm Mỹ
     (tên kiểu "Milk, whole", "Crackers, wheat (Wheat Thins)") — KHÔNG phải món
-    Việt, bị loại ở đây. Chỉ ~45 dòng còn lại là món Việt curated thật, nhưng
-    `verified_by="pending"` — R2 CHƯA rà công thức, nên trả về kèm
-    `is_reviewed=False` để tầng trên cảnh báo, không tự ý coi là đã duyệt.
-    Trong số đó, món tự ghi chú thiếu nguyên liệu (xem `incomplete_recipe_markers`
-    bên dưới) bị loại hẳn — không đủ căn cứ dùng làm candidate CP-SAT (audit
-    2026-08-08, xem DEVLOG). Số món dùng được thật hiện rất mỏng (~28/2678
-    dòng file) — cần R2 mở rộng, xem `docs/TICKETS.md`.
+    Việt, bị loại ở đây. Trong số còn lại, món tự ghi chú thiếu nguyên liệu (xem
+    `incomplete_recipe_markers` bên dưới) bị loại hẳn — không đủ căn cứ dùng làm
+    candidate CP-SAT (audit 2026-08-08, xem DEVLOG).
 
     DAT-23/DEC-022: ranh giới tầng giờ lấy từ `clinical.tiers` thay vì tự suy ra
     từ cột `verified_by`. Bộ lọc cũ dựa vào `verified_by` bắt đầu bằng
     "USDA FNDDS" nên loại được `FNDDS-*` nhưng **bỏ lọt `MENU-*`** (các dòng này
     có `verified_by="pending"`, không khớp) — đó là nguyên nhân trực tiếp của bug
     tên món giả "Bữa sáng - Thực đơn 3 (TĐ 3+4)" hiện trên UI bệnh nhân.
+
+    DAT-27: `include_pending=False` (mặc định, dùng cho mọi luồng chạm bệnh
+    nhân thật — `src/agents/assembly.py`, `src/api/routes/equivalent.py`) loại
+    HẲN món `verified_by` rỗng hoặc `"pending"` khỏi kết quả, không chỉ gắn cờ
+    cảnh báo như trước. Toàn bộ 100 món hiện tại (kể cả 70 món mới 2026-08-10)
+    đều `pending` — với mặc định này, `load_vn_dishes()` trả về **rỗng** cho
+    luồng bệnh nhân thật; CP-SAT vẫn hoạt động bình thường vì `dishes` là tham
+    số tuỳ chọn của bộ giải (`_eligible_dishes()` trả `[]` khi `not dishes`),
+    chỉ tắt tạm lớp "món trọn gói", không tắt sinh thực đơn từ nguyên liệu thô.
+    Đặt `include_pending=True` CHỈ cho môi trường eval/demo/nội bộ, không bao
+    giờ cho code path có khả năng tới một bệnh nhân thật (RULE-3).
     """
     path = path or SEEDS_DIR / "dishes.csv"
     ingredients_path = ingredients_path or SEEDS_DIR / "dish_ingredients.csv"
@@ -126,6 +138,8 @@ def load_vn_dishes(path: Path | None = None, ingredients_path: Path | None = Non
             if not is_patient_facing_dish(row["dish_id"]):
                 continue  # FNDDS-* (bulk Mỹ) và MENU-* (mẫu bữa, không phải món)
             verified = (row.get("verified_by") or "").strip()
+            if not include_pending and (not verified or verified.lower() == "pending"):
+                continue  # DAT-27: chưa duyệt — không đủ căn cứ cho bệnh nhân thật (RULE-3)
             note = row.get("note") or ""
             if any(marker in note for marker in incomplete_recipe_markers):
                 continue  # công thức tự ghi nhận chưa đủ nguyên liệu — chờ R2 rà
