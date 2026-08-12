@@ -508,3 +508,64 @@ class TestFreeSugarRule:
         incomplete = [x for x in v if x.kind == "incomplete_data"]
         assert len(incomplete) == 1
         assert incomplete[0].severity is Severity.SOFT
+
+
+class TestGuidelineCitationCorrections:
+    """Hồi quy cho 7 rule sửa trích dẫn/số liệu 2026-08-12 (tiếp nối CLN-11).
+
+    Mỗi ca khoá lại MỘT con số đã xác minh qua nguồn thật (không suy đoán):
+    - ADA 2026 Rec 5.24 (grade E, không phải A đã ghi nhầm trước đây).
+    - ADA/EASD 2019 không đặt %E lý tưởng cho carbohydrate — dải carb đổi
+      sang nguồn Viện Dinh dưỡng 2016 (60-65%E cho người Việt).
+    - AMDR protein NIN 2016 là 13-20%E — sàn cũ 15% không khớp cận dưới.
+    - AHA không đặt mốc %E cho lipid — đổi sang NIN 2016 (20-25%E).
+    """
+
+    BASE = dict(patient_id="X", sex=Sex.MALE, height_cm=165, weight_kg=65, age=55)
+
+    def test_t2dm_carb_dai_60_65_phan_tram_theo_nin_khong_con_45_55(self):
+        """T2DM-CARB-01/02: nguồn cũ 'ADA/EASD 45-55%E' đã sai — ADA/EASD 2019
+        Consensus Report không đặt %E lý tưởng nào. Đổi sang NIN 2016."""
+        p = PatientProfile(**self.BASE, conditions=[Condition(code=ConditionCode.T2DM)])
+        t = compute_targets(p, load_rules())
+        tdee = t.tdee_kcal
+        assert t.min_of("carb_g") == pytest.approx(tdee * 0.60 / 4, rel=1e-6)
+        assert t.max_of("carb_g") == pytest.approx(tdee * 0.65 / 4, rel=1e-6)
+
+    def test_t2dm_protein_san_13_phan_tram_khop_amdr_nin_khong_con_15(self):
+        """T2DM-PRO-01: sàn cũ 15%E không khớp cận dưới AMDR NIN 2016 (13%E)."""
+        p = PatientProfile(**self.BASE, conditions=[Condition(code=ConditionCode.T2DM)])
+        t = compute_targets(p, load_rules())
+        assert t.min_of("protein_g") == pytest.approx(t.tdee_kcal * 0.13 / 4, rel=1e-6)
+
+    def test_htn_lipid_tran_25_phan_tram_theo_nin_khong_con_30_gan_nham_aha(self):
+        """HTN-FAT-01: nhãn 'AHA' sai — AHA không đặt mốc %E. Đổi sang NIN
+        2016 (20-25%E), lấy cận trên 25% làm trần soft."""
+        p = PatientProfile(**self.BASE, conditions=[Condition(code=ConditionCode.HTN)])
+        t = compute_targets(p, load_rules())
+        assert t.max_of("fat_g") == pytest.approx(t.tdee_kcal * 0.25 / 9, rel=1e-6)
+
+    def test_fiber_grade_e_khong_con_a(self):
+        """BASE-FIB-01/T2DM-FIB-01: ADA 2026 Rec 5.24 là grade E (expert
+        opinion), không phải A như ghi nhầm trước đây."""
+        rules = {r.rule_id: r for r in load_rules()}
+        assert rules["BASE-FIB-01"].guideline_grade == "E"
+        assert rules["T2DM-FIB-01"].guideline_grade == "E"
+
+    def test_gout_purine_van_giu_150mg_nhung_ghi_ro_la_uoc_tinh(self):
+        """GOUT-PUR-01: ACR 2020 không định lượng purine bằng mg — 150mg là
+        quy ước thực hành, KHÔNG truy được về ACR. Giữ trần an toàn (hard)
+        nhưng nguồn phải trung thực, không gán vào ACR."""
+        rules = {r.rule_id: r for r in load_rules()}
+        rule = rules["GOUT-PUR-01"]
+        assert rule.value == 150.0
+        assert rule.severity == "hard"
+        assert "KHÔNG định lượng" in rule.guideline_ref
+
+    def test_ckd_phospho_g4_g5_khong_bi_noi_long_len_1000(self):
+        """CKD-P-02: không tìm được nguồn cho mốc 900mg riêng G4/G5, nhưng
+        KHÔNG nới lỏng lên 1000mg khi chưa rõ nguồn — hướng an toàn hơn là
+        giữ ngưỡng chặt hơn, không phải nới ra."""
+        rules = {r.rule_id: r for r in load_rules()}
+        assert rules["CKD-P-02"].value == 900.0
+        assert rules["CKD-P-01"].value == 1000.0
