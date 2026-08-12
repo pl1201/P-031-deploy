@@ -12,6 +12,7 @@ import csv
 from collections import defaultdict
 from pathlib import Path
 
+from .dish_roles import parse_roles
 from .models import DishCandidate, FoodItem, MealSlot, MenuDraft, MenuItem
 from .nutrition import InMemoryFoodRepository
 from .tiers import is_patient_facing_dish
@@ -151,6 +152,7 @@ def load_vn_dishes(
                     dish_id=row["dish_id"],
                     name_vi=row["name_vi"],
                     region=_opt_str(row.get("region")),
+                    roles=parse_roles(row.get("roles")),
                     is_reviewed=bool(verified) and verified.lower() != "pending",
                     verified_by=_opt_str(row.get("verified_by")),
                     ingredients=items,

@@ -11,6 +11,8 @@ from typing import ClassVar, Literal
 
 from pydantic import BaseModel, Field, field_validator, model_validator
 
+from .dish_roles import DishRole
+
 
 class Sex(str, Enum):
     MALE = "male"
@@ -301,6 +303,12 @@ class DishCandidate(BaseModel):
     dish_id: str
     name_vi: str
     region: str | None = None
+    # Vai trò trong cấu trúc bữa (`staple`, `protein`, `one_dish`...) — từ vựng
+    # ở `src/clinical/dish_roles.py`, đọc từ cột `roles` của `dishes.csv`.
+    # Tuple rỗng = món KHÔNG đủ điều kiện làm một mục độc lập của bữa (fail
+    # closed). CỐ Ý không suy ra vai trò từ tên món: đoán sai vai trò làm ràng
+    # buộc cấu trúc bữa gán nhầm mà không ai thấy.
+    roles: tuple[DishRole, ...] = ()
     # `data/seeds/dishes.csv` hiện có 2 nhóm hoàn toàn khác nhau dưới cùng cột
     # verified_by: ~2600 dòng "USDA FNDDS" (khối bulk thực phẩm Mỹ lẫn vào,
     # KHÔNG phải món Việt — bị loại ở load_vn_dishes()) và 30 món Việt thật

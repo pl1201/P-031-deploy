@@ -28,6 +28,7 @@ if hasattr(sys.stderr, "reconfigure"):
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
+from src.clinical.dish_roles import DishRole, unknown_role_tokens  # noqa: E402
 from src.clinical.tiers import NON_PATIENT_DISH_PREFIXES  # noqa: E402
 
 DATA = Path(__file__).resolve().parents[1] / "data"
@@ -55,6 +56,14 @@ RANGES: dict[str, tuple[float, float]] = {
 OPTIONAL_NUMERIC_COLS = {"gi_index", "sugar_g", "purine_mg"}
 
 VALID_SOURCES = {"NIN", "USDA", "curated", "estimated"}
+# Ba tầng dữ liệu của bảng `dishes`, xem src/clinical/tiers.py:
+#   vn       — món Việt curated (tầng A/B, CHẠM bệnh nhân)
+#   foreign  — khối tham chiếu USDA FNDDS tiếng Anh (tầng C, KHÔNG chạm bệnh nhân)
+#   template — mẫu CẢ BỮA trích từ Excel (`MENU-*`, tầng D). Không phải món:
+#              đây chính là dòng đã hiện lên UI bệnh nhân dưới dạng tên món
+#              "Bữa sáng - Thực đơn 3" (DEC-022). Chỉ còn trong DB cũ, đã bị
+#              loại khỏi seed CSV.
+VALID_DISH_ORIGINS = {"vn", "foreign", "template"}
 VALID_GI_SOURCES = {"Atkinson2021", "Chan2001_VN", "estimated"}
 PLACEHOLDER = {"", "todo", "tbd", "n/a", "-", "?", "x"}
 
@@ -379,6 +388,7 @@ def check_dishes(path: Path) -> None:
 
     seen: set[str] = set()
     pending = 0
+    no_role = 0
     for i, row in enumerate(rows, start=2):
         dish_id = (row.get("dish_id") or "").strip()
         loc = f"{path.name}:{i} [{dish_id or '?'}]"
@@ -409,11 +419,33 @@ def check_dishes(path: Path) -> None:
         else:
             warn(f"{loc} chưa có serving_g")
 
+        # Vai trò trong cấu trúc bữa (từ vựng ở src/clinical/dish_roles.py).
+        # `parse_roles()` cố ý BỎ QUA token lạ để một lỗi gõ không làm sập
+        # pipeline sinh thực đơn — nên đây là chỗ duy nhất báo lỗi cho người sửa.
+        bad_roles = unknown_role_tokens(row.get("roles"))
+        if bad_roles:
+            err(
+                f"{loc} cột roles có token không thuộc từ vựng: {list(bad_roles)} "
+                f"(hợp lệ: {sorted(r.value for r in DishRole)})"
+            )
+        if not (row.get("roles") or "").strip():
+            no_role += 1
+
+        origin = (row.get("origin") or "").strip()
+        if origin and origin not in VALID_DISH_ORIGINS:
+            err(f"{loc} origin='{origin}' không hợp lệ (phải là {sorted(VALID_DISH_ORIGINS)})")
+
         if (row.get("verified_by") or "").strip().lower() in {"", "pending"}:
             pending += 1
 
     if pending:
         warn(f"{path.name}: {pending}/{len(rows)} món chưa được R2 rà công thức (verified_by=pending)")
+    if no_role:
+        warn(
+            f"{path.name}: {no_role}/{len(rows)} món chưa có `roles` — không đủ điều kiện "
+            f"làm một mục độc lập của bữa (fail closed). Vai trò hiện ở mức expert_default, "
+            f"R2 cần rà trước khi dùng làm ràng buộc cứng"
+        )
     print(f"  {path.name}: {len(rows)} món")
 
 
