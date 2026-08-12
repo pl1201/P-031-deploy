@@ -373,6 +373,30 @@ class TestKdigo2024SafetyFlags:
         assert "CKD-PRO-01" not in ids and "CKD-PRO-02" not in ids
         assert t.needs_expert_review is True
 
+    def test_loc_mau_thi_go_tran_protein_thap_va_ap_dai_1_0_1_2(self):
+        """CLN-11: KDOQI 2020 — CKD G5D (lọc máu) cần 1.0-1.2 g/kg/ngày, KHÔNG
+        bị áp trần 0.8 g/kg dành cho người CHƯA lọc máu (CKD-PRO-01/02)."""
+        ckd_g5 = [Condition(code=ConditionCode.CKD, stage="G5")]
+        p = PatientProfile(**self.BASE, age=58, conditions=ckd_g5, on_dialysis=True)
+        t = compute_targets(p, load_rules())
+
+        ids = t.targets["protein_g"].rule_ids
+        assert "CKD-PRO-01" not in ids and "CKD-PRO-02" not in ids
+        assert "CKD-PRO-06" in ids and "CKD-PRO-07" in ids
+        assert t.min_of("protein_g") == pytest.approx(1.0 * 65)
+        assert t.max_of("protein_g") == pytest.approx(1.2 * 65)
+
+    def test_g5_chua_loc_mau_van_ap_tran_thap_binh_thuong(self):
+        """Không lọc máu ở G5 vẫn dùng trần CHƯA lọc máu như G3-G4 (CKD-PRO-01/02)."""
+        ckd_g5 = [Condition(code=ConditionCode.CKD, stage="G5")]
+        p = PatientProfile(**self.BASE, age=58, conditions=ckd_g5)
+        t = compute_targets(p, load_rules())
+
+        ids = t.targets["protein_g"].rule_ids
+        assert "CKD-PRO-01" in ids and "CKD-PRO-02" in ids
+        assert "CKD-PRO-06" not in ids and "CKD-PRO-07" not in ids
+        assert t.max_of("protein_g") == pytest.approx(0.8 * 65)
+
     def test_tran_an_toan_1_3_khong_bao_gio_bi_vo_hieu(self):
         """CKD-PRO-05 là trần tuyệt đối, mọi cờ đều không gỡ được."""
         p = PatientProfile(

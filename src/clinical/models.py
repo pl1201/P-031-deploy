@@ -90,6 +90,15 @@ class PatientProfile(BaseModel):
         default=False,
         description=("Bệnh thận mất muối. KDIGO 2024 PP 3.3.2.1: hạn chế natri thường KHÔNG phù hợp với nhóm này."),
     )
+    on_dialysis: bool = Field(
+        default=False,
+        description=(
+            "Đang lọc máu chu kỳ (thận nhân tạo hoặc lọc màng bụng) — CKD giai đoạn G5D. "
+            "KDOQI 2020: người lọc máu ổn định chuyển hoá cần protein 1.0-1.2 g/kg/ngày "
+            "(HD: grade 1C; PD: OPINION) — CAO HƠN trần 0.8 g/kg dành cho CKD G3-G5 CHƯA "
+            "lọc máu (KDIGO 2024 Rec 3.3.1.1). KHÔNG áp trần protein thấp cho nhóm này (CLN-11)."
+        ),
+    )
 
     ELDERLY_AGE_THRESHOLD: ClassVar[int] = 65
 
@@ -113,6 +122,8 @@ class PatientProfile(BaseModel):
             flags.add("metabolically_unstable")
         if self.sodium_wasting:
             flags.add("sodium_wasting")
+        if self.on_dialysis:
+            flags.add("on_dialysis")
         return flags
 
     @field_validator("allergies", "medications", "dislikes", mode="after")
