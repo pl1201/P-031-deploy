@@ -59,7 +59,7 @@ PHO-BO-VCB,137,60.0,Nguồn: vietnamesecookbook.com
 PHO-BO-VCB,102,100,"Ước lượng quy đổi từ đơn vị bếp (chưa cân đo thật), nguồn: vietnamesecookbook.com"
 PHO-BO-VCB,79,40,"Ước lượng quy đổi từ đơn vị bếp (chưa cân đo thật), nguồn: vietnamesecookbook.com"
 PHO-BO-VCB,78,20,"Ước lượng quy đổi từ đơn vị bếp (chưa cân đo thật), nguồn: vietnamesecookbook.com"
-BANH-MI-THIT-VCB,4056,250,Nguồn: vietnamesecookbook.com
+BANH-MI-THIT-VCB,4056,40,Nguồn: vietnamesecookbook.com
 BANH-MI-THIT-VCB,131,100,Nguồn: vietnamesecookbook.com
 BANH-MI-THIT-VCB,137,15,Nguồn: vietnamesecookbook.com
 BANH-MI-THIT-VCB,2161,60,Nguồn: vietnamesecookbook.com
@@ -409,3 +409,9 @@ PHO-GA-VCB,5,1000,"Banh pho tuoi - quy doi tu 400g banh pho kho theo cong thuc g
 CA-KHO-TO-VCB,40,600,Ca basa - proxy cho ca bong lau 600g theo cong thuc goc vietnamesecookbook.com/vi/recipes/ca-kho-to/ (fetch 2026-08-12)
 CA-KHO-TO-VCB,149,45,"Duong - proxy cho nuoc hang/caramel sauce 3 muong canh, chua co food_item nuoc hang rieng, nguon cong thuc goc"
 CANH-CHUA-CA-VCB,40,500,Ca basa - proxy cho ca bong lau 500g theo cong thuc goc vietnamesecookbook.com/vi/recipes/canh-chua-ca/ (fetch 2026-08-12)
+CA-PHE-SUA-DA-VCB,4111,3,"Cà phê tan (bột hoà tan) — proxy cho cà phê phin rang xay: một phin cà phê sữa đá dùng ~15-20g CÀ PHÊ BỘT nhưng phần lớn bã bị loại bỏ khi lọc, chỉ phần hoạt chất/chất hoà tan đi vào nước — ước tính quy đổi tương đương ~3g bột hoà tan nguyên chất cho 1 ly. is_estimated đã gắn sẵn ở food_items (R2 cần xác nhận độ phù hợp trước khi dùng cho bệnh nhân)."
+GOI-CUON-VCB,2008,35,"Bột gạo tẻ — proxy cho bánh tráng (không có food_item bánh tráng riêng). Bánh tráng khô ăn gần như ở dạng khô (chỉ nhúng nước vài giây, không hấp/tráng ướt như bánh cuốn), nên KHÔNG áp hệ số hydrat hoá — dùng trực tiếp khối lượng khô ~3-4 tấm/khẩu phần, cùng cách đã dùng cho NIN-BANH-DA-NEM (30g/khẩu phần)."
+COM-TAM-VCB,1,320,"Gạo tẻ (sống) — công thức gốc KHÔNG có nguyên liệu tinh bột nào (lỗi thiếu nghiêm trọng nhất trong đợt rà 2026-08-13). Bổ sung 320g gạo tẻ sống cho cả mẻ 4 người (~80g/người, tương đương ~200g cơm chín/khẩu phần) — mức phổ biến cho cơm tấm sườn."
+MI-QUANG-VCB,4,600,"Bún tươi — proxy cho sợi mì Quảng to bản (không có food_item riêng), ĐÚNG như proxy note gốc đã đề xuất nhưng chưa từng được thêm vào công thức. 600g cho cả mẻ 4 người (~150g/người), khớp quy mô các món VCB khác dùng bún tươi/bánh phở tươi trong cùng file."
+BUN-RIEU-VCB,49,400,"Cua đồng — thành phần định danh của 'bún riêu CUA', công thức gốc hoàn toàn thiếu. 400g cho cả mẻ 4 người (~100g/người), mức phổ biến để đủ tạo riêu/gạch cua khi nấu."
+BANH-MI-THIT-VCB,19,300,"Thịt lợn nạc — proxy cho chả lụa/thịt nguội (không có food_item riêng). Đây là thành phần 'thịt' định danh của bánh mì thịt, công thức gốc chỉ có gan gà (đã giảm xuống mức pate hợp lý, xem dòng gan gà). 300g cho cả mẻ 4 người (~75g/người), mức phổ biến cho 1 ổ bánh mì thịt đầy đủ."
