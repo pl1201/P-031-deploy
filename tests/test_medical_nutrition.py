@@ -82,7 +82,7 @@ class TestIsEligibleCandidate:
         glucerna = foods.get(5000)
         assert is_eligible_candidate(glucerna, ["glucerna"]) is True
 
-    def test_khai_san_pham_A_khong_mo_cua_cho_san_pham_B(self):
+    def test_khai_san_pham_nay_khong_mo_cua_cho_san_pham_khac(self):
         """Khai Glucerna KHÔNG được kéo theo Nutren Diabetes vào thực đơn."""
         foods = load_food_repository()
         nutren = foods.get(5001)

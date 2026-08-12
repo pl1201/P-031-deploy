@@ -45,8 +45,8 @@ from src.clinical.models import (
     MealSlot,
     MenuDraft,
     MenuItem,
-    PlannedDish,
     PatientProfile,
+    PlannedDish,
 )
 from src.clinical.nutrition import FoodRepository
 

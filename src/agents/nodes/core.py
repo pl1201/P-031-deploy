@@ -44,12 +44,12 @@ from src.agents.state import (
     TokenUsage,
 )
 from src.clinical.integrity import hash_menu, hash_nutrition
-from src.clinical.medical_nutrition import is_eligible_candidate
 from src.clinical.interactions import (
     advisories_for,
     check_drug_food_interactions,
     load_drug_food_rules,
 )
+from src.clinical.medical_nutrition import is_eligible_candidate
 from src.clinical.models import (
     ClinicalTargets,
     MenuDraft,
