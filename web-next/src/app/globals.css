@@ -1,21 +1,21 @@
 :root {
   /* Colors */
-  --c-bg:      #f3f7fc;
-  --c-surface: #f7faff;
+  --c-bg:      #f7f9f8;
+  --c-surface: #f1f7f6;
   --c-card:    #ffffff;
-  --c-border:  #dce7f3;
-  --c-border2: #bfd1e5;
+  --c-border:  #d9e2e1;
+  --c-border2: #b6c0c5;
 
-  --c-ink:     #10243e;
-  --c-ink2:    #3c5875;
-  --c-muted:   #6d8299;
-  --c-subtle:  #9cb0c5;
+  --c-ink:     #183a3a;
+  --c-ink2:    #405253;
+  --c-muted:   #667879;
+  --c-subtle:  #8d9b9d;
 
-  --c-green:   #0b4b8a;
-  --c-green2:  #1769c2;
-  --c-green3:  #3f8fe5;
-  --c-lime:    #8fd3ff;
-  --c-lime2:   #d9f1ff;
+  --c-green:   #18a5a7;
+  --c-green2:  #117b7d;
+  --c-green3:  #65b9b9;
+  --c-lime:    #dff3f2;
+  --c-lime2:   #e8f5f4;
 
   --c-orange:  #d4622a;
   --c-orange2: #e8845a;
@@ -27,8 +27,8 @@
   --c-purple:  #596fc7;
 
   /* Typography */
-  --f-serif: 'Segoe UI', 'Noto Sans', system-ui, sans-serif;
-  --f-sans:  'Segoe UI', 'Noto Sans', system-ui, sans-serif;
+  --f-serif: 'Times New Roman', 'Noto Serif', serif;
+  --f-sans:  'Segoe UI', Arial, sans-serif;
   --f-mono:  'Cascadia Mono', 'SFMono-Regular', Consolas, monospace;
 
   /* Spacing */
@@ -68,7 +68,7 @@ body {
   letter-spacing: 0;
   color: var(--c-ink);
   background:
-    radial-gradient(circle at 84% 0%, rgba(89,174,255,.12), transparent 30rem),
+    radial-gradient(circle at 84% 0%, rgba(24,165,167,.10), transparent 30rem),
     var(--c-bg);
   -webkit-font-smoothing: antialiased;
 }
@@ -107,7 +107,7 @@ input, textarea, select { font: inherit; color: inherit; }
   height: 100vh;
   display: flex;
   flex-direction: column;
-  background: linear-gradient(180deg, #082f5d 0%, #0b4b8a 58%, #0a4178 100%);
+  background: linear-gradient(155deg, #18a5a7 0%, #70b6b7 52%, #b6c0c5 100%);
   color: #e8f0eb;
   padding: 28px 20px 24px;
   overflow-y: auto;
@@ -718,6 +718,48 @@ tr:hover td { background: rgba(0,0,0,.015); }
   .clinical-shell .main-content { margin-left:0; }.mobile-overlay { display:block; position:fixed; inset:0; z-index:35; border:0; background:rgba(5,31,55,.5); backdrop-filter:blur(2px); }
   .clinical-shell .mobile-menu-btn { display:grid; place-items:center; width:38px; height:38px; padding:0; border-radius:11px; }.clinical-shell .mobile-menu-btn .ui-icon { width:19px; }
 }
+
+/* VNUTRICARE teal system — #18A5A7 → #B6C0C5 */
+.clinical-shell { background:#f7f9f8; }
+.clinical-sidebar {
+  color:white;
+  background:linear-gradient(155deg,#18a5a7 0%,#72b8b9 55%,#b6c0c5 100%);
+  border-right:1px solid rgba(255,255,255,.34);
+  box-shadow:16px 0 38px rgba(24,90,92,.10);
+}
+.clinical-sidebar::before { border-color:rgba(255,255,255,.13); box-shadow:0 0 0 36px rgba(255,255,255,.025),0 0 0 72px rgba(255,255,255,.018); }
+.clinical-sidebar .sidebar-brand { border-bottom-color:rgba(255,255,255,.23); }
+.clinical-sidebar .brand-icon { color:white; background:rgba(255,255,255,.16); border-color:rgba(255,255,255,.25); box-shadow:none; }
+.clinical-sidebar .brand-name { color:white; }.clinical-sidebar .brand-sub { color:rgba(255,255,255,.68); }
+.clinical-sidebar .sidebar-search { border-color:rgba(255,255,255,.28); background:rgba(23,98,100,.14); }
+.clinical-sidebar .sidebar-search:focus-within { border-color:white; background:rgba(255,255,255,.13); box-shadow:0 0 0 3px rgba(255,255,255,.10); }
+.clinical-sidebar .sidebar-search .ui-icon,.clinical-sidebar .sidebar-search kbd { color:rgba(255,255,255,.68); }
+.clinical-sidebar .sidebar-search input { color:white; }.clinical-sidebar .sidebar-search input::placeholder { color:rgba(255,255,255,.63); }
+.clinical-sidebar .nav-label { display:none; color:rgba(255,255,255,.58); }
+.clinical-sidebar .sidebar-nav,.clinical-sidebar .nav-group { gap:6px; }
+.clinical-sidebar .nav-item { color:rgba(255,255,255,.84); }
+.clinical-sidebar .nav-item:hover { color:white; background:rgba(255,255,255,.12); }
+.clinical-sidebar .nav-item.active { color:#117b7d; background:rgba(255,255,255,.86); box-shadow:0 8px 24px rgba(34,91,92,.10); }
+.clinical-sidebar .nav-icon { color:rgba(255,255,255,.82); }.clinical-sidebar .nav-item.active .nav-icon { color:#18a5a7; }
+.clinical-sidebar .nav-badge { color:#117b7d; background:white; }
+.clinical-sidebar .sidebar-health { color:white; border-color:rgba(255,255,255,.22); background:rgba(24,104,106,.14); }
+.clinical-sidebar .sidebar-health strong { color:white; }.clinical-sidebar .sidebar-health span { color:rgba(255,255,255,.64); }.clinical-sidebar .sidebar-health .health-value { color:white; }
+.clinical-sidebar .sidebar-footer { border-top-color:rgba(255,255,255,.24); }
+.clinical-sidebar .user-avatar { color:#117b7d; background:white; }
+.clinical-sidebar .user-name { color:white; }.clinical-sidebar .user-role { color:rgba(255,255,255,.66); }
+.clinical-sidebar .logout-button { color:rgba(255,255,255,.72); }.clinical-sidebar .logout-button:hover { color:white; background:rgba(255,255,255,.12); }
+.clinical-shell .main-content { background:radial-gradient(circle at 92% -8%,rgba(24,165,167,.09),transparent 30%),#f7f9f8; }
+.clinical-shell .topbar { background:rgba(255,255,255,.9); border-bottom-color:#d9e2e1; }
+.clinical-shell .page-title { color:#183a3a; }.clinical-shell .page-kicker { color:#18a5a7; }
+.clinical-shell .card { border-color:#d9e2e1; box-shadow:0 8px 28px rgba(35,91,92,.06); }
+.workspace-hero { background:linear-gradient(118deg,#117b7d 0%,#18a5a7 56%,#88bcbc 100%); box-shadow:0 22px 50px rgba(24,120,122,.18); }
+.hero-kicker,.workspace-hero h2 em { color:#dff7f6; }.hero-queue i { background:white; }
+.btn-primary { background:linear-gradient(100deg,#18a5a7,#75babb); border-color:transparent; box-shadow:0 8px 20px rgba(24,165,167,.18); }
+.btn-primary:hover { filter:saturate(1.08); box-shadow:0 11px 25px rgba(24,165,167,.24); }
+.synthetic-label { color:#117b7d; background:#e1f4f3; border-color:#bde4e3; }
+.queue-search { border-color:#d9e2e1; }.queue-search span { color:#18a5a7; }
+.filter-pills { background:#e8f4f3; }.filter-pills button.active { color:#117b7d; }
+.patient-avatar-blue { color:#117b7d; background:linear-gradient(145deg,#e1f4f3,#b9dedd); }
 @media(max-width:640px) { .clinical-shell .page-body { padding:20px 15px 30px; }.clinical-shell .topbar { min-height:68px; padding:0 15px 0 58px; } }
 
 /* Command center v2 */
@@ -770,3 +812,31 @@ tr:hover td { background: rgba(0,0,0,.015); }
   .clinical-sidebar { position:fixed; }
   .clinical-shell .main-content { width:100%; margin-left:0; }
 }
+
+/* VNutriCare reference shell — teal clinical workspace. */
+.clinical-shell{display:block;min-height:100vh;background:#f8faf9}
+.clinical-sidebar{width:290px;padding:30px 20px 24px;color:#fff;background:linear-gradient(165deg,#0ca4a7 0%,#35afb1 53%,#b7c3c6 100%);border-right:0;box-shadow:none}
+.clinical-sidebar::before{display:none}
+.clinical-sidebar .sidebar-brand{min-height:76px;margin:0 0 24px;padding:0 20px 24px;border-bottom:0}
+.clinical-sidebar .sidebar-brand>svg{width:39px;height:50px;color:#fff;flex:none}
+.clinical-sidebar .brand-name{color:#fff;font-family:var(--f-serif);font-size:23px;font-weight:600;letter-spacing:.015em}
+.clinical-sidebar .sidebar-nav{display:grid;gap:5px}
+.clinical-sidebar .nav-item{min-height:54px;padding:0 20px;gap:16px;border-radius:10px;color:rgba(255,255,255,.94);font-size:16px;font-weight:520}
+.clinical-sidebar .nav-item:hover{color:#fff;background:rgba(255,255,255,.12);transform:none}
+.clinical-sidebar .nav-item.active{color:#087f82;background:rgba(255,255,255,.82);box-shadow:none}
+.clinical-sidebar .nav-item.nav-nested{margin-top:-5px;margin-left:2px;min-height:44px}
+.clinical-sidebar .nav-item.nav-nested .nav-icon{transform:scale(.65)}
+.clinical-sidebar .nav-icon{width:27px;height:27px;color:currentColor}.clinical-sidebar .nav-icon .ui-icon{width:27px;height:27px}
+.clinical-sidebar .nav-badge{margin-left:auto;min-width:30px;height:30px;color:#183a3a;background:#ffd16a;font-size:13px}
+.clinical-sidebar .nav-disabled{opacity:.62;cursor:not-allowed}
+.clinical-sidebar .sidebar-footer{margin-top:auto;padding:20px 4px 0;border-top:1px solid rgba(255,255,255,.28)}
+.clinical-sidebar .user-avatar{width:50px;height:50px;color:#117b7d;background:#fff;border:2px solid rgba(255,255,255,.7);font-size:14px}
+.clinical-sidebar .user-name{color:#fff;font-size:14px}.clinical-sidebar .user-role{margin-top:4px;color:rgba(255,255,255,.75);font-size:11px}
+.clinical-sidebar .logout-button{color:rgba(255,255,255,.8)}.clinical-sidebar .logout-button:hover{color:#fff;background:rgba(255,255,255,.12)}
+.clinical-shell .main-content{width:calc(100% - 290px);min-height:100vh;margin-left:290px;background:radial-gradient(circle at 94% -8%,rgba(24,165,167,.08),transparent 30%),#f8faf9}
+@media(max-width:900px){.clinical-sidebar{width:290px}.clinical-shell .main-content{width:100%;margin-left:0}}
+
+/* One logo lockup across landing, login and both workspaces. */
+.sidebar-brand>svg{width:38px;height:48px;flex:none;color:#fff}
+.sidebar-brand>.brand-name{font-family:var(--f-serif);font-size:23px;font-weight:600;letter-spacing:.015em}
+.clinical-sidebar .sidebar-brand>svg{width:38px;height:48px}

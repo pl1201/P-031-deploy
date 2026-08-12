@@ -1,115 +1,50 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { useRouter, usePathname } from 'next/navigation'
+import { usePathname, useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { createApiClient } from '@/lib/api'
-import { getSession, getToken, clearSession } from '@/lib/auth'
+import { clearSession, getSession, getToken } from '@/lib/auth'
+import { LeafMark } from '@/components/brand-artwork'
 
-type IconName = 'overview' | 'patients' | 'plans' | 'audit' | 'quality' | 'search' | 'logout' | 'menu'
-
-function Icon({ name }: { name: IconName }) {
-  const paths: Record<IconName, React.ReactNode> = {
-    overview: <><rect x="3" y="3" width="7" height="7" rx="2"/><rect x="14" y="3" width="7" height="7" rx="2"/><rect x="3" y="14" width="7" height="7" rx="2"/><rect x="14" y="14" width="7" height="7" rx="2"/></>,
-    patients: <><circle cx="9" cy="8" r="3"/><path d="M3.5 20v-2a5.5 5.5 0 0 1 11 0v2M16 4.5a3 3 0 0 1 0 6M17 14a5 5 0 0 1 3.5 4.8V20"/></>,
-    plans: <><path d="M7 3h10v4H7zM5 5H4a2 2 0 0 0-2 2v13h20V7a2 2 0 0 0-2-2h-1M7 12h10M7 16h7"/></>,
-    audit: <><path d="M12 3a9 9 0 1 0 9 9M12 7v5l3 2"/><path d="m17 4 4-1-1 4"/></>,
-    quality: <><path d="M4 19V9M10 19V5M16 19v-7M22 19H2"/></>,
-    search: <><circle cx="11" cy="11" r="7"/><path d="m20 20-4-4"/></>,
-    logout: <><path d="M10 5H4v14h6M14 8l4 4-4 4M8 12h10"/></>,
-    menu: <><path d="M4 7h16M4 12h16M4 17h16"/></>,
+type IconName='overview'|'patient'|'calendar'|'sparkles'|'database'|'shield'|'account'|'logout'|'menu'
+function Icon({name}:{name:IconName}){
+  const paths:Record<IconName,React.ReactNode>={
+    overview:<><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></>,
+    patient:<><circle cx="12" cy="7" r="4"/><path d="M5 21v-2a7 7 0 0 1 14 0v2"/></>,
+    calendar:<><rect x="4" y="5" width="16" height="16" rx="2"/><path d="M8 3v4M16 3v4M4 10h16M8 14h3M8 17h6"/></>,
+    sparkles:<><path d="m12 3 1.2 3.8L17 8l-3.8 1.2L12 13l-1.2-3.8L7 8l3.8-1.2zM18 14l.7 2.3L21 17l-2.3.7L18 20l-.7-2.3L15 17l2.3-.7z"/></>,
+    database:<><ellipse cx="12" cy="5" rx="8" ry="3"/><path d="M4 5v6c0 1.7 3.6 3 8 3s8-1.3 8-3V5M4 11v6c0 1.7 3.6 3 8 3s8-1.3 8-3v-6"/></>,
+    shield:<><path d="M12 2 4 5v6c0 5 3.3 9 8 11 4.7-2 8-6 8-11V5zM9 12l2 2 4-5"/></>,
+    account:<><circle cx="12" cy="8" r="4"/><path d="M4 22a8 8 0 0 1 16 0"/></>,
+    logout:<><path d="M10 5H4v14h6M14 8l4 4-4 4M8 12h10"/></>,
+    menu:<><path d="M4 7h16M4 12h16M4 17h16"/></>,
   }
   return <svg className="ui-icon" viewBox="0 0 24 24" aria-hidden="true">{paths[name]}</svg>
 }
 
-type NavItem = { href: string; label: string; icon: IconName; exact?: boolean; badge?: boolean }
-type NavGroup = { label: string; items: NavItem[] }
-
-const NAV: Array<{ href: string; label: string; icon: string; exact?: boolean; badge?: boolean }> = [
-  { href: '/dietitian', label: 'Hàng chờ duyệt', icon: '◎', exact: true, badge: true },
-  { href: '/dietitian/patients', label: 'Hồ sơ bệnh nhân', icon: '◈' },
-  { href: '/dietitian/food-logs', label: 'Món chờ đối chiếu', icon: '✎' },
-  { href: '/dietitian/approvals', label: 'Nhật ký phê duyệt', icon: '✓' },
-  { href: '/eval', label: 'Báo cáo Eval', icon: '◫' },
+const NAV=[
+  {href:'/dietitian',label:'Tổng quan',icon:'overview' as IconName,exact:true},
+  {href:'/dietitian/patients',label:'Bệnh nhân',icon:'patient' as IconName},
+  {href:'/dietitian/reviews',label:'Chờ duyệt',icon:'calendar' as IconName,badge:true},
+  {href:'/dietitian/meal-plans/new',label:'Tạo thực đơn',icon:'sparkles' as IconName,nested:true},
+  {href:'/dietitian/food-logs',label:'Nhật ký ăn uống',icon:'calendar' as IconName},
+  {href:'',label:'Nguồn dữ liệu',icon:'database' as IconName,disabled:true},
+  {href:'/eval',label:'Đánh giá hệ thống',icon:'shield' as IconName},
+  {href:'',label:'Tài khoản',icon:'account' as IconName,disabled:true},
 ]
 
-export default function DietitianLayout({ children }: { children: React.ReactNode }) {
-  const router = useRouter()
-  const pathname = usePathname()
-  const [pendingCount, setPendingCount] = useState<number | null>(null)
-  const [menuOpen, setMenuOpen] = useState(false)
-  const [quickSearch, setQuickSearch] = useState('')
-
-  useEffect(() => {
-    const session = getSession()
-    if (!session || (session.role !== 'dietitian' && session.role !== 'admin')) {
-      router.replace('/login')
-      return
-    }
-    const token = getToken()
-    if (token) void createApiClient(token).listPendingReviews().then(items => setPendingCount(items.length)).catch(() => undefined)
-  }, [router])
-
-  const handleLogout = () => { clearSession(); router.push('/login') }
-  const isActive = (href: string, exact?: boolean) => exact ? pathname === href : pathname.startsWith(href)
-  const handleQuickSearch = (event: React.FormEvent) => {
-    event.preventDefault()
-    const value = quickSearch.trim()
-    router.push(value ? `/dietitian/patients?q=${encodeURIComponent(value)}` : '/dietitian/patients')
-    setMenuOpen(false)
-  }
-
-  return (
-    <div className="app-shell clinical-shell">
-      <aside className={`sidebar clinical-sidebar${menuOpen ? ' open' : ''}`}>
-        <div className="sidebar-brand">
-          <div className="brand-icon">V</div>
-          <div><div className="brand-name">VNUTRICARE</div><div className="brand-sub">Clinical Nutrition Intelligence</div></div>
-          <button className="sidebar-close" onClick={() => setMenuOpen(false)} aria-label="Đóng menu">×</button>
-        </div>
-
-        <form className="sidebar-search" onSubmit={handleQuickSearch}>
-          <Icon name="search" />
-          <input value={quickSearch} onChange={event => setQuickSearch(event.target.value)} placeholder="Tìm hồ sơ nhanh..." aria-label="Tìm hồ sơ nhanh" />
-          <kbd>⌘K</kbd>
-        </form>
-
-        <nav className="sidebar-nav">
-          {NAV_GROUPS.map(group => (
-            <div className="nav-group" key={group.label}>
-              <div className="nav-label">{group.label}</div>
-              {group.items.map(item => {
-                const active = isActive(item.href, item.exact)
-                return (
-                  <Link key={item.href} href={item.href} className={`nav-item${active ? ' active' : ''}`} onClick={() => setMenuOpen(false)}>
-                    <span className="nav-icon"><Icon name={item.icon} /></span>
-                    <span>{item.label}</span>
-                    {item.badge && pendingCount !== null && pendingCount > 0 && <span className="nav-badge">{pendingCount}</span>}
-                  </Link>
-                )
-              })}
-            </div>
-          ))}
-        </nav>
-
-        <div className="sidebar-health">
-          <div className="health-orbit"><i /></div>
-          <div><strong>Clinical engine online</strong><span>API · Nutrition · Audit</span></div>
-          <span className="health-value">99.9%</span>
-        </div>
-
-        <div className="sidebar-footer">
-          <div className="user-avatar">BC</div>
-          <div className="user-copy"><div className="user-name">BS. Chuyên gia</div><div className="user-role">Chuyên gia dinh dưỡng</div></div>
-          <button className="logout-button" onClick={handleLogout} title="Đăng xuất" aria-label="Đăng xuất"><Icon name="logout" /></button>
-        </div>
-      </aside>
-
-      <main className="main-content">
-        <button className="mobile-menu-btn" aria-label="Mở menu" onClick={() => setMenuOpen(true)}><Icon name="menu" /></button>
-        {children}
-      </main>
-      {menuOpen && <button className="mobile-overlay" aria-label="Đóng menu" onClick={() => setMenuOpen(false)} />}
-    </div>
-  )
+export default function DietitianLayout({children}:{children:React.ReactNode}){
+  const router=useRouter();const pathname=usePathname();const [pending,setPending]=useState<number|null>(null);const [open,setOpen]=useState(false)
+  useEffect(()=>{const session=getSession();if(!session||(session.role!=='dietitian'&&session.role!=='admin')){router.replace('/login');return}const token=getToken();if(token)void createApiClient(token).listPendingReviews().then(rows=>setPending(rows.length)).catch(()=>setPending(null))},[router])
+  const logout=()=>{clearSession();router.push('/login')}
+  return <div className="app-shell clinical-shell">
+    <aside className={`sidebar clinical-sidebar${open?' open':''}`}>
+      <div className="sidebar-brand"><LeafMark/><div><div className="brand-name">VNUTRICARE</div></div><button className="sidebar-close" onClick={()=>setOpen(false)} aria-label="Đóng menu">×</button></div>
+      <nav className="sidebar-nav">{NAV.map(item=>{const active=item.exact?pathname===item.href:Boolean(item.href&&pathname.startsWith(item.href));const body=<><span className="nav-icon"><Icon name={item.icon}/></span><span>{item.label}</span>{item.badge&&pending!==null&&<span className="nav-badge">{pending}</span>}</>;return item.disabled?<span key={item.label} className="nav-item nav-disabled" aria-disabled="true" title="Chưa có chức năng backend">{body}</span>:<Link key={item.label} href={item.href} className={`nav-item${active?' active':''}${item.nested?' nav-nested':''}`} onClick={()=>setOpen(false)}>{body}</Link>})}</nav>
+      <div className="sidebar-footer"><div className="user-avatar">CG</div><div className="user-copy"><div className="user-name">Tài khoản chuyên gia</div><div className="user-role">Chuyên gia dinh dưỡng</div></div><button className="logout-button" onClick={logout} title="Đăng xuất" aria-label="Đăng xuất"><Icon name="logout"/></button></div>
+    </aside>
+    <main className="main-content"><button className="mobile-menu-btn" aria-label="Mở menu" onClick={()=>setOpen(true)}><Icon name="menu"/></button>{children}</main>
+    {open&&<button className="mobile-overlay" aria-label="Đóng menu" onClick={()=>setOpen(false)}/>}
+  </div>
 }

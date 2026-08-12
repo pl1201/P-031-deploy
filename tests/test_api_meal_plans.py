@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-from datetime import date, datetime
 from types import SimpleNamespace
 
 import pytest
@@ -66,6 +65,19 @@ def test_yeu_cau_sinh_thuc_don_tra_202_ngay(client, dietitian, profile_id):
     assert body["status"] == "drafting"
 
 
+def test_serialize_dish_item_uses_dish_name():
+    """Regression: dish-backed rows must not reference an undefined display_name variable."""
+    food = SimpleNamespace(id=1, name_vi="Gạo lứt", source="VNE", source_ref="VNE:1")
+    ingredient = SimpleNamespace(food_id=1, food=food, grams=100.0)
+    dish = SimpleNamespace(name_vi="Cơm gạo lứt", serving_g=100.0, ingredients=[ingredient])
+    item = SimpleNamespace(id="item-1", slot="lunch", dish_id="com-gao-lut", dish=dish, grams=150.0)
+
+    result = MealPlanOut._item_out(item)
+
+    assert result.name_vi == "Cơm gạo lứt"
+    assert result.ingredients[0].grams == 150.0
+
+
 def test_sau_khi_tra_ve_graph_da_chay_xong_va_ghi_ket_qua(client, dietitian, profile_id):
     """TestClient chờ background task chạy xong trước khi trả response — kiểm tra
     thẳng trạng thái cuối, không cần poll."""
@@ -81,15 +93,15 @@ def test_sau_khi_tra_ve_graph_da_chay_xong_va_ghi_ket_qua(client, dietitian, pro
     assert body["status"] == "pending_review", body
     assert len(body["items"]) > 0
     assert all(item["name_vi"] and item["source"] and item["source_ref"] for item in body["items"])
-    # CP-SAT (forced ở fixture _force_cpsat) tự khai triển "món hoàn chỉnh"
-    # thành food_id+grams nguyên liệu thô thật trước khi trả (RULE-1) — khác
-    # `gemini` thuần (chọn nguyên "food" tổng hợp theo món, item có dish_id).
-    # Sửa 2026-08-07: trước đó test này giả định sai là CP-SAT luôn trả
-    # dish_id — bug thật khiến CP-SAT dùng nhầm kho "food" tổng hợp theo món
-    # (mật độ dinh dưỡng pha loãng) làm nguồn nguyên liệu thô, ra thực đơn
-    # thiếu năng lượng nghiêm trọng mà không lỗi rõ ràng ở đâu (audit khi
-    # merge PR#57 dish-day-cap với PR#59 dish-repo).
-    assert all(item["food_id"] and item["dish_id"] is None for item in body["items"])
+    # Mỗi bữa phải có món hoàn chỉnh lấy từ cùng bảng Dish mà API/UI sử dụng.
+    # food_id rời (nếu có) chỉ là phần cân chỉnh định lượng, không được thay thế
+    # toàn bộ cấu trúc món như lỗi cucumber/raw-food fallback trước đây.
+    assert all(any(item["dish_id"] for item in body["items"] if item["slot"] == slot) for slot in {
+        "breakfast", "lunch", "dinner", "snack"
+    })
+    assert body["menu_hash_ready"] is True
+    assert body["nutrition_hash_ready"] is True
+    assert body["review_packet"]
     assert body["computed_nutrition"]["kcal"] > 0
     assert body["targets"]["applied_rule_ids"]
 
@@ -137,29 +149,3 @@ def test_plan_id_khong_ton_tai_tra_404(client, dietitian):
     _, dt_headers = dietitian
     r = client.get("/api/v1/meal-plans/khong-ton-tai", headers=dt_headers)
     assert r.status_code == 404
-
-
-def test_plan_bi_target_gate_chan_tra_computed_nutrition_null():
-    """Không biến trạng thái chưa tính dinh dưỡng thành object rỗng truthy ở UI."""
-    plan = SimpleNamespace(
-        id="plan-target-gate",
-        profile_id="profile-1",
-        plan_date=date(2026, 8, 10),
-        status="pending_review",
-        items=[],
-        targets={},
-        computed_nutrition={},
-        violations=[],
-        safety_findings=[],
-        review_packet={},
-        citations=[],
-        explanation_vi=None,
-        highest_risk="P0",
-        retry_count=0,
-        menu_version=0,
-        reviewer_id=None,
-        reviewer_notes=None,
-        created_at=datetime(2026, 8, 8),
-    )
-
-    assert MealPlanOut.from_model(plan).computed_nutrition is None

@@ -31,6 +31,45 @@ export interface PatientProfile {
   region: 'north' | 'central' | 'south' | null
 }
 
+export interface PatientObservation {
+  id: string
+  profile_id: string
+  observation_type: string
+  value: number
+  unit: string
+  measured_at: string
+  source: string
+  recorded_by: string
+  note: string | null
+  created_at: string
+}
+
+export interface ClinicalNote {
+  id: string
+  profile_id: string
+  author_id: string
+  note_type: string
+  content: string
+  visibility: string
+  version: number
+  created_at: string
+  updated_at: string
+}
+
+export interface ReviewEvent {
+  id: string
+  meal_plan_id: string
+  profile_id: string
+  reviewer_id: string
+  decision: string
+  reason: string | null
+  notes: string | null
+  menu_version: number
+  menu_hash: string | null
+  nutrition_hash: string | null
+  created_at: string
+}
+
 export interface MealPlanItem {
   id: string
   slot: 'breakfast' | 'lunch' | 'dinner' | 'snack'
@@ -173,7 +212,7 @@ export interface MealPlan {
   plan_date: string
   status: 'drafting' | 'pending_review' | 'approved' | 'rejected' | 'failed'
   items: MealPlanItem[]
-  targets: Record<string, NutrientTarget>
+  targets: ClinicalTargets
   computed_nutrition: ComputedNutrition | null
   violations: Violation[]
   safety_findings: SafetyFinding[]
@@ -182,6 +221,8 @@ export interface MealPlan {
   explanation_vi: string | null
   highest_risk: 'P0' | 'P1' | 'P2' | 'none'
   menu_version: number
+  menu_hash_ready: boolean
+  nutrition_hash_ready: boolean
   retry_count: number
   reviewer_id: string | null
   reviewer_notes: string | null
@@ -196,6 +237,13 @@ export interface ClinicalTargets {
   applied_rule_ids: string[]
   needs_expert_review: boolean
   conflict_notes: string[]
+}
+
+export interface ReplacementCandidate {
+  dish_id: string
+  name_vi: string
+  serving_g: number
+  region: string | null
 }
 
 export class ApiError extends Error {
@@ -264,6 +312,19 @@ export function createApiClient(accessToken?: string) {
       request<PatientProfile>('/patients', { method: 'POST', body: JSON.stringify(data) }),
     updatePatient: (id: string, data: Partial<PatientProfile>) =>
       request<PatientProfile>(`/patients/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
+    listObservations: (profileId: string) =>
+      request<PatientObservation[]>(`/patients/${profileId}/observations`),
+    listClinicalNotes: (profileId: string) =>
+      request<ClinicalNote[]>(`/patients/${profileId}/notes`),
+    createClinicalNote: (
+      profileId: string,
+      data: { note_type: string; content: string; visibility: string },
+    ) => request<ClinicalNote>(`/patients/${profileId}/notes`, {
+      method: 'POST',
+      body: JSON.stringify(data),
+    }),
+    listPatientReviewEvents: (profileId: string) =>
+      request<ReviewEvent[]>(`/patients/${profileId}/review-events`),
 
     // Targets
     computeTargets: (patientId: string) =>
@@ -287,6 +348,13 @@ export function createApiClient(accessToken?: string) {
       request<MealPlan>(`/reviews/${planId}/recompute`, {
         method: 'POST',
         body: JSON.stringify({ edits }),
+      }),
+    listReplacementCandidates: (planId: string, itemId: string) =>
+      request<ReplacementCandidate[]>(`/reviews/${planId}/items/${itemId}/replacement-candidates`),
+    replaceMealPlanItem: (planId: string, itemId: string, dishId: string, servingG?: number) =>
+      request<MealPlan>(`/reviews/${planId}/items/${itemId}/replace`, {
+        method: 'POST',
+        body: JSON.stringify({ dish_id: dishId, serving_g: servingG ?? null }),
       }),
     approveMealPlan: (planId: string, edits?: Array<{ item_id: string; grams: number }>, notes?: string) =>
       request<MealPlan>(`/reviews/${planId}/approve`, {

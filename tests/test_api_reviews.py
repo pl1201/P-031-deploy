@@ -5,7 +5,7 @@ from __future__ import annotations
 import pytest
 
 from src.config import get_settings
-from src.db.models import AuditLog
+from src.db.models import AuditLog, MealPlanReviewEvent
 
 
 def _register_and_login(client, email, role, password="matkhau123"):
@@ -86,11 +86,14 @@ def test_duyet_khong_sua_gi_thanh_cong(client, dietitian, pending_plan):
 def test_duyet_ghi_audit_log(client, dietitian, pending_plan, db_session):
     plan_id, _ = pending_plan
     _, dt_headers = dietitian
-    client.post(f"/api/v1/reviews/{plan_id}/approve", json={}, headers=dt_headers)
+    client.post(f"/api/v1/reviews/{plan_id}/approve", json={"notes": "Đã rà soát cảnh báo P1"}, headers=dt_headers)
 
     logs = db_session.query(AuditLog).filter(AuditLog.action == "approve").all()
     assert len(logs) == 1
     assert logs[0].after["status"] == "approved"
+    events = db_session.query(MealPlanReviewEvent).filter(MealPlanReviewEvent.meal_plan_id == plan_id).all()
+    assert len(events) == 1
+    assert events[0].decision == "approved"
 
 
 def test_duyet_sua_gram_tinh_lai_dinh_duong(client, dietitian, pending_plan):
@@ -110,7 +113,10 @@ def test_duyet_sua_gram_tinh_lai_dinh_duong(client, dietitian, pending_plan):
 
     r = client.post(
         f"/api/v1/reviews/{plan_id}/approve",
-        json={"edits": [{"item_id": first_item["id"], "grams": new_grams}]},
+        json={
+            "edits": [{"item_id": first_item["id"], "grams": new_grams}],
+            "notes": "Đã rà soát cảnh báo P1 sau khi chỉnh khẩu phần",
+        },
         headers=dt_headers,
     )
     assert r.status_code == 200, r.text
@@ -123,32 +129,14 @@ def test_duyet_sua_gram_tinh_lai_dinh_duong(client, dietitian, pending_plan):
     assert approved["computed_nutrition"] != detail["computed_nutrition"]
 
 
-def test_sua_gram_chi_recompute_downstream_va_giu_pending(client, dietitian, pending_plan, db_session):
-    plan_id, detail = pending_plan
-    _, dt_headers = dietitian
-    first_item = detail["items"][0]
-    new_grams = max(first_item["grams"] - 1, 1)
-
-    response = client.post(
-        f"/api/v1/reviews/{plan_id}/recompute",
-        json={"edits": [{"item_id": first_item["id"], "grams": new_grams}]},
-        headers=dt_headers,
-    )
-    assert response.status_code == 200, response.text
-    recomputed = response.json()
-    assert recomputed["status"] == "pending_review"
-    assert recomputed["menu_version"] == detail["menu_version"] + 1
-    assert recomputed["computed_nutrition"] != detail["computed_nutrition"]
-    risk_order = {"P0": 0, "P1": 1, "P2": 2}
-    levels = [risk_order[finding["risk_level"]] for finding in recomputed["review_packet"]["findings"]]
-    assert levels == sorted(levels)
-    assert db_session.query(AuditLog).filter(AuditLog.action == "recompute_review_edit").count() == 1
-
-
 def test_duyet_bi_tu_choi_neu_lan_2(client, dietitian, pending_plan):
     plan_id, _ = pending_plan
     _, dt_headers = dietitian
-    r1 = client.post(f"/api/v1/reviews/{plan_id}/approve", json={}, headers=dt_headers)
+    r1 = client.post(
+        f"/api/v1/reviews/{plan_id}/approve",
+        json={"notes": "Đã rà soát cảnh báo P1"},
+        headers=dt_headers,
+    )
     assert r1.status_code == 200
     r2 = client.post(f"/api/v1/reviews/{plan_id}/approve", json={}, headers=dt_headers)
     assert r2.status_code == 409

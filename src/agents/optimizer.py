@@ -26,12 +26,9 @@ hụt → `validate` báo vi phạm ngưỡng tối thiểu. Nay gộp lại: bi
 (bữa, món), ràng buộc dinh dưỡng đặt trên TỔNG cả ngày, chỉ ràng buộc số món là
 còn theo từng bữa (để không dồn hết vào một bữa).
 
-Hạn chế còn lại (ghi rõ để không đánh lừa người đọc sau):
-- `FoodItem` chưa có trường `category` (đã bỏ khi nạp từ CSV, xem
-  `src/clinical/seeds.py`) nên optimizer KHÔNG ép được ràng buộc kiểu "phải
-  có món nhóm rau" — chỉ ràng buộc được trên các cột dinh dưỡng có trong
-  targets. Muốn thêm ràng buộc nhóm thực phẩm cần đưa `category` vào
-  `FoodItem` trước (việc khác, ngoài phạm vi AGT-09/AGT-10).
+`FoodItem.category` được giữ từ seed để đặt trần khẩu phần theo nhóm. Đây là
+ràng buộc khả dụng/ẩm thực (VD không thể dùng 300 g gừng để lấp target), không
+thay thế kiểm định dinh dưỡng ở validator.
 """
 
 from __future__ import annotations
@@ -48,6 +45,7 @@ from src.clinical.models import (
     MealSlot,
     MenuDraft,
     MenuItem,
+    PlannedDish,
     PatientProfile,
 )
 from src.clinical.nutrition import FoodRepository
@@ -85,8 +83,7 @@ GRAM_STEP = 25
 MAX_GRAMS_PER_ITEM = 300
 MIN_ITEMS_PER_SLOT = 1
 MAX_ITEMS_PER_SLOT = 5
-# Two solver phases may run; 2s each keeps the total CP-SAT budget <= 4s.
-SOLVE_TIME_LIMIT_SECONDS = 2.0
+SOLVE_TIME_LIMIT_SECONDS = 30.0
 
 # Bug đã audit thực tế (2026-08-07): KHÔNG có ràng buộc này, cùng một nguyên
 # liệu (VD gừng) có thể được chọn MAX_GRAMS_PER_ITEM ở CẢ 4 bữa/ngày = 1200 g/
@@ -98,6 +95,24 @@ MAX_GRAMS_PER_FOOD_PER_DAY = 400
 
 # Tối đa 1 món hoàn chỉnh (DishCandidate) mỗi bữa — một bữa không ăn 2 tô phở.
 MAX_DISHES_PER_SLOT = 1
+
+
+def _max_grams_per_slot(food: FoodItem) -> int:
+    category = (food.category or "").strip().lower()
+    if category in {"gia vị", "dầu mỡ"}:
+        return 25
+    if category == "hạt":
+        return 50
+    return MAX_GRAMS_PER_ITEM
+
+
+def _max_grams_per_day(food: FoodItem) -> int:
+    category = (food.category or "").strip().lower()
+    if category in {"gia vị", "dầu mỡ"}:
+        return 50
+    if category == "hạt":
+        return 100
+    return MAX_GRAMS_PER_FOOD_PER_DAY
 
 # CP-SAT chỉ nhận hệ số nguyên, nên giá trị/100 g phải làm tròn về bội của
 # 1/VALUE_SCALE. Nhân với VALUE_SCALE rồi làm tròn CÓ HƯỚNG (xem `_try_solve`)
@@ -163,13 +178,8 @@ class CPSATMenuOptimizer:
         candidates: list[FoodItem],
         feedback: str | None,
     ) -> MenuDraft:
-        # Defence in depth: callers should already use retrieve_context_bundle,
-        # but direct/API callers must not be able to create a 500+ candidate model.
-        from src.agents.nodes.core import _top_k_candidates
-
-        shortlisted = _top_k_candidates(candidates)
         eligible_dishes = _eligible_dishes(self._dishes, self._foods, profile) if self._foods else []
-        return _solve_day(shortlisted, targets, eligible_dishes, self._foods)
+        return _solve_day(candidates, targets, eligible_dishes, self._foods)
 
 
 def _active_nutrient_bounds(targets: ClinicalTargets) -> dict[str, tuple[float | None, float | None]]:
@@ -266,6 +276,14 @@ def _dish_nutrient_totals(
     return totals
 
 
+def _dish_has_complete_nutrient(dish: DishCandidate, foods: FoodRepository, field: str) -> bool:
+    """Return whether every ingredient has data for an optional nutrient."""
+    return all(
+        (food := foods.get(item.food_id)) is not None and getattr(food, field) is not None
+        for item in dish.ingredients
+    )
+
+
 def _solve_day(
     candidates: list[FoodItem],
     targets: ClinicalTargets,
@@ -294,7 +312,19 @@ def _solve_day(
     # validator's incomplete-data warning instead of making the whole menu
     # infeasible or treating unknown values as zero.
     for field in _OPTIONAL_FIELDS:
-        if field in bounds and sum(getattr(food, field) is not None for food in candidates) < len(_SLOTS):
+        if field not in bounds:
+            continue
+        complete_raw = sum(getattr(food, field) is not None for food in candidates)
+        complete_dishes = (
+            sum(_dish_has_complete_nutrient(dish, foods, field) for dish in dishes or [])
+            if foods is not None
+            else 0
+        )
+        # The review validator already represents incomplete sugar/purine as a
+        # soft data-quality finding. Do the same here. Keeping a bound that no
+        # usable dish can satisfy silently removes every concrete dish and
+        # sends the graph to its raw-food fallback (the UI then has 0 dishes).
+        if complete_raw < len(_SLOTS) or (dishes and complete_dishes < len(_SLOTS)):
             bounds.pop(field)
     if not bounds:
         # Không ràng buộc nào áp dụng được — không đủ căn cứ để chọn món.
@@ -334,7 +364,6 @@ def _try_solve(
     """Một lần giải khả thi. Trả None khi vô nghiệm (để caller thử pha kế tiếp)."""
     dish_totals = dish_totals or []
     model = cp_model.CpModel()
-    max_units = MAX_GRAMS_PER_ITEM // GRAM_STEP
 
     # Biến cho từng cặp (bữa, món): số đơn vị GRAM_STEP gram + cờ có chọn không.
     units: dict[tuple[MealSlot, int], cp_model.IntVar] = {}
@@ -342,7 +371,7 @@ def _try_solve(
     for slot in _SLOTS:
         for food in eligible:
             key = (slot, food.id)
-            units[key] = model.new_int_var(0, max_units, f"units_{slot.value}_{food.id}")
+            units[key] = model.new_int_var(0, _max_grams_per_slot(food) // GRAM_STEP, f"units_{slot.value}_{food.id}")
             chosen[key] = model.new_bool_var(f"chosen_{slot.value}_{food.id}")
             model.add(units[key] > 0).only_enforce_if(chosen[key])
             model.add(units[key] == 0).only_enforce_if(chosen[key].negated())
@@ -362,18 +391,19 @@ def _try_solve(
         model.add(sum(in_slot) >= MIN_ITEMS_PER_SLOT)
         model.add(sum(in_slot) <= MAX_ITEMS_PER_SLOT)
 
-    # Tối đa 1 món hoàn chỉnh mỗi bữa — một bữa không ăn 2 tô phở.
+    # Mỗi khung bữa có đúng 1 món hoàn chỉnh khi catalog món khả dụng. Phần
+    # food_id chỉ là dữ liệu bổ sung để cân bằng định lượng, không phải món ăn.
     for slot in _SLOTS:
         if dish_totals:
-            model.add(sum(dish_chosen[(slot, d.dish_id)] for d, _t in dish_totals) <= MAX_DISHES_PER_SLOT)
+            selected_dishes = sum(dish_chosen[(slot, d.dish_id)] for d, _t in dish_totals)
+            model.add(selected_dishes == MAX_DISHES_PER_SLOT)
 
     # Trần tổng gram/ngày cho MỖI nguyên liệu thô (audit 2026-08-07: thiếu ràng
     # buộc này khiến CP-SAT có thể chọn cùng 1 nguyên liệu ở cả 4 bữa, VD gừng
     # 300g×4 = 1200g/ngày — hợp lệ về toán nhưng vô lý lâm sàng/ẩm thực). KHÔNG
     # áp cho gram bên trong món hoàn chỉnh — công thức món đã là tổ hợp cố định.
-    max_food_units_per_day = MAX_GRAMS_PER_FOOD_PER_DAY // GRAM_STEP
     for food in eligible:
-        model.add(sum(units[(slot, food.id)] for slot in _SLOTS) <= max_food_units_per_day)
+        model.add(sum(units[(slot, food.id)] for slot in _SLOTS) <= _max_grams_per_day(food) // GRAM_STEP)
 
     # Ràng buộc dinh dưỡng trên TỔNG cả ngày.
     # Tổng thật = Σ gram × (giá trị/100 g) / 100. Nhân cả hai vế với
@@ -434,6 +464,7 @@ def _try_solve(
         return None
 
     items: dict[MealSlot, list[MenuItem]] = {}
+    planned_dishes: dict[MealSlot, list[PlannedDish]] = {}
     for slot in _SLOTS:
         # gram theo food_id — gộp nguyên liệu thô + nguyên liệu bên trong món
         # hoàn chỉnh cùng food_id (hiếm nhưng có thể xảy ra) thành một dòng.
@@ -444,8 +475,11 @@ def _try_solve(
                 grams_by_food[f.id] = grams_by_food.get(f.id, 0.0) + g
         for dish, _totals in dish_totals:
             if solver.Value(dish_chosen[(slot, dish.dish_id)]):
+                planned_dishes.setdefault(slot, []).append(
+                    PlannedDish(dish_id=dish.dish_id, serving_grams=sum(ingredient.grams for ingredient in dish.ingredients))
+                )
                 for ing in dish.ingredients:
                     grams_by_food[ing.food_id] = grams_by_food.get(ing.food_id, 0.0) + ing.grams
         if grams_by_food:
             items[slot] = [MenuItem(food_id=fid, grams=g) for fid, g in grams_by_food.items()]
-    return MenuDraft(items=items)
+    return MenuDraft(items=items, planned_dishes=planned_dishes)

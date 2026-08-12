@@ -158,6 +158,7 @@ class FoodItem(BaseModel):
     id: int
     name_vi: str
     aliases: list[str] = Field(default_factory=list)
+    category: str | None = None
     kcal_100g: float = Field(ge=0, le=920)  # mỡ/dầu tinh ~884-902 kcal/100 g
     protein_g: float = Field(ge=0, le=90)
     carb_g: float = Field(ge=0, le=100)
@@ -259,10 +260,18 @@ class MealSlot(str, Enum):
     SNACK = "snack"
 
 
+class PlannedDish(BaseModel):
+    """Món hoàn chỉnh được optimizer chọn; ingredients chỉ dùng để tính số."""
+
+    dish_id: str
+    serving_grams: float = Field(gt=0, le=2000)
+
+
 class MenuDraft(BaseModel):
     """Bản nháp thực đơn do LLM chọn — CỐ Ý không có field dinh dưỡng nào."""
 
     items: dict[MealSlot, list[MenuItem]] = Field(default_factory=dict)
+    planned_dishes: dict[MealSlot, list[PlannedDish]] = Field(default_factory=dict)
 
     def all_items(self) -> list[MenuItem]:
         return [i for items in self.items.values() for i in items]

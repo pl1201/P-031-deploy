@@ -24,7 +24,15 @@ async def health() -> dict[str, str] | JSONResponse:
             conn.execute(text("SELECT 1"))
             orphan_count = conn.execute(
                 text(
-                    "SELECT count(*) FROM meal_plan_items m LEFT JOIN food_items f ON f.id=m.food_id WHERE f.id IS NULL"
+                    """
+                    SELECT count(*)
+                    FROM meal_plan_items m
+                    LEFT JOIN food_items f ON f.id = m.food_id
+                    LEFT JOIN dishes d ON d.dish_id = m.dish_id
+                    WHERE (m.food_id IS NOT NULL AND f.id IS NULL)
+                       OR (m.dish_id IS NOT NULL AND d.dish_id IS NULL)
+                       OR (m.food_id IS NULL AND m.dish_id IS NULL)
+                    """
                 )
             ).scalar_one()
         if orphan_count:

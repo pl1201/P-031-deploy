@@ -83,7 +83,6 @@ export default function MealPlanReviewPage() {
   const [plan, setPlan] = useState<MealPlan | null>(null)
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
-  const [recomputingItem, setRecomputingItem] = useState<string | null>(null)
   const [error, setError] = useState('')
   const [toast, setToast] = useState('')
   const [toastType, setToastType] = useState<'success' | 'error'>('success')
@@ -102,6 +101,7 @@ export default function MealPlanReviewPage() {
   useEffect(() => {
     const token = getToken()
     if (!token || !id) return
+
     let cancelled = false
     void createApiClient(token).getMealPlan(id as string)
       .then(p => {
@@ -111,14 +111,19 @@ export default function MealPlanReviewPage() {
         p.items.forEach(item => { initial[item.id] = item.grams })
         setGramEdits(initial)
       })
-      .catch(e => { if (!cancelled) setError(e.message) })
-      .finally(() => { if (!cancelled) setLoading(false) })
+      .catch(e => {
+        if (!cancelled) setError(e.message)
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false)
+      })
+
     return () => { cancelled = true }
   }, [id])
 
   const handleApprove = async () => {
     const token = getToken()
-    if (!token || !plan || recomputingItem) return
+    if (!token || !plan) return
     setSaving(true)
     try {
       const edits = Object.entries(gramEdits)
@@ -159,35 +164,9 @@ export default function MealPlanReviewPage() {
     }
   }
 
-  const handleFastRecompute = async (itemId: string) => {
-    const token = getToken()
-    if (!token || !plan) return
-    const grams = gramEdits[itemId]
-    const original = plan.items.find(item => item.id === itemId)
-    if (!original || original.grams === grams) return
-    setRecomputingItem(itemId)
-    try {
-      const updated = await createApiClient(token).recomputeMealPlan(plan.id, [{ item_id: itemId, grams }])
-      setPlan(updated)
-      setGramEdits(Object.fromEntries(updated.items.map(item => [item.id, item.grams])))
-      showToast(`Đã tính lại an toàn · ${updated.highest_risk}`)
-    } catch (e) {
-      showToast(e instanceof ApiError ? e.message : 'Không thể tính lại thực đơn', 'error')
-    } finally {
-      setRecomputingItem(null)
-    }
-  }
-
   const hardViolations = plan?.violations.filter(v => v.severity === 'hard') ?? []
   const softViolations = plan?.violations.filter(v => v.severity === 'soft') ?? []
-  const p0Findings = plan?.safety_findings.filter(f => f.risk_level === 'P0') ?? []
-  const p1Findings = plan?.safety_findings.filter(f => f.risk_level === 'P1') ?? []
-  // Older rows/API processes may still expose `{}` for plans stopped by the
-  // target gate. Treat incomplete nutrition as absent instead of rendering
-  // numeric fields and crashing on `undefined.toFixed()`.
-  const nutrition = plan?.computed_nutrition && Number.isFinite(plan.computed_nutrition.kcal)
-    ? plan.computed_nutrition
-    : null
+  const nutrition = plan?.computed_nutrition
 
   // Group items by slot
   const bySlot = plan?.items.reduce<Record<string, MealPlanItem[]>>((acc, item) => {
@@ -195,7 +174,7 @@ export default function MealPlanReviewPage() {
     return acc
   }, {}) ?? {}
 
-  const targetKcal = plan?.targets?.kcal?.max_value ?? undefined
+  const targetKcal = plan?.targets?.targets?.kcal?.max_value ?? undefined
 
   if (loading) return (
     <div style={{ display: 'grid', placeItems: 'center', height: '60vh' }}>
@@ -216,6 +195,8 @@ export default function MealPlanReviewPage() {
         <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
           <Link href="/dietitian" style={{ color: 'var(--c-muted)', fontSize: 13 }}>← Hàng chờ</Link>
           <span style={{ color: 'var(--c-border2)' }}>/</span>
+          <Link href={`/dietitian/patients/${plan.patient_id}`} style={{ color: 'var(--c-green2)', fontSize: 13 }}>Hồ sơ bệnh nhân</Link>
+          <span style={{ color: 'var(--c-border2)' }}>/</span>
           <span style={{ fontFamily: 'var(--f-mono)', fontSize: 13, color: 'var(--c-muted)' }}>#{plan.id.slice(0, 8)}</span>
         </div>
         <div className="topbar-actions">
@@ -231,8 +212,8 @@ export default function MealPlanReviewPage() {
               <button
                 className="btn btn-primary"
                 onClick={() => setShowApproveDialog(true)}
-                disabled={saving || recomputingItem !== null || p0Findings.length > 0}
-                title={p0Findings.length > 0 ? 'Không thể duyệt khi còn cảnh báo P0' : ''}
+                disabled={saving || hardViolations.length > 0}
+                title={hardViolations.length > 0 ? 'Không thể duyệt khi còn vi phạm cứng' : ''}
               >
                 ✓ Duyệt thực đơn
               </button>
@@ -249,6 +230,22 @@ export default function MealPlanReviewPage() {
       <div className="page-body" style={{ display: 'grid', gridTemplateColumns: '1fr 340px', gap: 24, alignItems: 'start' }}>
         {/* Left — meal plan */}
         <div style={{ display: 'grid', gap: 20 }}>
+          <section className="card" style={{ padding: '16px 18px' }} aria-label="Quy trình duyệt thực đơn">
+            <div className="review-progress-grid">
+              {[
+                ['01', 'Đã sinh', 'Món và định lượng'],
+                ['02', 'Đã kiểm định', hardViolations.length ? 'Cần xử lý' : 'Đạt kiểm tra cứng'],
+                ['03', 'Chuyên gia duyệt', plan.status === 'pending_review' ? 'Đang chờ' : plan.status],
+                ['04', 'Bệnh nhân nhận', plan.status === 'approved' ? 'Đã sẵn sàng' : 'Sau khi duyệt'],
+              ].map(([step, label, detail]) => (
+                <div key={step} style={{ padding: '10px 12px', borderRadius: 11, background: 'var(--c-surface)', border: '1px solid var(--c-border)' }}>
+                  <div className="page-kicker" style={{ marginBottom: 3 }}>{step}</div>
+                  <div style={{ fontSize: 12, fontWeight: 700 }}>{label}</div>
+                  <div style={{ fontSize: 10, color: 'var(--c-muted)', marginTop: 3 }}>{detail}</div>
+                </div>
+              ))}
+            </div>
+          </section>
           {/* Safety strip */}
           {hardViolations.length > 0 && (
             <div className="safety-strip safety-strip-error">
@@ -270,6 +267,8 @@ export default function MealPlanReviewPage() {
           {(['breakfast', 'lunch', 'dinner', 'snack'] as const).map(slot => {
             const items = bySlot[slot]
             if (!items?.length) return null
+            const dishItems = items.filter(item => item.dish_id)
+            const supplementItems = items.filter(item => !item.dish_id)
             return (
               <div key={slot} className="card">
                 <div className="card-header">
@@ -278,49 +277,52 @@ export default function MealPlanReviewPage() {
                     <div className="slot-time">{SLOT_TIMES[slot]}</div>
                   </div>
                   <div style={{ textAlign: 'right', fontSize: 12, color: 'var(--c-muted)' }}>
-                    {items.length} món
+                    {dishItems.length} món
                   </div>
                 </div>
                 <div className="card-body" style={{ padding: '12px 24px' }}>
-                  {items.map(item => (
-                    <div key={item.id} className="food-row">
+                  {dishItems.map(item => (
+                    <div key={item.id} className="dish-row">
                       <div className="dish-summary">
-                        <div className="food-name">{item.name_vi}</div>
-                        <div style={{ marginTop: 4 }}>
+                        <div className="dish-name">{item.name_vi}</div>
+                        <div className="dish-meta">
+                          <span>Món ăn trong thực đơn</span>
                           <SourcePopover item={item} />
                         </div>
                         {item.ingredients.length > 0 && (
                           <details className="ingredient-details">
-                            <summary>Thành phần · {item.ingredients.length} nguyên liệu</summary>
+                            <summary>Dữ liệu tính khẩu phần · {item.ingredients.length} thành phần</summary>
                             <div className="ingredient-list">
                               {item.ingredients.map(ingredient => (
                                 <div key={ingredient.food_id} className="ingredient-line">
                                   <span>{ingredient.name_vi}</span>
                                   <span>{ingredient.grams} g</span>
-                                </div>
-                              ))}
+                      </div>
+                    ))}
+                  {supplementItems.length > 0 && (
+                    <details className="ingredient-details">
+                      <summary>Dữ liệu cân bằng dinh dưỡng · {supplementItems.length} thực phẩm</summary>
+                      <div className="ingredient-list">
+                        {supplementItems.map(item => (
+                          <div key={item.id} className="ingredient-row">
+                            <span>{item.name_vi}</span>
+                            <span>{item.grams} g</span>
+                          </div>
+                        ))}
+                      </div>
+                    </details>
+                  )}
                             </div>
                           </details>
                         )}
                       </div>
                       {/* Gram editor */}
-                      {plan.status === 'pending_review' ? (
-                        <input
-                          type="number"
-                          className="form-input"
-                          style={{ width: 80, minHeight: 32, padding: '0 8px', fontSize: 13 }}
-                          value={gramEdits[item.id] ?? item.grams}
-                          min={1} max={2000} step={5}
-                          onChange={e => setGramEdits(prev => ({
-                            ...prev,
-                            [item.id]: Number(e.target.value)
-                          }))}
-                          onBlur={() => handleFastRecompute(item.id)}
-                          disabled={recomputingItem === item.id}
-                        />
-                      ) : (
-                        <span className="food-grams">{item.grams} g</span>
-                      )}
+                      <div className="dish-portion">
+                        <span style={{ display: 'block', fontFamily: 'var(--f-sans)', fontSize: 10, color: 'var(--c-muted)', marginBottom: 5 }}>Khẩu phần</span>
+                        {plan.status === 'pending_review' ? (
+                          <input type="number" className="form-input" aria-label={`Khẩu phần ${item.name_vi}`} style={{ width: 84, minHeight: 34, padding: '0 8px', fontSize: 13 }} value={gramEdits[item.id] ?? item.grams} min={1} max={2000} step={5} onChange={e => setGramEdits(prev => ({ ...prev, [item.id]: Number(e.target.value) }))} />
+                        ) : <span>{item.grams} g</span>}
+                      </div>
                     </div>
                   ))}
                 </div>
@@ -329,24 +331,6 @@ export default function MealPlanReviewPage() {
           })}
 
           {/* Violations */}
-          {plan.safety_findings.length > 0 && (
-            <div className="card">
-              <div className="card-header">
-                <h2 className="card-title">Safety findings P0/P1/P2</h2>
-              </div>
-              <div className="card-body" style={{ display: 'grid', gap: 10 }}>
-                {plan.safety_findings.map((finding, index) => (
-                  <div key={`${finding.code}-${index}`} style={{ padding: '10px 12px', border: '1px solid var(--c-border)', borderRadius: 8 }}>
-                    <span className={`badge badge-${finding.risk_level === 'P0' ? 'hard' : 'soft'}`}>
-                      {finding.risk_level}
-                    </span>
-                    <span style={{ marginLeft: 8, fontSize: 13 }}>{finding.message_vi}</span>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-
           {plan.violations.length > 0 && (
             <div className="card">
               <div className="card-header">
@@ -460,13 +444,8 @@ export default function MealPlanReviewPage() {
             <p style={{ color: 'var(--c-muted)', fontSize: 14, marginTop: 8, marginBottom: 20 }}>
               Sau khi duyệt, thực đơn sẽ hiển thị cho bệnh nhân. Các chỉnh sửa gram sẽ được tính lại dinh dưỡng trên server.
             </p>
-            {p1Findings.length > 0 && (
-              <div className="safety-strip" style={{ marginBottom: 16 }}>
-                Có {p1Findings.length} cảnh báo P1; bắt buộc ghi rõ lý do override.
-              </div>
-            )}
             <div className="form-group" style={{ marginBottom: 20 }}>
-              <label className="form-label" htmlFor="approve-notes">Ghi chú chuyên gia <span style={{ fontWeight: 400, color: 'var(--c-muted)' }}>({p1Findings.length > 0 ? 'bắt buộc cho P1' : 'không bắt buộc'})</span></label>
+              <label className="form-label" htmlFor="approve-notes">Ghi chú chuyên gia <span style={{ fontWeight: 400, color: 'var(--c-muted)' }}>(không bắt buộc)</span></label>
               <textarea
                 id="approve-notes"
                 className="form-textarea"
@@ -478,7 +457,7 @@ export default function MealPlanReviewPage() {
             </div>
             <div style={{ display: 'flex', gap: 10, justifyContent: 'flex-end' }}>
               <button className="btn btn-secondary" onClick={() => setShowApproveDialog(false)}>Hủy</button>
-              <button className="btn btn-primary" onClick={handleApprove} disabled={saving || (p1Findings.length > 0 && !notes.trim())}>
+              <button className="btn btn-primary" onClick={handleApprove} disabled={saving}>
                 {saving ? <><span className="spinner" style={{ width: 14, height: 14 }} /> Đang duyệt...</> : '✓ Xác nhận duyệt'}
               </button>
             </div>

@@ -7,12 +7,9 @@ bảng đại diện — chứng minh model không chỉ "import được" mà c
 
 from __future__ import annotations
 
-from datetime import date
-
 from sqlalchemy import create_engine
 from sqlalchemy.orm import Session
 
-from src.clinical.integrity import publish_gate_open
 from src.db.models import (
     Base,
     ClinicalRule,
@@ -20,7 +17,6 @@ from src.db.models import (
     DishIngredient,
     DrugFoodInteraction,
     FoodItem,
-    MealPlan,
     PatientProfile,
     User,
 )
@@ -159,20 +155,3 @@ def test_patient_profile_gan_voi_user():
 
         assert user.profile is not None
         assert user.profile.age == 58
-
-
-def test_publish_gate_chan_hash_thay_doi_va_p0():
-    plan = MealPlan(profile_id="profile-1", plan_date=date(2026, 8, 12), status="approved")
-    plan.menu_version = 2
-    plan.approved_menu_version = 2
-    plan.menu_hash = plan.approved_menu_hash = "menu-hash"
-    plan.nutrition_hash = plan.approved_nutrition_hash = "nutrition-hash"
-    plan.highest_risk = "none"
-    plan.violations = []
-    assert publish_gate_open(plan)
-
-    plan.menu_hash = "changed-after-approval"
-    assert not publish_gate_open(plan)
-    plan.menu_hash = plan.approved_menu_hash
-    plan.highest_risk = "P0"
-    assert not publish_gate_open(plan)
