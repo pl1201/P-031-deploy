@@ -4,6 +4,7 @@ import { useParams, useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { createApiClient, type MealPlan, type MealPlanItem, ApiError } from '@/lib/api'
 import { getToken } from '@/lib/auth'
+import { notifyReviewQueueChanged } from '@/lib/review-queue'
 
 const SLOT_LABELS: Record<string, string> = {
   breakfast: 'Bữa sáng',
@@ -18,10 +19,15 @@ const SLOT_TIMES: Record<string, string> = {
   snack: '15:00',
 }
 
+function isFiniteNumber(value: unknown): value is number {
+  return typeof value === 'number' && Number.isFinite(value)
+}
+
 function NutritionBar({ label, value, max, unit, colorClass }: {
-  label: string; value: number; max?: number; unit: string; colorClass: string
+  label: string; value: number | null | undefined; max?: number; unit: string; colorClass: string
 }) {
-  const pct = max ? Math.min((value / max) * 100, 120) : 0
+  const hasValue = isFiniteNumber(value)
+  const pct = hasValue && max ? Math.min((value / max) * 100, 120) : 0
   const over = pct > 100
   return (
     <div className="nutrition-bar-row">
@@ -33,7 +39,7 @@ function NutritionBar({ label, value, max, unit, colorClass }: {
         />
       </div>
       <span className="nutrition-bar-val" style={{ color: over ? 'var(--c-red)' : undefined }}>
-        {value.toFixed(0)} <span style={{ fontWeight: 400, color: 'var(--c-muted)', fontSize: 10 }}>{unit}</span>
+        {hasValue ? value.toFixed(0) : '—'} <span style={{ fontWeight: 400, color: 'var(--c-muted)', fontSize: 10 }}>{hasValue ? unit : ''}</span>
       </span>
     </div>
   )
@@ -134,6 +140,7 @@ export default function MealPlanReviewPage() {
         .map(([item_id, grams]) => ({ item_id, grams }))
 
       await createApiClient(token).approveMealPlan(plan.id, edits.length ? edits : undefined, notes || undefined)
+      notifyReviewQueueChanged()
       showToast(`Đã duyệt thực đơn #${plan.id.slice(0, 8)}`)
       setShowApproveDialog(false)
       setTimeout(() => router.push('/dietitian'), 1500)
@@ -154,6 +161,7 @@ export default function MealPlanReviewPage() {
     setSaving(true)
     try {
       await createApiClient(token).rejectMealPlan(plan.id, rejectReason)
+      notifyReviewQueueChanged()
       showToast('Đã từ chối thực đơn')
       setShowRejectDialog(false)
       setTimeout(() => router.push('/dietitian'), 1500)
@@ -164,12 +172,26 @@ export default function MealPlanReviewPage() {
     }
   }
 
-  const hardViolations = plan?.violations.filter(v => v.severity === 'hard') ?? []
-  const softViolations = plan?.violations.filter(v => v.severity === 'soft') ?? []
+  const hardViolations = plan?.violations?.filter(v => v.severity === 'hard') ?? []
+  const softViolations = plan?.violations?.filter(v => v.severity === 'soft') ?? []
   const nutrition = plan?.computed_nutrition
+  const hasNutrition = Boolean(nutrition && isFiniteNumber(nutrition.kcal))
+  // `can_approve` là phán quyết của server (P0 hoặc thiếu dinh dưỡng đã tính).
+  // Cổng phát hành ở backend chặn theo nó; nếu UI chỉ xét `violations` cứng thì
+  // một bản nháp bị chặn vì safety finding P0 vẫn hiện nút Duyệt và luôn nhận 422.
+  const packetCanApprove = plan?.review_packet?.can_approve
+  const p0Findings = plan?.safety_findings?.filter(f => f.risk_level === 'P0') ?? []
+  const gateReasons = [
+    ...(plan?.review_packet?.target_gate_reasons ?? []),
+    ...p0Findings.map(f => f.message_vi),
+    ...(plan && !plan.menu_hash_ready ? ['Thiếu mã kiểm tra thực đơn do server tính (menu hash).'] : []),
+    ...(plan && !plan.nutrition_hash_ready ? ['Thiếu mã kiểm tra dinh dưỡng do server tính (nutrition hash).'] : []),
+  ]
+  const isReviewable = plan?.status === 'pending_review' || plan?.status === 'manual_review_required'
+  const canApprove = isReviewable && hardViolations.length === 0 && packetCanApprove !== false
 
   // Group items by slot
-  const bySlot = plan?.items.reduce<Record<string, MealPlanItem[]>>((acc, item) => {
+  const bySlot = plan?.items?.reduce<Record<string, MealPlanItem[]>>((acc, item) => {
     ;(acc[item.slot] ??= []).push(item)
     return acc
   }, {}) ?? {}
@@ -200,7 +222,7 @@ export default function MealPlanReviewPage() {
           <span style={{ fontFamily: 'var(--f-mono)', fontSize: 13, color: 'var(--c-muted)' }}>#{plan.id.slice(0, 8)}</span>
         </div>
         <div className="topbar-actions">
-          {plan.status === 'pending_review' && (
+          {isReviewable && (
             <>
               <button
                 className="btn btn-secondary"
@@ -212,14 +234,14 @@ export default function MealPlanReviewPage() {
               <button
                 className="btn btn-primary"
                 onClick={() => setShowApproveDialog(true)}
-                disabled={saving || hardViolations.length > 0}
-                title={hardViolations.length > 0 ? 'Không thể duyệt khi còn vi phạm cứng' : ''}
+                disabled={saving || !canApprove}
+                title={hardViolations.length > 0 ? 'Không thể duyệt khi còn vi phạm cứng' : canApprove ? '' : 'Cổng an toàn của server đang chặn bản nháp này'}
               >
                 ✓ Duyệt thực đơn
               </button>
             </>
           )}
-          {plan.status !== 'pending_review' && (
+          {!isReviewable && (
             <span className={`badge badge-${plan.status}`} style={{ fontSize: 13, padding: '6px 12px' }}>
               {plan.status === 'approved' ? '✓ Đã duyệt' : plan.status === 'rejected' ? '✕ Đã từ chối' : plan.status}
             </span>
@@ -235,7 +257,7 @@ export default function MealPlanReviewPage() {
               {[
                 ['01', 'Đã sinh', 'Món và định lượng'],
                 ['02', 'Đã kiểm định', hardViolations.length ? 'Cần xử lý' : 'Đạt kiểm tra cứng'],
-                ['03', 'Chuyên gia duyệt', plan.status === 'pending_review' ? 'Đang chờ' : plan.status],
+                ['03', 'Chuyên gia duyệt', plan.status === 'pending_review' ? 'Đang chờ' : plan.status === 'manual_review_required' ? 'Cần xử lý trước' : plan.status],
                 ['04', 'Bệnh nhân nhận', plan.status === 'approved' ? 'Đã sẵn sàng' : 'Sau khi duyệt'],
               ].map(([step, label, detail]) => (
                 <div key={step} style={{ padding: '10px 12px', borderRadius: 11, background: 'var(--c-surface)', border: '1px solid var(--c-border)' }}>
@@ -253,13 +275,73 @@ export default function MealPlanReviewPage() {
               — Không thể duyệt cho đến khi xử lý xong.
             </div>
           )}
-          {hardViolations.length === 0 && (
+          {plan.status === 'manual_review_required' && (
+            <div className="safety-strip safety-strip-error">
+              <span style={{ fontWeight: 700, marginRight: 4 }}>⚠ Bản nháp bị chặn ở cổng an toàn</span>
+              — chỉ đọc được. Sửa gram và duyệt đều bị khoá; hãy từ chối kèm lý do rồi sinh lại.
+            </div>
+          )}
+          {hardViolations.length === 0 && packetCanApprove === false && (
+            <div className="safety-strip safety-strip-error">
+              <div>
+                <span style={{ fontWeight: 700 }}>⚠ Cổng an toàn đang chặn bản nháp này</span>
+                {gateReasons.length > 0 && (
+                  <ul style={{ margin: '6px 0 0 18px', listStyle: 'disc', fontWeight: 400 }}>
+                    {gateReasons.map(reason => <li key={reason}>{reason}</li>)}
+                  </ul>
+                )}
+                {gateReasons.length === 0 && <span> — server chưa cho phép duyệt; xem phần phát hiện an toàn bên dưới.</span>}
+              </div>
+            </div>
+          )}
+          {hardViolations.length === 0 && packetCanApprove !== false && (
             <div className="safety-strip safety-strip-ok">
               <span>✓</span>
               <span>
                 <strong>Không có vi phạm cứng</strong>
                 {softViolations.length > 0 && ` · ${softViolations.length} cảnh báo mềm cần lưu ý`}
               </span>
+            </div>
+          )}
+
+          {/* Safety findings — khác `violations`: đây là phát hiện an toàn theo
+              mức rủi ro P0/P1/P2, và là thứ chặn cổng phát hành ở backend. */}
+          {(plan.safety_findings?.length ?? 0) > 0 && (
+            <div className="card">
+              <div className="card-header">
+                <h2 className="card-title">Phát hiện an toàn</h2>
+                <span style={{ fontSize: 11, color: 'var(--c-muted)' }}>Rủi ro cao nhất: {plan.highest_risk}</span>
+              </div>
+              <div className="card-body" style={{ display: 'grid', gap: 10 }}>
+                {plan.safety_findings.map((finding, index) => (
+                  <div key={`${finding.code}-${index}`} style={{
+                    padding: '12px 16px',
+                    borderRadius: 'var(--r-md)',
+                    background: finding.risk_level === 'P0' ? '#fde8e8' : '#fef5e4',
+                    border: `1px solid ${finding.risk_level === 'P0' ? '#f5c6c6' : '#f5dfa0'}`,
+                  }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
+                      <span className={`badge badge-${finding.risk_level === 'P0' ? 'hard' : 'soft'}`}>{finding.risk_level}</span>
+                      <span style={{ fontWeight: 600, fontSize: 13 }}>{finding.message_vi}</span>
+                    </div>
+                    {finding.suggestion && (
+                      <div style={{ fontSize: 12, color: 'var(--c-muted)', marginTop: 4 }}>💡 {finding.suggestion}</div>
+                    )}
+                    {finding.evidence_refs.length > 0 && (
+                      <div style={{ fontSize: 11, color: 'var(--c-muted)', marginTop: 4 }}>Nguồn: {finding.evidence_refs.join(' · ')}</div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {plan.items.length === 0 && (
+            <div className="card">
+              <div className="card-body" style={{ fontSize: 13, color: 'var(--c-muted)' }}>
+                Bản nháp này chưa có món nào — quy trình đã dừng ở cổng an toàn trước bước chọn món. Toàn bộ mục tiêu,
+                phát hiện an toàn và trích dẫn vẫn được lưu ở đây để chuyên gia tra soát.
+              </div>
             </div>
           )}
 
@@ -363,7 +445,7 @@ export default function MealPlanReviewPage() {
         {/* Right — sidebar */}
         <div style={{ display: 'grid', gap: 20, position: 'sticky', top: 80 }}>
           {/* Nutrition summary */}
-          {nutrition && (
+          {hasNutrition && nutrition && (
             <div className="card">
               <div className="card-header">
                 <h2 className="card-title">Dinh dưỡng tổng</h2>
@@ -396,6 +478,17 @@ export default function MealPlanReviewPage() {
                     ⚠ Có món dùng dữ liệu ước tính
                   </div>
                 )}
+              </div>
+            </div>
+          )}
+
+          {!hasNutrition && (
+            <div className="card">
+              <div className="card-header"><h2 className="card-title">Dinh dưỡng tổng</h2></div>
+              <div className="card-body">
+                <div className="safety-strip safety-strip-warning">
+                  Chưa có kết quả dinh dưỡng hoàn chỉnh từ server. Không thể kết luận hoặc phê duyệt dựa trên dữ liệu này.
+                </div>
               </div>
             </div>
           )}

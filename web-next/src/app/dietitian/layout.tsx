@@ -5,6 +5,7 @@ import { usePathname, useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { createApiClient } from '@/lib/api'
 import { clearSession, getSession, getToken } from '@/lib/auth'
+import { REVIEW_QUEUE_CHANGED_EVENT, type ReviewQueueChangedDetail } from '@/lib/review-queue'
 import { LeafMark } from '@/components/brand-artwork'
 
 type IconName='overview'|'patient'|'calendar'|'sparkles'|'database'|'shield'|'account'|'logout'|'menu'
@@ -36,7 +37,15 @@ const NAV=[
 
 export default function DietitianLayout({children}:{children:React.ReactNode}){
   const router=useRouter();const pathname=usePathname();const [pending,setPending]=useState<number|null>(null);const [open,setOpen]=useState(false)
-  useEffect(()=>{const session=getSession();if(!session||(session.role!=='dietitian'&&session.role!=='admin')){router.replace('/login');return}const token=getToken();if(token)void createApiClient(token).listPendingReviews().then(rows=>setPending(rows.length)).catch(()=>setPending(null))},[router])
+  useEffect(()=>{
+    const session=getSession()
+    if(!session||(session.role!=='dietitian'&&session.role!=='admin')){router.replace('/login');return}
+    const refresh=()=>{const token=getToken();if(token)void createApiClient(token).listPendingReviews().then(rows=>setPending(rows.length)).catch(()=>setPending(null))}
+    const sync=(event:Event)=>{const count=(event as CustomEvent<ReviewQueueChangedDetail>).detail?.count;if(typeof count==='number')setPending(count);else refresh()}
+    refresh()
+    window.addEventListener(REVIEW_QUEUE_CHANGED_EVENT,sync)
+    return()=>window.removeEventListener(REVIEW_QUEUE_CHANGED_EVENT,sync)
+  },[router])
   const logout=()=>{clearSession();router.push('/login')}
   return <div className="app-shell clinical-shell">
     <aside className={`sidebar clinical-sidebar${open?' open':''}`}>

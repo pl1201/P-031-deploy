@@ -4,10 +4,15 @@ import { useEffect, useMemo, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { ApiError, createApiClient, type MealPlan, type MealPlanItem, type PatientProfile, type ReplacementCandidate } from '@/lib/api'
 import { getToken } from '@/lib/auth'
+import { notifyReviewQueueChanged } from '@/lib/review-queue'
 import styles from './page.module.css'
 
 const SLOT_LABEL: Record<string,string>={breakfast:'Bữa sáng',lunch:'Bữa trưa',dinner:'Bữa tối',snack:'Bữa phụ'}
 const CHECKS=[['energy','Năng lượng'],['carb','Carbohydrate'],['distribution','Phân bổ bữa ăn'],['gi','GI/GL'],['allergy','Dị ứng']]
+// Poll ngay lần đầu rồi giãn dần: đường happy path (CP-SAT, không gọi LLM) xong
+// dưới 1 giây, nên `sleep(2000)` trước request đầu tiên là 2 giây chờ vô cớ.
+const POLL_DELAYS_MS=[0,200,400,800,1200,1800]
+const POLL_ATTEMPTS=40
 
 function Icon({name}:{name:string}){
   const paths:Record<string,React.ReactNode>={calendar:<><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M8 3v4M16 3v4M3 10h18"/></>,sparkle:<><path d="m12 2 1.4 5.6L19 9l-5.6 1.4L12 16l-1.4-5.6L5 9l5.6-1.4zM19 16l.7 2.3L22 19l-2.3.7L19 22l-.7-2.3L16 19l2.3-.7z"/></>,sun:<><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/><circle cx="12" cy="12" r="4"/></>,moon:<><path d="M20 15.5A8.5 8.5 0 0 1 8.5 4 8.5 8.5 0 1 0 20 15.5Z"/></>,check:<path d="m5 12 4 4L19 6"/>,warn:<><path d="M12 3 2 21h20zM12 9v5M12 18h.01"/></>,info:<><circle cx="12" cy="12" r="9"/><path d="M12 11v6M12 7h.01"/></>,edit:<><path d="m4 20 4.5-1L19 8.5 15.5 5 5 15.5zM13.5 7l3.5 3.5M4 20h16"/></>,save:<><path d="M5 3h12l2 2v16H5zM8 3v6h8V3M8 21v-7h8v7"/></>,refresh:<><path d="M20 7v5h-5M4 17v-5h5M18.5 9A7 7 0 0 0 6 6.5L4 12M5.5 15A7 7 0 0 0 18 17.5l2-5.5"/></>}
@@ -22,29 +27,45 @@ export default function NewMealPlanPage(){
   const [loading,setLoading]=useState(true)
   const [generating,setGenerating]=useState(false)
   const [error,setError]=useState('')
+  const [notice,setNotice]=useState('')
   const [plan,setPlan]=useState<MealPlan|null>(null)
+  // Giữ riêng planId: bản nháp LUÔN được lưu ở backend kể cả khi poll hết thời
+  // gian chờ hoặc trạng thái không phải chờ duyệt. Không có nó thì mọi nhánh
+  // kết thúc ngoài happy path đều là ngõ cụt, người dùng mất dấu bản nháp.
+  const [planId,setPlanId]=useState('')
   const [swapItem,setSwapItem]=useState<MealPlanItem|null>(null)
   const [candidates,setCandidates]=useState<ReplacementCandidate[]>([])
   const [swapping,setSwapping]=useState(false)
   const selected=useMemo(()=>patients.find(item=>item.id===patientId),[patientId,patients])
   const grouped=useMemo(()=>plan?.items.reduce<Record<string,MealPlanItem[]>>((acc,item)=>{(acc[item.slot]??=[]).push(item);return acc},{})??{},[plan])
 
-  useEffect(()=>{const token=getToken();if(!token)return;createApiClient(token).listPatients(1,100).then(result=>{setPatients(result.items);const requested=new URLSearchParams(window.location.search).get('patient_id');setPatientId(result.items.some(item=>item.id===requested)?requested!:result.items[0]?.id??'')}).catch(value=>setError(value instanceof Error?value.message:'Không thể tải hồ sơ.')).finally(()=>setLoading(false))},[])
+  useEffect(()=>{const token=getToken();if(!token){router.replace('/login');return}createApiClient(token).listPatients(1,100).then(result=>{setPatients(result.items);const requested=new URLSearchParams(window.location.search).get('patient_id');setPatientId(result.items.some(item=>item.id===requested)?requested!:result.items[0]?.id??'')}).catch(value=>setError(value instanceof Error?value.message:'Không thể tải hồ sơ.')).finally(()=>setLoading(false))},[router])
 
   const generate=async()=>{
     const token=getToken();if(!token||!patientId)return
-    setGenerating(true);setError('');setPlan(null)
+    setGenerating(true);setError('');setNotice('');setPlan(null);setPlanId('')
     try{
-      const result=await createApiClient(token).createMealPlan(patientId,date)
-      for(let attempt=0;attempt<30;attempt+=1){
-        await new Promise(resolve=>setTimeout(resolve,2000))
-        const current=await createApiClient(token).getMealPlan(result.plan_id)
-        if(current.status==='pending_review'){setPlan(current);setGenerating(false);return}
-        if(current.status==='failed'||current.status==='rejected')throw new Error('Hệ thống không thể tạo bản nháp an toàn cho cấu hình này.')
+      const api=createApiClient(token)
+      const result=await api.createMealPlan(patientId,date)
+      setPlanId(result.plan_id)
+      for(let attempt=0;attempt<POLL_ATTEMPTS;attempt+=1){
+        const wait=POLL_DELAYS_MS[Math.min(attempt,POLL_DELAYS_MS.length-1)]
+        if(wait)await new Promise(resolve=>setTimeout(resolve,wait))
+        const current=await api.getMealPlan(result.plan_id)
+        if(current.status==='drafting')continue
+        setGenerating(false)
+        if(current.status==='failed'||current.status==='rejected'){setError('Hệ thống không thể tạo bản nháp an toàn cho cấu hình này. Mở bản nháp để xem phần đã ghi lại.');return}
+        setPlan(current)
+        if(current.status==='pending_review')notifyReviewQueueChanged()
+        if(current.status==='manual_review_required')setNotice('Bản nháp bị chặn ở cổng an toàn và cần chuyên gia xử lý trước khi duyệt.')
+        else if(current.review_packet?.can_approve===false)setNotice('Bản nháp đã lưu nhưng chưa đủ điều kiện duyệt — xem phần lý do bên dưới.')
+        return
       }
-      throw new Error('Quá thời gian chờ. Bản nháp vẫn được lưu và có thể xuất hiện trong hàng chờ sau.')
+      throw new Error('Quá thời gian chờ phản hồi. Bản nháp vẫn được lưu — mở bản nháp để theo dõi trạng thái.')
     }catch(value){setError(value instanceof ApiError?value.message:value instanceof Error?value.message:'Không thể sinh thực đơn.');setGenerating(false)}
   }
+
+  const blockedReasons=plan?[...(plan.review_packet?.target_gate_reasons??[]),...plan.safety_findings.filter(finding=>finding.risk_level==='P0').map(finding=>finding.message_vi)]:[]
 
   const target=(key:string)=>{const item=plan?.targets?.targets?.[key];return item?.max_value??item?.min_value??null}
   const kcal=plan?.computed_nutrition?.kcal
@@ -69,10 +90,11 @@ export default function NewMealPlanPage(){
       </div>
 
       <div className={styles.centerCol}>
-        <section className={styles.card}><header><h2>Thiết lập &amp; sinh thực đơn</h2></header><div className={styles.config}><div className={styles.controls}><label>Ngày áp dụng<div><Icon name="calendar"/><input type="date" value={date} onChange={e=>{setDate(e.target.value);setPlan(null)}}/></div></label><label>Số bữa<select value="3+1" disabled><option>3 bữa chính + 1 bữa phụ</option></select></label><label>Ưu tiên món<select value={selected?.region??'vn'} disabled><option value="vn">Món Việt Nam</option><option value="north">Miền Bắc</option><option value="central">Miền Trung</option><option value="south">Miền Nam</option></select></label></div><button className={styles.generate} onClick={generate} disabled={!patientId||generating||Boolean(plan)}><Icon name="sparkle"/>{generating?'Đang sinh và kiểm tra…':plan?'Đã sinh bản nháp':'Sinh thực đơn bằng AI'}</button><p className={styles.note}><Icon name="info"/>AI chỉ chọn món và gram — số dinh dưỡng do hệ thống tính từ dữ liệu có nguồn.</p>{error&&<div className={styles.error} role="alert">{error}</div>}</div></section>
+        <section className={styles.card}><header><h2>Thiết lập &amp; sinh thực đơn</h2></header><div className={styles.config}><div className={styles.controls}><label>Ngày áp dụng<div><Icon name="calendar"/><input type="date" value={date} onChange={e=>{setDate(e.target.value);setPlan(null)}}/></div></label><label>Số bữa<select value="3+1" disabled><option>3 bữa chính + 1 bữa phụ</option></select></label><label>Ưu tiên món<select value={selected?.region??'vn'} disabled><option value="vn">Món Việt Nam</option><option value="north">Miền Bắc</option><option value="central">Miền Trung</option><option value="south">Miền Nam</option></select></label></div><button className={styles.generate} onClick={generate} disabled={!patientId||generating||Boolean(plan)}><Icon name="sparkle"/>{generating?'Đang sinh và kiểm tra…':plan?'Đã sinh bản nháp':'Sinh thực đơn bằng AI'}</button><p className={styles.note}><Icon name="info"/>AI chỉ chọn món và gram — số dinh dưỡng do hệ thống tính từ dữ liệu có nguồn.</p>{error&&<div className={styles.error} role="alert">{error}{planId&&<> · <button type="button" className={styles.inlineLink} onClick={()=>router.push(`/dietitian/reviews/${planId}`)}>Mở bản nháp #{planId.slice(0,8).toUpperCase()}</button></>}</div>}{notice&&<div className={styles.error} role="status">{notice}</div>}</div></section>
         <section className={styles.card}><header><h2>{plan?`Bản nháp #${plan.id.slice(0,8).toUpperCase()}`:'Bản nháp thực đơn'}</h2></header><div className={styles.draft}>
           {!plan&&!generating&&<div className={styles.empty}>Chọn hồ sơ và nhấn “Sinh thực đơn bằng AI” để tạo bản nháp thật.</div>}
           {generating&&<div className={styles.empty}><span className="spinner"/> Hệ thống đang chọn món, tính dinh dưỡng và kiểm tra an toàn…</div>}
+          {plan&&!plan.items.length&&<div className={styles.error} role="status">{blockedReasons.length?<>Cổng an toàn đã chặn trước khi chọn món:<ul className={styles.reasonList}>{blockedReasons.map(reason=><li key={reason}>{reason}</li>)}</ul></>:'Bản nháp được lưu nhưng chưa có món nào. Mở màn hình duyệt để xem toàn bộ dữ liệu đã ghi.'}</div>}
           {plan&&['breakfast','lunch','dinner','snack'].map(slot=>(grouped[slot]??[]).map((item,index)=><div className={styles.meal} key={item.id}><span className={styles.mealIcon}><Icon name={slot==='snack'?'moon':'sun'}/></span><small>{index===0?SLOT_LABEL[slot]:''}</small><strong>{item.name_vi}</strong><b>{Math.round(item.grams)} g</b><span className={styles.edit}><Icon name="edit"/></span><span className={styles.carbCell}/><button onClick={()=>openSwap(item)}>Đổi món</button></div>))}
         </div></section>
       </div>
@@ -82,7 +104,7 @@ export default function NewMealPlanPage(){
         </div></section></aside>
     </div>
 
-    <footer className={styles.actionBar}><span className={styles.gate}><Icon name="warn"/>Chưa phát hành cho người bệnh</span><button className={styles.primary} disabled={!plan} onClick={()=>plan&&router.push(`/dietitian/reviews/${plan.id}`)}>Mở màn hình duyệt <b>›</b></button></footer>
+    <footer className={styles.actionBar}><span className={styles.gate}><Icon name="warn"/>Chưa phát hành cho người bệnh</span><button className={styles.primary} disabled={!planId||generating} onClick={()=>planId&&router.push(`/dietitian/reviews/${planId}`)}>{plan?'Mở màn hình duyệt':'Mở bản nháp đã lưu'} <b>›</b></button></footer>
     {swapItem&&<div className={styles.swapBackdrop} role="presentation" onMouseDown={()=>!swapping&&setSwapItem(null)}><section className={styles.swapPanel} role="dialog" aria-modal="true" aria-label="Đổi món" onMouseDown={event=>event.stopPropagation()}><header><div><small>Đổi món tại {SLOT_LABEL[swapItem.slot]}</small><h2>{swapItem.name_vi}</h2></div><button onClick={()=>setSwapItem(null)} aria-label="Đóng">×</button></header><p>Món thay thế được lấy từ cơ sở dữ liệu. Sau khi chọn, hệ thống sẽ tính lại toàn bộ dinh dưỡng và kiểm tra lâm sàng.</p><div className={styles.candidateList}>{!candidates.length?<div className={styles.empty}>Đang tải hoặc chưa có món phù hợp…</div>:candidates.map(candidate=><button key={candidate.dish_id} disabled={swapping} onClick={()=>replaceItem(candidate)}><span><strong>{candidate.name_vi}</strong><small>{candidate.region?`Miền ${candidate.region}`:'Phù hợp toàn quốc'}</small></span><b>{Math.round(candidate.serving_g)} g</b></button>)}</div></section></div>}
   </div>
 }
