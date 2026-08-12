@@ -343,15 +343,47 @@ class Severity(str, Enum):
 
 
 class Violation(BaseModel):
+    """Một vi phạm/cảnh báo. Dùng chung cho CẢ thực đơn lẫn nhật ký ăn uống.
+
+    Vì sao `actual`/`limit`/`unit` là optional (sửa 2026-08-08, BE-07):
+    có loại cảnh báo THẬT SỰ không có con số — "món này chưa tra được, không
+    tính vào tổng" (`unmatched_food`) hay "món này thường rất mặn"
+    (`qualitative_risk`). Trước đây 3 field này bắt buộc, nên muốn tạo cảnh báo
+    kiểu đó phải nhồi `actual=0.0` — và UI sẽ hiển thị "0 mg" y như một số đo
+    thật. Đó đúng là kiểu bịa số mà RULE-2/DEC-008 cấm. Để `None` thì UI buộc
+    phải render "—", không thể vô tình biến thành số.
+
+    Mọi call-site cũ đều truyền đủ 3 field nên không có gì vỡ.
+    """
+
     nutrient: str
-    actual: float
-    limit: float
-    unit: str
-    kind: Literal["over", "under", "allergy", "drug_food", "incomplete_data"]
+    actual: float | None = None
+    limit: float | None = None
+    unit: str | None = None
+    kind: Literal[
+        "over",
+        "under",
+        "allergy",
+        "drug_food",
+        "incomplete_data",
+        # Nhật ký ăn uống (BE-07):
+        "unmatched_food",  # món bệnh nhân gõ tự do, chưa tra được → KHÔNG có số
+        "qualitative_risk",  # cảnh báo định tính theo từ khoá, không có số
+        "adherence",  # không ghi nhật ký / không theo thực đơn đã duyệt
+    ]
     severity: Severity
     message_vi: str
     suggestion: str | None = None
     rule_id: str | None = None
+
+    # RULE-2 cho cảnh báo có nguồn (VD tương tác thuốc-thực phẩm phải dẫn được
+    # Dược thư/guideline). Không có nguồn thì để None chứ không bịa.
+    source_ref: str | None = None
+    # Căn cứ máy đã khớp (từ khoá, tên thuốc…) — để chuyên gia soi được cảnh báo
+    # sai mà không phải đọc code.
+    evidence: str | None = None
+    # Trỏ ngược về dòng nhật ký gây ra cảnh báo, nếu có.
+    food_log_id: str | None = None
 
     @property
     def blocking(self) -> bool:

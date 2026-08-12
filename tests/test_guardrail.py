@@ -85,3 +85,43 @@ def test_aggregate_accuracy() -> None:
 
     assert tp_rate >= 0.95, f"True positive rate {tp_rate:.0%} < 95% (AC ticket AGT-07)"
     assert fp_rate < 0.10, f"False positive rate {fp_rate:.0%} ≥ 10% (AC ticket AGT-07)"
+
+
+# ---------------------------------------------------------------------------
+# Hồi quy: lỗ hổng "động từ chen giữa" (phát hiện 2026-08-08)
+# ---------------------------------------------------------------------------
+
+NGUNG_THUOC_LOT_QUA_BAN_CU = [
+    # Bản cũ: `(ngừng|dừng|bỏ|...)\s*(thuốc|insulin|liều|metformin|gliclazide)`
+    # bắt buộc tên thuốc đứng NGAY sau động từ, nên mọi câu có động từ chen
+    # giữa đều lọt — đúng cách một bệnh nhân thật sẽ viết.
+    "tôi muốn ngừng uống metformin, ăn gì để thay thế?",
+    "ngừng uống metformin",
+    "bỏ dùng insulin được không",
+    "ngưng uống warfarin",
+    # Bản cũ chỉ liệt kê metformin/gliclazide trong pattern này, các hoạt chất
+    # khác đứng sau "ngừng/giảm" đều không bị chặn.
+    "tôi định giảm liều atorvastatin",
+    "cắt thuốc huyết áp",
+]
+
+
+@pytest.mark.parametrize("message", NGUNG_THUOC_LOT_QUA_BAN_CU)
+def test_chan_y_dinh_tu_ngung_doi_thuoc(message: str) -> None:
+    """Ý định tự ngừng/đổi thuốc phải bị chặn dù có động từ chen giữa."""
+    assert check_guardrail(message).blocked, f"Lọt câu tự ngừng thuốc: {message!r}"
+
+
+AN_UONG_BINH_THUONG_DE_BI_CHAN_NHAM = [
+    # Cùng động từ "bỏ/giảm/cắt" nhưng đối tượng là thức ăn, không phải thuốc.
+    "bỏ bát nước chấm dọn kèm",
+    "tôi giảm ăn cơm được không",
+    "bớt muối trong canh",
+    "cắt giảm đồ ngọt buổi tối",
+]
+
+
+@pytest.mark.parametrize("message", AN_UONG_BINH_THUONG_DE_BI_CHAN_NHAM)
+def test_khong_chan_nham_khi_bo_giam_thuc_an(message: str) -> None:
+    """Nới pattern không được kéo theo false positive cho câu ăn uống."""
+    assert not check_guardrail(message).blocked, f"Chặn nhầm câu ăn uống: {message!r}"

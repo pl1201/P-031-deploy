@@ -20,11 +20,15 @@ from src.agents.assembly import build_nutricare_graph
 from src.api.clinical_bridge import to_clinical_profile
 from src.api.security import CurrentUser, get_current_user
 from src.clinical.dishes import load_dish_food_repository
+from src.clinical.models import DishCandidate, MenuItem
 from src.clinical.models import PatientProfile as ClinicalPatientProfile
+from src.clinical.nutrition import InMemoryFoodRepository
 from src.clinical.seeds import load_food_repository
+from src.clinical.tiers import is_patient_facing_dish
 from src.config import get_settings
 from src.db.base import get_db, get_session_factory
 from src.db.models import Dish, DishIngredient, MealPlan, MealPlanItem
+from src.db.models import FoodItem as DbFoodItem
 from src.db.models import PatientProfile as DbPatientProfile
 
 logger = logging.getLogger(__name__)
@@ -92,6 +96,14 @@ class MealPlanOut(BaseModel):
     targets: dict
     computed_nutrition: dict
     violations: list[dict]
+    safety_findings: list[dict]
+    review_packet: dict
+    citations: list[dict]
+    explanation_vi: str | None
+    highest_risk: str
+    menu_version: int
+    menu_hash_ready: bool
+    nutrition_hash_ready: bool
     retry_count: int
     reviewer_id: str | None
     reviewer_notes: str | None
@@ -113,6 +125,14 @@ class MealPlanOut(BaseModel):
             targets=plan.targets or {},
             computed_nutrition=plan.computed_nutrition or {},
             violations=plan.violations or [],
+            safety_findings=plan.safety_findings or [],
+            review_packet=plan.review_packet or {},
+            citations=plan.citations or [],
+            explanation_vi=plan.explanation_vi,
+            highest_risk=plan.highest_risk or "none",
+            menu_version=plan.menu_version or 0,
+            menu_hash_ready=bool(plan.menu_hash),
+            nutrition_hash_ready=bool(plan.nutrition_hash),
             retry_count=plan.retry_count,
             reviewer_id=plan.reviewer_id,
             reviewer_notes=plan.reviewer_notes,
@@ -179,6 +199,35 @@ class _DbProfileRepository:
         return self._profile if patient_id == self._profile.patient_id else None
 
 
+def _load_db_dish_candidates(session: Session) -> list[DishCandidate]:
+    """Build optimizer candidates from the same Dish rows the API later persists."""
+    rows = session.query(Dish).options(selectinload(Dish.ingredients)).all()
+    return [
+        DishCandidate(
+            dish_id=row.dish_id,
+            name_vi=row.name_vi,
+            region=row.region,
+            verified_by=row.verified_by,
+            is_reviewed=bool(row.verified_by and row.verified_by.lower() not in {"pending", "todo"}),
+            ingredients=[MenuItem(food_id=part.food_id, grams=part.grams) for part in row.ingredients],
+        )
+        for row in rows
+        if row.ingredients and is_patient_facing_dish(row.dish_id)
+    ]
+
+
+def _load_db_aligned_food_repository(session: Session) -> InMemoryFoodRepository:
+    """Keep deterministic seed nutrition only for food IDs that exist in this DB.
+
+    The CSV can be newer than a deployed database. Returning the unfiltered
+    repository lets the optimizer select an ID that cannot satisfy the
+    `meal_plan_items.food_id` foreign key during persistence.
+    """
+    db_ids = {food_id for (food_id,) in session.query(DbFoodItem.id).all()}
+    seed_foods = load_food_repository()
+    return InMemoryFoodRepository([food for food in seed_foods.all() if food.id in db_ids])
+
+
 def _run_graph_and_persist(
     plan_id: str,
     dislikes: list[str],
@@ -217,10 +266,19 @@ def _run_graph_and_persist(
         # đơn thiếu năng lượng nghiêm trọng dù CP-SAT báo khả thi (phát hiện
         # audit 2026-08-07 khi merge PR#57 dish-day-cap với PR#59 dish-repo).
         dish_foods = load_dish_food_repository()
-        raw_foods = load_food_repository()
+        raw_foods = _load_db_aligned_food_repository(session)
         uses_raw_candidates = get_settings().menu_generator in ("cpsat", "hybrid")
         foods = raw_foods if uses_raw_candidates else dish_foods
-        graph = build_nutricare_graph(profiles=_DbProfileRepository(session, clinical_profile), foods=foods)
+        generator = None
+        if uses_raw_candidates:
+            from src.agents.hybrid import HybridMenuGenerator
+            from src.agents.optimizer import CPSATMenuOptimizer
+
+            optimizer = CPSATMenuOptimizer(dishes=_load_db_dish_candidates(session), foods=raw_foods)
+            generator = optimizer if get_settings().menu_generator == "cpsat" else HybridMenuGenerator(optimizer=optimizer)
+        graph = build_nutricare_graph(
+            profiles=_DbProfileRepository(session, clinical_profile), foods=foods, generator=generator
+        )
         result = graph.invoke({"patient_id": clinical_profile.patient_id, "trace_id": plan_id})
 
         plan.status = result.get("status") or "failed"
@@ -232,9 +290,20 @@ def _run_graph_and_persist(
         if nutrition is not None:
             plan.computed_nutrition = nutrition.model_dump(mode="json")
         plan.violations = [v.model_dump(mode="json") for v in result.get("violations") or []]
+        plan.safety_findings = [v.model_dump(mode="json") for v in result.get("safety_findings") or []]
+        packet = result.get("review_packet")
+        plan.review_packet = packet.model_dump(mode="json") if packet is not None else {}
+        plan.citations = [v.model_dump(mode="json") if hasattr(v, "model_dump") else v for v in result.get("citations") or []]
+        plan.explanation_vi = result.get("explanation_vi")
+        plan.highest_risk = result.get("highest_risk") or "none"
+        plan.menu_version = result.get("menu_version") or 0
+        plan.menu_hash = result.get("menu_hash")
+        plan.nutrition_hash = result.get("nutrition_hash")
 
         draft = result.get("draft_menu")
         if draft is not None:
+            if uses_raw_candidates and not draft.planned_dishes:
+                raise ValueError("Generator did not select any database dish; refusing ingredient-only patient draft")
             session.query(MealPlanItem).filter(MealPlanItem.plan_id == plan_id).delete()
             for slot, menu_items in draft.items.items():
                 residual_grams = {menu_item.food_id: menu_item.grams for menu_item in menu_items}

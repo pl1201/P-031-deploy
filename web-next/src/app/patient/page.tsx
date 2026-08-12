@@ -1,170 +1,37 @@
 'use client'
-import { useEffect, useState } from 'react'
+
+import Image from 'next/image'
+import { useEffect, useMemo, useState } from 'react'
 import { createApiClient, type MealPlan, type MealPlanItem } from '@/lib/api'
 import { getToken } from '@/lib/auth'
+import styles from './patient.module.css'
 
-const SLOT_LABELS: Record<string, string> = {
-  breakfast: 'Bữa sáng',
-  lunch: 'Bữa trưa',
-  dinner: 'Bữa tối',
-  snack: 'Bữa phụ',
-}
+const LABELS: Record<string,string> = { breakfast:'Bữa sáng', lunch:'Bữa trưa', dinner:'Bữa tối', snack:'Bữa phụ' }
+const PHOTOS: Record<string,string> = { breakfast:'/images/vnutricare-hero-meal.png', lunch:'/images/vnutricare-hero-meal.png', dinner:'/images/vnutricare-hero-meal.png' }
 
-export default function PatientDashboard() {
-  const [plans, setPlans] = useState<MealPlan[]>([])
-  const [loading, setLoading] = useState(true)
-  const [selected, setSelected] = useState<MealPlan | null>(null)
+export default function PatientDashboard(){
+  const [plans,setPlans]=useState<MealPlan[]>([])
+  const [loading,setLoading]=useState(true)
+  useEffect(()=>{const token=getToken();if(!token)return;createApiClient(token).listMealPlans(undefined,'approved').then(r=>setPlans(r.items)).finally(()=>setLoading(false))},[])
+  const plan=plans[0]
+  const groups=useMemo(()=>plan?.items.reduce<Record<string,MealPlanItem[]>>((acc,item)=>{(acc[item.slot]??=[]).push(item);return acc},{})??{},[plan])
+  const nutrition=plan?.computed_nutrition
+  const slots=['breakfast','lunch','dinner']
+  if(loading)return <div className={styles.loading}><span className="spinner"/></div>
 
-  useEffect(() => {
-    const token = getToken()
-    if (!token) return
-    createApiClient(token)
-      .listMealPlans(undefined, 'approved')
-      .then(r => {
-        setPlans(r.items)
-        if (r.items.length > 0) setSelected(r.items[0])
-      })
-      .finally(() => setLoading(false))
-  }, [])
-
-  const nutrition = selected?.computed_nutrition
-
-  const bySlot = selected?.items.reduce<Record<string, MealPlanItem[]>>((acc, item) => {
-    ;(acc[item.slot] ??= []).push(item)
-    return acc
-  }, {}) ?? {}
-
-  return (
-    <>
-      <div className="topbar">
-        <h1 className="page-title">Thực đơn của tôi</h1>
-        <div className="topbar-actions">
-          {selected && (
-            <span style={{ fontSize: 13, color: 'var(--c-muted)' }}>{selected.plan_date}</span>
-          )}
-        </div>
-      </div>
-
-      <div className="page-body">
-        {loading ? (
-          <div style={{ display: 'grid', placeItems: 'center', height: '50vh' }}>
-            <span className="spinner" style={{ width: 32, height: 32, color: 'var(--c-green)' }} />
-          </div>
-        ) : plans.length === 0 ? (
-          <div className="card" style={{ padding: 60, textAlign: 'center' }}>
-            <div style={{ fontSize: 48, marginBottom: 16 }}>⌛</div>
-            <h2 style={{ fontFamily: 'var(--f-serif)', fontSize: 24, marginBottom: 8 }}>Thực đơn đang chờ duyệt</h2>
-            <p style={{ color: 'var(--c-muted)', maxWidth: 360, margin: '0 auto 20px' }}>
-              Chuyên gia dinh dưỡng đang xem xét và sẽ phê duyệt thực đơn của bạn sớm nhất.
-            </p>
-            <p className="disclaimer" style={{ maxWidth: 400, margin: '0 auto' }}>
-              ⚕️ Chỉ thực đơn được chuyên gia duyệt mới xuất hiện tại đây. Điều này đảm bảo an toàn cho bạn.
-            </p>
-          </div>
-        ) : (
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 300px', gap: 24, alignItems: 'start' }}>
-            {/* Main */}
-            <div style={{ display: 'grid', gap: 20 }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
-                <span className="badge badge-approved">✓ Đã duyệt bởi chuyên gia</span>
-                {selected?.reviewer_notes && (
-                  <span style={{ fontSize: 13, color: 'var(--c-muted)' }}>· {selected.reviewer_notes}</span>
-                )}
-              </div>
-
-              {(['breakfast', 'lunch', 'dinner', 'snack'] as const).map(slot => {
-                const items = bySlot[slot]
-                if (!items?.length) return null
-                const dishItems = items.filter(item => item.dish_id)
-                return (
-                  <div key={slot} className="card">
-                    <div className="card-header">
-                      <div>
-                        <div className="slot-label">{SLOT_LABELS[slot]}</div>
-                      </div>
-                      <div style={{ fontSize: 12, color: 'var(--c-muted)' }}>{dishItems.length} món</div>
-                    </div>
-                    <div className="card-body" style={{ padding: '12px 24px' }}>
-                      {dishItems.map(item => (
-                        <div key={item.id} className="dish-row">
-                          <div className="dish-summary">
-                            <div className="dish-name">{item.name_vi}</div>
-                            <div className="dish-meta"><span>Món ăn đề xuất</span>{item.is_estimated && <span className="badge badge-estimated">Dữ liệu ước tính</span>}</div>
-                            {item.is_estimated && (
-                              <span className="sr-only">Khẩu phần có sử dụng dữ liệu ước tính.</span>
-                            )}
-                          </div>
-                          <div className="dish-portion"><span style={{ display: 'block', fontFamily: 'var(--f-sans)', fontSize: 10, color: 'var(--c-muted)', marginBottom: 5 }}>Khẩu phần</span>{item.grams} g</div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )
-              })}
-            </div>
-
-            {/* Sidebar */}
-            <div style={{ position: 'sticky', top: 80, display: 'grid', gap: 16 }}>
-              {nutrition && (
-                <div className="card">
-                  <div className="card-header">
-                    <h2 className="card-title">Dinh dưỡng ngày</h2>
-                  </div>
-                  <div className="card-body">
-                    <div style={{ textAlign: 'center', marginBottom: 20 }}>
-                      <div style={{ fontFamily: 'var(--f-serif)', fontSize: 44 }}>
-                        {nutrition.kcal.toFixed(0)}
-                      </div>
-                      <div style={{ color: 'var(--c-muted)', fontSize: 13 }}>kcal hôm nay</div>
-                    </div>
-                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
-                      {[
-                        { label: 'Carb', val: `${nutrition.carb_g.toFixed(0)} g`, color: 'var(--c-orange)' },
-                        { label: 'Protein', val: `${nutrition.protein_g.toFixed(0)} g`, color: 'var(--c-sky)' },
-                        { label: 'Chất béo', val: `${nutrition.fat_g.toFixed(0)} g`, color: 'var(--c-yellow)' },
-                        { label: 'Chất xơ', val: `${nutrition.fiber_g.toFixed(0)} g`, color: 'var(--c-green2)' },
-                      ].map(n => (
-                        <div key={n.label} style={{ textAlign: 'center', padding: '12px 8px', background: 'var(--c-surface)', borderRadius: 'var(--r-md)' }}>
-                          <div style={{ fontSize: 18, fontWeight: 700, color: n.color }}>{n.val}</div>
-                          <div style={{ fontSize: 11, color: 'var(--c-muted)', marginTop: 2 }}>{n.label}</div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              {plans.length > 1 && (
-                <div className="card">
-                  <div className="card-header"><h2 className="card-title">Lịch sử</h2></div>
-                  <div className="card-body" style={{ padding: '8px 16px' }}>
-                    {plans.map(p => (
-                      <button
-                        key={p.id}
-                        onClick={() => setSelected(p)}
-                        style={{
-                          display: 'block', width: '100%', padding: '10px 0',
-                          textAlign: 'left', borderBottom: '1px solid var(--c-border)',
-                          fontSize: 13,
-                          fontWeight: selected?.id === p.id ? 700 : 400,
-                          color: selected?.id === p.id ? 'var(--c-green)' : 'var(--c-ink)',
-                        }}
-                      >
-                        {p.plan_date}
-                        <span className="badge badge-approved" style={{ marginLeft: 8 }}>✓</span>
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              <p className="disclaimer">
-                ⚕️ Đây là thực đơn dành riêng cho bạn, được chuyên gia dinh dưỡng xem xét và phê duyệt. Không thay thế hướng dẫn của bác sĩ. Dữ liệu 100% mô phỏng.
-              </p>
-            </div>
-          </div>
-        )}
-      </div>
-    </>
-  )
+  return <div className={styles.page}>
+    <header className={styles.heading}><div><h1>Thực đơn của bạn</h1><p>{plan?'Đây là thực đơn đã được chuyên gia phê duyệt.':'Hiện chưa có thực đơn đã phê duyệt.'}</p></div><a href="/patient/diary" className={styles.logButton}>▣ Ghi bữa ăn</a></header>
+    <section className={styles.metrics}>
+      <article><span>◎</span><div><small>Năng lượng thực đơn</small><strong>{nutrition?Math.round(nutrition.kcal).toLocaleString('vi-VN'):'—'} <i>{nutrition?'kcal':'chưa có dữ liệu'}</i></strong></div></article>
+      <article><span>♨</span><div><small>Carbohydrate</small><strong>{nutrition?Math.round(nutrition.carb_g):'—'} <i>{nutrition?'g':'chưa có dữ liệu'}</i></strong></div></article>
+      <article><span>♜</span><div><small>Số bữa trong thực đơn</small><strong>{plan?new Set(plan.items.map(item=>item.slot)).size:'—'} <i>{plan?'bữa':'chưa có dữ liệu'}</i></strong></div></article>
+      <article><span>✓</span><div><small>Trạng thái</small><b>{plan?'Đã được phê duyệt':'Chờ chuyên gia chuẩn bị'}</b></div></article>
+    </section>
+    <div className={styles.dashboard}>
+      <section className={styles.mealPanel}><div className={styles.sectionTitle}><h2>Thực đơn hôm nay</h2><span>{plan?'Đã phê duyệt':'Chưa có thực đơn'}</span></div>{plan?<div className={styles.mealGrid}>{slots.map((slot,index)=>{const items=groups[slot]??[];if(!items.length)return null;const name=items.map(item=>item.name_vi).join(' • ');const grams=items.reduce((sum,item)=>sum+item.grams,0);return <article className={styles.mealCard} key={slot}><div className={styles.photo}><Image src={PHOTOS[slot]} alt={name} fill sizes="280px" style={{objectPosition:index===0?'22% 22%':index===1?'58% 48%':'78% 70%'}}/></div><small>{LABELS[slot]}</small><h3>{name}</h3><p>{Math.round(grams)} g tổng khẩu phần</p><b>Đã được chuyên gia duyệt</b></article>})}</div>:<div className="empty-state"><div className="empty-title">Chưa có thực đơn được phát hành</div><div className="empty-desc">Bạn chỉ nhìn thấy thực đơn sau khi chuyên gia hoàn tất kiểm tra và phê duyệt.</div></div>}</section>
+      <aside className={styles.carb}><h2>Thông tin dinh dưỡng</h2>{nutrition?<ul><li><i/>Năng lượng <b>{Math.round(nutrition.kcal)} kcal</b></li><li><i/>Carbohydrate <b>{Math.round(nutrition.carb_g)} g</b></li><li><i/>Protein <b>{Math.round(nutrition.protein_g)} g</b></li><li><i/>Chất xơ <b>{Math.round(nutrition.fiber_g)} g</b></li></ul>:<p>Chưa có dữ liệu dinh dưỡng.</p>}<p>ⓘ Tổng ngày do backend tính từ dữ liệu thực phẩm có nguồn.</p></aside>
+      <section className={styles.diary}><h2>Nhật ký ăn uống</h2><div><span>Dữ liệu nhật ký được quản lý tại trang riêng.</span><a href="/patient/diary">Mở nhật ký →</a></div></section>
+      <section className={styles.coach}><span className={styles.coachAvatar}>i</span><div><h2>Lưu ý</h2><p>Thông tin chỉ mang tính hỗ trợ và không thay thế tư vấn trực tiếp của chuyên gia y tế.</p></div></section>
+    </div>
+  </div>
 }

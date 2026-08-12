@@ -86,7 +86,7 @@ def test_duyet_khong_sua_gi_thanh_cong(client, dietitian, pending_plan):
 def test_duyet_ghi_audit_log(client, dietitian, pending_plan, db_session):
     plan_id, _ = pending_plan
     _, dt_headers = dietitian
-    client.post(f"/api/v1/reviews/{plan_id}/approve", json={}, headers=dt_headers)
+    client.post(f"/api/v1/reviews/{plan_id}/approve", json={"notes": "Đã rà soát cảnh báo P1"}, headers=dt_headers)
 
     logs = db_session.query(AuditLog).filter(AuditLog.action == "approve").all()
     assert len(logs) == 1
@@ -113,7 +113,10 @@ def test_duyet_sua_gram_tinh_lai_dinh_duong(client, dietitian, pending_plan):
 
     r = client.post(
         f"/api/v1/reviews/{plan_id}/approve",
-        json={"edits": [{"item_id": first_item["id"], "grams": new_grams}]},
+        json={
+            "edits": [{"item_id": first_item["id"], "grams": new_grams}],
+            "notes": "Đã rà soát cảnh báo P1 sau khi chỉnh khẩu phần",
+        },
         headers=dt_headers,
     )
     assert r.status_code == 200, r.text
@@ -129,7 +132,11 @@ def test_duyet_sua_gram_tinh_lai_dinh_duong(client, dietitian, pending_plan):
 def test_duyet_bi_tu_choi_neu_lan_2(client, dietitian, pending_plan):
     plan_id, _ = pending_plan
     _, dt_headers = dietitian
-    r1 = client.post(f"/api/v1/reviews/{plan_id}/approve", json={}, headers=dt_headers)
+    r1 = client.post(
+        f"/api/v1/reviews/{plan_id}/approve",
+        json={"notes": "Đã rà soát cảnh báo P1"},
+        headers=dt_headers,
+    )
     assert r1.status_code == 200
     r2 = client.post(f"/api/v1/reviews/{plan_id}/approve", json={}, headers=dt_headers)
     assert r2.status_code == 409

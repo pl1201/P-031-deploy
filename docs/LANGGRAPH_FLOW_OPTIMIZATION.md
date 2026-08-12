@@ -339,6 +339,8 @@ Node Explain chỉ được nhận:
 - source references;
 - menu ID và gram đã khóa.
 
+> **Cập nhật 2026-08-09 — không nhầm với Menu Explainer & Coaching:** `explain_with_citations` ở trên là node TRONG graph, chạy TRƯỚC khi duyệt, đối tượng là chuyên gia. Một tính năng khác đang phát triển ("Menu Explainer & Coaching", PR #76/#77 + `AGT-13`) giải thích thực đơn **SAU khi đã `approved`** cho bệnh nhân — cố ý thiết kế thành endpoint gọi theo yêu cầu (`GET /meal-plans/{id}/explain`), KHÔNG phải node thêm vào Tuyến C này, vì mọi node ở đây chạy trước HITL còn duyệt thì nằm ngoài vòng đời graph. Chi tiết: `docs/LANGGRAPH_ARCHITECTURE_COMPARISON.md` §8, `docs/PRD.md` FR-16.
+
 LLM không được thêm ngưỡng hoặc số mới. Không tìm được citation thì trả `insufficient_evidence`, không tự suy diễn.
 
 Nên có hai output:

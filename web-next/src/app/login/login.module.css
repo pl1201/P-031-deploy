@@ -1,15 +1,15 @@
 .page {
-  --auth-navy: #073765;
-  --auth-blue: #0875c9;
-  --auth-cyan: #52c5f2;
+  --auth-navy: #183a3a;
+  --auth-blue: #18a5a7;
+  --auth-cyan: #b6c0c5;
   min-height: 100svh;
   position: relative;
   overflow: hidden;
   color: #0d2945;
   background:
-    linear-gradient(rgba(24, 111, 180, .035) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(24, 111, 180, .035) 1px, transparent 1px),
-    linear-gradient(135deg, #ffffff 0%, #f8fcff 48%, #edf7ff 100%);
+    linear-gradient(rgba(24, 165, 167, .035) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(24, 165, 167, .035) 1px, transparent 1px),
+    linear-gradient(135deg, #ffffff 0%, #f7fbfa 48%, #edf5f4 100%);
   background-size: 42px 42px, 42px 42px, auto;
   isolation: isolate;
 }
@@ -105,3 +105,19 @@
   .header { height:68px; padding:0 16px; }.logoMark { width:40px; height:40px; }.logoText span { display:none; }.shell { padding:15px 16px 32px; }.story h1 { margin-top:18px; font-size:38px; }.lead { font-size:13px; }.preview { height:216px; border-radius:20px; }.previewBody { padding:14px; grid-template-columns:1fr 82px; gap:10px; }.nutritionDial { width:76px; height:76px; }.nutritionDial::before { width:56px; height:56px; }.nutritionDial strong { font-size:18px; }.macroGrid { gap:5px; }.macroGrid div { padding:7px 6px; }.approvalStrip { grid-column:1/3; }.trustRow { display:none; }.authCard { padding:24px 18px; border-radius:22px; }.authIntro h2 { font-size:26px; }.demoGrid { grid-template-columns:1fr; }.footer span:last-child { display:none; }
 }
 @media (prefers-reduced-motion:reduce) { .preview,.authCard,.spinner { animation:none; }.submit,.demoAccount { transition:none; } }
+
+/* Teal gradient brand colorway */
+.ambientOne { background:radial-gradient(circle,rgba(24,165,167,.17),transparent 68%); }
+.ambientTwo { background:radial-gradient(circle,rgba(182,192,197,.20),transparent 68%); }
+.logoMark { background:linear-gradient(145deg,#18a5a7,#8bbfc0); box-shadow:0 12px 28px rgba(24,165,167,.20); }
+.logoText strong,.story h1,.authIntro h2 { color:#183a3a; }
+.systemBadge,.lead,.trustRow { color:#667879; }.systemBadge { border-color:#d9e2e1; }
+.eyebrow { color:#117b7d; border-color:#bfe2e1; }.eyebrow span,.authKicker,.textButton,.demoNote span { color:#18a5a7; }
+.story h1 em { color:#18a5a7; }
+.preview { background:linear-gradient(135deg,#117b7d 0%,#18a5a7 58%,#b6c0c5 100%); box-shadow:0 28px 70px rgba(24,120,122,.20); }
+.previewHeading span { color:#d9f7f5; }.nutritionDial { background:conic-gradient(#dff7f6 0 92%,rgba(255,255,255,.14) 92%); }.nutritionDial::before { background:#209b9d; }
+.authCard { border-color:rgba(182,192,197,.75); box-shadow:0 24px 70px rgba(46,105,106,.12); }
+.field input { border-color:#d9e2e1; color:#183a3a; background:#f8fbfa; }.field input:focus { border-color:#18a5a7; box-shadow:0 0 0 4px rgba(24,165,167,.10); }
+.passwordToggle { color:#117b7d; }.passwordToggle:hover { background:#e1f4f3; }.remember input { accent-color:#18a5a7; }
+.submit { background:linear-gradient(100deg,#18a5a7,#7cbbbc); box-shadow:0 12px 25px rgba(24,165,167,.22); }.submit:hover:not(:disabled) { box-shadow:0 15px 30px rgba(24,165,167,.28); }
+.demoAccount:hover,.demoActive { border-color:#78c5c4; background:#edf8f7; }.demoAvatar { color:#117b7d; background:#dff3f2; }

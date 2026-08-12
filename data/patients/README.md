@@ -12,7 +12,9 @@ data/patients/
 
 ## Vietnamese-Adapted T2DM Datasets
 
-**Local inventory: 2,020 source/derived rows.** Đây là các derivative được gắn thuộc tính Việt Nam để nghiên cứu, không phải cohort đại diện dân số Việt Nam và chưa phải tất cả đều được phép dùng trong product/eval path.
+**Local inventory: 2,020 source/derived rows.** Đây là các derivative được gắn thuộc tính Việt Nam để nghiên cứu, không phải cohort đại diện dân số Việt Nam.
+
+**⚠️ DEC-019 (2026-08-09, xem `DEVLOG.md` §3):** Hưng (R2) đã xác nhận trực tiếp cho phép nạp cả 4 dataset vào DB/Supabase (`enabled: true` trong `manifest.yaml`) dù license/de-identification của set2/set3/set4 CHƯA xác minh xong. Đây là quyết định có thẩm quyền của R2, không phải bỏ qua rào chắn — nhưng rào chắn license/de-id bên dưới vẫn còn TRUE, chỉ tình trạng "được phép nạp" đã đổi.
 
 ### Dataset Status
 

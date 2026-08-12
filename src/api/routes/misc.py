@@ -3,11 +3,12 @@
 
 from __future__ import annotations
 
-from fastapi import APIRouter
+from fastapi import APIRouter, Depends
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel, Field
 from sqlalchemy import text
 
+from src.api.security import CurrentUser, get_current_user
 from src.config import get_settings
 from src.db.base import get_engine
 
@@ -62,11 +63,19 @@ class ChatResponse(BaseModel):
 
 
 @router.post("/chat", response_model=ChatResponse)
-async def chat(payload: ChatRequest) -> ChatResponse:
+async def chat(
+    payload: ChatRequest,
+    _user: CurrentUser = Depends(get_current_user),
+) -> ChatResponse:
     """Chat với AI agent — AGT-07: guardrail chặn chỉ định y khoa tầng 1 (regex).
 
     LLM: Tầng 2 (Gemini classifier) tuỳ cấu hình GEMINI_API_KEY.
     RULE-3: Endpoint này không trả thông tin y khoa trực tiếp cho bệnh nhân.
+
+    Yêu cầu đăng nhập (sửa 2026-08-08): trước đó endpoint này mở hoàn toàn —
+    ai cũng gọi được và mỗi lần gọi có thể tiêu một lượt Gemini ở guardrail
+    tầng 2. Đây là endpoint duy nhất nhận văn bản tự do từ người dùng nên
+    cũng là bề mặt tấn công rẻ nhất.
     """
     from src.agents.guardrail import check_guardrail
 

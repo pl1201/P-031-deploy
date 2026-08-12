@@ -1,6 +1,6 @@
 # TICKETS — BACKLOG & GIAO VIỆC
 
-> 54 ticket · 6 sprint · Ước tính tổng ≈ 438 giờ-người
+> 57 ticket · 6 sprint · Ước tính tổng ≈ 438 giờ-người (3 ticket mới 2026-08-09 chưa ước giờ: DAT-26, DAT-27, AGT-13)
 > Ký hiệu: **P0** = chặn dự án · **P1** = cần cho MVP · **P2** = nâng cao · **P3** = có thì tốt
 > Owner theo mã vai trò trong `TEAM.md` (R1–R4 · đội 4 người)
 
@@ -163,6 +163,29 @@ Trích `data/Bang-thanh-phan-dinh-duong-Thuc-pham-VN-2017-27-4-17.pdf` bằng `p
 Đề xuất từ `DAT-22`: `scripts/nin2017_purine_findings.md` xác nhận bảng "Thành phần khác" (tr.219-248) có số liệu purine thật cho nhóm Thịt/Thủy sản, nhưng số cột mỗi dòng không cố định — rủi ro đọc nhầm cột Phytosterol thành Purine nếu merge tự động như các trường khác.
 **AC:** Đối chiếu số cột theo TỪNG dòng trước khi gán giá trị (không giả định layout cố định) · Giá trị merge vào `purine_mg` kèm `purine_source_ref="NIN 2017, mã {code}"` · Đối chiếu chéo với `purine_db_reference.csv`/`purine_values.csv` hiện có cho vài món trùng tên để xác nhận không lệch cột trước khi merge hàng loạt.
 
+### `DAT-25` ✅ Tách `data/` thành ba tầng + Việt hoá + validator phủ 100% seeds — ĐÃ LÀM
+**Owner:** R2 · **P0** · **Deps:** DAT-24 (liên quan trực tiếp: cùng đụng `dishes.csv`)
+Xuất phát từ bug R2 phát hiện trên UI bệnh nhân: thực đơn hiện tên **mẫu thực đơn** ("Bữa sáng - Thực đơn 3 (TĐ 3+4) — 300 g") thay vì tên món ăn.
+
+Nguyên nhân trực tiếp: hai loader lọc rác theo hai tiêu chí khác nhau — `clinical/dishes.py` lọc theo tiền tố `dish_id` (đúng), còn `clinical/seeds.py::load_vn_dishes()` lọc theo cột `verified_by`; các dòng `MENU-*` ghi `verified_by="pending"` nên không khớp và lọt thành `DishCandidate` cho CP-SAT.
+
+Nguyên nhân sâu hơn: `data/seeds/` là bãi chứa chung của bốn nguồn khác bản chất, và `validate_data.py` không kiểm tra `dishes*.csv`/`dish_ingredients*.csv` một dòng nào — đúng chỗ toàn bộ nợ đang nằm.
+
+Đã làm (4 PR, xem DEVLOG DEC-022):
+- `src/clinical/tiers.py` — nguồn DUY NHẤT định nghĩa ranh giới tầng; loader, validator, script tách đều import từ đó.
+- Tách `data/` thành `seeds/` (chạm bệnh nhân) · `reference/` (tra cứu USDA, không seed) · `quarantine/` (nợ chờ R2). `data/seeds/` 28→11 file, food 7745→536 dòng, dish 2677→30.
+- Việt hoá: tên tiếng Anh tầng tham chiếu chuyển sang cột `name_en` mới, `name_vi` để rỗng — không dịch máy, không bịa (RULE-2).
+- `scripts/split_data_tiers.py` — tất định, idempotent, hợp nhất theo khoá, từ chối chạy nếu tổng dòng lệch hoặc có tham chiếu chéo tầng.
+- `check_dishes()` + `check_dish_ingredients()` cho validator: **2647 ERROR → 0**.
+- `scripts/audit_menu_dish_refs.py` — CHỈ ĐỌC, đếm dữ liệu bệnh nhân đã persist còn trỏ ra ngoài tầng.
+
+Đo được: test suite **12 phút → 70 giây** (397 pass) vì `test_seed_db.py` không còn nạp 7745 dòng. Mục tiêu "giảm phình test" đạt bằng dữ liệu gọn, không phải bằng cách xoá lớp bảo vệ.
+
+⚠️ **Bẫy mất dữ liệu — ai đụng `food_items` phải đọc:** khối tham chiếu USDA là **khoảng ĐÓNG `id 167516–1105897`**, không phải "mọi id ≥ 167516". 430 dòng NIN 2017 **tiếng Việt** nằm ngay sau (`1105898–1106327`). Một `WHERE id >= 167516` sẽ xoá nhầm dữ liệu Việt thật.
+
+**Còn lại, chờ R2 quyết định (KHÔNG tự làm — RULE-3):** audit DB thật cho thấy 33/160 dòng `meal_plan_items` có `dish_id` là `MENU-*`, trong đó **25 dòng thuộc thực đơn `approved` trên 3 hồ sơ bệnh nhân** — thực đơn đã tới tay bệnh nhân, sửa hay thu hồi là quyết định lâm sàng. Cũng cần xác nhận Render/Vercel đã deploy code hiện tại chưa (ảnh chụp ban đầu cho thấy shim hiển thị `_item_out()` chưa chạy trên bản deploy).
+**AC:** Ranh giới tầng chỉ định nghĩa một chỗ · `seed_db.py` không bao giờ đọc ngoài `data/seeds/` (có test tĩnh) · `validate_data.py` 0 lỗi · Không tự sửa/xoá dữ liệu bệnh nhân đã persist.
+
 ### `DAT-24` Mở rộng `dishes.csv`/`dish_ingredients.csv` — 28 món dùng được là quá mỏng cho CP-SAT
 **Owner:** R2 · **P1** · **Deps:** DAT-22 (nguồn nguyên liệu 620 món), vn-food-data skill
 Audit 2026-08-08 (khi điều tra bug thực đơn thiếu năng lượng, xem DEVLOG cùng ngày): `dishes.csv` có 2678 dòng nhưng CP-SAT (`load_vn_dishes()`) chỉ dùng được **28 món** — 2632 dòng bị gán nhãn sai `"USDA FNDDS"` (không phải món Việt, đã biết từ trước), và 17/45 món curated còn lại tự ghi chú thiếu nguyên liệu (đã bị loại tạm trong `load_vn_dishes()`, xem commit cùng ngày). Tương tự, `food_items.csv` có 7375 dòng nhưng ứng viên nguyên liệu thô CP-SAT dùng được chỉ 439 dòng (cố ý loại khối USDA bulk id≥100000 — đây KHÔNG phải vấn đề, chỉ ghi chú để R2 hiểu rõ phạm vi).
@@ -172,6 +195,23 @@ Audit 2026-08-08 (khi điều tra bug thực đơn thiếu năng lượng, xem D
 3. Nguồn công thức: ưu tiên tài liệu có bản quyền rõ ràng/cho phép (đã dùng vietnamesecookbook.com trước đó, xem `data/seeds/dishes.csv` dòng "-VCB"), hoặc tài liệu nội bộ chuyên gia dinh dưỡng dự án (như batch NIN nội bộ ở DAT-04).
 4. Mỗi món PHẢI qua R2 duyệt (`verified_by`) trước khi tính `is_reviewed=True` — không tự động coi món mới thêm là đã duyệt.
 **AC:** Không bịa gram/nguyên liệu khi không tra được nguồn (RULE-2/DEC-008) · Mỗi món có `source`/ghi chú nguồn công thức rõ ràng · `validate_data.py`/`pytest` sạch sau mỗi batch · Cập nhật tiến độ định kỳ trong ticket này (không phải 1 khối việc làm 1 lần).
+
+### `DAT-26` ✅ 263 món trích từ ViFoodRec — ĐÃ MERGE, CHỜ LICENSE + R2 duyệt để dùng
+**Owner:** R2 · **P2** · **Deps:** DAT-24 (dùng lại `crawl_mnmn_dishes.py` làm khuôn mẫu) · **PR:** [#76](https://github.com/AI20K-Build-Phase-Cohort-3/P-031/pull/76) (đã merge 2026-08-10)
+Hưng duyệt (2026-08-09) dùng dataset ViFoodRec (5.509 món, PACLIC 2024, `github.com/QuocAn55/DS300`) làm nguồn tên món/nguyên liệu bổ sung, với điều kiện: **chỉ lấy `dish_name`+`ingredients` (văn bản)**, KHÔNG dùng số dinh dưỡng sẵn có của ViFoodRec (là số tổng scrape từ web, không có nguồn/không tính từ nguyên liệu → vi phạm RULE-1/2 nếu dùng trực tiếp). `scripts/parse_vifoodrec_dishes.py` tự parse gram thật từ văn bản nguyên liệu + khớp `food_id` qua `food_items.csv`, dùng đúng cơ chế đã kiểm chứng ở DAT-24. Kết quả: **263/4000 món dùng được (6.6%)**, ghi vào `data/seeds/dishes.vifoodrec.csv`/`dish_ingredients.vifoodrec.csv` (3737 món bị loại kèm lý do trong `dishes.vifoodrec.rejected.csv`, phần lớn do lỗi hỏng đơn vị ngay trong bản scrape gốc của ViFoodRec — không đoán, đúng DEC-008).
+**Còn tồn trước khi dùng được:**
+1. **License repo nguồn chưa xác nhận** — `github.com/QuocAn55/DS300` không có file `LICENSE` (license=null qua GitHub API, kiểm tra 2026-08-09); paper chỉ ghi "publicly available for free access by the research community" trong văn bản, không phải license chính thức. Cần R2/pháp lý xác nhận trước khi dùng cho sản phẩm thật.
+2. **263 món đều `verified_by=pending`** — chưa gộp vào `dishes.csv`/`dish_ingredients.csv` chính (giữ đúng quy ước biên tập thủ công hiện có, giống mnmn/fndds_bulk/vn_llm_draft). R2 cần rà công thức trước khi merge.
+3. **Chặn bởi `DAT-27`** (bên dưới) — không merge vào `dishes.csv` chính tới khi `load_vn_dishes()` gate đúng theo `verified_by`.
+**AC:** Không merge vào `dishes.csv` chính tới khi có (1) xác nhận license, (2) `DAT-27` xong, và (3) R2 duyệt từng món · Không tự đổi `verified_by` sang trạng thái đã duyệt.
+
+### `DAT-27` ✅ Sửa `load_vn_dishes()` không gate theo `verified_by` — ĐÃ LÀM
+**Owner:** R2 · **P1** · **Deps:** — (chặn `DAT-26` bước merge)
+Phát hiện khi làm `DAT-26`: `src/clinical/seeds.py::load_vn_dishes()` hiện KHÔNG gate theo `verified_by` — món `pending` vẫn được CP-SAT dùng ngay nếu đã nằm trong `dishes.csv`. Safety net thực tế chỉ dựa vào so khớp chuỗi con `"R2 cần rà"`/`"THIẾU"`/`"CHƯA GHÉP"` trong `note`, và note của cả `dishes.mnmn.csv` lẫn `dishes.vifoodrec.csv` hiện KHÔNG chứa đúng các chuỗi đó → nếu gộp vào `dishes.csv` trong tương lai mà không sửa, món chưa duyệt sẽ vào thẳng bộ giải mà không ai biết.
+**AC:** `load_vn_dishes()` loại món `verified_by == "pending"` khỏi tập ứng viên CP-SAT thay vì dựa vào so khớp chuỗi trong `note` · Test hồi quy: món `pending` không xuất hiện trong kết quả CP-SAT · Áp dụng ngay cả cho `dishes.mnmn.csv` hiện có (4 món, đang `pending`), không chỉ nguồn mới.
+
+**Đã làm (2026-08-10):** thêm tham số `include_pending: bool = False` cho `load_vn_dishes()`. Mặc định (dùng ở mọi luồng chạm bệnh nhân thật — `src/agents/assembly.py`, `src/api/routes/equivalent.py`) loại HẲN món `verified_by` rỗng/`"pending"` khỏi kết quả, không chỉ gắn cờ `is_reviewed=False` như trước. Hiện toàn bộ 100 món trong `dishes.csv` (kể cả 70 món mới `DAT-13` Nhóm B) đều `pending` → `load_vn_dishes()` mặc định trả về **rỗng**. Đã xác nhận an toàn: `dishes` là tham số tuỳ chọn của CP-SAT (`_eligible_dishes()` trả `[]` khi `not dishes`), sinh thực đơn từ nguyên liệu thô (`food_items.csv`) vẫn hoạt động bình thường — chỉ tắt tạm lớp "món trọn gói" cho tới khi có món thật sự được `dietitian` duyệt qua HITL. `include_pending=True` chỉ dành cho eval/demo, không dùng ở code path có khả năng tới bệnh nhân thật.
+Test: `tests/test_tiers.py::test_load_vn_dishes_mac_dinh_loai_mon_chua_duyet` (khẳng định rỗng — đúng thực trạng dữ liệu) + `test_load_vn_dishes_include_pending_true_van_tra_ve_mon_cho_eval`. 412 passed, `validate_data.py` 0 lỗi.
 
 ### `DAT-06` Ingest guideline vào RAG — KHÔNG GIỚI HẠN TRÊN
 **Owner:** R2 · **P1** · 8h+ (mở) · **Deps:** SET-05
@@ -193,6 +233,36 @@ Ticket điều phối cho việc bỏ trần cứng ở `DAT-02/04/05/06`, `CLN-
 **Owner:** R2 · **P1** · mở (điều phối, không phải 1 khối việc) · **Deps:** DAT-04, DAT-12
 Sau batch 48 nguyên liệu NIN nội bộ (2026-08-06), vẫn còn khoảng trống thật: 309 dòng thiếu Na/K trong sheet "Bảng TP có phospho", 152 dòng `food_items.template.csv` chưa nhập, 13 cặp `drug_food_interactions.csv` thiếu `source_ref`, 21 dòng trùng tên lệch kcal cần đối chiếu ấn bản NIN. Kế hoạch chi tiết + thứ tự ưu tiên tra chéo nguồn (NIN2017 PDF → USDA bulk → chỉ khi không tra được mới xét `estimated` có cơ sở, không suy đoán tùy ý): `docs/PLAN_DAT-13-fill-data-gaps.md`.
 **AC:** Không tự gắn giá trị 0/trace cho Na/K/P mà không có `source_ref` cụ thể (mã NIN, FDC ID, hoặc lý giải khoa học rõ ràng cho nhóm "trace") · Mỗi batch chạy `validate_data.py` + `pytest` sạch trước khi commit · `docs/PLAN_DAT-13-fill-data-gaps.md` cập nhật tiến độ theo từng mục §2.
+
+**Cập nhật 2026-08-10 (DAT-25):** `docs/PLAN_DAT-13-fill-data-gaps.md` đã bị dọn/archive ở commit `4456e02` — không còn trên disk, đường dẫn trên chỉ còn giá trị lịch sử. Sau khi tách tầng dữ liệu (DAT-25), 355 dòng trống của `food_items.csv` nằm ở `data/quarantine/food_items.chua_co_so_lieu.csv`. Xác nhận bằng tay: **cả 355 dòng trống hoàn toàn**, kể cả `source_ref` — không tính được bằng Atwater (cần biết trước protein/carb/fat) và không tự động phân rã được vì đa số là nguyên liệu đơn, không phải công thức món.
+
+**Cập nhật 2026-08-10, lần 2 — quan trọng, đổi hướng khỏi "research công thức nấu ăn":** đối chiếu 355 dòng với dữ liệu đã trích từ Bảng TPTP VN 2017 (`scripts/nin2017_extracted.json`) phát hiện **341/355 khớp mã món tuyệt đối, đã có kcal/protein/carb đo thật** — chỉ bị `merge_nin2017_into_food_items.py` (DAT-22) cố ý không kích hoạt vì thiếu 1-2 trường, chủ yếu **Na/K** (314/341 dòng). Đây chính là lỗ hổng Na/K đã ghi ở đầu ticket này, **không phải thiếu công thức nấu ăn**.
+
+Trích thêm Bảng TPTP VN 2007 (`data/Bảng thanh phan dinh duong Thuc pham VN 2007.pdf`, 567 trang, cũng nằm sẵn trong repo, chưa ai khai thác) — có cột Natri/Kali/Phospho, nhưng cấu trúc khó: mỗi trang 1 thực phẩm, tên tiếng Việt trong PDF bị lỗi font (`"Tªn thùc phÈm"` thay vì `"Tên thực phẩm"`). Giải pháp: khớp theo **"Mã số"** (chữ số, không lỗi font) thay vì tên — xác nhận bằng tay `Mã số: 2001` (2007) = `code: 02001` (2017) = "Củ ấu" ở cả hai ấn bản, mã ổn định giữa 2 lần xuất bản. Cũng phát hiện và xử lý lỗi nhân đôi ký tự OCR (`"117733"` → `"173"`, chỉ sửa khi TOÀN BỘ chuỗi khớp mẫu lặp đôi tuyệt đối, không đoán một phần).
+
+Script: `scripts/extract_nin2007.py` (trích 526/567 trang, khớp con số 526 món đã ghi nhận trước đó cho bản 2007) + `scripts/merge_nin2007_into_food_items.py` (chỉ điền ô trống, không ghi đè, chỉ kích hoạt dòng khi đủ cả 8 trường lõi — cùng nguyên tắc `merge_nin2017_into_food_items.py`).
+
+**Kết quả thật (khiêm tốn, không phải "giải pháp lớn"):** 2007 chỉ có Na/K cho ~25/251 dòng khớp mã — 2007 và 2017 thiếu Na/K cho **cùng một nhóm thực phẩm** (lỗ hổng hệ thống ở cả hai ấn bản, không phải lỗi trích xuất). Kết quả: **11 dòng kích hoạt hoàn toàn** (Bánh phở, Kiệu muối, Men bia tươi, Nấm hương khô, Gioi, Nhãn khô, Quít, Đường kính, Gừng khô, Nghệ khô, Nước cam tươi). `food_items.csv` seeds: 537→548 dòng. `validate_data.py` 0 lỗi, `pytest` 410 passed.
+
+**Còn lại 344 dòng** (228 nguyên liệu thô + 116 chế biến/tổng hợp), xem `docs/DAT-13-phan-loai-du-lieu-trong.md`:
+- **Nhóm A — 228 dòng nguyên liệu thô** (rau, củ, cá, thịt cắt miếng...): không có gì để phân rã, chỉ tra lại được NIN/USDA cho đúng thực phẩm đó.
+- **Nhóm B — 116 dòng chế biến/tổng hợp** (bánh chưng, phở, giò lụa, chè, bánh kẹo...): CÓ THỂ phân rã thành nguyên liệu+gram, NHƯNG công thức dùng để tính phải có nguồn thật (sách nấu ăn định lượng, tiêu chuẩn NIN) — không được LLM tự suy đoán tỷ lệ. Cần R2 xác nhận nguồn công thức cho từng món trước khi làm, theo đúng quy trình "phân rã món ăn phức hợp" đã áp dụng cho `dishes.csv` (LLM đề xuất → người rà soát sửa → tra SQL từng nguyên liệu → cộng lại → so mốc tham chiếu).
+
+**Việc tiếp theo cần R2 quyết định:** ~25 dòng có Na/K từ 2007 nhưng còn thiếu 1 trường khác (thường `fat_g`) — có đáng tìm nguồn thứ 3 (USDA analog, đánh dấu `is_estimated`) để hoàn thiện nốt không? Xem chi tiết pattern thiếu trường trong `docs/DAT-13-phan-loai-du-lieu-trong.md`.
+
+**Cập nhật 2026-08-10, lần 3 — Nhóm B (116 món chế biến/tổng hợp):** R2 xác nhận dùng quy trình LLM đề xuất + R2 duyệt (như 30 món hiện có). Trước khi soạn công thức, đã kiểm tra không có nguồn định lượng thật sẵn có:
+- `data/Bảng xác định nhu cầu dinh dưỡng + thực đơn.xlsx` (9 sheet, kể cả sheet `"Bảng TP có phospho"` — đúng tên trong ticket gốc): không có công thức riêng món nào — `tđ1`/`TĐ 3+4`/... chỉ là tổ hợp CẢ BỮA ĂN (VD "Bún tươi + Thịt lợn + Rau ngót + Dầu ăn"), không phải công thức riêng cho từng món. Cột khoáng chất trong `"Bảng TP có phospho"` xác nhận khớp tuyệt đối với NIN đã trích — cùng nguồn, cùng lỗ hổng, không có gì mới.
+- Web search: chỉ trả về chính bản PDF 2007 đã có (nguồn công bố trên `fao.org`) — không có sổ tay công thức định lượng nào khác. Đúng bản chất: Bảng TPTP đo trực tiếp món đã nấu (lab đo mẫu), không phải cộng từ nguyên liệu — nên không tồn tại "nguồn công thức" kiểu này ở dạng công bố chính thức.
+
+Tinh chỉnh phân loại trước khi soạn: tách 34 món **sản phẩm công nghiệp đóng gói** (kẹo, bánh quy, đồ hộp, mứt, dăm bông/lạp xường công nghiệp) ra khỏi phạm vi — bịa tỷ lệ nhà máy còn tệ hơn để trống, cần tra trực tiếp (USDA/nhãn sản phẩm), không phải phân rã công thức. Còn lại **82 món nhà làm** thật sự decomposable.
+
+`scripts/propose_dish_recipes.py` — soạn công thức cho 72/82 món (10 món còn lại: `Bánh bột lọc`/`Bánh phu thê` cần "Bột sắn dây" chưa có trong `food_items.csv`, phần còn lại nằm ngoài batch đầu). Nguyên tắc an toàn:
+- Chỉ dùng nguyên liệu đã có `food_id` thật — không tự thêm food_item mới.
+- `serving_g` **luôn tính tự động** = tổng gram nguyên liệu, không gõ tay riêng — tránh đúng bẫy đã gây bug thực đơn `MENU-*` (hệ số scale sai khi `grams` phục vụ khác tổng công thức, xem DEC-022).
+- Mọi món ghi `verified_by="pending"` + note "LLM đề xuất — CHƯA R2 duyệt, không dùng cho bệnh nhân thật cho tới khi rà xong".
+- Đã tự rà bằng `compute_nutrition()` cho cả 70 món trước khi ghi thật, bắt được 1 lỗi: `Chả lá lốt` dùng "Thịt lợn ba chỉ" (518 kcal/100g, quá béo cho món chả) cho ra 477 kcal/100g bất thường — sửa sang thịt nạc + chút mỡ, còn 230 kcal/100g.
+
+Kết quả: `dishes.csv` 30→100 món, `dish_ingredients.csv` +246 dòng. `validate_data.py` 0 lỗi, `pytest` 410 passed. **Toàn bộ 70 món mới CHƯA được R2 duyệt** — không được dùng cho bệnh nhân thật cho tới khi rà công thức, đúng cảnh báo trong `note` từng dòng.
 
 ### `DAT-14` ✅ Mở rộng `purine_mg` từ Purine DB 2025 — ĐÃ LÀM (32 dòng mới, curated 1-152)
 **Owner:** R2 · **Trạng thái:** Đã merge phần curated, còn phần NIN bulk (id 2000+) chưa làm
@@ -325,6 +395,22 @@ Research xác minh 21 dòng `clinical_rules.csv` (2026-08-06, dùng nguồn sơ 
 **Owner:** R1 · **P2?** · **Deps:** AGT-09 (CP-SAT)
 Chuyên gia chia định mức CẢ NGÀY thành 4 bữa theo tỷ lệ cố định — **Sáng 25% / Trưa 35% / Tối 30% / Phụ tối 10%** — áp dụng ĐỀU cho kcal và từng macro (P/L/G), không chỉ tổng ngày. Hệ thống hiện tại (`CPSATMenuOptimizer`, `validate_menu`) **chỉ kiểm tổng ngày**, không có ràng buộc/target theo từng bữa — 1 thực đơn có thể dồn hết carb vào 1 bữa mà vẫn "pass" nếu tổng ngày đúng, dù thực hành lâm sàng thật (đặc biệt ĐTĐ2, kiểm soát đường huyết sau ăn) quan tâm phân bổ theo bữa.
 **AC:** Bàn kỹ trước khi code — thêm ràng buộc per-slot vào CP-SAT làm bài toán CHẶT hơn, có thể tăng tỷ lệ infeasible (đã từng bị hồi quy hiệu năng 1 lần vì thêm ràng buộc/dữ liệu không tính trước tác động, xem DEVLOG DEC-017) · Nếu làm, nên bắt đầu bằng ràng buộc MỀM (soft, cảnh báo lệch tỷ lệ) trước khi làm cứng · Cần quyết định tỷ lệ 25/35/30/10% là cố định hay chỉ là 1 gợi ý mặc định có thể chỉnh theo bệnh nhân.
+
+### `AGT-13` ✅ Menu Explainer & Coaching — ticket B2 (LLM wording + API route) — ĐÃ LÀM
+**Owner:** R1 · **P1** · **Deps:** `PR #77` (B1 — assembler + guard, đã merge)
+Lớp 4 "Explainer & Coaching" của kiến trúc lai (xem `docs/Nghiên cứu ứng dụng LLM và CP-SAT...md`, mục "Đề Xuất Kiến Trúc Lai"). B1 (PR #77) đã làm phần deterministic: `src/clinical/menu_explainer.py::assemble_menu_facts()` + `src/services/menu_explanation_guard.py::check_grounded()`. Ticket này làm nốt phần LLM + route: `src/services/menu_coach.py::explain_menu_naturally(facts: MenuFacts) -> str` (Gemini, theo mẫu `target_assistant.explain_naturally()`, schema output không field số nào) + `GET /meal-plans/{plan_id}/explain` (`src/api/routes/menu_explainer.py`).
+**Quyết định kiến trúc:** endpoint gọi theo yêu cầu (on-demand), KHÔNG phải node trong LangGraph — mọi node hiện tại chạy trước khi duyệt (`to_review`/HITL), còn duyệt (`POST /reviews/{planId}/approve`) chỉ đổi `status` trên DB, không resume graph.
+**AC:** Gọi `check_grounded()` ngay sau khi LLM sinh văn bản — `ok=False` thì dùng bản render mẫu (template) từ `MenuFacts`, không phục vụ văn bản chưa qua kiểm, log lại để theo dõi · Route: 409 nếu `plan.status != "approved"`, 404 nếu bệnh nhân không phải chủ hồ sơ (mẫu `_get_pending_plan`/`targets.py`) · Response luôn có cả `facts` (structured) lẫn `text_vi` · Role: bệnh nhân (chủ hồ sơ) + chuyên gia/admin · Test LLM "nói dối" (chèn số không có trong facts) → guard chặn + route trả fallback · **KHÔNG** làm coaching hỏi-đáp tự do (free-text Q&A) trong ticket này (CLAUDE.md §7).
+
+**Đã làm (2026-08-10):** `src/services/gemini_client.py` mới (tách `call_gemini` dùng chung khỏi `target_assistant.py` — điểm dùng thứ 2 xuất hiện, đúng lúc tách, không phải trừu tượng hoá sớm). `src/services/menu_coach.py::explain_menu_naturally()` theo đúng khuôn. `src/api/routes/menu_explainer.py` — gate ownership TRƯỚC status (bệnh nhân không sở hữu không bao giờ phân biệt được 404 "không thấy" với 409 "chưa duyệt" qua mã lỗi).
+
+Hai lỗi thật phát hiện khi trở thành người gọi thật đầu tiên của code B1 (trước đó chỉ chạy với dict tay trong test, chưa từng chạm dữ liệu thật):
+1. `assemble_menu_facts()`: `bool` là subclass của `int` trong Python — cờ `purine_is_complete`/`sugar_is_complete`/`has_estimated` của `NutritionSummary.model_dump()` thật bị hiểu nhầm thành chất dinh dưỡng. Sửa: loại `bool` trước kiểm tra `isinstance(..., int | float)`.
+2. `check_grounded()`: chữ số trong `facts.plan_date` (VD "2026-08-12") bị coi là số bịa vì chưa từng nằm trong `_allowed_numbers()` — mọi văn bản nhắc tới ngày đều bị chặn nhầm. Sửa: thêm các phần ngày/tháng/năm (cả dạng có/không số 0 đứng đầu) vào tập số hợp lệ.
+
+Test: 8 test mới (`tests/test_menu_explainer.py` +2, `tests/test_api_menu_explainer.py` +6 file mới) + sửa 2 test cũ trong `tests/test_target_assistant.py` (mock theo tên hàm mới sau khi tách `gemini_client.py`). 420 passed, `ruff`/`mypy` sạch.
+
+> **Lộ trình sau MVP — model nền local + TokMem:** đặc tả trước (chưa code, chưa có hạ tầng GPU), xem `docs/Nghiên cứu ứng dụng LLM và CP-SAT tạo thực đơn cho người đái tháo đường.md` mục "Lộ Trình Model Nền & TokMem" và `docs/PLAN_WEEK_NEXT_v2v3.md` §3.
 
 ---
 

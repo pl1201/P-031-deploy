@@ -31,6 +31,45 @@ export interface PatientProfile {
   region: 'north' | 'central' | 'south' | null
 }
 
+export interface PatientObservation {
+  id: string
+  profile_id: string
+  observation_type: string
+  value: number
+  unit: string
+  measured_at: string
+  source: string
+  recorded_by: string
+  note: string | null
+  created_at: string
+}
+
+export interface ClinicalNote {
+  id: string
+  profile_id: string
+  author_id: string
+  note_type: string
+  content: string
+  visibility: string
+  version: number
+  created_at: string
+  updated_at: string
+}
+
+export interface ReviewEvent {
+  id: string
+  meal_plan_id: string
+  profile_id: string
+  reviewer_id: string
+  decision: string
+  reason: string | null
+  notes: string | null
+  menu_version: number
+  menu_hash: string | null
+  nutrition_hash: string | null
+  created_at: string
+}
+
 export interface MealPlanItem {
   id: string
   slot: 'breakfast' | 'lunch' | 'dinner' | 'snack'
@@ -80,25 +119,110 @@ export interface ComputedNutrition {
 
 export interface Violation {
   nutrient: string
-  actual: number
-  limit: number
-  unit: string
+  // actual/limit/unit là NULL với cảnh báo ĐỊNH TÍNH (món chưa tra được, tương
+  // tác thuốc–thực phẩm). UI phải render "—", tuyệt đối không thay bằng 0:
+  // hiển thị "0 mg" cho thứ chưa đo được chính là bịa số (RULE-2).
+  actual: number | null
+  limit: number | null
+  unit: string | null
   kind: string
   severity: 'hard' | 'soft'
   message_vi: string
-  suggestion?: string
-  rule_id?: string
+  suggestion?: string | null
+  rule_id?: string | null
+  source_ref?: string | null
+  evidence?: string | null
+  food_log_id?: string | null
+}
+
+// --- Nhật ký ăn uống (BE-07) ---------------------------------------------
+
+export type MatchStatus = 'unmatched' | 'auto' | 'llm' | 'expert' | 'no_data'
+
+export interface MatchSuggestion {
+  food_id: number
+  name_vi: string
+  score: number
+  matched_on: string
+}
+
+export interface FoodLog {
+  id: string
+  profile_id: string
+  logged_at: string
+  free_text_vi: string | null
+  food_id: number | null
+  food_name_vi: string | null
+  grams: number | null
+  slot: string | null
+  match_status: MatchStatus
+  match_confidence: number | null
+  note_vi: string | null
+  suggestions: MatchSuggestion[]
+}
+
+/** `insufficient_data` = KHÔNG kết luận được, khác hẳn "đạt". */
+export type Verdict = 'exceeded' | 'below_min' | 'within' | 'insufficient_data'
+
+export interface NutrientVerdict {
+  nutrient: string
+  label_vi: string
+  verdict: Verdict
+  counted: number | null
+  min_value: number | null
+  max_value: number | null
+  unit: string | null
+}
+
+export interface DaySummary {
+  profile_id: string
+  day: string
+  matched_count: number
+  unmatched_count: number
+  /** <1 nghĩa là còn món chưa tra được ⇒ mọi con số là MỨC TỐI THIỂU. */
+  coverage: number
+  is_complete: boolean
+  verdicts: NutrientVerdict[]
+  violations: Violation[]
+}
+
+export interface SafetyFinding {
+  code: string
+  risk_level: 'P0' | 'P1' | 'P2'
+  category: string
+  message_vi: string
+  suggestion?: string | null
+  rule_id?: string | null
+  evidence_refs: string[]
+  reviewer_override_allowed: boolean
+}
+
+export interface ReviewPacket {
+  highest_risk: 'P0' | 'P1' | 'P2' | 'none'
+  can_approve: boolean
+  used_fallback: boolean
+  target_gate_reasons: string[]
+  findings: SafetyFinding[]
+  summary: string
 }
 
 export interface MealPlan {
   id: string
   patient_id: string
   plan_date: string
-  status: 'drafting' | 'pending_review' | 'approved' | 'rejected' | 'failed'
+  status: 'drafting' | 'pending_review' | 'manual_review_required' | 'approved' | 'rejected' | 'failed'
   items: MealPlanItem[]
-  targets: Record<string, NutrientTarget>
+  targets: ClinicalTargets
   computed_nutrition: ComputedNutrition | null
   violations: Violation[]
+  safety_findings: SafetyFinding[]
+  review_packet: ReviewPacket
+  citations: Array<{ source_ref: string; title?: string | null; rule_ids: string[] }>
+  explanation_vi: string | null
+  highest_risk: 'P0' | 'P1' | 'P2' | 'none'
+  menu_version: number
+  menu_hash_ready: boolean
+  nutrition_hash_ready: boolean
   retry_count: number
   reviewer_id: string | null
   reviewer_notes: string | null
@@ -115,43 +239,11 @@ export interface ClinicalTargets {
   conflict_notes: string[]
 }
 
-export interface PatientObservation {
-  id: string
-  profile_id: string
-  observation_type: string
-  value: number
-  unit: string
-  measured_at: string
-  source: string
-  recorded_by: string
-  note: string | null
-  created_at: string
-}
-
-export interface ClinicalNote {
-  id: string
-  profile_id: string
-  author_id: string
-  note_type: string
-  content: string
-  visibility: 'internal' | 'care_team' | 'patient_visible'
-  version: number
-  created_at: string
-  updated_at: string
-}
-
-export interface ReviewEvent {
-  id: string
-  meal_plan_id: string
-  profile_id: string
-  reviewer_id: string
-  decision: string
-  reason: string | null
-  notes: string | null
-  menu_version: number
-  menu_hash: string | null
-  nutrition_hash: string | null
-  created_at: string
+export interface ReplacementCandidate {
+  dish_id: string
+  name_vi: string
+  serving_g: number
+  region: string | null
 }
 
 export class ApiError extends Error {
@@ -178,9 +270,18 @@ export function createApiClient(accessToken?: string) {
     headers.set('Content-Type', 'application/json')
     if (accessToken) headers.set('Authorization', `Bearer ${accessToken}`)
 
+    const controller = new AbortController()
+    const timeout = window.setTimeout(() => controller.abort(), 20000)
     let res: Response
-    try { res = await fetch(`${BASE_URL}${path}`, { ...init, headers }) }
-    catch { throw new ApiError(0, 'Không kết nối được máy chủ. Hãy kiểm tra Docker/backend rồi thử lại.') }
+    try { res = await fetch(`${BASE_URL}${path}`, { ...init, headers, signal: init.signal ?? controller.signal }) }
+    catch (error) {
+      if (error instanceof DOMException && error.name === 'AbortError') {
+        throw new ApiError(408, 'Máy chủ phản hồi quá chậm. Vui lòng thử lại hoặc kiểm tra kết nối cơ sở dữ liệu.')
+      }
+      throw new ApiError(0, 'Không kết nối được máy chủ. Hãy kiểm tra Docker/backend rồi thử lại.')
+    } finally {
+      window.clearTimeout(timeout)
+    }
 
     if (!res.ok) {
       const body = await res.json().catch(() => null) as { detail?: string } | null
@@ -214,18 +315,25 @@ export function createApiClient(accessToken?: string) {
         `/patients?page=${page}&page_size=${pageSize}`
       ),
     getPatient: (id: string) => request<PatientProfile>(`/patients/${id}`),
+    /** Hồ sơ của chính người đang đăng nhập — session chỉ có user_id, API cần profile_id. */
+    getMyProfile: () => request<PatientProfile>('/patients/me'),
     createPatient: (data: Omit<PatientProfile, 'id'>) =>
       request<PatientProfile>('/patients', { method: 'POST', body: JSON.stringify(data) }),
     updatePatient: (id: string, data: Partial<PatientProfile>) =>
       request<PatientProfile>(`/patients/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
-    listObservations: (id: string, observationType?: string) =>
-      request<PatientObservation[]>(`/patients/${id}/observations${observationType ? `?observation_type=${encodeURIComponent(observationType)}` : ''}`),
-    createObservation: (id: string, data: { observation_type: string; value: number; unit: string; measured_at: string; source?: string; note?: string }) =>
-      request<PatientObservation>(`/patients/${id}/observations`, { method: 'POST', body: JSON.stringify(data) }),
-    listClinicalNotes: (id: string) => request<ClinicalNote[]>(`/patients/${id}/notes`),
-    createClinicalNote: (id: string, data: { note_type: string; content: string; visibility: string }) =>
-      request<ClinicalNote>(`/patients/${id}/notes`, { method: 'POST', body: JSON.stringify(data) }),
-    listPatientReviewEvents: (id: string) => request<ReviewEvent[]>(`/patients/${id}/review-events`),
+    listObservations: (profileId: string) =>
+      request<PatientObservation[]>(`/patients/${profileId}/observations`),
+    listClinicalNotes: (profileId: string) =>
+      request<ClinicalNote[]>(`/patients/${profileId}/notes`),
+    createClinicalNote: (
+      profileId: string,
+      data: { note_type: string; content: string; visibility: string },
+    ) => request<ClinicalNote>(`/patients/${profileId}/notes`, {
+      method: 'POST',
+      body: JSON.stringify(data),
+    }),
+    listPatientReviewEvents: (profileId: string) =>
+      request<ReviewEvent[]>(`/patients/${profileId}/review-events`),
 
     // Targets
     computeTargets: (patientId: string) =>
@@ -245,6 +353,18 @@ export function createApiClient(accessToken?: string) {
 
     // Reviews (HITL)
     listPendingReviews: () => request<MealPlan[]>('/reviews/pending'),
+    recomputeMealPlan: (planId: string, edits: Array<{ item_id: string; grams: number }>) =>
+      request<MealPlan>(`/reviews/${planId}/recompute`, {
+        method: 'POST',
+        body: JSON.stringify({ edits }),
+      }),
+    listReplacementCandidates: (planId: string, itemId: string) =>
+      request<ReplacementCandidate[]>(`/reviews/${planId}/items/${itemId}/replacement-candidates`),
+    replaceMealPlanItem: (planId: string, itemId: string, dishId: string, servingG?: number) =>
+      request<MealPlan>(`/reviews/${planId}/items/${itemId}/replace`, {
+        method: 'POST',
+        body: JSON.stringify({ dish_id: dishId, serving_g: servingG ?? null }),
+      }),
     approveMealPlan: (planId: string, edits?: Array<{ item_id: string; grams: number }>, notes?: string) =>
       request<MealPlan>(`/reviews/${planId}/approve`, {
         method: 'POST',
@@ -255,11 +375,27 @@ export function createApiClient(accessToken?: string) {
         method: 'POST',
         body: JSON.stringify({ reason }),
       }),
-    listReviewHistory: (decision?: string, patientId?: string) => {
-      const params = new URLSearchParams()
-      if (decision) params.set('decision', decision)
-      if (patientId) params.set('patient_id', patientId)
-      return request<ReviewEvent[]>(`/reviews/history${params.size ? `?${params}` : ''}`)
-    },
+
+    // Nhật ký ăn uống (BE-07)
+    createFoodLog: (data: {
+      profile_id: string
+      free_text_vi: string
+      grams?: number | null
+      slot?: string
+      note_vi?: string | null
+    }) => request<FoodLog>('/food-logs', { method: 'POST', body: JSON.stringify(data) }),
+
+    listFoodLogs: (profileId: string, day?: string) =>
+      request<FoodLog[]>(`/food-logs?profile_id=${profileId}${day ? `&day=${day}` : ''}`),
+
+    getDaySummary: (profileId: string, day?: string) =>
+      request<DaySummary>(`/food-logs/summary?profile_id=${profileId}${day ? `&day=${day}` : ''}`),
+
+    listUnresolvedLogs: () => request<FoodLog[]>('/food-logs/unresolved'),
+
+    resolveFoodLog: (
+      logId: string,
+      body: { action: 'map_to_existing' | 'mark_no_data'; food_id?: number; grams?: number; note_vi?: string }
+    ) => request<FoodLog>(`/food-logs/${logId}/resolve`, { method: 'POST', body: JSON.stringify(body) }),
   }
 }
