@@ -71,6 +71,16 @@ class PatientProfile(BaseModel):
     medications: list[str] = Field(default_factory=list)
     region: Literal["north", "central", "south"] | None = None
     dislikes: list[str] = Field(default_factory=list)
+    medical_nutrition: list[str] = Field(
+        default_factory=list,
+        description=(
+            "Tên sản phẩm dinh dưỡng y tế đặc biệt (FSMP) bệnh nhân ĐANG dùng thật, "
+            "VD ['glucerna']. Rỗng (mặc định) = không sản phẩm nào được đưa vào thực đơn "
+            "tự sinh — xem `src/clinical/medical_nutrition.py`. Hệ thống KHÔNG bao giờ tự "
+            "thêm sản phẩm vào danh sách này: gợi ý một sản phẩm y tế người bệnh chưa dùng "
+            "là tiến gần tới chỉ định (CLAUDE.md §3)."
+        ),
+    )
 
     # --- Cờ lâm sàng ảnh hưởng tới việc áp dụng ngưỡng ---
     # Nguồn: KDIGO 2024 Practice Point 3.3.1.3 và 3.3.1.5
@@ -128,7 +138,7 @@ class PatientProfile(BaseModel):
             flags.add("on_dialysis")
         return flags
 
-    @field_validator("allergies", "medications", "dislikes", mode="after")
+    @field_validator("allergies", "medications", "dislikes", "medical_nutrition", mode="after")
     @classmethod
     def _normalize(cls, v: list[str]) -> list[str]:
         return [s.strip().lower() for s in v if s.strip()]
