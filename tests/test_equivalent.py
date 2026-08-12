@@ -122,3 +122,82 @@ def test_khong_giao_nhau_giua_tolerance_va_nguong_lam_sang(foods, profile, base_
         assert not any(v.blocking for v in violations)
     else:
         assert result.reason_vi
+
+
+class TestChatThieuDuLieuKhongApDaiTuongDuong:
+    """Chất có tổng KHÔNG ĐẦY ĐỦ thì chỉ giữ ngưỡng lâm sàng, bỏ dải ±tolerance.
+
+    Bug gốc (phát hiện 2026-08-12 qua `test_co_scope_va_tu_lanh_day_du_thi_tu_phat_hanh`):
+    `NutritionSummary` chỉ cộng món CÓ số liệu `sugar_g` rồi gắn
+    `sugar_is_complete=False`, nhưng `_equivalent_bounds()` vẫn dựng dải ±10%
+    quanh con số thiếu hụt đó. Đo trên ca thật: base `sugar_g=8.89` →
+    dải 8.0–9.78 g cho CẢ NGÀY (rộng 1.78 g, so với 23–486 đơn vị ở chất khác)
+    → bài toán vô nghiệm dù tủ lạnh khai báo TOÀN BỘ món curated.
+    """
+
+    @staticmethod
+    def _summary(**kw):
+        from src.clinical.models import NutritionSummary, SourceRef
+
+        base = dict(
+            kcal=2000.0, protein_g=90.0, carb_g=250.0, fat_g=60.0, fiber_g=30.0,
+            na_mg=1500.0, k_mg=3000.0, p_mg=1000.0, purine_mg=100.0,
+            sugar_g=8.89,
+            sources=[
+                SourceRef(food_id=1, name="Cơm tẻ", grams=100.0, source="NIN", source_ref="Bảng TPTP VN 2017")
+            ],
+        )
+        return NutritionSummary(**{**base, **kw})
+
+    @staticmethod
+    def _targets(**targets):
+        from src.clinical.models import ClinicalTargets
+
+        return ClinicalTargets(patient_id="P", bmr_kcal=1600.0, tdee_kcal=2000.0, targets=targets)
+
+    def _sugar_bounds(self, *, complete: bool):
+        from src.clinical.models import NutrientTarget
+
+        from src.agents.equivalent import _equivalent_bounds
+
+        targets = self._targets(
+            sugar_g=NutrientTarget(nutrient="sugar_g", min_value=None, max_value=67.64, unit="g")
+        )
+        bounds, reason = _equivalent_bounds(
+            targets, self._summary(sugar_is_complete=complete), tolerance=0.10
+        )
+        assert reason is None, reason
+        assert bounds is not None
+        return bounds["sugar_g"]
+
+    def test_sugar_thieu_du_lieu_thi_giu_nguyen_tran_lam_sang(self):
+        lo, hi = self._sugar_bounds(complete=False)
+        assert lo is None, "không được đặt sàn theo tổng đường thiếu hụt"
+        assert hi == pytest.approx(67.64), "trần WHO cho đường tự do PHẢI giữ nguyên"
+
+    def test_sugar_du_du_lieu_thi_van_ap_dai_tuong_duong(self):
+        """Chiều ngược lại — dữ liệu đủ thì dải ±10% vẫn phải hoạt động, nếu
+        không thì bản sửa đã vô hiệu hoá luôn khái niệm 'tương đương'."""
+        lo, hi = self._sugar_bounds(complete=True)
+        assert lo == pytest.approx(8.89 * 0.9)
+        assert hi == pytest.approx(8.89 * 1.1)
+
+    def test_khong_co_nguong_lam_sang_thi_chat_thieu_du_lieu_bi_bo_han(self):
+        """Thiếu dữ liệu VÀ không có ngưỡng lâm sàng → không còn căn cứ nào,
+        không được bịa ra ràng buộc."""
+        from src.clinical.models import NutrientTarget
+
+        from src.agents.equivalent import _equivalent_bounds
+
+        targets = self._targets(
+            sugar_g=NutrientTarget(nutrient="sugar_g", min_value=None, max_value=None, unit="g"),
+            kcal=NutrientTarget(nutrient="kcal", min_value=1800.0, max_value=2200.0, unit="kcal"),
+        )
+        bounds, reason = _equivalent_bounds(
+            targets, self._summary(sugar_is_complete=False), tolerance=0.10
+        )
+        assert reason is None
+        assert "sugar_g" not in bounds
+        # `bounds` khoá theo TÊN FIELD của FoodItem, không theo tên nutrient —
+        # với kcal là `kcal_100g` (xem `_NUTRIENT_TO_FIELD` trong optimizer).
+        assert "kcal_100g" in bounds, "chất có đủ dữ liệu vẫn phải được ràng buộc"
