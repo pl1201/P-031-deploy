@@ -211,9 +211,9 @@ class ClinicalRule(Base):
     guideline_ref: Mapped[str] = mapped_column(Text)  # RULE-2
     guideline_grade: Mapped[str | None] = mapped_column(String(10), nullable=True)
     verify_status: Mapped[str] = mapped_column(String(20), default="to_verify")
-    overridden_by: Mapped[str | None] = mapped_column(String(50), nullable=True)
-    disabled_by_flag: Mapped[str | None] = mapped_column(String(50), nullable=True)
-    requires_flag: Mapped[str | None] = mapped_column(String(50), nullable=True)
+    overridden_by: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    disabled_by_flag: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    requires_flag: Mapped[str | None] = mapped_column(String(255), nullable=True)
 
 
 class DrugFoodInteraction(Base):
