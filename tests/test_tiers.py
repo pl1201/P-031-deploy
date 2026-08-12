@@ -114,16 +114,37 @@ def test_load_vn_dishes_mac_dinh_loai_mon_chua_duyet():
     assert all(d.is_reviewed for d in dishes), "gate mặc định lọt món chưa duyệt"
 
 
-def test_load_vn_dishes_include_pending_true_van_tra_ve_mon_cho_eval():
+def test_load_vn_dishes_include_pending_true_van_tra_ve_mon_cho_eval(tmp_path):
     """`include_pending=True` CHỈ dành cho eval/demo/nội bộ — không bao giờ
-    dùng ở code path có khả năng tới bệnh nhân thật. Test khẳng định cờ này
-    vẫn hoạt động (không bị gate chặn luôn, tách biệt với is_patient_facing_dish
-    ở tầng khác).
+    dùng ở code path có khả năng tới bệnh nhân thật.
 
-    Sau đợt duyệt 2026-08-12, dữ liệu là hỗn hợp món đã duyệt + món pending —
-    khẳng định include_pending=True trả về CẢ HAI loại (ngược lại mới là bug:
-    nếu chỉ toàn reviewed thì include_pending không còn tác dụng gì)."""
-    dishes = load_vn_dishes(include_pending=True)
-    assert dishes, "include_pending=True phải trả về món pending cho eval/demo"
-    assert any(d.is_reviewed for d in dishes), "phải có món đã duyệt trong seeds"
-    assert any(not d.is_reviewed for d in dishes), "phải còn món pending trong seeds"
+    Sau đợt duyệt 2026-08-13 (R2 xử lý dứt điểm toàn bộ dishes.csv: món đủ
+    nguyên liệu → duyệt, món thiếu thành phần định danh → loại hẳn qua
+    `incomplete_recipe_markers`), seed thật hiện KHÔNG còn món nào vừa qua
+    được bộ lọc marker vừa còn `pending` — `include_pending=True` và mặc
+    định giờ trả kết quả GIỐNG HỆT nhau trên dữ liệu thật. Đó là điều tốt
+    (không còn nợ dữ liệu), không phải bug, nhưng khiến test cũ dựa vào seed
+    thật để phân biệt hai nhánh không còn ý nghĩa.
+
+    Dùng CSV giả lập cố định (độc lập trạng thái duyệt thật) để kiểm chứng
+    đúng HỢP ĐỒNG của tham số — không phụ thuộc seed đã duyệt tới đâu.
+    """
+    dishes_csv = tmp_path / "dishes.csv"
+    dishes_csv.write_text(
+        "dish_id,name_vi,region,serving_g,verified_by,note\n"
+        'VN-DA-DUYET,Món đã duyệt,,200,"Chuyên gia duyệt 2026-08-13",\n'
+        'VN-CHUA-DUYET,Món chưa duyệt,,200,pending,\n',
+        encoding="utf-8",
+    )
+    ingredients_csv = tmp_path / "dish_ingredients.csv"
+    ingredients_csv.write_text(
+        "dish_id,food_id,grams,note\nVN-DA-DUYET,1,150,\nVN-CHUA-DUYET,1,150,\n",
+        encoding="utf-8",
+    )
+
+    only_reviewed = load_vn_dishes(dishes_csv, ingredients_csv, include_pending=False)
+    all_dishes = load_vn_dishes(dishes_csv, ingredients_csv, include_pending=True)
+
+    assert [d.dish_id for d in only_reviewed] == ["VN-DA-DUYET"]
+    assert {d.dish_id for d in all_dishes} == {"VN-DA-DUYET", "VN-CHUA-DUYET"}
+    assert any(d.is_reviewed for d in all_dishes) and any(not d.is_reviewed for d in all_dishes)
