@@ -103,18 +103,27 @@ def test_load_vn_dishes_mac_dinh_loai_mon_chua_duyet():
     thực tế chỉ dựa vào so khớp chuỗi con trong `note`, dễ bị bỏ lọt (đúng cơ
     chế đã gây bug MENU-*, DEC-022).
 
-    Hiện toàn bộ 100 món trong seeds đều pending, nên assert này thực chất
-    khẳng định "không có món pending nào lọt qua" bằng cách khẳng định KẾT QUẢ
-    RỖNG — khẳng định mạnh hơn "không có phần tử X", đúng thực trạng dữ liệu.
+    Sau đợt duyệt thủ công 2026-08-12 (R2 gửi ghi chú qua text vì giao diện
+    duyệt tạm bị lỗi, xem DEVLOG), 31/100 món đã có `verified_by` thực (không
+    còn "pending"), số còn lại vẫn pending. Assert không còn có thể khẳng
+    định KẾT QUẢ RỖNG — thay vào đó khẳng định trực tiếp điều gate thực sự
+    phải đảm bảo: không món nào trong kết quả còn `is_reviewed=False`.
     """
-    assert load_vn_dishes() == []
+    dishes = load_vn_dishes()
+    assert dishes, "phải có ít nhất 1 món đã duyệt lọt qua gate include_pending=False"
+    assert all(d.is_reviewed for d in dishes), "gate mặc định lọt món chưa duyệt"
 
 
 def test_load_vn_dishes_include_pending_true_van_tra_ve_mon_cho_eval():
     """`include_pending=True` CHỈ dành cho eval/demo/nội bộ — không bao giờ
     dùng ở code path có khả năng tới bệnh nhân thật. Test khẳng định cờ này
     vẫn hoạt động (không bị gate chặn luôn, tách biệt với is_patient_facing_dish
-    ở tầng khác)."""
+    ở tầng khác).
+
+    Sau đợt duyệt 2026-08-12, dữ liệu là hỗn hợp món đã duyệt + món pending —
+    khẳng định include_pending=True trả về CẢ HAI loại (ngược lại mới là bug:
+    nếu chỉ toàn reviewed thì include_pending không còn tác dụng gì)."""
     dishes = load_vn_dishes(include_pending=True)
     assert dishes, "include_pending=True phải trả về món pending cho eval/demo"
-    assert all(d.is_reviewed is False for d in dishes), "toàn bộ 100 món hiện tại đều pending"
+    assert any(d.is_reviewed for d in dishes), "phải có món đã duyệt trong seeds"
+    assert any(not d.is_reviewed for d in dishes), "phải còn món pending trong seeds"
