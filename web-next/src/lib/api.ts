@@ -210,7 +210,7 @@ export interface MealPlan {
   id: string
   patient_id: string
   plan_date: string
-  status: 'drafting' | 'pending_review' | 'approved' | 'rejected' | 'failed'
+  status: 'drafting' | 'pending_review' | 'manual_review_required' | 'approved' | 'rejected' | 'failed'
   items: MealPlanItem[]
   targets: ClinicalTargets
   computed_nutrition: ComputedNutrition | null
@@ -270,9 +270,18 @@ export function createApiClient(accessToken?: string) {
     headers.set('Content-Type', 'application/json')
     if (accessToken) headers.set('Authorization', `Bearer ${accessToken}`)
 
+    const controller = new AbortController()
+    const timeout = window.setTimeout(() => controller.abort(), 20000)
     let res: Response
-    try { res = await fetch(`${BASE_URL}${path}`, { ...init, headers }) }
-    catch { throw new ApiError(0, 'Không kết nối được máy chủ. Hãy kiểm tra Docker/backend rồi thử lại.') }
+    try { res = await fetch(`${BASE_URL}${path}`, { ...init, headers, signal: init.signal ?? controller.signal }) }
+    catch (error) {
+      if (error instanceof DOMException && error.name === 'AbortError') {
+        throw new ApiError(408, 'Máy chủ phản hồi quá chậm. Vui lòng thử lại hoặc kiểm tra kết nối cơ sở dữ liệu.')
+      }
+      throw new ApiError(0, 'Không kết nối được máy chủ. Hãy kiểm tra Docker/backend rồi thử lại.')
+    } finally {
+      window.clearTimeout(timeout)
+    }
 
     if (!res.ok) {
       const body = await res.json().catch(() => null) as { detail?: string } | null
