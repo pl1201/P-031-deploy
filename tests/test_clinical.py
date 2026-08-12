@@ -46,13 +46,25 @@ def load_rules():
 
 
 def test_runtime_rule_loader_mac_dinh_nap_ca_to_verify():
-    """DEC-020: default verified_only=False vì seed hiện tại chưa có rule nào
-    'verified' — giữ True sẽ làm compute_targets() không tính được ngưỡng nào."""
-    default_loaded = _load_rules()
-    assert default_loaded and all(rule.verify_status == "to_verify" for rule in default_loaded)
+    """DEC-020: default verified_only=False — không được để việc R2 ký xong
+    một phần rule làm compute_targets() ÍT ngưỡng đi so với trước khi ký.
 
+    Sau đợt R2 duyệt 2026-08-13 (9 rule CKD chuyển 'verified', xem CLN-11),
+    seed KHÔNG còn 100% to_verify — assert cũ ("tất cả to_verify",
+    "verified_only trả rỗng") đã lỗi thời theo đúng nghĩa TỐT (R2 đã ký),
+    không phải hồi quy. Test giờ khẳng định đúng bất biến DEC-020 phải giữ:
+    mặc định luôn nạp ĐỦ (to_verify lẫn verified), không rớt rule nào chỉ
+    vì nó chưa được ký.
+    """
+    default_loaded = _load_rules()
+    to_verify = _load_rules(verified_only=False)
     verified_only = _load_rules(verified_only=True)
-    assert verified_only == []  # current seed governance: all 21 rows are still to_verify
+
+    assert default_loaded == to_verify, "mặc định phải giống hệt verified_only=False (nạp đủ, không lọc)"
+    assert len(verified_only) <= len(to_verify), "verified_only không được nạp NHIỀU hơn to_verify=False"
+    assert all(rule.verify_status == "verified" for rule in verified_only)
+    assert any(rule.verify_status == "to_verify" for rule in to_verify), "seed phải còn rule chưa ký để test có ý nghĩa"
+    assert any(rule.verify_status == "verified" for rule in to_verify), "phải có ít nhất 1 rule đã được R2 ký"
 
 
 # ---------------------------------------------------------------- năng lượng
