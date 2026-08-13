@@ -133,7 +133,7 @@ def test_load_vn_dishes_include_pending_true_van_tra_ve_mon_cho_eval(tmp_path):
     dishes_csv.write_text(
         "dish_id,name_vi,region,serving_g,verified_by,note\n"
         'VN-DA-DUYET,Món đã duyệt,,200,"Chuyên gia duyệt 2026-08-13",\n'
-        'VN-CHUA-DUYET,Món chưa duyệt,,200,pending,\n',
+        "VN-CHUA-DUYET,Món chưa duyệt,,200,pending,\n",
         encoding="utf-8",
     )
     ingredients_csv = tmp_path / "dish_ingredients.csv"

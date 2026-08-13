@@ -114,6 +114,7 @@ def _max_grams_per_day(food: FoodItem) -> int:
         return 100
     return MAX_GRAMS_PER_FOOD_PER_DAY
 
+
 # CP-SAT chỉ nhận hệ số nguyên, nên giá trị/100 g phải làm tròn về bội của
 # 1/VALUE_SCALE. Nhân với VALUE_SCALE rồi làm tròn CÓ HƯỚNG (xem `_try_solve`)
 # để đảm bảo TOÁN HỌC rằng tổng thật (do compute_nutrition tính bằng giá trị
@@ -279,8 +280,7 @@ def _dish_nutrient_totals(
 def _dish_has_complete_nutrient(dish: DishCandidate, foods: FoodRepository, field: str) -> bool:
     """Return whether every ingredient has data for an optional nutrient."""
     return all(
-        (food := foods.get(item.food_id)) is not None and getattr(food, field) is not None
-        for item in dish.ingredients
+        (food := foods.get(item.food_id)) is not None and getattr(food, field) is not None for item in dish.ingredients
     )
 
 
@@ -316,9 +316,7 @@ def _solve_day(
             continue
         complete_raw = sum(getattr(food, field) is not None for food in candidates)
         complete_dishes = (
-            sum(_dish_has_complete_nutrient(dish, foods, field) for dish in dishes or [])
-            if foods is not None
-            else 0
+            sum(_dish_has_complete_nutrient(dish, foods, field) for dish in dishes or []) if foods is not None else 0
         )
         # The review validator already represents incomplete sugar/purine as a
         # soft data-quality finding. Do the same here. Keeping a bound that no
@@ -476,7 +474,9 @@ def _try_solve(
         for dish, _totals in dish_totals:
             if solver.Value(dish_chosen[(slot, dish.dish_id)]):
                 planned_dishes.setdefault(slot, []).append(
-                    PlannedDish(dish_id=dish.dish_id, serving_grams=sum(ingredient.grams for ingredient in dish.ingredients))
+                    PlannedDish(
+                        dish_id=dish.dish_id, serving_grams=sum(ingredient.grams for ingredient in dish.ingredients)
+                    )
                 )
                 for ing in dish.ingredients:
                     grams_by_food[ing.food_id] = grams_by_food.get(ing.food_id, 0.0) + ing.grams
