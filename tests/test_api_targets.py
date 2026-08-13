@@ -52,35 +52,35 @@ def test_tinh_dinh_muc_thanh_cong(client, dietitian, profile_id):
     assert len(body["applied_rule_ids"]) > 0
 
 
-def test_da_benh_ly_phat_hien_ca_hai_nhom_rule_nhung_gate_chan_vi_chua_verified(client, dietitian, profile_id):
-    """ĐTĐ2 + CKD G3b — phải phát hiện rule của CẢ HAI bệnh, không bỏ sót một bệnh.
+def test_da_benh_ly_tra_applied_rule_ids_day_du(client, dietitian, profile_id):
+    """ĐTĐ2 + CKD G3b — phải áp cả 2 nhóm rule, không phải chỉ 1 bệnh.
 
-    Ý định gốc của ticket giữ nguyên. Chỗ đổi là hợp đồng phía trên nó:
-    `/targets/compute` đi qua `compute_targets_with_rule_gate()`, và hàm này
-    tính định mức bằng `load_rules(verified_only=True)` — fail-closed theo
-    DEC-021. Toàn bộ 23 rule trong seed hiện còn `verify_status=to_verify`
-    (R2 chưa ký), nên `applied_rule_ids` CHỈ có rule năng lượng tính trong
-    code; không rule lâm sàng nào từ CSV được áp.
+    Lịch sử field này (đọc trước khi sửa lại lần nữa): bản gốc assert thẳng
+    `applied_rule_ids` có T2DM/CKD. Khi CLN-11 (PR #107) mới xong mà
+    fix/CLN-11-remaining-rules (PR #109) chưa merge, 23/23 rule vẫn
+    `to_verify`, nên `compute_targets_with_rule_gate()` (fail-closed theo
+    DEC-021) chặn hết — bản assert tạm thời khi đó kiểm `needs_expert_review`
+    + `conflict_notes` thay vì `applied_rule_ids`.
 
-    Vì vậy test khẳng định đúng thứ gate phải bảo đảm, thay vì khẳng định
-    một hành vi mà thiết kế an toàn cố ý không cho phép:
-      1. Không im lặng bỏ qua — hồ sơ bị gắn `needs_expert_review`.
-      2. Rule của CẢ HAI bệnh phải xuất hiện trong danh sách chưa xác minh
-         (đây là phần bắt "bỏ sót một bệnh" của ticket gốc).
-
-    Khi R2 ký `verify_status=verified` cho tập rule T2DM/CKD, test này sẽ đỏ
-    và PHẢI được sửa lại thành khẳng định `applied_rule_ids` có cả hai nhóm —
-    đó là tín hiệu đúng, không phải hồi quy.
+    Sau khi hợp nhất #107+#109 (2 PR sửa đúng 2 tập rule KHÔNG giao nhau:
+    CKD-PRO/CKD-K/CKD-NA vs BASE/T2DM/HTN/CKD-P/GOUT), toàn bộ 23/23 rule đã
+    `verified` — quay lại đúng ý định gốc của ticket: `applied_rule_ids`
+    phải có rule của CẢ HAI bệnh, không bỏ sót một bệnh nào, và KHÔNG cần
+    `needs_expert_review` nữa vì không còn rule chưa xác minh áp dụng được
+    cho ca này.
     """
     _, dt_headers = dietitian
     r = client.post("/api/v1/targets/compute", json={"patient_id": profile_id}, headers=dt_headers)
     body = r.json()
 
-    assert body["needs_expert_review"] is True, "gate không được im lặng thả qua khi rule chưa xác minh"
+    assert body["needs_expert_review"] is False, "không còn rule chưa xác minh — không cần chuyên gia rà lại"
+    assert body["conflict_notes"] == []
 
-    notes = " ".join(body["conflict_notes"])
-    assert "T2DM" in notes, "không phát hiện rule ĐTĐ2 — nguy cơ bỏ sót một bệnh"
-    assert "CKD" in notes, "không phát hiện rule CKD — nguy cơ bỏ sót một bệnh"
+    rule_ids = " ".join(body["applied_rule_ids"])
+    assert "T2DM" in rule_ids, "không áp rule ĐTĐ2 — nguy cơ bỏ sót một bệnh"
+    assert "CKD" in rule_ids, "không áp rule CKD — nguy cơ bỏ sót một bệnh"
+    assert "CKD-PRO-01" in body["applied_rule_ids"]
+    assert "T2DM-CARB-01" in body["applied_rule_ids"]
 
 
 def test_patient_id_khong_ton_tai_tra_404(client, dietitian):
