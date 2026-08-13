@@ -13,8 +13,9 @@ TODO tại chỗ khai báo cột.
 from __future__ import annotations
 
 from collections.abc import Iterator
+from functools import lru_cache
 
-from sqlalchemy import create_engine, event
+from sqlalchemy import Engine, create_engine, event
 from sqlalchemy.orm import DeclarativeBase, Session, sessionmaker
 
 from src.config import get_settings
@@ -24,11 +25,31 @@ class Base(DeclarativeBase):
     pass
 
 
-def get_engine():
+@lru_cache(maxsize=1)
+def get_engine() -> Engine:
+    """Return one process-wide engine and reuse its connection pool."""
     settings = get_settings()
-    connect_args = {"check_same_thread": False} if settings.database_url.startswith("sqlite") else {}
-    engine = create_engine(settings.database_url, connect_args=connect_args)
-    if settings.database_url.startswith("sqlite"):
+    is_sqlite = settings.database_url.startswith("sqlite")
+    if is_sqlite:
+        engine = create_engine(settings.database_url, connect_args={"check_same_thread": False})
+    else:
+        engine = create_engine(
+            settings.database_url,
+            pool_pre_ping=True,
+            pool_size=settings.db_pool_size,
+            max_overflow=settings.db_max_overflow,
+            pool_timeout=settings.db_pool_timeout_sec,
+            pool_recycle=settings.db_pool_recycle_sec,
+            connect_args={
+                "connect_timeout": settings.db_connect_timeout_sec,
+                "application_name": "vnutricare-api",
+                "keepalives": 1,
+                "keepalives_idle": 30,
+                "keepalives_interval": 10,
+                "keepalives_count": 3,
+            },
+        )
+    if is_sqlite:
 
         @event.listens_for(engine, "connect")
         def _enable_sqlite_foreign_keys(dbapi_connection, _connection_record):

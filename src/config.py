@@ -61,6 +61,11 @@ class Settings(BaseSettings):
 
     # Database
     database_url: str = "sqlite:///./data/app.db"
+    db_connect_timeout_sec: int = Field(default=10, ge=1, le=60)
+    db_pool_timeout_sec: int = Field(default=10, ge=1, le=60)
+    db_pool_recycle_sec: int = Field(default=300, ge=30, le=3600)
+    db_pool_size: int = Field(default=3, ge=1, le=20)
+    db_max_overflow: int = Field(default=2, ge=0, le=20)
 
     # Vector Store
     chroma_persist_dir: str = "./data/chroma"
