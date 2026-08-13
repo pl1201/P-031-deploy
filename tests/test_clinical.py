@@ -49,12 +49,16 @@ def test_runtime_rule_loader_mac_dinh_nap_ca_to_verify():
     """DEC-020: default verified_only=False — không được để việc R2 ký xong
     một phần rule làm compute_targets() ÍT ngưỡng đi so với trước khi ký.
 
-    Sau đợt R2 duyệt 2026-08-13 (14/21 rule chuyển 'verified', xem CLN-11 +
-    fix/CLN-11-remaining-rules), seed KHÔNG còn 100% to_verify — assert cũ
-    ("tất cả to_verify", "verified_only trả rỗng") đã lỗi thời theo đúng
-    nghĩa tốt (R2 đã ký), không phải hồi quy. Test giờ khẳng định đúng bất
-    biến DEC-020 phải giữ: mặc định luôn nạp ĐỦ (to_verify lẫn verified),
-    không rớt rule nào chỉ vì nó chưa được ký.
+    Sau khi hợp nhất CLN-11 (PR #107, ngưỡng CKD dialysis) với
+    fix/CLN-11-remaining-rules (PR #109, 7 rule citation/số liệu còn lại),
+    toàn bộ 23/23 rule trong seed đã chuyển `verified` — hai PR sửa đúng 2
+    tập rule KHÔNG giao nhau (CKD-PRO/CKD-K/CKD-NA vs BASE/T2DM/HTN/CKD-P/
+    GOUT) nên gộp lại vừa đủ 100%, không phải trùng hợp giả tạo. Test không
+    còn khẳng định được "seed còn rule to_verify" (đúng nghĩa TỐT — R2 đã ký
+    hết, không phải hồi quy). Test giờ khẳng định đúng bất biến DEC-020 phải
+    giữ vĩnh viễn bất kể seed đang ở trạng thái nào: mặc định luôn nạp ĐỦ
+    rule (to_verify lẫn verified), không rớt rule nào chỉ vì nó chưa được
+    ký — verified_only=True mới là bộ lọc, không phải hành vi mặc định.
     """
     default_loaded = _load_rules()
     to_verify = _load_rules(verified_only=False)
@@ -63,10 +67,15 @@ def test_runtime_rule_loader_mac_dinh_nap_ca_to_verify():
     assert default_loaded == to_verify, "mặc định phải giống hệt verified_only=False (nạp đủ, không lọc)"
     assert len(verified_only) <= len(to_verify), "verified_only không được nạp NHIỀU hơn to_verify=False"
     assert all(rule.verify_status == "verified" for rule in verified_only)
-    # Có cả rule to_verify LẪN verified trong seed — nếu chỉ còn một loại thì
-    # test không còn phân biệt được gì (xem docstring lớp TestGuidelineCitationCorrections).
-    assert any(rule.verify_status == "to_verify" for rule in to_verify), "seed phải còn rule chưa ký để test có ý nghĩa"
     assert any(rule.verify_status == "verified" for rule in to_verify), "phải có ít nhất 1 rule đã được R2 ký"
+    # Seed hiện tại (2026-08-13) đã 100% verified sau khi hợp nhất #107+#109 —
+    # không assert "còn to_verify" nữa (đó là tín hiệu TỐT). Bất biến thật sự
+    # cần giữ là default==verified_only=False, đã khoá ở assert phía trên;
+    # dòng dưới chỉ ghi lại sự thật hiện tại để không ai tưởng nhầm là bug.
+    assert not any(rule.verify_status == "to_verify" for rule in to_verify), (
+        "Nếu dòng này đỏ vì có rule to_verify MỚI được thêm — bình thường, không phải hồi quy. "
+        "Xoá assert này (không cần thay bằng gì) khi điều đó xảy ra."
+    )
 
 
 # ---------------------------------------------------------------- năng lượng
@@ -386,6 +395,30 @@ class TestKdigo2024SafetyFlags:
         ids = t.targets["protein_g"].rule_ids
         assert "CKD-PRO-01" not in ids and "CKD-PRO-02" not in ids
         assert t.needs_expert_review is True
+
+    def test_loc_mau_thi_go_tran_protein_thap_va_ap_dai_1_0_1_2(self):
+        """CLN-11: KDOQI 2020 — CKD G5D (lọc máu) cần 1.0-1.2 g/kg/ngày, KHÔNG
+        bị áp trần 0.8 g/kg dành cho người CHƯA lọc máu (CKD-PRO-01/02)."""
+        ckd_g5 = [Condition(code=ConditionCode.CKD, stage="G5")]
+        p = PatientProfile(**self.BASE, age=58, conditions=ckd_g5, on_dialysis=True)
+        t = compute_targets(p, load_rules())
+
+        ids = t.targets["protein_g"].rule_ids
+        assert "CKD-PRO-01" not in ids and "CKD-PRO-02" not in ids
+        assert "CKD-PRO-06" in ids and "CKD-PRO-07" in ids
+        assert t.min_of("protein_g") == pytest.approx(1.0 * 65)
+        assert t.max_of("protein_g") == pytest.approx(1.2 * 65)
+
+    def test_g5_chua_loc_mau_van_ap_tran_thap_binh_thuong(self):
+        """Không lọc máu ở G5 vẫn dùng trần CHƯA lọc máu như G3-G4 (CKD-PRO-01/02)."""
+        ckd_g5 = [Condition(code=ConditionCode.CKD, stage="G5")]
+        p = PatientProfile(**self.BASE, age=58, conditions=ckd_g5)
+        t = compute_targets(p, load_rules())
+
+        ids = t.targets["protein_g"].rule_ids
+        assert "CKD-PRO-01" in ids and "CKD-PRO-02" in ids
+        assert "CKD-PRO-06" not in ids and "CKD-PRO-07" not in ids
+        assert t.max_of("protein_g") == pytest.approx(0.8 * 65)
 
     def test_tran_an_toan_1_3_khong_bao_gio_bi_vo_hieu(self):
         """CKD-PRO-05 là trần tuyệt đối, mọi cờ đều không gỡ được."""

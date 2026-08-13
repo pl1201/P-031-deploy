@@ -65,7 +65,7 @@ def test_khoi_usda_bulk_van_bi_loai() -> None:
 
 def test_ung_vien_bi_cap_dung_retrieval_top_k_khi_vuot_nguong() -> None:
     """DAT-24 sửa bug lọc nhầm theo id, nhưng `_top_k_candidates()` (thêm SAU đó,
-    xem core.py — giới hạn kích thước checkpoint LangGraph) cắt về đúng
+    xem core.py:255 — giới hạn kích thước checkpoint LangGraph) cắt về đúng
     `RETRIEVAL_TOP_K`. Assertion gốc "chỉ được thêm, không được bớt" không còn
     đúng kể từ khi có cap — test này xác nhận hành vi HIỆN TẠI: cap đúng
     `RETRIEVAL_TOP_K` khi pool đủ điều kiện vượt ngưỡng, và NIN id lớn (bug
