@@ -11,6 +11,8 @@ from typing import ClassVar, Literal
 
 from pydantic import BaseModel, Field, field_validator, model_validator
 
+from .dish_roles import DishRole
+
 
 class Sex(str, Enum):
     MALE = "male"
@@ -69,6 +71,16 @@ class PatientProfile(BaseModel):
     medications: list[str] = Field(default_factory=list)
     region: Literal["north", "central", "south"] | None = None
     dislikes: list[str] = Field(default_factory=list)
+    medical_nutrition: list[str] = Field(
+        default_factory=list,
+        description=(
+            "Tên sản phẩm dinh dưỡng y tế đặc biệt (FSMP) bệnh nhân ĐANG dùng thật, "
+            "VD ['glucerna']. Rỗng (mặc định) = không sản phẩm nào được đưa vào thực đơn "
+            "tự sinh — xem `src/clinical/medical_nutrition.py`. Hệ thống KHÔNG bao giờ tự "
+            "thêm sản phẩm vào danh sách này: gợi ý một sản phẩm y tế người bệnh chưa dùng "
+            "là tiến gần tới chỉ định (CLAUDE.md §3)."
+        ),
+    )
 
     # --- Cờ lâm sàng ảnh hưởng tới việc áp dụng ngưỡng ---
     # Nguồn: KDIGO 2024 Practice Point 3.3.1.3 và 3.3.1.5
@@ -89,6 +101,15 @@ class PatientProfile(BaseModel):
     sodium_wasting: bool = Field(
         default=False,
         description=("Bệnh thận mất muối. KDIGO 2024 PP 3.3.2.1: hạn chế natri thường KHÔNG phù hợp với nhóm này."),
+    )
+    on_dialysis: bool = Field(
+        default=False,
+        description=(
+            "Đang lọc máu chu kỳ (thận nhân tạo hoặc lọc màng bụng) — CKD giai đoạn G5D. "
+            "KDOQI 2020: người lọc máu ổn định chuyển hoá cần protein 1.0-1.2 g/kg/ngày "
+            "(HD: grade 1C; PD: OPINION) — CAO HƠN trần 0.8 g/kg dành cho CKD G3-G5 CHƯA "
+            "lọc máu (KDIGO 2024 Rec 3.3.1.1). KHÔNG áp trần protein thấp cho nhóm này (CLN-11)."
+        ),
     )
 
     ELDERLY_AGE_THRESHOLD: ClassVar[int] = 65
@@ -113,9 +134,11 @@ class PatientProfile(BaseModel):
             flags.add("metabolically_unstable")
         if self.sodium_wasting:
             flags.add("sodium_wasting")
+        if self.on_dialysis:
+            flags.add("on_dialysis")
         return flags
 
-    @field_validator("allergies", "medications", "dislikes", mode="after")
+    @field_validator("allergies", "medications", "dislikes", "medical_nutrition", mode="after")
     @classmethod
     def _normalize(cls, v: list[str]) -> list[str]:
         return [s.strip().lower() for s in v if s.strip()]
@@ -290,6 +313,12 @@ class DishCandidate(BaseModel):
     dish_id: str
     name_vi: str
     region: str | None = None
+    # Vai trò trong cấu trúc bữa (`staple`, `protein`, `one_dish`...) — từ vựng
+    # ở `src/clinical/dish_roles.py`, đọc từ cột `roles` của `dishes.csv`.
+    # Tuple rỗng = món KHÔNG đủ điều kiện làm một mục độc lập của bữa (fail
+    # closed). CỐ Ý không suy ra vai trò từ tên món: đoán sai vai trò làm ràng
+    # buộc cấu trúc bữa gán nhầm mà không ai thấy.
+    roles: tuple[DishRole, ...] = ()
     # `data/seeds/dishes.csv` hiện có 2 nhóm hoàn toàn khác nhau dưới cùng cột
     # verified_by: ~2600 dòng "USDA FNDDS" (khối bulk thực phẩm Mỹ lẫn vào,
     # KHÔNG phải món Việt — bị loại ở load_vn_dishes()) và 30 món Việt thật

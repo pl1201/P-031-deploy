@@ -10,6 +10,7 @@ giá đậu, cải thìa…) mà công thức món Việt cần nhất.
 from __future__ import annotations
 
 from src.agents.nodes.core import (
+    RETRIEVAL_TOP_K,
     USDA_BULK_ID_THRESHOLD,
     USDA_BULK_SOURCE,
     make_retrieve_context,
@@ -19,9 +20,13 @@ from src.clinical.seeds import load_food_repository
 
 
 def _candidates(profile: PatientProfile) -> list:
+    """`retrieve_context` giờ chỉ giữ `candidate_ids` (int) trong state để tránh
+    checkpoint LangGraph phình to — tự tra lại FoodItem để giữ nguyên các
+    assertion gốc của test (đọc .id/.source/.name_vi)."""
     foods = load_food_repository()
     node = make_retrieve_context(foods)
-    return node({"profile": profile})["candidate_foods"]
+    ids = node({"profile": profile})["candidate_ids"]
+    return [f for i in ids if (f := foods.get(i)) is not None]
 
 
 def _profile(**kwargs) -> PatientProfile:
@@ -58,12 +63,19 @@ def test_khoi_usda_bulk_van_bi_loai() -> None:
     assert bulk == [], f"{len(bulk)} dòng USDA bulk lọt vào ứng viên, VD: {[f.name_vi for f in bulk[:3]]}"
 
 
-def test_ung_vien_khong_it_hon_truoc_khi_sua() -> None:
-    """Số ứng viên phải ≥ mức cũ (439) — sửa bug chỉ được thêm, không được bớt."""
+def test_ung_vien_bi_cap_dung_retrieval_top_k_khi_vuot_nguong() -> None:
+    """DAT-24 sửa bug lọc nhầm theo id, nhưng `_top_k_candidates()` (thêm SAU đó,
+    xem core.py:255 — giới hạn kích thước checkpoint LangGraph) cắt về đúng
+    `RETRIEVAL_TOP_K`. Assertion gốc "chỉ được thêm, không được bớt" không còn
+    đúng kể từ khi có cap — test này xác nhận hành vi HIỆN TẠI: cap đúng
+    `RETRIEVAL_TOP_K` khi pool đủ điều kiện vượt ngưỡng, và NIN id lớn (bug
+    DAT-24) vẫn được ưu tiên vào top-K (ranking key đầu tiên trong
+    `_top_k_candidates`, đã xác nhận riêng ở test phía trên)."""
     got = _candidates(_profile())
     chi_theo_id = [f for f in load_food_repository().all() if f.id < USDA_BULK_ID_THRESHOLD]
 
-    assert len(got) > len(chi_theo_id)
+    assert len(chi_theo_id) > RETRIEVAL_TOP_K, "test giả định pool đủ điều kiện vượt ngưỡng top-K"
+    assert len(got) == RETRIEVAL_TOP_K
 
 
 def test_van_loai_di_ung_va_mon_khong_thich() -> None:

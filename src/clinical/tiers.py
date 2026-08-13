@@ -21,6 +21,7 @@ Các tầng id KHÔNG chồng lấn nhau (kiểm chứng trên seed 2026-08-09, 
 | A    | 1–152               | 152   | `PHO-`, `BUN-`, `CANH-`, `VN-`… | CÓ             |
 | B    | 2000–2166           | 167   | —                               | CÓ (NIN 2017)  |
 | B    | 3000–3047           | 48    | —                               | CÓ (bảng nội bộ) |
+| B    | 5000–5099           | 2     | —                               | CÓ (sữa dinh dưỡng y tế, nhãn nhà SX) |
 | B    | 4000–4077, 4100–4115| 94    | —                               | CÓ (NIN 2017 + khớp chéo USDA) |
 | C    | **167516–1105897**  | 6854  | `FNDDS-*`                       | KHÔNG (tham chiếu USDA) |
 | B    | **≥ 1105898**       | 430   | —                               | CÓ (NIN 2017 nối tiếp) |

@@ -96,9 +96,10 @@ def test_sau_khi_tra_ve_graph_da_chay_xong_va_ghi_ket_qua(client, dietitian, pro
     # Mỗi bữa phải có món hoàn chỉnh lấy từ cùng bảng Dish mà API/UI sử dụng.
     # food_id rời (nếu có) chỉ là phần cân chỉnh định lượng, không được thay thế
     # toàn bộ cấu trúc món như lỗi cucumber/raw-food fallback trước đây.
-    assert all(any(item["dish_id"] for item in body["items"] if item["slot"] == slot) for slot in {
-        "breakfast", "lunch", "dinner", "snack"
-    })
+    assert all(
+        any(item["dish_id"] for item in body["items"] if item["slot"] == slot)
+        for slot in {"breakfast", "lunch", "dinner", "snack"}
+    )
     assert body["menu_hash_ready"] is True
     assert body["nutrition_hash_ready"] is True
     assert body["review_packet"]

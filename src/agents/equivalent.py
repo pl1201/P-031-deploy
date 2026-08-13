@@ -57,6 +57,14 @@ STAPLE_NAMES_VI: tuple[str, ...] = (
 # food field (FoodItem/bounds key) -> nutrient key dùng bởi NutritionSummary.value_of().
 _FIELD_TO_NUTRIENT: dict[str, str] = {field: nutrient for nutrient, field in _NUTRIENT_TO_FIELD.items()}
 
+# Chất mà `NutritionSummary` chỉ cộng được TỪNG PHẦN (món thiếu số liệu bị bỏ
+# qua khi cộng) -> tên cờ báo tổng đã đủ hay chưa. Xem docstring của
+# `NutritionSummary.sugar_is_complete` / `purine_is_complete`.
+_COMPLETENESS_FLAG_BY_NUTRIENT: dict[str, str] = {
+    "sugar_g": "sugar_is_complete",
+    "purine_mg": "purine_is_complete",
+}
+
 
 class EquivalentMenuResult(NamedTuple):
     """`draft` chỉ khác None khi giải được TRỌN VẸN. Không có kết quả một phần."""
@@ -90,6 +98,28 @@ def _equivalent_bounds(
 
     Trả (None, lý do) khi một chất có dải rỗng (không giao nhau) — cả ngày
     coi là vô nghiệm ngay từ bước ràng buộc, không cần gọi solver.
+
+    Chất có tổng KHÔNG ĐẦY ĐỦ thì KHÔNG áp dải tương đương
+    ---------------------------------------------------------
+    `NutritionSummary` chỉ cộng những món CÓ số liệu cho `sugar_g`/`purine_mg`
+    và gắn cờ `*_is_complete=False` khi có món bị bỏ qua — tổng khi đó là con
+    số THIẾU HỤT, không phải lượng thật (xem docstring của chính hai field đó:
+    "rule ... KHÔNG được coi đây là đạt ngưỡng").
+
+    Dựng dải ±tolerance quanh một tổng thiếu hụt là sai hai lần:
+
+    1. Nó ghim thực đơn mới vào artefact của dữ liệu khuyết, không phải vào
+       thực đơn gốc. Thực đơn mới cộng đường trên một TẬP MÓN KHÁC, nên hai
+       con số không so được với nhau.
+    2. Với tổng nhỏ, dải trở nên vô nghĩa về mặt thực hành. Đo trên ca thật
+       (2026-08-12): base `sugar_g=8.89` và `sugar_is_complete=False` → dải
+       ±10% chỉ còn **8.0–9.78 g cho CẢ NGÀY** (rộng 1.78 g), trong khi các
+       chất khác rộng 23–486 đơn vị. Chính ràng buộc này làm bài toán vô
+       nghiệm dù tủ lạnh đã khai báo TOÀN BỘ món curated.
+
+    Vì vậy chất thiếu dữ liệu chỉ giữ NGƯỠNG LÂM SÀNG, bỏ dải tương đương.
+    Đây KHÔNG phải nới lỏng an toàn: trần WHO cho đường tự do vẫn áp nguyên
+    (`T2DM-SUG-01`), chỉ bỏ đi một ràng buộc chưa bao giờ đo được thật.
     """
     active = _active_nutrient_bounds(targets)
     bounds: dict[str, tuple[float | None, float | None]] = {}
@@ -97,6 +127,13 @@ def _equivalent_bounds(
         nutrient = _FIELD_TO_NUTRIENT.get(field)
         if nutrient is None:
             continue
+
+        flag = _COMPLETENESS_FLAG_BY_NUTRIENT.get(nutrient)
+        if flag is not None and not getattr(base_nutrition, flag):
+            if lo is not None or hi is not None:
+                bounds[field] = (lo, hi)
+            continue
+
         base_value = base_nutrition.value_of(nutrient)
         band_lo, band_hi = base_value * (1 - tolerance), base_value * (1 + tolerance)
         new_lo = band_lo if lo is None else max(lo, band_lo)
