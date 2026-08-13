@@ -116,17 +116,14 @@ def get_patient_overview(
     for row in observation_rows:
         latest_observations.setdefault(row.observation_type, ObservationOut.model_validate(row))
 
-    status_counts = dict(
+    status_counts: dict[str, int] = dict(
         db.query(MealPlan.status, func.count(MealPlan.id))
         .filter(MealPlan.profile_id == profile_id)
         .group_by(MealPlan.status)
-        .all()
+        .all()  # type: ignore[arg-type]
     )
     latest_plan = (
-        db.query(MealPlan)
-        .filter(MealPlan.profile_id == profile_id)
-        .order_by(MealPlan.created_at.desc())
-        .first()
+        db.query(MealPlan).filter(MealPlan.profile_id == profile_id).order_by(MealPlan.created_at.desc()).first()
     )
     last_review = (
         db.query(MealPlanReviewEvent)
@@ -207,7 +204,9 @@ def create_clinical_note(
 ) -> ClinicalNote:
     _get_owned_profile(db, profile_id, user)
     now = datetime.utcnow()
-    note = ClinicalNote(profile_id=profile_id, author_id=user.id, created_at=now, updated_at=now, **payload.model_dump())
+    note = ClinicalNote(
+        profile_id=profile_id, author_id=user.id, created_at=now, updated_at=now, **payload.model_dump()
+    )
     db.add(note)
     db.commit()
     db.refresh(note)

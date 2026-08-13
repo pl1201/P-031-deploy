@@ -120,7 +120,9 @@ class MealPlanOut(BaseModel):
             status=plan.status,
             items=[
                 cls._item_out(i)
-                for i in sorted(plan.items, key=lambda i: (i.slot, 0 if i.dish_id else 1, i.dish_id or "", i.food_id or 0))
+                for i in sorted(
+                    plan.items, key=lambda i: (i.slot, 0 if i.dish_id else 1, i.dish_id or "", i.food_id or 0)
+                )
             ],
             targets=plan.targets or {},
             computed_nutrition=plan.computed_nutrition or {},
@@ -275,7 +277,9 @@ def _run_graph_and_persist(
             from src.agents.optimizer import CPSATMenuOptimizer
 
             optimizer = CPSATMenuOptimizer(dishes=_load_db_dish_candidates(session), foods=raw_foods)
-            generator = optimizer if get_settings().menu_generator == "cpsat" else HybridMenuGenerator(optimizer=optimizer)
+            generator = (
+                optimizer if get_settings().menu_generator == "cpsat" else HybridMenuGenerator(optimizer=optimizer)
+            )
         graph = build_nutricare_graph(
             profiles=_DbProfileRepository(session, clinical_profile), foods=foods, generator=generator
         )
@@ -293,7 +297,9 @@ def _run_graph_and_persist(
         plan.safety_findings = [v.model_dump(mode="json") for v in result.get("safety_findings") or []]
         packet = result.get("review_packet")
         plan.review_packet = packet.model_dump(mode="json") if packet is not None else {}
-        plan.citations = [v.model_dump(mode="json") if hasattr(v, "model_dump") else v for v in result.get("citations") or []]
+        plan.citations = [
+            v.model_dump(mode="json") if hasattr(v, "model_dump") else v for v in result.get("citations") or []
+        ]
         plan.explanation_vi = result.get("explanation_vi")
         plan.highest_risk = result.get("highest_risk") or "none"
         plan.menu_version = result.get("menu_version") or 0

@@ -105,7 +105,9 @@ def _draft_and_repository(plan: MealPlan):
     for item in plan.items:
         if has_dishes and item.dish_id:
             if item.dish is None or not item.dish.ingredients:
-                raise HTTPException(status.HTTP_422_UNPROCESSABLE_ENTITY, "Dish recipe no longer exists in the database")
+                raise HTTPException(
+                    status.HTTP_422_UNPROCESSABLE_ENTITY, "Dish recipe no longer exists in the database"
+                )
             recipe_g = sum(part.grams for part in item.dish.ingredients)
             for part in item.dish.ingredients:
                 draft.items.setdefault(MealSlot(item.slot), []).append(

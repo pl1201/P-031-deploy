@@ -140,12 +140,17 @@ class TestChatThieuDuLieuKhongApDaiTuongDuong:
         from src.clinical.models import NutritionSummary, SourceRef
 
         base = dict(
-            kcal=2000.0, protein_g=90.0, carb_g=250.0, fat_g=60.0, fiber_g=30.0,
-            na_mg=1500.0, k_mg=3000.0, p_mg=1000.0, purine_mg=100.0,
+            kcal=2000.0,
+            protein_g=90.0,
+            carb_g=250.0,
+            fat_g=60.0,
+            fiber_g=30.0,
+            na_mg=1500.0,
+            k_mg=3000.0,
+            p_mg=1000.0,
+            purine_mg=100.0,
             sugar_g=8.89,
-            sources=[
-                SourceRef(food_id=1, name="Cơm tẻ", grams=100.0, source="NIN", source_ref="Bảng TPTP VN 2017")
-            ],
+            sources=[SourceRef(food_id=1, name="Cơm tẻ", grams=100.0, source="NIN", source_ref="Bảng TPTP VN 2017")],
         )
         return NutritionSummary(**{**base, **kw})
 
@@ -156,16 +161,11 @@ class TestChatThieuDuLieuKhongApDaiTuongDuong:
         return ClinicalTargets(patient_id="P", bmr_kcal=1600.0, tdee_kcal=2000.0, targets=targets)
 
     def _sugar_bounds(self, *, complete: bool):
+        from src.agents.equivalent import _equivalent_bounds
         from src.clinical.models import NutrientTarget
 
-        from src.agents.equivalent import _equivalent_bounds
-
-        targets = self._targets(
-            sugar_g=NutrientTarget(nutrient="sugar_g", min_value=None, max_value=67.64, unit="g")
-        )
-        bounds, reason = _equivalent_bounds(
-            targets, self._summary(sugar_is_complete=complete), tolerance=0.10
-        )
+        targets = self._targets(sugar_g=NutrientTarget(nutrient="sugar_g", min_value=None, max_value=67.64, unit="g"))
+        bounds, reason = _equivalent_bounds(targets, self._summary(sugar_is_complete=complete), tolerance=0.10)
         assert reason is None, reason
         assert bounds is not None
         return bounds["sugar_g"]
@@ -185,17 +185,14 @@ class TestChatThieuDuLieuKhongApDaiTuongDuong:
     def test_khong_co_nguong_lam_sang_thi_chat_thieu_du_lieu_bi_bo_han(self):
         """Thiếu dữ liệu VÀ không có ngưỡng lâm sàng → không còn căn cứ nào,
         không được bịa ra ràng buộc."""
-        from src.clinical.models import NutrientTarget
-
         from src.agents.equivalent import _equivalent_bounds
+        from src.clinical.models import NutrientTarget
 
         targets = self._targets(
             sugar_g=NutrientTarget(nutrient="sugar_g", min_value=None, max_value=None, unit="g"),
             kcal=NutrientTarget(nutrient="kcal", min_value=1800.0, max_value=2200.0, unit="kcal"),
         )
-        bounds, reason = _equivalent_bounds(
-            targets, self._summary(sugar_is_complete=False), tolerance=0.10
-        )
+        bounds, reason = _equivalent_bounds(targets, self._summary(sugar_is_complete=False), tolerance=0.10)
         assert reason is None
         assert "sugar_g" not in bounds
         # `bounds` khoá theo TÊN FIELD của FoodItem, không theo tên nutrient —
