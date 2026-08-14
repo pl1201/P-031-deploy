@@ -342,6 +342,34 @@ Màu sắc chỉ hỗ trợ, không thay thế nội dung chữ.
 - Khi submit thiếu trường bắt buộc, viền đỏ, thông báo dưới trường và focus vào lỗi đầu tiên.
 - Không chỉ disable nút mà không giải thích, vì người dùng không biết cần sửa gì.
 
+### Hai kết quả lưu đã chốt
+
+Form có hai hành động khác nhau về ý nghĩa dữ liệu.
+
+#### `Xác nhận và ghi`
+
+Chỉ khả dụng khi:
+
+- Đã xác định loại thực phẩm/món.
+- Đã có số lượng và đơn vị.
+- Backend đã quy đổi được gram hoặc xác nhận khẩu phần gram trực tiếp.
+
+Kết quả: log có thể được tính vào tổng dinh dưỡng. Nếu conversion là ước tính, UI phải hiện nhãn `Ước tính` trước khi người dùng xác nhận.
+
+#### `Lưu chưa đầy đủ`
+
+Khả dụng khi người dùng không nhớ loại cụ thể, khẩu phần hoặc hệ thống chưa có conversion.
+
+Kết quả:
+
+- Giữ nguyên tên, số lượng và đơn vị người dùng đã nhập.
+- Không tự chọn candidate.
+- Không tính log vào tổng dinh dưỡng.
+- Hiển thị trạng thái còn thiếu và CTA `Bổ sung thông tin`.
+- Chỉ chuyển expert/data queue theo routing của backend; không mặc định mọi log thiếu đều sang chuyên gia.
+
+Hai hành động phải có hierarchy rõ: `Xác nhận và ghi` là primary; `Lưu chưa đầy đủ` là secondary. Không dùng hai nút có cùng màu hoặc cùng độ nổi bật.
+
 ### Nội dung lỗi đề xuất
 
 | Tình huống | Nội dung |
@@ -369,7 +397,9 @@ Màu sắc chỉ hỗ trợ, không thay thế nội dung chữ.
 
 ### Mobile bottom navigation
 
-Với người bệnh, phương án tốt hơn drawer cho các tác vụ thường dùng là bottom navigation gồm tối đa 4 mục:
+Bottom navigation **không thuộc P0**. P0 sử dụng hamburger/drawer vì pattern này đã có ở layout chuyên gia, ít rủi ro và sửa được lỗi mất menu nhanh nhất.
+
+Bottom navigation thuộc **P1**, chỉ triển khai sau khi các route Tổng quan, Thực đơn, Nhật ký và Tài khoản đều hoạt động và đã kiểm thử kiến trúc thông tin với người dùng. Khi đủ điều kiện, bottom navigation gồm tối đa 4 mục:
 
 - Hôm nay.
 - Thực đơn.
@@ -377,6 +407,14 @@ Với người bệnh, phương án tốt hơn drawer cho các tác vụ thườ
 - Tài khoản.
 
 Các chức năng ít dùng có thể nằm trong menu `Thêm`. Không hiển thị tab chưa hoạt động trên production.
+
+**Quyết định đã chốt:**
+
+| Giai đoạn | Navigation | Điều kiện |
+|---|---|---|
+| P0 | Hamburger + drawer | Tái sử dụng pattern chuyên gia; loại bỏ lỗi mất menu |
+| P1 | Bottom navigation | Chỉ khi 4 route chính hoạt động và có usability test |
+| Desktop | Sidebar | Giữ sidebar, dọn route chết và trạng thái disabled |
 
 ### Kích thước kiểm thử
 
@@ -534,22 +572,275 @@ Không hiển thị `— g`; nên hiển thị “Chưa có khẩu phần” vì
 7. Reload trang, log chưa giải quyết vẫn còn gợi ý và CTA.
 8. Không có route menu nào trả 404.
 
-## 13. Definition of Done frontend
+## 13. UI implementation specification
+
+Phần này chốt đủ chi tiết để frontend có thể dựng component bằng mock data trong khi chờ backend hoàn thiện contract. Mọi field ghi **Đề xuất API** chưa được sử dụng với production backend cho đến khi OpenAPI và contract tests được merge.
+
+### 13.1. Contract `resolution_state`
+
+Backend cần trả một trong các giá trị sau:
+
+```typescript
+type ResolutionState =
+  | 'resolved'
+  | 'resolved_estimated'
+  | 'needs_food_choice'
+  | 'needs_portion'
+  | 'needs_both'
+  | 'no_match'
+  | 'no_conversion'
+```
+
+Quy tắc render:
+
+| State | Thành phần bắt buộc | Primary action | Secondary action |
+|---|---|---|---|
+| `resolved` | Tên chuẩn + khẩu phần + gram | Xác nhận và ghi | Sửa |
+| `resolved_estimated` | Như resolved + nhãn ước tính + nguồn | Xác nhận và ghi | Chỉnh khẩu phần |
+| `needs_food_choice` | Suggestion panel | Chọn loại | Lưu chưa đầy đủ |
+| `needs_portion` | Quantity + unit | Xác nhận và ghi | Lưu chưa đầy đủ |
+| `needs_both` | Suggestion panel trước, portion sau | Tiếp tục | Lưu chưa đầy đủ |
+| `no_match` | Empty suggestion state | Ghi tên rõ hơn | Lưu chưa đầy đủ |
+| `no_conversion` | Khẩu phần gốc + cảnh báo chưa quy đổi | Chọn gram nếu biết | Lưu chưa đầy đủ |
+
+Frontend không tự chuyển state. Sau mỗi lựa chọn, frontend gửi action và render state mới do backend trả về.
+
+### 13.2. JSON response tối thiểu
+
+**Đề xuất API, chưa phải contract production hiện tại:**
+
+```json
+{
+  "id": "log-id",
+  "free_text_vi": "trứng",
+  "food_id": null,
+  "food_name_vi": null,
+  "resolution_state": "needs_food_choice",
+  "portion_qty": 2,
+  "portion_unit": "quả",
+  "grams": null,
+  "grams_source_ref": null,
+  "is_estimated": false,
+  "suggestions": [
+    {
+      "food_id": 33,
+      "name_vi": "Trứng gà",
+      "matched_on": "token",
+      "score": 0.67,
+      "portion_units": ["quả", "g"]
+    }
+  ]
+}
+```
+
+### 13.3. Mock fixtures frontend cần có
+
+Tạo fixture riêng cho từng state:
+
+```text
+fixtures/food-log/resolved.json
+fixtures/food-log/resolved-estimated.json
+fixtures/food-log/needs-food-choice.json
+fixtures/food-log/needs-portion.json
+fixtures/food-log/needs-both.json
+fixtures/food-log/no-match.json
+fixtures/food-log/no-conversion.json
+```
+
+Fixture phải khớp OpenAPI sau khi backend chốt. Không duy trì hai schema mock và production khác nhau.
+
+### 13.4. Wireframe mobile: form mặc định
+
+```text
+┌─────────────────────────────────────┐
+│ ‹  Nhật ký ăn uống        14/08    │
+├─────────────────────────────────────┤
+│ Bữa ăn *                           │
+│ [ Sáng ][ Trưa ][ Tối ][ Phụ ]     │
+│                                     │
+│ Tên món hoặc thực phẩm *           │
+│ ┌─────────────────────────────────┐ │
+│ │ VD: trứng, cơm, thịt gà...      │ │
+│ └─────────────────────────────────┘ │
+│                                     │
+│ Số lượng            Đơn vị         │
+│ ┌──────────────┐  ┌──────────────┐ │
+│ │ 2            │  │ quả       ▾  │ │
+│ └──────────────┘  └──────────────┘ │
+│                                     │
+│ [       Xác nhận và ghi          ] │
+│ [        Lưu chưa đầy đủ          ] │
+└─────────────────────────────────────┘
+```
+
+### 13.5. Wireframe: suggestion panel
+
+```text
+┌─────────────────────────────────────┐
+│ Bạn đã ăn loại nào?                │
+│ Chọn một loại để tính chính xác.   │
+│                                     │
+│ ○ Trứng gà                         │
+│ ○ Trứng vịt                        │
+│ ○ Trứng cút                        │
+│ ○ Trứng vịt lộn                    │
+│                                     │
+│ [ Không phải các món trên ]        │
+│ [ Tôi không nhớ rõ ]               │
+└─────────────────────────────────────┘
+```
+
+Yêu cầu:
+
+- Không chọn sẵn item đầu tiên.
+- Toàn bộ hàng là touch target, không chỉ radio nhỏ.
+- Tối đa 5 candidate; candidate còn lại đi qua tìm kiếm.
+- Giữ nguyên text và khẩu phần khi người dùng quay lại.
+
+### 13.6. Wireframe: dòng nhật ký
+
+```text
+┌─────────────────────────────────────┐
+│ TRƯA                         ⋯      │
+│ Trứng gà                           │
+│ Bạn ghi: “trứng”                   │
+│ 2 quả · khoảng 88 g  [Ước tính]    │
+└─────────────────────────────────────┘
+
+┌─────────────────────────────────────┐
+│ TRƯA                         ⋯      │
+│ Thịt gà                            │
+│ Chưa xác định phần thịt            │
+│ [Bổ sung thông tin] [Chưa tính]    │
+└─────────────────────────────────────┘
+```
+
+Menu `⋯` có `Sửa` và `Xóa`. Trên desktop có thể hiện nút trực tiếp nếu đủ không gian.
+
+### 13.7. Component inventory
+
+| Component | Trách nhiệm | Không làm |
+|---|---|---|
+| `MealSlotControl` | Chọn bữa | Không tự chọn theo giờ sau khi người dùng đã sửa |
+| `FoodAutocomplete` | Query + loading/error/empty | Không tự quyết food ID |
+| `SuggestionPanel` | Hiển thị và xác nhận candidate | Không chọn item đầu tiên mặc định |
+| `PortionInput` | Quantity + unit | Không tự quy đổi gram |
+| `ResolutionNotice` | Giải thích state | Không kết luận lâm sàng |
+| `FoodLogReview` | Tóm tắt trước lưu | Không sửa dữ liệu backend |
+| `FoodLogRow` | Hiển thị raw/canonical/portion/state | Không ẩn nhãn estimated |
+| `PatientMobileNav` | Drawer P0 | Không hiện route chưa hoạt động |
+
+### 13.8. Visual specification
+
+Giữ design token hiện có của VNutriCare, không tạo một theme mới riêng cho nhật ký.
+
+#### Spacing
+
+Sử dụng thang 4 px:
+
+```text
+4, 8, 12, 16, 20, 24, 32 px
+```
+
+- Khoảng label → input: 6–8 px.
+- Khoảng giữa form group: 16–20 px.
+- Padding card mobile: 16 px.
+- Khoảng giữa hai CTA: 8 px.
+
+#### Typography
+
+- Page title: 24 px desktop, 20 px mobile; line-height tối thiểu 1.2.
+- Section title: 17–18 px.
+- Body/input: tối thiểu 16 px trên mobile để tránh iOS tự zoom.
+- Supporting text: tối thiểu 13 px; không dùng text quá nhạt.
+- Không scale font theo viewport width.
+
+#### Controls
+
+- Touch target tối thiểu 44 × 44 px.
+- Input/button cao tối thiểu 44 px trên mobile.
+- Border radius theo token hiện tại, không tạo pill cho input thông thường.
+- Primary action dùng màu thương hiệu hiện tại.
+- Secondary action dùng nền trong suốt/border; không cạnh tranh với primary.
+
+#### Trạng thái màu
+
+| State | Màu/chỉ báo | Nội dung chữ bắt buộc |
+|---|---|---|
+| Đã xác nhận | Xanh thương hiệu | Đã xác định |
+| Ước tính | Vàng/amber tiết chế | Ước tính |
+| Thiếu dữ liệu | Xám hoặc amber | Chưa đủ dữ liệu |
+| Lỗi/chặn | Đỏ | Mô tả lỗi và cách sửa |
+
+Không dùng màu là tín hiệu duy nhất. Mọi state có icon hoặc text tương ứng.
+
+### 13.9. Accessibility specification
+
+- Mục tiêu WCAG 2.2 AA cho luồng chính.
+- Contrast text và control đáp ứng AA.
+- Autocomplete dùng combobox/listbox semantics phù hợp.
+- Screen reader được thông báo khi số suggestions thay đổi.
+- Error summary xuất hiện sau submit lỗi và liên kết tới field tương ứng.
+- Focus không bị mất khi panel suggestions mở/đóng.
+- Luồng hoạt động hoàn toàn bằng bàn phím.
+- Giao diện dùng được ở zoom 200% mà không mất chức năng.
+- Animation tôn trọng `prefers-reduced-motion`.
+
+### 13.10. KPI UX và cách đo
+
+| KPI | Định nghĩa | Mục tiêu MVP đề xuất | Cách đo |
+|---|---|---:|---|
+| Task completion | Hoàn thành ghi một món hoặc chủ động lưu chưa đủ | ≥ 90% | Usability test + analytics |
+| Median time to log | Từ focus tên món đến lưu thành công | ≤ 30 giây | Client event timestamps |
+| Patient confirmation rate | Ambiguity được người bệnh tự xác nhận | ≥ 70% | Backend resolution events |
+| Expert queue rate | Food logs đi vào expert/data queue | < 5% | Backend queue metric |
+| Correction rate | Log resolved bị người dùng/chuyên gia sửa lại | Theo dõi baseline; giảm qua từng bản | Audit events |
+| Mobile navigation success | Mở menu và đến đúng trang không lỗi | 100% trong test task | Usability + E2E |
+| API retry recovery | Retry thành công mà không mất form | 100% test case | E2E fault injection |
+
+Các ngưỡng trên là mục tiêu MVP đề xuất, phải được product owner xác nhận sau usability test đầu tiên. Không dùng analytics chứa tên món tự do hoặc dữ liệu sức khỏe nhạy cảm; event chỉ lưu loại hành động, state và thời lượng cần thiết.
+
+### 13.11. Kế hoạch usability test
+
+Tối thiểu 5 người cho vòng phát hiện lỗi ban đầu, ưu tiên đại diện người dùng thực tế thay vì chỉ thành viên kỹ thuật.
+
+Nhiệm vụ:
+
+1. Ghi `2 quả trứng gà`.
+2. Ghi `thịt gà` nhưng không nhớ phần thịt.
+3. Ghi `1 bát cơm`.
+4. Sửa một log đã ghi sai.
+5. Mở menu mobile và chuyển sang Thực đơn.
+
+Quan sát:
+
+- Người dùng có hiểu khác nhau giữa hai nút lưu không.
+- Có nhận ra suggestion panel là lựa chọn bắt buộc không.
+- Có hiểu nhãn `Ước tính` và `Chưa tính` không.
+- Có tìm được thao tác sửa/xóa không.
+- Có hoàn thành mà không cần người điều phối hướng dẫn không.
+
+## 14. Definition of Done frontend
 
 Frontend chỉ được coi là hoàn thành khi:
 
+- OpenAPI/JSON contract cho `resolution_state`, suggestions và portion đã được chốt và có contract test.
 - Luồng người bệnh hoạt động ở mobile thật, không cần bật desktop mode.
 - Menu không mất và không có route chết.
+- P0 dùng hamburger/drawer; không đưa bottom navigation lên production khi route chưa đủ.
 - Tên chung không bị tự biến thành món cụ thể trên UI.
 - Người bệnh chọn được một trong các gợi ý.
 - Khẩu phần hỗ trợ đơn vị tự nhiên, không chỉ gram.
 - Hai loại thiếu dữ liệu được hiển thị khác nhau.
+- Hai hành động `Xác nhận và ghi` và `Lưu chưa đầy đủ` có kết quả dữ liệu đúng contract.
 - Nhật ký sửa/xóa/bổ sung được.
 - Không tự tính dinh dưỡng hoặc conversion phía client.
 - Có E2E test cho các ca `trứng`, `thịt gà`, `thịt heo`, món lạ và mobile menu.
 - Đã kiểm tra ảnh chụp Playwright ở desktop và mobile.
+- Đạt WCAG 2.2 AA cho luồng chính và touch target tối thiểu 44 × 44 px.
+- Có usability test và baseline cho task completion, thời gian ghi món và expert queue rate.
 
-## 14. Kết luận
+## 15. Kết luận
 
 Vấn đề hiện tại là sự kết hợp của UI/UX và API contract, không thể giải quyết chỉ bằng bổ sung alias trong dataset. Frontend cần chuyển từ “nhập text rồi báo kết quả” sang một luồng xác nhận có hướng dẫn: gõ tên, chọn loại, chọn khẩu phần, review và lưu.
 
