@@ -2,6 +2,7 @@
 import { useEffect, useState } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import Link from 'next/link'
+import { Icon } from '@/components/brand-artwork'
 import { createApiClient, type MealPlan, type MealPlanItem, ApiError } from '@/lib/api'
 import { getToken } from '@/lib/auth'
 import { notifyReviewQueueChanged } from '@/lib/review-queue'
@@ -18,6 +19,7 @@ const SLOT_TIMES: Record<string, string> = {
   dinner: '18:30',
   snack: '15:00',
 }
+const RISK_LABEL: Record<string, string> = { P0: 'Chặn phát hành', P1: 'Cần chuyên gia xác nhận', P2: 'Thông tin tham khảo', none: 'Không có ngoại lệ' }
 
 function isFiniteNumber(value: unknown): value is number {
   return typeof value === 'number' && Number.isFinite(value)
@@ -54,7 +56,7 @@ function SourcePopover({ item }: { item: MealPlanItem }) {
         onClick={() => setOpen(o => !o)}
         title={`Nguồn: ${item.source_ref}`}
       >
-        ⌘ {item.source}
+        <Icon name="database" style={{ width: 13, display: 'inline-block', verticalAlign: 'middle', marginRight: 4 }} /> {item.source}
         {item.is_estimated && <span className="badge badge-estimated" style={{ padding: '1px 4px', marginLeft: 4 }}>~</span>}
       </button>
       {open && (
@@ -70,7 +72,7 @@ function SourcePopover({ item }: { item: MealPlanItem }) {
           <div style={{ color: 'var(--c-muted)', fontSize: 11 }}>{item.source_ref}</div>
           {item.is_estimated && (
             <div style={{ marginTop: 6, color: 'var(--c-purple)', fontSize: 11 }}>
-              ⚠ Dữ liệu ước tính — cần chuyên gia kiểm tra
+              <Icon name="warning" /> Dữ liệu ước tính — cần chuyên gia kiểm tra
             </div>
           )}
           <button
@@ -130,6 +132,11 @@ export default function MealPlanReviewPage() {
   const handleApprove = async () => {
     const token = getToken()
     if (!token || !plan) return
+    const requiresOverrideReason = plan.safety_findings?.some(finding => finding.risk_level === 'P1' && finding.reviewer_override_allowed)
+    if (requiresOverrideReason && notes.trim().length < 10) {
+      showToast('Bản có ngoại lệ cần xác nhận: vui lòng ghi lý do tối thiểu 10 ký tự.', 'error')
+      return
+    }
     setSaving(true)
     try {
       const edits = Object.entries(gramEdits)
@@ -215,7 +222,7 @@ export default function MealPlanReviewPage() {
     <>
       <div className="topbar">
         <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-          <Link href="/dietitian" style={{ color: 'var(--c-muted)', fontSize: 13 }}>← Hàng chờ</Link>
+          <Link href="/dietitian/reviews" style={{ color: 'var(--c-muted)', fontSize: 13 }}>← Hàng chờ</Link>
           <span style={{ color: 'var(--c-border2)' }}>/</span>
           <Link href={`/dietitian/patients/${plan.patient_id}`} style={{ color: 'var(--c-green2)', fontSize: 13 }}>Hồ sơ bệnh nhân</Link>
           <span style={{ color: 'var(--c-border2)' }}>/</span>
@@ -229,7 +236,7 @@ export default function MealPlanReviewPage() {
                 onClick={() => setShowRejectDialog(true)}
                 disabled={saving}
               >
-                ✕ Từ chối
+                <Icon name="close" style={{ width: 16 }} /> Từ chối
               </button>
               <button
                 className="btn btn-primary"
@@ -237,13 +244,13 @@ export default function MealPlanReviewPage() {
                 disabled={saving || !canApprove}
                 title={hardViolations.length > 0 ? 'Không thể duyệt khi còn vi phạm cứng' : canApprove ? '' : 'Cổng an toàn của server đang chặn bản nháp này'}
               >
-                ✓ Duyệt thực đơn
+                <Icon name="check" style={{ width: 16 }} /> Duyệt thực đơn
               </button>
             </>
           )}
           {!isReviewable && (
             <span className={`badge badge-${plan.status}`} style={{ fontSize: 13, padding: '6px 12px' }}>
-              {plan.status === 'approved' ? '✓ Đã duyệt' : plan.status === 'rejected' ? '✕ Đã từ chối' : plan.status}
+              {plan.status === 'approved' ? <><Icon name="check" /> Đã duyệt</> : plan.status === 'rejected' ? <><Icon name="close" /> Đã từ chối</> : plan.status}
             </span>
           )}
         </div>
@@ -271,20 +278,20 @@ export default function MealPlanReviewPage() {
           {/* Safety strip */}
           {hardViolations.length > 0 && (
             <div className="safety-strip safety-strip-error">
-              <span style={{ fontWeight: 700, marginRight: 4 }}>⚠ {hardViolations.length} vi phạm cứng</span>
+              <span style={{ fontWeight: 700, marginRight: 4 }}><Icon name="warning" /> {hardViolations.length} vi phạm cứng</span>
               — Không thể duyệt cho đến khi xử lý xong.
             </div>
           )}
           {plan.status === 'manual_review_required' && (
             <div className="safety-strip safety-strip-error">
-              <span style={{ fontWeight: 700, marginRight: 4 }}>⚠ Bản nháp bị chặn ở cổng an toàn</span>
+              <span style={{ fontWeight: 700, marginRight: 4 }}><Icon name="warning" /> Bản nháp bị chặn ở cổng an toàn</span>
               — chỉ đọc được. Sửa gram và duyệt đều bị khoá; hãy từ chối kèm lý do rồi sinh lại.
             </div>
           )}
           {hardViolations.length === 0 && packetCanApprove === false && (
             <div className="safety-strip safety-strip-error">
               <div>
-                <span style={{ fontWeight: 700 }}>⚠ Cổng an toàn đang chặn bản nháp này</span>
+                <span style={{ fontWeight: 700 }}><Icon name="warning" /> Cổng an toàn đang chặn bản nháp này</span>
                 {gateReasons.length > 0 && (
                   <ul style={{ margin: '6px 0 0 18px', listStyle: 'disc', fontWeight: 400 }}>
                     {gateReasons.map(reason => <li key={reason}>{reason}</li>)}
@@ -296,7 +303,7 @@ export default function MealPlanReviewPage() {
           )}
           {hardViolations.length === 0 && packetCanApprove !== false && (
             <div className="safety-strip safety-strip-ok">
-              <span>✓</span>
+              <Icon name="check" />
               <span>
                 <strong>Không có vi phạm cứng</strong>
                 {softViolations.length > 0 && ` · ${softViolations.length} cảnh báo mềm cần lưu ý`}
@@ -310,7 +317,7 @@ export default function MealPlanReviewPage() {
             <div className="card">
               <div className="card-header">
                 <h2 className="card-title">Phát hiện an toàn</h2>
-                <span style={{ fontSize: 11, color: 'var(--c-muted)' }}>Rủi ro cao nhất: {plan.highest_risk}</span>
+                <span style={{ fontSize: 11, color: 'var(--c-muted)' }}>{RISK_LABEL[plan.highest_risk] ?? plan.highest_risk} · {plan.highest_risk}</span>
               </div>
               <div className="card-body" style={{ display: 'grid', gap: 10 }}>
                 {plan.safety_findings.map((finding, index) => (
@@ -321,7 +328,7 @@ export default function MealPlanReviewPage() {
                     border: `1px solid ${finding.risk_level === 'P0' ? '#f5c6c6' : '#f5dfa0'}`,
                   }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
-                      <span className={`badge badge-${finding.risk_level === 'P0' ? 'hard' : 'soft'}`}>{finding.risk_level}</span>
+                      <span className={`badge badge-${finding.risk_level === 'P0' ? 'hard' : 'soft'}`}>{RISK_LABEL[finding.risk_level] ?? finding.risk_level} · {finding.risk_level}</span>
                       <span style={{ fontWeight: 600, fontSize: 13 }}>{finding.message_vi}</span>
                     </div>
                     {finding.suggestion && (
@@ -475,7 +482,7 @@ export default function MealPlanReviewPage() {
                 </div>
                 {nutrition.has_estimated && (
                   <div className="badge badge-estimated" style={{ marginTop: 12, display: 'block', textAlign: 'center' }}>
-                    ⚠ Có món dùng dữ liệu ước tính
+                    <Icon name="warning" /> Có món dùng dữ liệu ước tính
                   </div>
                 )}
               </div>
@@ -538,7 +545,7 @@ export default function MealPlanReviewPage() {
               Sau khi duyệt, thực đơn sẽ hiển thị cho bệnh nhân. Các chỉnh sửa gram sẽ được tính lại dinh dưỡng trên server.
             </p>
             <div className="form-group" style={{ marginBottom: 20 }}>
-              <label className="form-label" htmlFor="approve-notes">Ghi chú chuyên gia <span style={{ fontWeight: 400, color: 'var(--c-muted)' }}>(không bắt buộc)</span></label>
+              <label className="form-label" htmlFor="approve-notes">Ghi chú chuyên gia <span style={{ fontWeight: 400, color: 'var(--c-muted)' }}>({plan.safety_findings?.some(finding => finding.risk_level === 'P1' && finding.reviewer_override_allowed) ? 'bắt buộc để xác nhận ngoại lệ P1' : 'không bắt buộc'})</span></label>
               <textarea
                 id="approve-notes"
                 className="form-textarea"
@@ -550,8 +557,8 @@ export default function MealPlanReviewPage() {
             </div>
             <div style={{ display: 'flex', gap: 10, justifyContent: 'flex-end' }}>
               <button className="btn btn-secondary" onClick={() => setShowApproveDialog(false)}>Hủy</button>
-              <button className="btn btn-primary" onClick={handleApprove} disabled={saving}>
-                {saving ? <><span className="spinner" style={{ width: 14, height: 14 }} /> Đang duyệt...</> : '✓ Xác nhận duyệt'}
+              <button className="btn btn-primary" onClick={handleApprove} disabled={saving || Boolean(plan.safety_findings?.some(finding => finding.risk_level === 'P1' && finding.reviewer_override_allowed) && notes.trim().length < 10)}>
+                {saving ? <><span className="spinner" style={{ width: 14, height: 14 }} /> Đang duyệt...</> : <><Icon name="check" /> Xác nhận duyệt</>}
               </button>
             </div>
           </div>
@@ -587,7 +594,7 @@ export default function MealPlanReviewPage() {
             <div style={{ display: 'flex', gap: 10, justifyContent: 'flex-end' }}>
               <button className="btn btn-secondary" onClick={() => setShowRejectDialog(false)}>Hủy</button>
               <button className="btn btn-danger" onClick={handleReject} disabled={saving || rejectReason.length < 10}>
-                {saving ? <><span className="spinner" style={{ width: 14, height: 14 }} /> Đang xử lý...</> : '✕ Xác nhận từ chối'}
+                {saving ? <><span className="spinner" style={{ width: 14, height: 14 }} /> Đang xử lý...</> : <><Icon name="close" /> Xác nhận từ chối</>}
               </button>
             </div>
           </div>

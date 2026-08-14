@@ -27,8 +27,8 @@
   --c-purple:  #596fc7;
 
   /* Typography */
-  --f-serif: 'Times New Roman', 'Noto Serif', serif;
-  --f-sans:  'Segoe UI', Arial, sans-serif;
+  --f-serif: 'Palatino Linotype', 'Book Antiqua', Georgia, 'Times New Roman', serif;
+  --f-sans:  Aptos, 'Segoe UI Variable', 'Segoe UI', sans-serif;
   --f-mono:  'Cascadia Mono', 'SFMono-Regular', Consolas, monospace;
 
   /* Spacing */
@@ -865,3 +865,6 @@ tr:hover td { background: rgba(0,0,0,.015); }
 .sidebar-brand>svg{width:38px;height:48px;flex:none;color:#fff}
 .sidebar-brand>.brand-name{font-family:var(--f-serif);font-size:23px;font-weight:600;letter-spacing:.015em}
 .clinical-sidebar .sidebar-brand>svg{width:38px;height:48px}
+
+/* Interaction states shared by the redesigned workspaces. */
+.active-filter-note{margin:-2px 0 14px;padding:9px 12px;display:flex;align-items:center;justify-content:space-between;border:1px solid #b9ddda;border-radius:10px;color:#245f60;background:#eef9f7;font-size:10px}.active-filter-note button{color:#0d8385;font-weight:750;text-decoration:underline}
