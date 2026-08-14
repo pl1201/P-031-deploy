@@ -17,11 +17,25 @@ router = APIRouter(tags=["misc"])
 
 @router.get("/health", response_model=None)
 async def health() -> dict[str, str] | JSONResponse:
-    """Health check dưới prefix /api/v1 (AC của ticket SET-05)."""
+    """Database readiness check under the API prefix."""
     settings = get_settings()
     try:
         with get_engine().connect() as conn:
             conn.execute(text("SELECT 1"))
+        return {"status": "ok", "env": settings.app_env}
+    except Exception:
+        return JSONResponse(
+            status_code=503,
+            content={"status": "degraded", "env": settings.app_env, "reason": "Không kết nối được cơ sở dữ liệu"},
+        )
+
+
+@router.get("/health/integrity", response_model=None)
+async def integrity_health() -> dict[str, str] | JSONResponse:
+    """Heavier referential-integrity diagnostic; not used as liveness."""
+    settings = get_settings()
+    try:
+        with get_engine().connect() as conn:
             orphan_count = conn.execute(
                 text(
                     """

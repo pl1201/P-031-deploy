@@ -1,337 +1,51 @@
 'use client'
+
+import Link from 'next/link'
 import { useCallback, useEffect, useState } from 'react'
-import {
-  createApiClient,
-  type DaySummary,
-  type FoodLog,
-  type NutrientVerdict,
-  type Violation,
-} from '@/lib/api'
+import { Icon } from '@/components/brand-artwork'
+import { ApiError, createApiClient, type DaySummary, type FoodLog } from '@/lib/api'
 import { getToken } from '@/lib/auth'
+import styles from './diary.module.css'
 
-const SLOTS = [
-  { value: 'breakfast', label: 'Sáng' },
-  { value: 'lunch', label: 'Trưa' },
-  { value: 'dinner', label: 'Tối' },
-  { value: 'snack', label: 'Phụ' },
-]
+const SLOTS=[['breakfast','Bữa sáng'],['lunch','Bữa trưa'],['snack','Bữa phụ'],['dinner','Bữa tối']] as const
+const VERDICT:Record<string,{label:string;tone:string}>={exceeded:{label:'Đã vượt ngưỡng',tone:'danger'},below_min:{label:'Thấp hơn mức tối thiểu',tone:'warning'},within:{label:'Trong ngưỡng',tone:'success'},insufficient_data:{label:'Chưa đủ dữ liệu',tone:'neutral'}}
+function todayISO(){return new Date().toISOString().slice(0,10)}
 
-/**
- * Nhãn cho từng kết luận.
- *
- * `insufficient_data` CÓ Ý ĐỒ không dùng màu xanh và không dùng chữ "đạt":
- * khi còn món chưa tra được, tổng tính ra chỉ là MỨC TỐI THIỂU, nên "chưa vượt
- * ngưỡng" hoàn toàn không đồng nghĩa với "ổn". Hiển thị nhầm chỗ này là biến
- * một hệ thống trung thực thành một hệ thống trấn an sai.
- */
-const VERDICT_UI: Record<string, { text: string; cls: string; icon: string }> = {
-  exceeded: { text: 'Đã vượt ngưỡng', cls: 'badge-hard', icon: '▲' },
-  below_min: { text: 'Thấp hơn mức tối thiểu', cls: 'badge-soft', icon: '▼' },
-  within: { text: 'Trong ngưỡng', cls: 'badge-ok', icon: '✓' },
-  insufficient_data: { text: 'Chưa đủ dữ liệu để kết luận', cls: 'badge-draft', icon: '?' },
+export default function DiaryPage(){
+  const [profileId,setProfileId]=useState('')
+  const [day,setDay]=useState(todayISO())
+  const [logs,setLogs]=useState<FoodLog[]>([])
+  const [summary,setSummary]=useState<DaySummary|null>(null)
+  const [loading,setLoading]=useState(true)
+  const [saving,setSaving]=useState(false)
+  const [error,setError]=useState('')
+  const [text,setText]=useState('')
+  const [grams,setGrams]=useState('')
+  const [slot,setSlot]=useState('lunch')
+  const [notice,setNotice]=useState('')
+
+  const refresh=useCallback(async(pid:string,targetDay:string)=>{const token=getToken();if(!token)return;const api=createApiClient(token);const [items,total]=await Promise.all([api.listFoodLogs(pid,targetDay),api.getDaySummary(pid,targetDay)]);setLogs(items);setSummary(total)},[])
+
+  useEffect(()=>{const token=getToken();if(!token)return;createApiClient(token).getMyProfile().then(async profile=>{setProfileId(profile.id);await refresh(profile.id,day)}).catch(value=>setError(value instanceof ApiError?value.message:'Không thể tải nhật ký.')).finally(()=>setLoading(false))},[day,refresh])
+
+  async function add(event:React.FormEvent){event.preventDefault();if(!profileId||!text.trim())return;setSaving(true);setError('');try{const created=await createApiClient(getToken()!).createFoodLog({profile_id:profileId,free_text_vi:text.trim(),grams:grams?Number(grams):null,slot});setText('');setGrams('');setNotice(created.match_status==='unmatched'?'Đã lưu. Món này chưa đủ dữ liệu nên chưa được cộng vào tổng.':'Đã ghi nhận món ăn.');await refresh(profileId,day);window.setTimeout(()=>setNotice(''),3200)}catch(value){setError(value instanceof ApiError?value.message:'Không thể lưu nhật ký.')}finally{setSaving(false)}}
+
+  return <div className={styles.page}>
+    <header className={styles.header}><div><small>NHẬT KÝ THỰC TẾ</small><h1>Nhật ký ăn uống</h1><p>Ghi đúng điều bạn đã ăn. Nếu không nhớ gram, hãy để trống thay vì ước lượng sai.</p></div><label>Ngày xem<input type="date" value={day} max={todayISO()} onChange={event=>{setLoading(true);setDay(event.target.value)}}/></label></header>
+    {error&&<div className={styles.error}><Icon name="warning"/>{error}</div>}{notice&&<div className={styles.notice}><Icon name="check"/>{notice}</div>}
+    {loading?<div className={styles.skeleton}/>:<div className={styles.layout}>
+      <main>
+        <form className={styles.form} onSubmit={add}><div><small>THÊM GHI NHẬN</small><h2>Hôm đó bạn đã ăn gì?</h2><p>Cứ dùng tên món quen thuộc; hệ thống chỉ tính khi có đủ món và khẩu phần.</p></div><label className={styles.food}><span>Tên món</span><input value={text} onChange={event=>setText(event.target.value)} placeholder="VD: cơm tẻ, canh rau muống, cá kho…" maxLength={255} required/></label><div className={styles.formRow}><label><span>Khẩu phần gram</span><input type="number" value={grams} onChange={event=>setGrams(event.target.value)} min="1" max="5000" placeholder="Có thể để trống"/></label><label><span>Bữa ăn</span><select value={slot} onChange={event=>setSlot(event.target.value)}>{SLOTS.map(([value,label])=><option key={value} value={value}>{label}</option>)}</select></label><button type="submit" disabled={saving||!text.trim()}>{saving?'Đang lưu…':'Ghi vào nhật ký'}<Icon name="arrowRight"/></button></div></form>
+
+        <section className={styles.logs}><div className={styles.cardTitle}><div><small>THEO BỮA</small><h2>Đã ghi trong ngày</h2></div><span>{logs.length} món</span></div>{logs.length?<div>{logs.map(log=><LogRow key={log.id} log={log}/>)}</div>:<div className={styles.empty}><Icon name="diary"/><h3>Chưa có món nào</h3><p>Ghi nhận đầu tiên để bắt đầu tổng hợp ngày.</p></div>}</section>
+      </main>
+      <aside>
+        <section className={styles.coverage}><div className={styles.cardTitle}><div><small>ĐỘ ĐẦY ĐỦ DỮ LIỆU</small><h2>{summary?Math.round(summary.coverage*100):0}%</h2></div><Icon name="database"/></div><div className={styles.progress}><i style={{width:`${summary?summary.coverage*100:0}%`}}/></div><p>{summary?.is_complete?'Các món đã được đối chiếu để tạo tổng hợp ngày.':'Còn món chưa tra được, các con số hiện tại chỉ là mức tối thiểu và không được dùng để kết luận “đạt”.'}</p></section>
+        <section className={styles.verdicts}><div className={styles.cardTitle}><div><small>TỔNG HỢP NGÀY</small><h2>Kết quả có điều kiện</h2></div></div>{summary?.verdicts.length?summary.verdicts.map(item=>{const ui=VERDICT[item.verdict]||VERDICT.insufficient_data;return <article key={item.nutrient} data-tone={ui.tone}><span/><div><strong>{item.label_vi}</strong><small>{item.counted!=null?`${item.counted} ${item.unit||''}`:'Chưa tính được'}{item.max_value!=null?` / tối đa ${item.max_value}`:item.min_value!=null?` / tối thiểu ${item.min_value}`:''}</small></div><b>{ui.label}</b></article>}):<p className={styles.noData}>Chưa có dữ liệu để tổng hợp.</p>}</section>
+        <section className={styles.help}><Icon name="info"/><div><h2>Không cần ghi hoàn hảo</h2><p>Nhật ký dùng để hiểu xu hướng. Cuối tuần, hệ thống tổng hợp thay vì gửi từng bữa cho chuyên gia.</p><Link href="/patient/weekly">Xem tuần của tôi<Icon name="arrowRight"/></Link></div></section>
+      </aside>
+    </div>}
+  </div>
 }
 
-function todayISO() {
-  return new Date().toISOString().slice(0, 10)
-}
-
-export default function DiaryPage() {
-  const [profileId, setProfileId] = useState<string | null>(null)
-  const [logs, setLogs] = useState<FoodLog[]>([])
-  const [summary, setSummary] = useState<DaySummary | null>(null)
-  const [loading, setLoading] = useState(true)
-  const [saving, setSaving] = useState(false)
-  const [error, setError] = useState<string | null>(null)
-
-  const [text, setText] = useState('')
-  const [grams, setGrams] = useState('')
-  const [slot, setSlot] = useState('lunch')
-  const [lastResult, setLastResult] = useState<FoodLog | null>(null)
-
-  const day = todayISO()
-
-  const refresh = useCallback(async (pid: string) => {
-    const token = getToken()
-    if (!token) return
-    const api = createApiClient(token)
-    const [l, s] = await Promise.all([api.listFoodLogs(pid, day), api.getDaySummary(pid, day)])
-    setLogs(l)
-    setSummary(s)
-  }, [day])
-
-  useEffect(() => {
-    const token = getToken()
-    if (!token) return
-    createApiClient(token)
-      .getMyProfile()
-      .then(async p => {
-        setProfileId(p.id)
-        await refresh(p.id)
-      })
-      .catch((e: Error) => setError(e.message))
-      .finally(() => setLoading(false))
-  }, [refresh])
-
-  async function handleAdd(e: React.FormEvent) {
-    e.preventDefault()
-    if (!profileId || !text.trim()) return
-    setSaving(true)
-    setError(null)
-    try {
-      const api = createApiClient(getToken()!)
-      const created = await api.createFoodLog({
-        profile_id: profileId,
-        free_text_vi: text.trim(),
-        grams: grams ? Number(grams) : null,
-        slot,
-      })
-      setLastResult(created)
-      setText('')
-      setGrams('')
-      await refresh(profileId)
-    } catch (err) {
-      setError((err as Error).message)
-    } finally {
-      setSaving(false)
-    }
-  }
-
-  const unmatchedViolations = summary?.violations.filter(v => v.kind === 'unmatched_food') ?? []
-  const otherViolations = summary?.violations.filter(v => v.kind !== 'unmatched_food') ?? []
-
-  return (
-    <>
-      <div className="topbar">
-        <h1 className="page-title">Nhật ký ăn uống</h1>
-        <div className="topbar-actions">
-          <span style={{ fontSize: 13, color: 'var(--c-muted)' }}>{day}</span>
-        </div>
-      </div>
-
-      <div className="page-body">
-        {loading ? (
-          <div style={{ display: 'grid', placeItems: 'center', height: '40vh' }}>
-            <span className="spinner" style={{ width: 32, height: 32, color: 'var(--c-green)' }} />
-          </div>
-        ) : (
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 340px', gap: 24, alignItems: 'start' }}>
-            {/* ------------------------------------------------ cột trái */}
-            <div style={{ display: 'grid', gap: 20 }}>
-              <form className="card" style={{ padding: 20 }} onSubmit={handleAdd}>
-                <h2 style={{ fontFamily: 'var(--f-serif)', fontSize: 18, marginBottom: 4 }}>
-                  Hôm nay bạn ăn gì?
-                </h2>
-                <p style={{ fontSize: 13, color: 'var(--c-muted)', marginBottom: 14 }}>
-                  Cứ gõ tên món như bạn vẫn gọi. Nếu hệ thống chưa có món đó, chuyên gia dinh dưỡng
-                  sẽ bổ sung giúp bạn — bạn không cần tự tra cứu.
-                </p>
-
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 110px 110px auto', gap: 10 }}>
-                  <input
-                    className="input"
-                    placeholder="VD: cơm tẻ, canh rau muống, thịt kho…"
-                    value={text}
-                    onChange={e => setText(e.target.value)}
-                    maxLength={255}
-                  />
-                  <input
-                    className="input"
-                    type="number"
-                    placeholder="gram"
-                    value={grams}
-                    onChange={e => setGrams(e.target.value)}
-                    min={1}
-                    max={5000}
-                  />
-                  <select className="input" value={slot} onChange={e => setSlot(e.target.value)}>
-                    {SLOTS.map(s => (
-                      <option key={s.value} value={s.value}>{s.label}</option>
-                    ))}
-                  </select>
-                  <button className="btn btn-primary" disabled={saving || !text.trim()}>
-                    {saving ? 'Đang lưu…' : 'Ghi lại'}
-                  </button>
-                </div>
-
-                <p style={{ fontSize: 12, color: 'var(--c-muted)', marginTop: 8 }}>
-                  Không nhớ chính xác bao nhiêu gram? Cứ để trống — thà ghi thiếu còn hơn ghi sai.
-                </p>
-
-                {error && (
-                  <p style={{ color: 'var(--c-red, #c0392b)', fontSize: 13, marginTop: 10 }}>{error}</p>
-                )}
-
-                {lastResult && lastResult.match_status === 'unmatched' && (
-                  <div className="disclaimer" style={{ marginTop: 12 }}>
-                    Đã ghi <strong>“{lastResult.free_text_vi}”</strong>. Hệ thống chưa tra được món này
-                    nên <strong>chưa tính vào tổng của bạn</strong> — chuyên gia sẽ đối chiếu và bổ sung.
-                    {lastResult.suggestions.length > 0 && (
-                      <> Có thể là: {lastResult.suggestions.slice(0, 3).map(s => s.name_vi).join(', ')}.</>
-                    )}
-                  </div>
-                )}
-              </form>
-
-              <div className="card" style={{ padding: 20 }}>
-                <h2 style={{ fontFamily: 'var(--f-serif)', fontSize: 18, marginBottom: 12 }}>
-                  Đã ghi hôm nay ({logs.length})
-                </h2>
-                {logs.length === 0 ? (
-                  <p style={{ color: 'var(--c-muted)', fontSize: 14 }}>Chưa có món nào.</p>
-                ) : (
-                  <div style={{ display: 'grid', gap: 8 }}>
-                    {logs.map(log => (
-                      <LogRow key={log.id} log={log} />
-                    ))}
-                  </div>
-                )}
-              </div>
-            </div>
-
-            {/* ------------------------------------------------ cột phải */}
-            <div style={{ display: 'grid', gap: 16 }}>
-              {summary && <CoverageCard summary={summary} />}
-
-              {summary && (
-                <div className="card" style={{ padding: 18 }}>
-                  <h3 style={{ fontSize: 15, marginBottom: 12 }}>Tổng hợp ngày</h3>
-                  <div style={{ display: 'grid', gap: 10 }}>
-                    {summary.verdicts.map(v => (
-                      <VerdictRow key={v.nutrient} v={v} />
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {unmatchedViolations.length > 0 && (
-                <div className="card" style={{ padding: 18 }}>
-                  <h3 style={{ fontSize: 15, marginBottom: 10 }}>
-                    Món chờ chuyên gia đối chiếu ({unmatchedViolations.length})
-                  </h3>
-                  <div style={{ display: 'grid', gap: 8 }}>
-                    {unmatchedViolations.map((v, i) => (
-                      <ViolationRow key={i} v={v} />
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {otherViolations.length > 0 && (
-                <div className="card" style={{ padding: 18 }}>
-                  <h3 style={{ fontSize: 15, marginBottom: 10 }}>Lưu ý ({otherViolations.length})</h3>
-                  <div style={{ display: 'grid', gap: 8 }}>
-                    {otherViolations.map((v, i) => (
-                      <ViolationRow key={i} v={v} />
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              <p className="disclaimer">
-                ⚕️ Nhật ký giúp chuyên gia hiểu bạn ăn gì. Đây không phải chẩn đoán y khoa.
-              </p>
-            </div>
-          </div>
-        )}
-      </div>
-    </>
-  )
-}
-
-function LogRow({ log }: { log: FoodLog }) {
-  const chuaTraDuoc = log.match_status === 'unmatched'
-  const khongDuDuLieu = log.match_status === 'no_data'
-  return (
-    <div
-      style={{
-        display: 'flex',
-        alignItems: 'center',
-        gap: 10,
-        padding: '10px 12px',
-        borderRadius: 'var(--r-md)',
-        background: chuaTraDuoc || khongDuDuLieu ? 'rgba(0,0,0,.03)' : 'transparent',
-        border: '1px solid var(--c-border, rgba(0,0,0,.08))',
-      }}
-    >
-      <span style={{ fontSize: 13, minWidth: 46, color: 'var(--c-muted)' }}>
-        {SLOTS.find(s => s.value === log.slot)?.label ?? '—'}
-      </span>
-      <span style={{ flex: 1, fontSize: 14 }}>
-        {log.food_name_vi ?? log.free_text_vi}
-        {log.food_name_vi && log.free_text_vi !== log.food_name_vi && (
-          <span style={{ color: 'var(--c-muted)', fontSize: 12 }}> (bạn ghi: {log.free_text_vi})</span>
-        )}
-      </span>
-      <span style={{ fontSize: 13, color: 'var(--c-muted)', minWidth: 60, textAlign: 'right' }}>
-        {log.grams != null ? `${log.grams} g` : '— g'}
-      </span>
-      {chuaTraDuoc && <span className="badge badge-soft">chờ đối chiếu</span>}
-      {khongDuDuLieu && <span className="badge badge-draft">không đủ dữ liệu</span>}
-    </div>
-  )
-}
-
-function CoverageCard({ summary }: { summary: DaySummary }) {
-  const pct = Math.round(summary.coverage * 100)
-  return (
-    <div className="card" style={{ padding: 18 }}>
-      <h3 style={{ fontSize: 15, marginBottom: 8 }}>Độ đầy đủ dữ liệu</h3>
-      <div style={{ display: 'flex', alignItems: 'baseline', gap: 8 }}>
-        <span style={{ fontSize: 30, fontFamily: 'var(--f-serif)' }}>{pct}%</span>
-        <span style={{ fontSize: 13, color: 'var(--c-muted)' }}>
-          {summary.matched_count}/{summary.matched_count + summary.unmatched_count} món tra được
-        </span>
-      </div>
-      {!summary.is_complete && (
-        <p style={{ fontSize: 12.5, color: 'var(--c-muted)', marginTop: 8, lineHeight: 1.5 }}>
-          Còn món chưa tra được, nên các con số bên dưới là <strong>mức tối thiểu</strong> — thực tế
-          có thể cao hơn. Vì vậy hệ thống không kết luận “đạt ngưỡng”.
-        </p>
-      )}
-    </div>
-  )
-}
-
-function VerdictRow({ v }: { v: NutrientVerdict }) {
-  const ui = VERDICT_UI[v.verdict] ?? VERDICT_UI.insufficient_data
-  const gioiHan =
-    v.max_value != null ? `tối đa ${v.max_value}` : v.min_value != null ? `tối thiểu ${v.min_value}` : '—'
-  return (
-    <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13 }}>
-      <span className={`badge ${ui.cls}`} style={{ minWidth: 22, textAlign: 'center' }}>{ui.icon}</span>
-      <span style={{ flex: 1 }}>{v.label_vi}</span>
-      <span style={{ color: 'var(--c-muted)' }}>
-        {/* counted=null nghĩa là chưa cộng được gì — hiện "—", không hiện 0 */}
-        {v.counted != null ? `${v.counted}${v.unit ? ' ' + v.unit : ''}` : '—'}
-        <span style={{ opacity: 0.6 }}> / {gioiHan}</span>
-      </span>
-      <span style={{ fontSize: 11.5, color: 'var(--c-muted)', minWidth: 130, textAlign: 'right' }}>
-        {ui.text}
-      </span>
-    </div>
-  )
-}
-
-function ViolationRow({ v }: { v: Violation }) {
-  return (
-    <div style={{ fontSize: 13, lineHeight: 1.5 }}>
-      <div style={{ display: 'flex', gap: 6, alignItems: 'flex-start' }}>
-        <span className={`badge ${v.severity === 'hard' ? 'badge-hard' : 'badge-soft'}`}>
-          {v.severity === 'hard' ? 'Chặn' : 'Lưu ý'}
-        </span>
-        <span>{v.message_vi}</span>
-      </div>
-      {v.suggestion && (
-        <div style={{ color: 'var(--c-muted)', fontSize: 12.5, marginTop: 3, paddingLeft: 4 }}>
-          → {v.suggestion}
-        </div>
-      )}
-      {/* Chỉ hiện số khi THẬT SỰ có số. actual=null là cảnh báo định tính. */}
-      {v.actual != null && v.limit != null && (
-        <div style={{ color: 'var(--c-muted)', fontSize: 12, marginTop: 2, paddingLeft: 4 }}>
-          {v.actual} / {v.limit} {v.unit}
-        </div>
-      )}
-    </div>
-  )
-}
+function LogRow({log}:{log:FoodLog}){const unresolved=log.match_status==='unmatched'||log.match_status==='no_data';return <article className={styles.logRow}><span><Icon name={unresolved?'warning':'check'}/></span><div><small>{SLOTS.find(([value])=>value===log.slot)?.[1]||'Không rõ bữa'} · {new Date(log.logged_at).toLocaleTimeString('vi-VN',{hour:'2-digit',minute:'2-digit'})}</small><strong>{log.food_name_vi||log.free_text_vi}</strong>{log.food_name_vi&&log.free_text_vi!==log.food_name_vi&&<p>Bạn ghi: {log.free_text_vi}</p>}</div><b>{log.grams!=null?`${log.grams} g`:'Chưa có gram'}</b><em>{unresolved?'Chờ đối chiếu':'Đã tra được'}</em></article>}

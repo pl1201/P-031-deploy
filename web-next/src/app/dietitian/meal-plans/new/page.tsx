@@ -1,88 +1,179 @@
 'use client'
 
+import Link from 'next/link'
 import { useEffect, useMemo, useState } from 'react'
 import { useRouter } from 'next/navigation'
+import { Icon } from '@/components/brand-artwork'
 import { ApiError, createApiClient, type MealPlan, type MealPlanItem, type PatientProfile, type ReplacementCandidate } from '@/lib/api'
 import { getToken } from '@/lib/auth'
+import { notifyReviewQueueChanged } from '@/lib/review-queue'
 import styles from './page.module.css'
 
-const SLOT_LABEL: Record<string,string>={breakfast:'Bữa sáng',lunch:'Bữa trưa',dinner:'Bữa tối',snack:'Bữa phụ'}
-const CHECKS=[['energy','Năng lượng'],['carb','Carbohydrate'],['distribution','Phân bổ bữa ăn'],['gi','GI/GL'],['allergy','Dị ứng']]
+const SLOT_ORDER = ['breakfast', 'lunch', 'snack', 'dinner']
+const SLOT_LABEL: Record<string, string> = { breakfast: 'Bữa sáng', lunch: 'Bữa trưa', snack: 'Bữa phụ', dinner: 'Bữa tối' }
+const SLOT_TIME: Record<string, string> = { breakfast: '07:00', lunch: '12:00', snack: '15:30', dinner: '18:30' }
+const CHECKS = [['energy', 'Năng lượng'], ['carb', 'Carbohydrate'], ['distribution', 'Phân bổ bữa'], ['gi', 'GI/GL'], ['allergy', 'Dị ứng']]
+const POLL_DELAYS_MS = [0, 200, 400, 800, 1200, 1800]
+const POLL_ATTEMPTS = 40
 
-function Icon({name}:{name:string}){
-  const paths:Record<string,React.ReactNode>={calendar:<><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M8 3v4M16 3v4M3 10h18"/></>,sparkle:<><path d="m12 2 1.4 5.6L19 9l-5.6 1.4L12 16l-1.4-5.6L5 9l5.6-1.4zM19 16l.7 2.3L22 19l-2.3.7L19 22l-.7-2.3L16 19l2.3-.7z"/></>,sun:<><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/><circle cx="12" cy="12" r="4"/></>,moon:<><path d="M20 15.5A8.5 8.5 0 0 1 8.5 4 8.5 8.5 0 1 0 20 15.5Z"/></>,check:<path d="m5 12 4 4L19 6"/>,warn:<><path d="M12 3 2 21h20zM12 9v5M12 18h.01"/></>,info:<><circle cx="12" cy="12" r="9"/><path d="M12 11v6M12 7h.01"/></>,edit:<><path d="m4 20 4.5-1L19 8.5 15.5 5 5 15.5zM13.5 7l3.5 3.5M4 20h16"/></>,save:<><path d="M5 3h12l2 2v16H5zM8 3v6h8V3M8 21v-7h8v7"/></>,refresh:<><path d="M20 7v5h-5M4 17v-5h5M18.5 9A7 7 0 0 0 6 6.5L4 12M5.5 15A7 7 0 0 0 18 17.5l2-5.5"/></>}
-  return <svg viewBox="0 0 24 24" aria-hidden="true"><g fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">{paths[name]}</g></svg>
-}
+export default function NewMealPlanPage() {
+  const router = useRouter()
+  const [patients, setPatients] = useState<PatientProfile[]>([])
+  const [patientId, setPatientId] = useState('')
+  const [date, setDate] = useState(new Date().toISOString().slice(0, 10))
+  const [loading, setLoading] = useState(true)
+  const [generating, setGenerating] = useState(false)
+  const [error, setError] = useState('')
+  const [notice, setNotice] = useState('')
+  const [plan, setPlan] = useState<MealPlan | null>(null)
+  const [planId, setPlanId] = useState('')
+  const [swapItem, setSwapItem] = useState<MealPlanItem | null>(null)
+  const [candidates, setCandidates] = useState<ReplacementCandidate[]>([])
+  const [selectedCandidate, setSelectedCandidate] = useState<ReplacementCandidate | null>(null)
+  const [conflictPlan, setConflictPlan] = useState<MealPlan | null>(null)
+  const [swapping, setSwapping] = useState(false)
 
-export default function NewMealPlanPage(){
-  const router=useRouter()
-  const [patients,setPatients]=useState<PatientProfile[]>([])
-  const [patientId,setPatientId]=useState('')
-  const [date,setDate]=useState(new Date().toISOString().slice(0,10))
-  const [loading,setLoading]=useState(true)
-  const [generating,setGenerating]=useState(false)
-  const [error,setError]=useState('')
-  const [plan,setPlan]=useState<MealPlan|null>(null)
-  const [swapItem,setSwapItem]=useState<MealPlanItem|null>(null)
-  const [candidates,setCandidates]=useState<ReplacementCandidate[]>([])
-  const [swapping,setSwapping]=useState(false)
-  const selected=useMemo(()=>patients.find(item=>item.id===patientId),[patientId,patients])
-  const grouped=useMemo(()=>plan?.items.reduce<Record<string,MealPlanItem[]>>((acc,item)=>{(acc[item.slot]??=[]).push(item);return acc},{})??{},[plan])
+  const selected = useMemo(() => patients.find(item => item.id === patientId), [patientId, patients])
+  const grouped = useMemo(() => plan?.items.reduce<Record<string, MealPlanItem[]>>((acc, item) => { (acc[item.slot] ??= []).push(item); return acc }, {}) ?? {}, [plan])
 
-  useEffect(()=>{const token=getToken();if(!token)return;createApiClient(token).listPatients(1,100).then(result=>{setPatients(result.items);const requested=new URLSearchParams(window.location.search).get('patient_id');setPatientId(result.items.some(item=>item.id===requested)?requested!:result.items[0]?.id??'')}).catch(value=>setError(value instanceof Error?value.message:'Không thể tải hồ sơ.')).finally(()=>setLoading(false))},[])
+  useEffect(() => {
+    const token = getToken()
+    if (!token) { router.replace('/login'); return }
+    createApiClient(token).listPatients(1, 100).then(result => {
+      setPatients(result.items)
+      const requested = new URLSearchParams(window.location.search).get('profile_id') ?? new URLSearchParams(window.location.search).get('patient_id')
+      setPatientId(result.items.some(item => item.id === requested) ? requested! : result.items[0]?.id ?? '')
+    }).catch(value => setError(value instanceof Error ? value.message : 'Không thể tải hồ sơ.')).finally(() => setLoading(false))
+  }, [router])
 
-  const generate=async()=>{
-    const token=getToken();if(!token||!patientId)return
-    setGenerating(true);setError('');setPlan(null)
-    try{
-      const result=await createApiClient(token).createMealPlan(patientId,date)
-      for(let attempt=0;attempt<30;attempt+=1){
-        await new Promise(resolve=>setTimeout(resolve,2000))
-        const current=await createApiClient(token).getMealPlan(result.plan_id)
-        if(current.status==='pending_review'){setPlan(current);setGenerating(false);return}
-        if(current.status==='failed'||current.status==='rejected')throw new Error('Hệ thống không thể tạo bản nháp an toàn cho cấu hình này.')
-      }
-      throw new Error('Quá thời gian chờ. Bản nháp vẫn được lưu và có thể xuất hiện trong hàng chờ sau.')
-    }catch(value){setError(value instanceof ApiError?value.message:value instanceof Error?value.message:'Không thể sinh thực đơn.');setGenerating(false)}
+  function resetDraftContext() {
+    setPlan(null)
+    setPlanId('')
+    setConflictPlan(null)
+    setNotice('')
+    setError('')
   }
 
-  const target=(key:string)=>{const item=plan?.targets?.targets?.[key];return item?.max_value??item?.min_value??null}
-  const kcal=plan?.computed_nutrition?.kcal
-  const carb=plan?.computed_nutrition?.carb_g
-  const hasViolation=(term:string)=>plan?.violations.some(v=>(v.nutrient||'').toLowerCase().includes(term)||(v.message_vi||'').toLowerCase().includes(term))
-  const openSwap=async(item:MealPlanItem)=>{const token=getToken();if(!token||!plan)return;setSwapItem(item);setCandidates([]);setError('');try{setCandidates(await createApiClient(token).listReplacementCandidates(plan.id,item.id))}catch(value){setError(value instanceof Error?value.message:'Không thể tải món thay thế.')}}
-  const replaceItem=async(candidate:ReplacementCandidate)=>{const token=getToken();if(!token||!plan||!swapItem)return;setSwapping(true);setError('');try{setPlan(await createApiClient(token).replaceMealPlanItem(plan.id,swapItem.id,candidate.dish_id,candidate.serving_g));setSwapItem(null)}catch(value){setError(value instanceof Error?value.message:'Không thể đổi món.')}finally{setSwapping(false)}}
+  async function generate() {
+    const token = getToken()
+    if (!token || !patientId) return
+    setGenerating(true); setError(''); setNotice(''); setPlan(null); setPlanId(''); setConflictPlan(null)
+    try {
+      const api = createApiClient(token)
+      const result = await api.createMealPlan(patientId, date)
+      setPlanId(result.plan_id)
+      for (let attempt = 0; attempt < POLL_ATTEMPTS; attempt += 1) {
+        const wait = POLL_DELAYS_MS[Math.min(attempt, POLL_DELAYS_MS.length - 1)]
+        if (wait) await new Promise(resolve => setTimeout(resolve, wait))
+        const current = await api.getMealPlan(result.plan_id)
+        if (current.status === 'drafting') continue
+        setGenerating(false)
+        if (current.status === 'failed' || current.status === 'rejected') {
+          setError('Không thể tạo phương án an toàn với cấu hình này. Bản xử lý vẫn được lưu để chuyên gia xem nguyên nhân.')
+          return
+        }
+        setPlan(current)
+        if (current.status === 'pending_review') notifyReviewQueueChanged()
+        if (current.status === 'manual_review_required') setNotice('Cổng an toàn đang chặn bản này. Hãy mở màn hình duyệt để xem vấn đề cần xử lý.')
+        else if (current.review_packet?.can_approve === false) setNotice('Phương án đã lưu nhưng chưa đủ điều kiện duyệt. Các lý do được hiển thị trong phần kiểm tra.')
+        return
+      }
+      throw new Error('Quá thời gian chờ. Bản nháp vẫn được lưu; hãy mở bản đã lưu thay vì gửi lại yêu cầu.')
+    } catch (value) {
+      if (value instanceof ApiError && value.status === 409) {
+        try {
+          const existing = await createApiClient(token).listMealPlans(patientId)
+          const match = existing.items.find(item => item.plan_date === date && ['drafting', 'pending_review', 'manual_review_required'].includes(item.status))
+          if (match) { setConflictPlan(match); setPlanId(match.id) }
+        } catch { /* Giữ thông báo gốc nếu không tải được bản hiện có. */ }
+      }
+      setError(value instanceof ApiError ? value.message : value instanceof Error ? value.message : 'Không thể tạo phương án.')
+      setGenerating(false)
+    }
+  }
+
+  const blockedReasons = plan ? [...(plan.review_packet?.target_gate_reasons ?? []), ...plan.safety_findings.filter(finding => finding.risk_level === 'P0').map(finding => finding.message_vi)] : []
+  const target = (key: string) => { const item = plan?.targets?.targets?.[key]; return item?.max_value ?? item?.min_value ?? null }
+  const kcal = plan?.computed_nutrition?.kcal
+  const carb = plan?.computed_nutrition?.carb_g
+  const hasViolation = (term: string) => plan?.violations.some(item => (item.nutrient || '').toLowerCase().includes(term) || (item.message_vi || '').toLowerCase().includes(term))
+
+  async function openSwap(item: MealPlanItem) {
+    const token = getToken()
+    if (!token || !plan) return
+    setSwapItem(item); setCandidates([]); setSelectedCandidate(null); setError('')
+    try { setCandidates(await createApiClient(token).listReplacementCandidates(plan.id, item.id)) }
+    catch (value) { setError(value instanceof Error ? value.message : 'Không thể tải món thay thế.') }
+  }
+
+  async function replaceItem(candidate: ReplacementCandidate) {
+    const token = getToken()
+    if (!token || !plan || !swapItem) return
+    setSwapping(true); setError('')
+    try { setPlan(await createApiClient(token).replaceMealPlanItem(plan.id, swapItem.id, candidate.dish_id, candidate.serving_g)); setSwapItem(null) }
+    catch (value) { setError(value instanceof Error ? value.message : 'Không thể đổi món.') }
+    finally { setSwapping(false) }
+  }
 
   return <div className={styles.page}>
-    <div className={styles.breadcrumb}>Thực đơn <b>/</b> Tạo thực đơn nháp</div>
-    <h1 className={styles.heading}>Sinh thực đơn cá nhân hóa</h1>
-    <p className={styles.lead}>AI đề xuất món và khẩu phần. Hệ thống tính toán, kiểm tra an toàn trước khi chuyển chuyên gia duyệt.</p>
-    <div className={styles.steps}>{['Chọn bệnh nhân','Thiết lập mục tiêu','Sinh & kiểm tra','Chuyên gia duyệt'].map((label,index)=><div className={`${styles.step} ${index===2?styles.active:''}`} key={label}><span>{index+1}</span><b>{label}</b></div>)}</div>
+    <header className={styles.pageHeader}>
+      <div><div className={styles.breadcrumb}><Link href="/dietitian">Cần xử lý</Link><Icon name="chevronRight"/><span>Tạo phương án</span></div><h1>Bàn lập thực đơn cá nhân hóa</h1><p>Chọn hồ sơ, đặt bối cảnh bữa ăn và kiểm tra căn cứ trước khi chuyển chuyên gia duyệt.</p></div>
+      <div className={styles.headerMeta}><span><Icon name="database"/>Dữ liệu có nguồn</span><span><Icon name="shield"/>Cổng an toàn server</span></div>
+    </header>
 
-    <div className={styles.grid}>
-      <div className={styles.leftCol}>
-        <section className={styles.card}><header><h2>Hồ sơ bệnh nhân</h2></header><div className={styles.patientBody}>
-          {loading?<div className={styles.loading}>Đang tải hồ sơ…</div>:<select aria-label="Chọn hồ sơ bệnh nhân" className={styles.patientSelect} value={patientId} onChange={e=>{setPatientId(e.target.value);setPlan(null)}}>{patients.map(p=><option key={p.id} value={p.id}>Hồ sơ #{p.id.slice(0,8)} · {p.age} tuổi</option>)}</select>}
-          {selected&&<><div className={styles.patientIntro}><span>{selected.sex==='female'?'N':'B'}</span><div><strong>Hồ sơ #{selected.id.slice(0,8)}</strong><p>{selected.conditions.map(c=>c.code).join(' · ')||'Chưa ghi nhận bệnh nền'}</p></div></div><dl><div><dt>Mục tiêu năng lượng</dt><dd>{target('energy_kcal')?`${Math.round(target('energy_kcal')!)} kcal`:'Tính khi sinh'}</dd></div><div><dt>Carbohydrate</dt><dd>{target('carb_g')?`${Math.round(target('carb_g')!)} g/ngày`:'Tính khi sinh'}</dd></div><div><dt>Dị ứng</dt><dd>{selected.allergies.join(', ')||'Không có'}</dd></div><div><dt>Thuốc</dt><dd>{selected.medications.join(', ')||'Chưa ghi nhận'}</dd></div></dl></>}
-        </div></section>
-        {selected&&<section className={styles.card}><header><h2>Sở thích &amp; ràng buộc</h2></header><div className={styles.preferences}><span>⌁ Món Việt</span><span>♨ Theo hồ sơ</span><span>◫ Khẩu phần chuẩn</span><span>⊘ {selected.allergies.length?'Tránh dị ứng':'Không dị ứng'}</span></div></section>}
-      </div>
+    <section className={styles.workflow} aria-label="Quy trình tạo thực đơn">
+      {[['profile','Hồ sơ','Đã chọn'],['target','Mục tiêu',plan?'Đã tính':'Khi tạo'],['sparkles','Tạo & kiểm tra',generating?'Đang chạy':plan?'Hoàn tất':'Bước hiện tại'],['profile','Chuyên gia duyệt',plan?'Sẵn sàng':'Bước tiếp']].map(([icon,title,state],index)=><article className={`${index===2?styles.current:''} ${index<2||plan?styles.complete:''}`} key={title}><span><Icon name={icon}/><i>{index+1}</i></span><div><small>{state}</small><strong>{title}</strong></div>{index<3&&<Icon name="arrowRight"/>}</article>)}
+    </section>
 
-      <div className={styles.centerCol}>
-        <section className={styles.card}><header><h2>Thiết lập &amp; sinh thực đơn</h2></header><div className={styles.config}><div className={styles.controls}><label>Ngày áp dụng<div><Icon name="calendar"/><input type="date" value={date} onChange={e=>{setDate(e.target.value);setPlan(null)}}/></div></label><label>Số bữa<select value="3+1" disabled><option>3 bữa chính + 1 bữa phụ</option></select></label><label>Ưu tiên món<select value={selected?.region??'vn'} disabled><option value="vn">Món Việt Nam</option><option value="north">Miền Bắc</option><option value="central">Miền Trung</option><option value="south">Miền Nam</option></select></label></div><button className={styles.generate} onClick={generate} disabled={!patientId||generating||Boolean(plan)}><Icon name="sparkle"/>{generating?'Đang sinh và kiểm tra…':plan?'Đã sinh bản nháp':'Sinh thực đơn bằng AI'}</button><p className={styles.note}><Icon name="info"/>AI chỉ chọn món và gram — số dinh dưỡng do hệ thống tính từ dữ liệu có nguồn.</p>{error&&<div className={styles.error} role="alert">{error}</div>}</div></section>
-        <section className={styles.card}><header><h2>{plan?`Bản nháp #${plan.id.slice(0,8).toUpperCase()}`:'Bản nháp thực đơn'}</h2></header><div className={styles.draft}>
-          {!plan&&!generating&&<div className={styles.empty}>Chọn hồ sơ và nhấn “Sinh thực đơn bằng AI” để tạo bản nháp thật.</div>}
-          {generating&&<div className={styles.empty}><span className="spinner"/> Hệ thống đang chọn món, tính dinh dưỡng và kiểm tra an toàn…</div>}
-          {plan&&['breakfast','lunch','dinner','snack'].map(slot=>(grouped[slot]??[]).map((item,index)=><div className={styles.meal} key={item.id}><span className={styles.mealIcon}><Icon name={slot==='snack'?'moon':'sun'}/></span><small>{index===0?SLOT_LABEL[slot]:''}</small><strong>{item.name_vi}</strong><b>{Math.round(item.grams)} g</b><span className={styles.edit}><Icon name="edit"/></span><span className={styles.carbCell}/><button onClick={()=>openSwap(item)}>Đổi món</button></div>))}
-        </div></section>
-      </div>
+    <section className={styles.caseBand}>
+      <div className={styles.caseSelect}><label htmlFor="patient-select">HỒ SƠ ĐANG LẬP KẾ HOẠCH</label>{loading?<div className={styles.inlineLoading}>Đang tải hồ sơ…</div>:<select id="patient-select" value={patientId} onChange={event=>{setPatientId(event.target.value);resetDraftContext()}}>{patients.map(patient=><option value={patient.id} key={patient.id}>#{patient.id.slice(0,8)} · {patient.sex==='male'?'Nam':'Nữ'}, {patient.age} tuổi</option>)}</select>}</div>
+      {selected ? <><div className={styles.caseIdentity}><span>{selected.sex==='female'?'Nữ':'N'}</span><div><small>HỒ SƠ #{selected.id.slice(0,8)}</small><strong>{selected.conditions.map(item=>item.code).join(' · ') || 'Chưa ghi nhận bệnh nền'}</strong><p>{selected.height_cm} cm · {selected.weight_kg} kg · {selected.activity_level}</p></div></div><div className={styles.caseFacts}><article><small>THUỐC</small><strong>{selected.medications.join(', ') || 'Không ghi nhận'}</strong></article><article><small>DỊ ỨNG</small><strong>{selected.allergies.join(', ') || 'Không ghi nhận'}</strong></article><article><small>KHẨU VỊ</small><strong>{selected.region ? `Miền ${selected.region==='north'?'Bắc':selected.region==='central'?'Trung':'Nam'}` : 'Món Việt'}</strong></article></div><Link href={`/dietitian/patients/${selected.id}`}>Mở hồ sơ 360<Icon name="arrowRight"/></Link></> : <div className={styles.noPatient}>Chưa có hồ sơ để lập kế hoạch.</div>}
+    </section>
 
-      <aside className={styles.rightCol}><section className={styles.card}><header><h2>Kiểm tra lâm sàng</h2></header><div className={styles.checks}>{CHECKS.map(([key,label])=>{const verified=Boolean(plan?.review_packet&&Object.keys(plan.review_packet).length&&plan.menu_hash_ready&&plan.nutrition_hash_ready);const warning=Boolean(plan&&(key==='carb'?hasViolation('carb'):key==='allergy'?hasViolation('dị ứng'):false));let detail=verified?'Đã kiểm tra':'Chưa đủ dữ liệu kiểm tra';if(plan&&key==='energy')detail=kcal?`${Math.round(kcal)}${target('kcal')?` / ${Math.round(target('kcal')!)} kcal`:' kcal'}`:'Chưa tính';if(plan&&key==='carb')detail=carb?`${Math.round(carb)}${target('carb_g')?` / ${Math.round(target('carb_g')!)} g`:' g'}`:'Chưa tính';return <div className={styles.check} key={key}><span><Icon name={warning?'warn':verified?'check':'info'}/></span><b>{label}</b><small>{detail}</small><strong className={warning?styles.warnText:verified?styles.ok:styles.warnText}>{warning?'Lưu ý':verified?'Đạt':'Chờ'}</strong></div>})}
-          <div className={styles.medication}><div><span><Icon name="warn"/></span><b>Thuốc – thực phẩm</b><strong>{plan&&plan.violations.some(v=>v.kind?.includes('interaction'))?'1 lưu ý':'Sẽ kiểm tra'}</strong></div><p>{selected?.medications.length?`${selected.medications.join(', ')}: kiểm tra thời điểm dùng thuốc cùng bữa ăn.`:'Chưa ghi nhận thuốc trong hồ sơ.'}</p></div><div className={styles.source}><Icon name="check"/>Số liệu hiển thị lấy từ nguồn backend đã kiểm chứng</div>
-        </div></section></aside>
+    <div className={styles.workspace}>
+      <main className={styles.canvas}>
+        <section className={styles.briefCard}>
+          <header><div><small>PLANNING BRIEF</small><h2>Thiết lập lần tạo này</h2></div><span>Phiên làm việc chưa phát hành</span></header>
+          <div className={styles.briefControls}><label>Ngày áp dụng<div><Icon name="calendar"/><input type="date" value={date} onChange={event=>{setDate(event.target.value);resetDraftContext()}}/></div></label><label>Cấu trúc bữa<select value="3+1" disabled><option>3 bữa chính + 1 bữa phụ</option></select></label><label>Ưu tiên khẩu vị<select value={selected?.region ?? 'vn'} disabled><option value="vn">Món Việt Nam</option><option value="north">Miền Bắc</option><option value="central">Miền Trung</option><option value="south">Miền Nam</option></select></label></div>
+          <div className={styles.generateRow}><div><strong>Backend chọn món và gram</strong><p>Dinh dưỡng, rule và hash được server tính lại; giao diện không tự suy đoán.</p></div><button type="button" onClick={()=>void generate()} disabled={!patientId||generating||Boolean(plan)}><Icon name="sparkles"/>{generating?'Đang tạo & kiểm tra…':plan?'Đã có phương án':'Tạo phương án'}</button></div>
+          {generating&&<div className={styles.processing}><span className="spinner"/><div><strong>Tác vụ đang chạy trên backend</strong><p>Đang chọn món, tính dinh dưỡng và kiểm tra an toàn. Không gửi lại yêu cầu trong lúc chờ.</p></div><small>Không giả lập % tiến độ</small></div>}
+          {error&&<div className={styles.error} role="alert"><Icon name="warning"/><div><strong>Chưa hoàn tất yêu cầu</strong><p>{error}</p></div>{planId&&<button type="button" onClick={()=>router.push(`/dietitian/reviews/${planId}`)}>Mở bản #{planId.slice(0,8).toUpperCase()}</button>}</div>}
+          {conflictPlan&&<div className={styles.conflict}><Icon name="info"/><div><strong>Ngày này đã có một bản đang xử lý</strong><p>#{conflictPlan.id.slice(0,8).toUpperCase()} · {conflictPlan.status}. Không tạo trùng.</p></div><button type="button" onClick={()=>router.push(`/dietitian/reviews/${conflictPlan.id}`)}>Mở bản hiện có</button></div>}
+          {notice&&<div className={styles.warningNotice}><Icon name="warning"/>{notice}</div>}
+        </section>
+
+        <section className={styles.draftCard}>
+          <header><div><small>MEAL PLAN CANVAS</small><h2>{plan?`Phương án #${plan.id.slice(0,8).toUpperCase()}`:'Bản xem trước thực đơn'}</h2></div><div className={styles.optionTabs}><button type="button" className={styles.selectedOption}>Phương án A</button><button type="button" disabled title="Backend hiện chỉ trả một phương án">B</button><button type="button" disabled title="Backend hiện chỉ trả một phương án">C</button></div></header>
+          {!plan&&!generating&&<div className={styles.draftEmpty}><span><Icon name="bowl"/></span><h3>Canvas đang chờ phương án</h3><p>Kiểm tra hồ sơ và planning brief phía trên, sau đó nhấn “Tạo phương án”.</p></div>}
+          {generating&&<div className={styles.draftEmpty}><span className="spinner"/><h3>Đang chuẩn bị cấu trúc bữa</h3><p>Kết quả thật sẽ xuất hiện khi backend hoàn thành.</p></div>}
+          {plan&&!plan.items.length&&<div className={styles.blocked}><Icon name="warning"/><div><strong>Chưa có món để hiển thị</strong>{blockedReasons.length?<ul>{blockedReasons.map(reason=><li key={reason}>{reason}</li>)}</ul>:<p>Bản nháp đã lưu. Mở màn hình duyệt để xem dữ liệu server đã ghi.</p>}</div></div>}
+          {plan&&plan.items.length>0&&<div className={styles.mealGrid}>{SLOT_ORDER.map(slot=><MealSlot key={slot} slot={slot} items={grouped[slot]??[]} onSwap={item=>void openSwap(item)}/>)}</div>}
+          {plan&&<footer className={styles.draftFooter}><div><Icon name="info"/><span>Backend hiện trả một phương án mỗi lần tạo. Tab B/C được giữ rõ để sẵn sàng khi API hỗ trợ nhiều phương án.</span></div><button type="button" onClick={()=>router.push(`/dietitian/reviews/${plan.id}`)}>Xem toàn bộ căn cứ<Icon name="arrowRight"/></button></footer>}
+        </section>
+      </main>
+
+      <aside className={styles.evidenceRail}>
+        <section className={styles.evidenceCard}>
+          <header><small>CLINICAL EVIDENCE RAIL</small><h2>Kiểm tra trước duyệt</h2><p>Mọi trạng thái bên dưới đến từ dữ liệu backend.</p></header>
+          <div className={styles.checkList}>{CHECKS.map(([key,label])=>{const verified=Boolean(plan?.review_packet&&Object.keys(plan.review_packet).length&&plan.menu_hash_ready&&plan.nutrition_hash_ready);const warning=Boolean(plan&&(key==='carb'?hasViolation('carb'):key==='allergy'?hasViolation('dị ứng'):false));let detail=verified?'Đã kiểm tra':'Chờ phương án';if(plan&&key==='energy')detail=kcal?`${Math.round(kcal)}${target('kcal')?` / ${Math.round(target('kcal')!)} kcal`:' kcal'}`:'Chưa tính';if(plan&&key==='carb')detail=carb?`${Math.round(carb)}${target('carb_g')?` / ${Math.round(target('carb_g')!)} g`:' g'}`:'Chưa tính';return <article key={key}><span className={warning?styles.stateWarn:verified?styles.stateOk:styles.stateIdle}><Icon name={warning?'warning':verified?'check':'info'}/></span><div><strong>{label}</strong><small>{detail}</small></div><b className={warning?styles.textWarn:verified?styles.textOk:styles.textIdle}>{warning?'Lưu ý':verified?'Đạt':'Chờ'}</b></article>})}</div>
+          <div className={styles.drugCheck}><header><span><Icon name="warning"/></span><div><strong>Thuốc – thực phẩm</strong><small>{plan&&plan.violations.some(item=>item.kind?.includes('interaction'))?'Có điểm cần xem':'Kiểm tra khi có phương án'}</small></div></header><p>{selected?.medications.length?`${selected.medications.join(', ')} sẽ được đối chiếu với món và thời điểm dùng.`:'Hồ sơ chưa ghi nhận thuốc đang dùng.'}</p></div>
+          <div className={styles.trace}><Icon name="database"/><div><strong>Có thể truy xuất nguồn</strong><p>Món, gram, dinh dưỡng và quyết định được gắn với đúng phiên bản.</p></div></div>
+        </section>
+        <section className={styles.constraintCard}><small>RÀNG BUỘC ĐANG ÁP DỤNG</small><div><span><Icon name="bowl"/>Món Việt</span><span><Icon name="profile"/>Theo hồ sơ</span><span><Icon name="scale"/>Gram chuẩn</span><span><Icon name="shield"/>{selected?.allergies.length?'Tránh dị ứng':'Không dị ứng'}</span></div></section>
+      </aside>
     </div>
 
-    <footer className={styles.actionBar}><span className={styles.gate}><Icon name="warn"/>Chưa phát hành cho người bệnh</span><button className={styles.primary} disabled={!plan} onClick={()=>plan&&router.push(`/dietitian/reviews/${plan.id}`)}>Mở màn hình duyệt <b>›</b></button></footer>
-    {swapItem&&<div className={styles.swapBackdrop} role="presentation" onMouseDown={()=>!swapping&&setSwapItem(null)}><section className={styles.swapPanel} role="dialog" aria-modal="true" aria-label="Đổi món" onMouseDown={event=>event.stopPropagation()}><header><div><small>Đổi món tại {SLOT_LABEL[swapItem.slot]}</small><h2>{swapItem.name_vi}</h2></div><button onClick={()=>setSwapItem(null)} aria-label="Đóng">×</button></header><p>Món thay thế được lấy từ cơ sở dữ liệu. Sau khi chọn, hệ thống sẽ tính lại toàn bộ dinh dưỡng và kiểm tra lâm sàng.</p><div className={styles.candidateList}>{!candidates.length?<div className={styles.empty}>Đang tải hoặc chưa có món phù hợp…</div>:candidates.map(candidate=><button key={candidate.dish_id} disabled={swapping} onClick={()=>replaceItem(candidate)}><span><strong>{candidate.name_vi}</strong><small>{candidate.region?`Miền ${candidate.region}`:'Phù hợp toàn quốc'}</small></span><b>{Math.round(candidate.serving_g)} g</b></button>)}</div></section></div>}
+    <footer className={styles.actionBar}><div><span><Icon name="warning"/></span><p><strong>Chưa phát hành cho người bệnh</strong><small>Chỉ phiên bản được duyệt mới xuất hiện ở không gian bệnh nhân.</small></p></div><button type="button" disabled={!planId||generating} onClick={()=>planId&&router.push(`/dietitian/reviews/${planId}`)}>{plan?'Chuyển sang màn hình duyệt':'Mở bản đã lưu'}<Icon name="arrowRight"/></button></footer>
+
+    {swapItem&&<SwapDrawer item={swapItem} candidates={candidates} selected={selectedCandidate} busy={swapping} onSelect={setSelectedCandidate} onClose={()=>!swapping&&setSwapItem(null)} onApply={candidate=>void replaceItem(candidate)}/>}
   </div>
+}
+
+function MealSlot({slot,items,onSwap}:{slot:string;items:MealPlanItem[];onSwap:(item:MealPlanItem)=>void}) {
+  const grams=items.reduce((sum,item)=>sum+item.grams,0)
+  return <section className={`${styles.mealSlot} ${styles[slot]}`}><header><div><span><Icon name={slot==='snack'?'moon':slot==='dinner'?'bowl':'sun'}/></span><div><small>{SLOT_TIME[slot]}</small><h3>{SLOT_LABEL[slot]}</h3></div></div><b>{Math.round(grams)} g</b></header><div>{items.length?items.map(item=><article key={item.id}><div><strong>{item.name_vi}</strong><small>{Math.round(item.grams)} g · {item.source_ref||item.source||'Nguồn backend'}</small></div><button type="button" onClick={()=>onSwap(item)}><Icon name="refresh"/>Đổi</button></article>):<p className={styles.noItems}>Không có món ở khung bữa này.</p>}</div></section>
+}
+
+function SwapDrawer({item,candidates,selected,busy,onSelect,onClose,onApply}:{item:MealPlanItem;candidates:ReplacementCandidate[];selected:ReplacementCandidate|null;busy:boolean;onSelect:(value:ReplacementCandidate)=>void;onClose:()=>void;onApply:(value:ReplacementCandidate)=>void}) {
+  return <div className={styles.swapBackdrop} role="presentation" onMouseDown={onClose}><section className={styles.swapPanel} role="dialog" aria-modal="true" aria-label="Đổi món" onMouseDown={event=>event.stopPropagation()}><header><div><small>ĐỔI MÓN · {SLOT_LABEL[item.slot]}</small><h2>Xem trước thay đổi</h2><p>Chỉ ghi thay đổi sau khi bạn xác nhận. Backend sẽ tính lại dinh dưỡng và an toàn.</p></div><button type="button" onClick={onClose} aria-label="Đóng"><Icon name="close"/></button></header><div className={styles.swapCompare}><article><small>HIỆN TẠI</small><strong>{item.name_vi}</strong><span>{Math.round(item.grams)} g</span></article><Icon name="arrowRight"/><article><small>THAY THẾ</small><strong>{selected?.name_vi||'Chưa chọn món'}</strong><span>{selected?`${Math.round(selected.serving_g)} g`:'Chọn ứng viên bên dưới'}</span></article></div><section className={styles.candidates}><header><h3>Món cùng vai trò trong bữa</h3><span>{candidates.length} ứng viên</span></header>{candidates.length?candidates.map(candidate=><button type="button" className={selected?.dish_id===candidate.dish_id?styles.candidateSelected:undefined} key={candidate.dish_id} disabled={busy} onClick={()=>onSelect(candidate)}><span><strong>{candidate.name_vi}</strong><small>{candidate.region?`Khẩu vị ${candidate.region}`:'Phù hợp toàn quốc'}</small></span><b>{Math.round(candidate.serving_g)} g</b><Icon name="chevronRight"/></button>):<div className={styles.candidateEmpty}><span className="spinner"/>Đang tải hoặc chưa có món phù hợp.</div>}</section><footer><button type="button" onClick={onClose}>Hủy</button><button type="button" disabled={!selected||busy} onClick={()=>selected&&onApply(selected)}>{busy?'Đang tính lại…':'Áp dụng & kiểm tra lại'}<Icon name="arrowRight"/></button></footer></section></div>
 }

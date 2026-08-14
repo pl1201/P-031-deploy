@@ -1,9 +1,9 @@
+import asyncio
 import logging
 from contextlib import asynccontextmanager
 
-from fastapi import FastAPI, status
+from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse
 from sqlalchemy import text
 
 from src.api.routes import router
@@ -13,11 +13,27 @@ from src.db.base import get_engine
 logger = logging.getLogger(__name__)
 
 
+def _warm_database_pool() -> None:
+    """Open the first pooled connection without blocking API startup."""
+    try:
+        with get_engine().connect() as connection:
+            connection.execute(text("SELECT 1"))
+        logger.info("Database connection pool is warm")
+    except Exception:
+        logger.exception("Database warm-up failed; readiness will report the failure")
+
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     settings = get_settings()
     logger.info("Starting %s in %s mode", settings.app_name, settings.app_env)
+    warmup_task = (
+        asyncio.create_task(asyncio.to_thread(_warm_database_pool)) if settings.app_env == "production" else None
+    )
     yield
+    if warmup_task is not None and not warmup_task.done():
+        warmup_task.cancel()
+    get_engine().dispose()
     logger.info("Shutting down...")
 
 
@@ -46,35 +62,6 @@ app.include_router(router, prefix="/api/v1")
 
 
 @app.get("/health")
-async def health():
-    try:
-        with get_engine().connect() as conn:
-            conn.execute(text("SELECT 1"))
-            orphan_count = conn.execute(
-                text(
-                    """
-                    SELECT count(*)
-                    FROM meal_plan_items m
-                    LEFT JOIN food_items f ON f.id = m.food_id
-                    LEFT JOIN dishes d ON d.dish_id = m.dish_id
-                    WHERE (m.food_id IS NOT NULL AND f.id IS NULL)
-                       OR (m.dish_id IS NOT NULL AND d.dish_id IS NULL)
-                       OR (m.food_id IS NULL AND m.dish_id IS NULL)
-                    """
-                )
-            ).scalar_one()
-        if orphan_count:
-            return JSONResponse(
-                status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
-                content={
-                    "status": "degraded",
-                    "env": settings.app_env,
-                    "reason": "Dữ liệu thực phẩm tham chiếu bị thiếu",
-                },
-            )
-        return {"status": "ok", "env": settings.app_env}
-    except Exception:
-        return JSONResponse(
-            status_code=503,
-            content={"status": "degraded", "env": settings.app_env, "reason": "Không kết nối được cơ sở dữ liệu"},
-        )
+async def health() -> dict[str, str]:
+    """Cheap liveness probe for Render; database readiness is separate."""
+    return {"status": "ok", "env": settings.app_env}
