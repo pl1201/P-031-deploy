@@ -61,22 +61,33 @@ def _run(graph, patient_id="BN-DEMO-02"):
 class TestAgentFlow:
     def test_rule_to_verify_khong_chan_generator_chi_gan_co_p1(self, foods, profile_htn, modest_menu):
         """DEC-014/DEC-020: rule `to_verify` KHÔNG fail-closed generator — chỉ
-        rule THẬT SỰ xung đột (min>max) mới chặn. Với seed hiện tại (21/21 rule
-        to_verify, không xung đột cho HTN đơn lẻ), generator phải chạy được và
-        unverified rule chỉ lên P1 (reviewer_override_allowed), không phải P0."""
+        rule THẬT SỰ xung đột (min>max) mới chặn; rule to_verify chỉ gắn P1
+        (reviewer_override_allowed), không phải P0.
+
+        Rules tự dựng trong test thay vì tải từ `data/seeds/clinical_rules.csv`
+        thật: sau CLN-11 (PR #107/#109) toàn bộ rule BASE/T2DM/HTN/GOUT đã
+        chuyển `verified`, nên nếu test load CSV thật sẽ không còn rule
+        to_verify nào áp dụng cho HTN đơn lẻ — hành vi cần kiểm tra biến mất
+        theo tiến độ R2 ký duyệt, không phải vì code sai. Ép `HTN-FAT-01` về
+        `to_verify` tại chỗ để cô lập đúng nhánh cần test, không phụ thuộc
+        verify_status thật đang thay đổi theo thời gian."""
+        all_verified = load_rules()
+        rules = [replace(r, verify_status="to_verify") if r.rule_id == "HTN-FAT-01" else r for r in all_verified]
+        assert any(r.rule_id == "HTN-FAT-01" and r.verify_status == "to_verify" for r in rules)
+
         generator = ScriptedGenerator([modest_menu])
         graph = build_graph(
             profiles=FakeProfiles(profile_htn),
             foods=foods,
             generator=generator,
             fallback_provider=StaticFallback(None),
-            rules=None,
+            rules=rules,
         )
         out = _run(graph)
 
         assert generator.calls == 1
         assert out["status"] == "pending_review"
-        assert out["unverified_rule_ids"]
+        assert out["unverified_rule_ids"] == ["HTN-FAT-01"]
         assert out["highest_risk"] == "P1"
         assert out["review_packet"].can_approve is True
         assert any(f.category == "unverified_rule" for f in out["review_packet"].findings)

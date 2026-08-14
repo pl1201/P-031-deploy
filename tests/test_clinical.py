@@ -46,13 +46,36 @@ def load_rules():
 
 
 def test_runtime_rule_loader_mac_dinh_nap_ca_to_verify():
-    """DEC-020: default verified_only=False vì seed hiện tại chưa có rule nào
-    'verified' — giữ True sẽ làm compute_targets() không tính được ngưỡng nào."""
-    default_loaded = _load_rules()
-    assert default_loaded and all(rule.verify_status == "to_verify" for rule in default_loaded)
+    """DEC-020: default verified_only=False — không được để việc R2 ký xong
+    một phần rule làm compute_targets() ÍT ngưỡng đi so với trước khi ký.
 
+    Sau khi hợp nhất CLN-11 (PR #107, ngưỡng CKD dialysis) với
+    fix/CLN-11-remaining-rules (PR #109, 7 rule citation/số liệu còn lại),
+    toàn bộ 23/23 rule trong seed đã chuyển `verified` — hai PR sửa đúng 2
+    tập rule KHÔNG giao nhau (CKD-PRO/CKD-K/CKD-NA vs BASE/T2DM/HTN/CKD-P/
+    GOUT) nên gộp lại vừa đủ 100%, không phải trùng hợp giả tạo. Test không
+    còn khẳng định được "seed còn rule to_verify" (đúng nghĩa TỐT — R2 đã ký
+    hết, không phải hồi quy). Test giờ khẳng định đúng bất biến DEC-020 phải
+    giữ vĩnh viễn bất kể seed đang ở trạng thái nào: mặc định luôn nạp ĐỦ
+    rule (to_verify lẫn verified), không rớt rule nào chỉ vì nó chưa được
+    ký — verified_only=True mới là bộ lọc, không phải hành vi mặc định.
+    """
+    default_loaded = _load_rules()
+    to_verify = _load_rules(verified_only=False)
     verified_only = _load_rules(verified_only=True)
-    assert verified_only == []  # current seed governance: all 21 rows are still to_verify
+
+    assert default_loaded == to_verify, "mặc định phải giống hệt verified_only=False (nạp đủ, không lọc)"
+    assert len(verified_only) <= len(to_verify), "verified_only không được nạp NHIỀU hơn to_verify=False"
+    assert all(rule.verify_status == "verified" for rule in verified_only)
+    assert any(rule.verify_status == "verified" for rule in to_verify), "phải có ít nhất 1 rule đã được R2 ký"
+    # Seed hiện tại (2026-08-13) đã 100% verified sau khi hợp nhất #107+#109 —
+    # không assert "còn to_verify" nữa (đó là tín hiệu TỐT). Bất biến thật sự
+    # cần giữ là default==verified_only=False, đã khoá ở assert phía trên;
+    # dòng dưới chỉ ghi lại sự thật hiện tại để không ai tưởng nhầm là bug.
+    assert not any(rule.verify_status == "to_verify" for rule in to_verify), (
+        "Nếu dòng này đỏ vì có rule to_verify MỚI được thêm — bình thường, không phải hồi quy. "
+        "Xoá assert này (không cần thay bằng gì) khi điều đó xảy ra."
+    )
 
 
 # ---------------------------------------------------------------- năng lượng
@@ -373,6 +396,30 @@ class TestKdigo2024SafetyFlags:
         assert "CKD-PRO-01" not in ids and "CKD-PRO-02" not in ids
         assert t.needs_expert_review is True
 
+    def test_loc_mau_thi_go_tran_protein_thap_va_ap_dai_1_0_1_2(self):
+        """CLN-11: KDOQI 2020 — CKD G5D (lọc máu) cần 1.0-1.2 g/kg/ngày, KHÔNG
+        bị áp trần 0.8 g/kg dành cho người CHƯA lọc máu (CKD-PRO-01/02)."""
+        ckd_g5 = [Condition(code=ConditionCode.CKD, stage="G5")]
+        p = PatientProfile(**self.BASE, age=58, conditions=ckd_g5, on_dialysis=True)
+        t = compute_targets(p, load_rules())
+
+        ids = t.targets["protein_g"].rule_ids
+        assert "CKD-PRO-01" not in ids and "CKD-PRO-02" not in ids
+        assert "CKD-PRO-06" in ids and "CKD-PRO-07" in ids
+        assert t.min_of("protein_g") == pytest.approx(1.0 * 65)
+        assert t.max_of("protein_g") == pytest.approx(1.2 * 65)
+
+    def test_g5_chua_loc_mau_van_ap_tran_thap_binh_thuong(self):
+        """Không lọc máu ở G5 vẫn dùng trần CHƯA lọc máu như G3-G4 (CKD-PRO-01/02)."""
+        ckd_g5 = [Condition(code=ConditionCode.CKD, stage="G5")]
+        p = PatientProfile(**self.BASE, age=58, conditions=ckd_g5)
+        t = compute_targets(p, load_rules())
+
+        ids = t.targets["protein_g"].rule_ids
+        assert "CKD-PRO-01" in ids and "CKD-PRO-02" in ids
+        assert "CKD-PRO-06" not in ids and "CKD-PRO-07" not in ids
+        assert t.max_of("protein_g") == pytest.approx(0.8 * 65)
+
     def test_tran_an_toan_1_3_khong_bao_gio_bi_vo_hieu(self):
         """CKD-PRO-05 là trần tuyệt đối, mọi cờ đều không gỡ được."""
         p = PatientProfile(
@@ -508,3 +555,64 @@ class TestFreeSugarRule:
         incomplete = [x for x in v if x.kind == "incomplete_data"]
         assert len(incomplete) == 1
         assert incomplete[0].severity is Severity.SOFT
+
+
+class TestGuidelineCitationCorrections:
+    """Hồi quy cho 7 rule sửa trích dẫn/số liệu 2026-08-12 (tiếp nối CLN-11).
+
+    Mỗi ca khoá lại MỘT con số đã xác minh qua nguồn thật (không suy đoán):
+    - ADA 2026 Rec 5.24 (grade E, không phải A đã ghi nhầm trước đây).
+    - ADA/EASD 2019 không đặt %E lý tưởng cho carbohydrate — dải carb đổi
+      sang nguồn Viện Dinh dưỡng 2016 (60-65%E cho người Việt).
+    - AMDR protein NIN 2016 là 13-20%E — sàn cũ 15% không khớp cận dưới.
+    - AHA không đặt mốc %E cho lipid — đổi sang NIN 2016 (20-25%E).
+    """
+
+    BASE = dict(patient_id="X", sex=Sex.MALE, height_cm=165, weight_kg=65, age=55)
+
+    def test_t2dm_carb_dai_60_65_phan_tram_theo_nin_khong_con_45_55(self):
+        """T2DM-CARB-01/02: nguồn cũ 'ADA/EASD 45-55%E' đã sai — ADA/EASD 2019
+        Consensus Report không đặt %E lý tưởng nào. Đổi sang NIN 2016."""
+        p = PatientProfile(**self.BASE, conditions=[Condition(code=ConditionCode.T2DM)])
+        t = compute_targets(p, load_rules())
+        tdee = t.tdee_kcal
+        assert t.min_of("carb_g") == pytest.approx(tdee * 0.60 / 4, rel=1e-6)
+        assert t.max_of("carb_g") == pytest.approx(tdee * 0.65 / 4, rel=1e-6)
+
+    def test_t2dm_protein_san_13_phan_tram_khop_amdr_nin_khong_con_15(self):
+        """T2DM-PRO-01: sàn cũ 15%E không khớp cận dưới AMDR NIN 2016 (13%E)."""
+        p = PatientProfile(**self.BASE, conditions=[Condition(code=ConditionCode.T2DM)])
+        t = compute_targets(p, load_rules())
+        assert t.min_of("protein_g") == pytest.approx(t.tdee_kcal * 0.13 / 4, rel=1e-6)
+
+    def test_htn_lipid_tran_25_phan_tram_theo_nin_khong_con_30_gan_nham_aha(self):
+        """HTN-FAT-01: nhãn 'AHA' sai — AHA không đặt mốc %E. Đổi sang NIN
+        2016 (20-25%E), lấy cận trên 25% làm trần soft."""
+        p = PatientProfile(**self.BASE, conditions=[Condition(code=ConditionCode.HTN)])
+        t = compute_targets(p, load_rules())
+        assert t.max_of("fat_g") == pytest.approx(t.tdee_kcal * 0.25 / 9, rel=1e-6)
+
+    def test_fiber_grade_e_khong_con_a(self):
+        """BASE-FIB-01/T2DM-FIB-01: ADA 2026 Rec 5.24 là grade E (expert
+        opinion), không phải A như ghi nhầm trước đây."""
+        rules = {r.rule_id: r for r in load_rules()}
+        assert rules["BASE-FIB-01"].guideline_grade == "E"
+        assert rules["T2DM-FIB-01"].guideline_grade == "E"
+
+    def test_gout_purine_van_giu_150mg_nhung_ghi_ro_la_uoc_tinh(self):
+        """GOUT-PUR-01: ACR 2020 không định lượng purine bằng mg — 150mg là
+        quy ước thực hành, KHÔNG truy được về ACR. Giữ trần an toàn (hard)
+        nhưng nguồn phải trung thực, không gán vào ACR."""
+        rules = {r.rule_id: r for r in load_rules()}
+        rule = rules["GOUT-PUR-01"]
+        assert rule.value == 150.0
+        assert rule.severity == "hard"
+        assert "KHÔNG định lượng" in rule.guideline_ref
+
+    def test_ckd_phospho_g4_g5_khong_bi_noi_long_len_1000(self):
+        """CKD-P-02: không tìm được nguồn cho mốc 900mg riêng G4/G5, nhưng
+        KHÔNG nới lỏng lên 1000mg khi chưa rõ nguồn — hướng an toàn hơn là
+        giữ ngưỡng chặt hơn, không phải nới ra."""
+        rules = {r.rule_id: r for r in load_rules()}
+        assert rules["CKD-P-02"].value == 900.0
+        assert rules["CKD-P-01"].value == 1000.0

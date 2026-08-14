@@ -156,6 +156,20 @@ class Dish(Base):
     dish_id: Mapped[str] = mapped_column(String(64), primary_key=True)
     name_vi: Mapped[str] = mapped_column(String(255), index=True)
     region: Mapped[str | None] = mapped_column(String(20), nullable=True)  # north|central|south
+    # Tầng dữ liệu của dòng: `vn` (món Việt curated, chạm bệnh nhân),
+    # `foreign` (khối tham chiếu USDA FNDDS tiếng Anh, tầng C), `template`
+    # (mẫu CẢ BỮA `MENU-*` trích từ Excel, tầng D — không phải món).
+    #
+    # Trước đây ba tầng này chỉ phân biệt được bằng TIỀN TỐ `dish_id` — một
+    # quy ước chuỗi, không phải dữ liệu, và chính chỗ đó đã để `MENU-*` lọt
+    # lên UI bệnh nhân thành tên món "Bữa sáng - Thực đơn 3" (DEC-022). Cột
+    # này làm ranh giới tầng tra vấn được bằng SQL; `src/clinical/tiers.py`
+    # vẫn giữ nguyên làm lưới an toàn cho dòng cũ chưa gắn nhãn.
+    origin: Mapped[str | None] = mapped_column(String(10), nullable=True)
+    # Vai trò trong cấu trúc bữa, phân tách bằng `|` — xem
+    # `src/clinical/dish_roles.py` (từ vựng duy nhất). RỖNG = không đủ điều
+    # kiện làm một mục độc lập của bữa (fail closed).
+    roles: Mapped[str | None] = mapped_column(String(255), nullable=True)
     serving_g: Mapped[float | None] = mapped_column(Float, nullable=True)
     verified_by: Mapped[str | None] = mapped_column(String(100), nullable=True)  # RULE-2 cho món (DAT-04)
     note: Mapped[str | None] = mapped_column(Text, nullable=True)
@@ -211,9 +225,9 @@ class ClinicalRule(Base):
     guideline_ref: Mapped[str] = mapped_column(Text)  # RULE-2
     guideline_grade: Mapped[str | None] = mapped_column(String(10), nullable=True)
     verify_status: Mapped[str] = mapped_column(String(20), default="to_verify")
-    overridden_by: Mapped[str | None] = mapped_column(String(50), nullable=True)
-    disabled_by_flag: Mapped[str | None] = mapped_column(String(50), nullable=True)
-    requires_flag: Mapped[str | None] = mapped_column(String(50), nullable=True)
+    overridden_by: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    disabled_by_flag: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    requires_flag: Mapped[str | None] = mapped_column(String(255), nullable=True)
 
 
 class DrugFoodInteraction(Base):

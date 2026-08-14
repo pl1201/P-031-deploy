@@ -57,7 +57,13 @@ def approved_plan(client, dietitian):
         "/api/v1/meal-plans", json={"patient_id": profile["id"], "plan_date": "2026-08-12"}, headers=dt_headers
     )
     plan_id = create.json()["plan_id"]
-    approve = client.post(f"/api/v1/reviews/{plan_id}/approve", json={}, headers=dt_headers)
+    # Ngưỡng CKD/T2DM hiện chưa `verified` -> mọi lần duyệt đều dính P1 "unverified
+    # rule", buộc phải ghi lý do override mới qua được (đúng thiết kế fail-safe).
+    approve = client.post(
+        f"/api/v1/reviews/{plan_id}/approve",
+        json={"notes": "Test fixture: chấp nhận rule chưa xác minh để dựng dữ liệu cho test"},
+        headers=dt_headers,
+    )
     assert approve.status_code == 200, approve.text
     return plan_id, patient_headers
 

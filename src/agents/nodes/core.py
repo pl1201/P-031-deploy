@@ -49,6 +49,7 @@ from src.clinical.interactions import (
     check_drug_food_interactions,
     load_drug_food_rules,
 )
+from src.clinical.medical_nutrition import is_eligible_candidate
 from src.clinical.models import (
     ClinicalTargets,
     MenuDraft,
@@ -288,6 +289,11 @@ def make_retrieve_context(foods: FoodRepository):
     Lọc sẵn danh sách ứng viên theo dị ứng và bệnh lý, để LLM không bao giờ
     nhìn thấy thực phẩm cấm. Chặn ở đầu vào rẻ hơn chặn ở đầu ra. Đồng thời
     loại khối USDA bulk khỏi ứng viên — xem ghi chú ở trên.
+
+    Cũng loại thực phẩm y tế đặc biệt (sữa dinh dưỡng y tế) mà bệnh nhân KHÔNG
+    khai đang dùng: dữ liệu hợp lệ nhưng tự ý đưa vào thực đơn là kê một sản
+    phẩm thương mại họ không có, và tiến gần tới chỉ định (CLAUDE.md §3). Chi
+    tiết ở `src/clinical/medical_nutrition.py`.
     """
 
     def retrieve_context(state: NutriState) -> dict:
@@ -297,6 +303,7 @@ def make_retrieve_context(foods: FoodRepository):
             f
             for f in all_items
             if not _la_khoi_usda_bulk(f)
+            and is_eligible_candidate(f, profile.medical_nutrition)
             and not any(a in profile.allergies for a in map(str.lower, f.contains_allergens))
             and f.name_vi.lower() not in profile.dislikes
         ]
