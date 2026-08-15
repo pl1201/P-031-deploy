@@ -11,6 +11,16 @@ import styles from './followup.module.css'
 const SLOT:Record<string,string>={breakfast:'Bữa sáng',lunch:'Bữa trưa',snack:'Bữa phụ',dinner:'Bữa tối'}
 const isSkippedMeal=(log:FoodLog)=>(log.free_text_vi??'').trim().toLocaleLowerCase('vi-VN').startsWith('bỏ ')
 
+// FE-13: matched_on là field kỹ thuật của bộ khớp món (xem src/clinical/matching.py:112,
+// enum "exact"|"alias"|"token" — xác nhận qua tests/test_matching.py). Map sang nhãn dinh
+// dưỡng viên hiểu được; fallback về giá trị gốc nếu backend thêm enum mới chưa map.
+const MATCH_REASON_LABEL:Record<string,string>={exact:'Khớp chính xác tên món',alias:'Khớp theo tên gọi khác',token:'Khớp gần đúng theo từ khoá'}
+
+// FE-10: mitigation tạm thời cho BE-01 (backend trả confidence score giống hệt nhau
+// cho nhiều ứng viên khác nhau, vi phạm RULE-2). Gỡ bỏ khi BE-01 đóng và xác nhận
+// score đã phân biệt được thật sự — đây chỉ là cảnh báo, không sửa được dữ liệu gốc.
+const SCORE_DISTINGUISH_THRESHOLD = 0.01
+
 export default function DietitianFoodLogsPage(){
   const [rows,setRows]=useState<FoodLog[]>([])
   const [patients,setPatients]=useState<Record<string,PatientProfile>>({})
@@ -52,7 +62,9 @@ function UnresolvedRow({row,patient,busy,onResolve}:{row:FoodLog;patient?:Patien
   const [grams,setGrams]=useState(row.grams!=null?String(row.grams):'')
   const [chosen,setChosen]=useState<number|null>(row.suggestions[0]?.food_id??null)
   const invalid=!grams||Number(grams)<=0
-  return <article className={styles.logRow}><header><div><small>{patient?`${patient.sex==='male'?'Nam':'Nữ'}, ${patient.age} tuổi`:`Mã hồ sơ ${row.profile_id.slice(0,8).toUpperCase()}`} · {SLOT[row.slot??'']||'Không rõ bữa'}</small><h2>“{row.free_text_vi}”</h2></div><time>{new Date(row.logged_at).toLocaleString('vi-VN')}</time></header><p>Hệ thống chưa đủ chắc chắn để tính món này. Chuyên gia chọn một ứng viên hoặc xác nhận không đủ dữ liệu.</p>{row.suggestions.length?<div className={styles.suggestions}>{row.suggestions.slice(0,5).map(item=><label key={item.food_id} className={chosen===item.food_id?styles.selected:undefined}><input type="radio" name={`sug-${row.id}`} checked={chosen===item.food_id} onChange={()=>setChosen(item.food_id)}/><span><strong>{item.name_vi}</strong><small>{item.matched_on} · {(item.score*100).toFixed(0)}%</small></span></label>)}</div>:<div className={styles.noSuggestion}>Không có ứng viên đủ gần. Không tự đoán món.</div>}<footer><input type="number" min="1" max="5000" value={grams} onChange={event=>setGrams(event.target.value)} placeholder="Khẩu phần gram"/><button type="button" disabled={busy||chosen==null||invalid} onClick={()=>onResolve(row.id,{action:'map_to_existing',food_id:chosen!,grams:Number(grams)})}>{busy?'Đang lưu…':'Gán món và tính lại'}</button><button type="button" disabled={busy} onClick={()=>onResolve(row.id,{action:'mark_no_data'})}>Không đủ dữ liệu</button></footer></article>
+  const topScores=row.suggestions.slice(0,5).map(item=>item.score)
+  const scoresIndistinguishable=topScores.length>1&&(Math.max(...topScores)-Math.min(...topScores))<SCORE_DISTINGUISH_THRESHOLD
+  return <article className={styles.logRow}><header><div><small>{patient?`${patient.sex==='male'?'Nam':'Nữ'}, ${patient.age} tuổi`:`Mã hồ sơ ${row.profile_id.slice(0,8).toUpperCase()}`} · {SLOT[row.slot??'']||'Không rõ bữa'}</small><h2>“{row.free_text_vi}”</h2></div><time>{new Date(row.logged_at).toLocaleString('vi-VN')}</time></header><p>Hệ thống chưa đủ chắc chắn để tính món này. Chuyên gia chọn một ứng viên hoặc xác nhận không đủ dữ liệu.</p>{row.suggestions.length?<div className={styles.suggestions}>{row.suggestions.slice(0,5).map(item=><label key={item.food_id} className={chosen===item.food_id?styles.selected:undefined}><input type="radio" name={`sug-${row.id}`} checked={chosen===item.food_id} onChange={()=>setChosen(item.food_id)}/><span><strong>{item.name_vi}</strong><small>{MATCH_REASON_LABEL[item.matched_on]||item.matched_on} · {(item.score*100).toFixed(0)}%</small></span></label>)}</div>:<div className={styles.noSuggestion}>Không có ứng viên đủ gần. Không tự đoán món.</div>}{scoresIndistinguishable&&<p className={styles.scoreWarning}><Icon name="warning"/>Độ tin cậy chưa phân biệt rõ giữa các lựa chọn — chuyên gia tự xem xét, không nên dựa vào tỉ lệ %.</p>}<footer><input type="number" min="1" max="5000" value={grams} onChange={event=>setGrams(event.target.value)} placeholder="Khẩu phần gram"/><button type="button" disabled={busy||chosen==null||invalid} onClick={()=>onResolve(row.id,{action:'map_to_existing',food_id:chosen!,grams:Number(grams)})}>{busy?'Đang lưu…':'Gán món và tính lại'}</button><button type="button" disabled={busy} onClick={()=>onResolve(row.id,{action:'mark_no_data'})}>Không đủ dữ liệu</button></footer></article>
 }
 
 function Empty(){return <div className={styles.empty}><Icon name="check"/><h2>Không có ngoại lệ đang chờ</h2><p>Mọi món đã được đối chiếu hoặc đánh dấu trung thực là không đủ dữ liệu.</p></div>}

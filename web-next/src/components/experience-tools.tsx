@@ -1,6 +1,7 @@
 'use client'
 
-import { FormEvent, useEffect, useRef, useState } from 'react'
+import { FormEvent, createContext, useContext, useEffect, useRef, useState } from 'react'
+import { usePathname } from 'next/navigation'
 import { Icon } from '@/components/brand-artwork'
 import styles from './experience-tools.module.css'
 import v2 from './experience-tools-v2.module.css'
@@ -18,7 +19,7 @@ const TOPICS=[
   {icon:'sparkles',title:'Theo màn hình',text:'Chỉ dẫn đúng nơi bạn đang xem',question:'Hướng dẫn theo màn hình này'},
 ]
 
-function normalize(value:string){return value.toLocaleLowerCase('vi-VN').normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/đ/g,'d').replace(/[^a-z0-9\s]/g,' ').replace(/\s+/g,' ').trim()}
+function normalize(value:string){return value.toLocaleLowerCase('vi-VN').normalize('NFD').replace(/\p{Diacritic}/gu,'').replace(/đ/g,'d').replace(/[^a-z0-9\s]/g,' ').replace(/\s+/g,' ').trim()}
 
 const KNOWLEDGE:Array<{keys:RegExp;answer:string;suggestions:string[]}>= [
   {keys:/(toi co the hoi gi|tro ly lam duoc gi|chuc nang|giup gi)/,answer:'Bạn có thể hỏi mình về cách dùng từng màn hình, đăng nhập demo, hồ sơ, tạo hoặc duyệt thực đơn, nhật ký món ăn, tổng hợp tuần, đối chiếu dữ liệu, mã hồ sơ, chế độ sáng/tối và cách xử lý lỗi thường gặp. Mình cũng giải thích ý nghĩa quy trình kiểm tra an toàn, nhưng không chẩn đoán hay kê đơn.',suggestions:['Hướng dẫn theo màn hình này','Quy trình thực đơn','Xử lý lỗi đăng nhập']},
@@ -34,9 +35,9 @@ const KNOWLEDGE:Array<{keys:RegExp;answer:string;suggestions:string[]}>= [
   {keys:/(ho so|cap nhat thong tin|chieu cao|can nang|benh ly)/,answer:'Hồ sơ chứa dữ liệu dùng để cá nhân hóa và kiểm tra an toàn như tuổi, giới tính, chiều cao, cân nặng, bệnh lý, thuốc, dị ứng và khẩu vị. Người bệnh có thể gửi yêu cầu cập nhật; thay đổi lâm sàng cần chuyên gia xác nhận trước khi áp dụng.',suggestions:['Mã hồ sơ là gì?','Gửi yêu cầu cập nhật','Ai được sửa hồ sơ?']},
   {keys:/(ma ho so|ma benh nhan|id|dau thang)/,answer:'Chuỗi hiển thị sau “ID:” hoặc “Mã hồ sơ” là mã định danh hồ sơ trong hệ thống, không phải số căn cước hay mã bảo hiểm. Mã này giúp tìm đúng hồ sơ và liên kết thực đơn, nhật ký, quyết định duyệt mà không cần hiển thị thông tin nhạy cảm.',suggestions:['Dữ liệu có an toàn không?','Tìm hồ sơ bằng ID','ID có thay đổi không?']},
   {keys:/(bao mat|rieng tu|du lieu|luu o dau|chia se)/,answer:'Chatbot này chỉ cung cấp hướng dẫn giao diện và xử lý câu hỏi ngay trên trình duyệt; không gửi nội dung sang dịch vụ AI bên ngoài. Bạn vẫn không nên nhập mật khẩu, số định danh cá nhân hoặc thông tin y tế không cần thiết. Quyền xem dữ liệu phụ thuộc vai trò đăng nhập.',suggestions:['Ai xem được hồ sơ?','Chatbot lưu gì?','Đăng xuất ở đâu?']},
-  {keys:/(toi|sang|dark|light|theme|giao dien)/,answer:'Nút mặt trời/mặt trăng cạnh nút Trợ lý chuyển toàn bộ ứng dụng giữa sáng và tối. Lựa chọn được lưu trên trình duyệt. Nếu còn màu cũ sau khi cập nhật phiên bản, hãy tải cứng bằng Ctrl + Shift + R.',suggestions:['Giao diện có chuyển động không?','Cách tắt chuyển động','Màu chưa cập nhật']},
+  {keys:/(toi|sang|dark|light|theme|giao dien)/,answer:'Nút mặt trời/mặt trăng chuyển toàn bộ ứng dụng giữa sáng và tối. Lựa chọn được lưu trên trình duyệt. Nếu còn màu cũ sau khi cập nhật phiên bản, hãy tải cứng bằng Ctrl + Shift + R.',suggestions:['Giao diện có chuyển động không?','Cách tắt chuyển động','Màu chưa cập nhật']},
   {keys:/(dynamic|chuyen dong|nhap nhay|animation)/,answer:'Giao diện dùng chuyển động có tiết chế: card xuất hiện nhẹ, hover nâng bề mặt, nút chính có ánh sáng chậm và trạng thái có nhịp pulse. Nếu thiết bị bật Giảm chuyển động, các hiệu ứng sẽ tự tắt để đảm bảo khả năng tiếp cận.',suggestions:['Bật lại chuyển động','Chế độ tối','Hỗ trợ điện thoại']},
-  {keys:/(dien thoai|mobile|responsive|man hinh nho)/,answer:'Trên điện thoại, nội dung chuyển thành một cột, nút thao tác mở rộng dễ chạm, sidebar dùng menu di động và chatbot mở dạng bảng từ cạnh dưới. Nếu thấy tràn ngang, hãy tải lại bản mới và đặt mức thu phóng trình duyệt về 100%.',suggestions:['Chatbot trên điện thoại','Nội dung bị tràn','Đổi sáng tối']},
+  {keys:/(dien thoai|mobile|responsive|man hinh nho)/,answer:'Trên điện thoại, nội dung chuyển thành một cột, nút thao tác mở rộng dễ chạm, sidebar dùng menu di động và chatbot mở dạng bảng từ cạnh phải. Nếu thấy tràn ngang, hãy tải lại bản mới và đặt mức thu phóng trình duyệt về 100%.',suggestions:['Chatbot trên điện thoại','Nội dung bị tràn','Đổi sáng tối']},
   {keys:/(loi|khong duoc|khong thay|bi khoa|khong bam|tai lai|server)/,answer:'Bạn thử theo thứ tự: kiểm tra đang ở đúng vai trò, tải cứng trang bằng Ctrl + Shift + R, đăng nhập lại, rồi kiểm tra kết nối máy chủ. Nút có thể bị khóa khi thiếu hồ sơ, thiếu dữ liệu bắt buộc, đang xử lý hoặc có cảnh báo chặn. Hãy cho mình biết tên màn hình và dòng thông báo để mình chỉ đúng bước.',suggestions:['Không đăng nhập được','Nút tạo bị khóa','Không thấy thực đơn']},
   {keys:/(dau|cap cuu|trieu chung|chan doan|lieu dung|duong huyet|ke don)/,answer:'Mình không thể chẩn đoán, kê đơn, đổi liều thuốc hoặc đánh giá tình trạng cấp cứu. Nếu có triệu chứng nghiêm trọng, phản ứng dị ứng hoặc chỉ số bất thường, hãy liên hệ cơ sở y tế/bác sĩ đang phụ trách ngay. Mình có thể hướng dẫn cách ghi nhận thông tin hoặc tìm chức năng liên hệ trong ứng dụng.',suggestions:['Cách ghi nhận món ăn','Cập nhật thuốc trong hồ sơ','Liên hệ chuyên gia']},
 ]
@@ -50,7 +51,28 @@ function answerFor(input:string,path:string):Reply{
   return{text:`Mình chưa xác định chính xác ý bạn. ${screenHint(path)} Mô tả theo mẫu “Tôi đang ở màn hình…, muốn…, nhưng thấy…” để mình hướng dẫn từng bước.`,suggestions:['Hướng dẫn theo màn hình này',...DEFAULT_SUGGESTIONS.slice(0,3)]}
 }
 
-export function ExperienceTools(){
+// FE-20 (v2, theo yêu cầu trực tiếp): chatbot trước đó nằm trong sidebar (v1) vẫn bị coi là
+// "vị trí không phù hợp". Đổi sang mẫu tab kéo ra ở giữa cạnh phải màn hình — cố định, không
+// đè lên nội dung (chỉ chiếm dải hẹp ngoài rìa), bấm vào trượt ra thành khung chat toàn chiều
+// cao bên phải. Áp dụng thống nhất trên MỌI trang, không phân biệt WorkspaceShell hay không.
+type AssistantState={
+  theme:Theme
+  toggleTheme:()=>void
+  open:boolean
+  setOpen:(value:boolean|((current:boolean)=>boolean))=>void
+}
+const AssistantContext=createContext<AssistantState|null>(null)
+
+export function useAssistant(){
+  const ctx=useContext(AssistantContext)
+  if(!ctx)throw new Error('useAssistant phải dùng trong AssistantProvider')
+  return ctx
+}
+
+const WORKSPACE_SHELL_PREFIXES=['/patient','/dietitian']
+
+export function AssistantProvider({children}:{children:React.ReactNode}){
+  const pathname=usePathname()
   const [theme,setTheme]=useState<Theme>('light')
   const [open,setOpen]=useState(false)
   const [input,setInput]=useState('')
@@ -67,8 +89,21 @@ export function ExperienceTools(){
   function ask(value:string){const question=value.trim();if(!question||typing)return;setMessages(current=>[...current,{id:Date.now(),from:'user',text:question}]);setSuggestions([]);setInput('');setTyping(true);window.setTimeout(()=>{const reply=answerFor(question,window.location.pathname);setMessages(current=>[...current,{id:Date.now()+1,from:'assistant',text:reply.text}]);setSuggestions(reply.suggestions);setTyping(false)},520+Math.min(question.length*5,450))}
   function submit(event:FormEvent){event.preventDefault();ask(input)}
 
-  return <aside className={styles.tools} aria-label="Công cụ giao diện và hỗ trợ">
-    {open&&<section className={`${styles.chat} ${v2.chat}`} data-assistant="panel" role="dialog" aria-modal="false" aria-label="Trợ lý hướng dẫn VNutriCare">
+  const inWorkspaceShell=WORKSPACE_SHELL_PREFIXES.some(prefix=>pathname?.startsWith(prefix))
+
+  return <AssistantContext.Provider value={{theme,toggleTheme,open,setOpen}}>
+    {children}
+
+    <button type="button" className={`${styles.edgeTab}${open?` ${styles.edgeTabOpen}`:''}`} onClick={()=>setOpen(value=>!value)} aria-expanded={open} aria-controls="assistant-drawer" aria-label={open?'Đóng trợ lý':'Mở trợ lý hướng dẫn'}>
+      <Icon name={open?'arrowRight':'robot'}/>
+    </button>
+
+    {/* Trang dùng WorkspaceShell đã có nút dark-mode trong sidebar; trang còn lại
+        (login, landing, /eval) dùng nút nổi nhỏ này làm phương án dự phòng. */}
+    {!inWorkspaceShell&&<button type="button" className={styles.themeFallback} onClick={toggleTheme} aria-label={theme==='light'?'Chuyển sang giao diện tối':'Chuyển sang giao diện sáng'} title={theme==='light'?'Giao diện tối':'Giao diện sáng'}><Icon name={theme==='light'?'moon':'sun'}/></button>}
+
+    {open&&<button type="button" className={styles.drawerBackdrop} aria-label="Đóng trợ lý" onClick={()=>setOpen(false)}/>}
+    <section id="assistant-drawer" className={`${styles.chat} ${v2.chat}${open?` ${styles.chatOpen}`:''}`} data-assistant="panel" role="dialog" aria-modal="true" aria-label="Trợ lý hướng dẫn VNutriCare" aria-hidden={!open}>
       <header className={v2.header}><div className={`${styles.botMark} ${v2.botMark}`}><Icon name="sparkles"/><i/></div><div><small className={v2.eyebrow}>VNUTRICARE ASSIST</small><strong>Trợ lý đồng hành</strong><span><i/> Sẵn sàng hướng dẫn</span></div><button type="button" onClick={()=>setOpen(false)} aria-label="Đóng trợ lý"><Icon name="close"/></button></header>
       <div className={`${styles.context} ${v2.context}`} data-assistant="notice"><Icon name="shield"/><span>Hướng dẫn bảo mật · không thay thế tư vấn y khoa</span></div>
       <div className={`${styles.messages} ${v2.messages}`} data-assistant="messages" aria-live="polite">
@@ -77,10 +112,11 @@ export function ExperienceTools(){
       </div>
       {suggestions.length>0&&messages.length>1&&<div className={`${styles.starters} ${v2.starters}`} data-assistant="starters">{suggestions.map(item=><button type="button" key={item} onClick={()=>ask(item)}>{item}<Icon name="arrowRight"/></button>)}</div>}
       <form className={v2.composer} onSubmit={submit}><div><label htmlFor="assistant-question">Đặt câu hỏi cho trợ lý</label><input id="assistant-question" value={input} onChange={event=>setInput(event.target.value)} placeholder="Ví dụ: Vì sao chưa thể duyệt thực đơn?" maxLength={500}/></div><button type="submit" disabled={!input.trim()||typing} aria-label="Gửi câu hỏi"><Icon name="arrowRight"/></button></form>
-    </section>}
-    <div className={styles.launchers}>
-      <button type="button" className={styles.theme} onClick={toggleTheme} aria-label={theme==='light'?'Chuyển sang giao diện tối':'Chuyển sang giao diện sáng'} title={theme==='light'?'Giao diện tối':'Giao diện sáng'}><Icon name={theme==='light'?'moon':'sun'}/></button>
-      <button type="button" className={styles.launch} onClick={()=>setOpen(value=>!value)} aria-expanded={open} aria-label={open?'Đóng trợ lý':'Mở trợ lý hướng dẫn'}><Icon name={open?'close':'message'}/><span>Trợ lý</span><i/></button>
-    </div>
-  </aside>
+    </section>
+  </AssistantContext.Provider>
+}
+
+export function ThemeToggleButton({className}:{className?:string}){
+  const {theme,toggleTheme}=useAssistant()
+  return <button type="button" className={`${styles.theme} ${className??''}`} onClick={toggleTheme} aria-label={theme==='light'?'Chuyển sang giao diện tối':'Chuyển sang giao diện sáng'} title={theme==='light'?'Giao diện tối':'Giao diện sáng'}><Icon name={theme==='light'?'moon':'sun'}/></button>
 }
