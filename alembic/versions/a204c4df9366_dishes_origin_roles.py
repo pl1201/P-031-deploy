@@ -40,8 +40,15 @@ depends_on = None
 
 
 def upgrade() -> None:
-    op.add_column("dishes", sa.Column("origin", sa.String(length=10), nullable=True))
-    op.add_column("dishes", sa.Column("roles", sa.String(length=255), nullable=True))
+    # `origin` and `roles` were applied directly to the shared database before
+    # this revision could be recorded there.  Inspect first so that the
+    # revision can advance both a clean database and that already-reconciled
+    # production schema without failing on DuplicateColumn.
+    existing_columns = {column["name"] for column in sa.inspect(op.get_bind()).get_columns("dishes")}
+    if "origin" not in existing_columns:
+        op.add_column("dishes", sa.Column("origin", sa.String(length=10), nullable=True))
+    if "roles" not in existing_columns:
+        op.add_column("dishes", sa.Column("roles", sa.String(length=255), nullable=True))
 
 
 def downgrade() -> None:

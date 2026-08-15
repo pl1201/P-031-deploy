@@ -10,8 +10,8 @@ from typing import Literal
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from pydantic import BaseModel, EmailStr, Field, model_validator
-from sqlalchemy import Text, cast, or_
-from sqlalchemy.orm import Session
+from sqlalchemy import Text, cast, func, or_
+from sqlalchemy.orm import Session, selectinload
 
 from src.api.security import CurrentUser, get_current_user, require_role
 from src.db.base import get_db
@@ -25,6 +25,19 @@ from src.db.models import (
 )
 
 router = APIRouter(prefix="/patients", tags=["patients"])
+
+
+def _patient_load_options():
+    """Load collections used by ``PatientProfileOut`` in bounded queries.
+
+    Without these options serializing a page of profiles accesses allergies
+    and medications one profile at a time (the N+1 query pattern).  That is
+    especially costly when the API is connected to Supabase over the network.
+    """
+    return (
+        selectinload(PatientProfile.allergies),
+        selectinload(PatientProfile.medications),
+    )
 
 
 class ConditionIn(BaseModel):
@@ -159,7 +172,7 @@ def _sync_allergies_and_medications(
 
 def _get_owned_profile(db: Session, profile_id: str, user: CurrentUser) -> PatientProfile:
     """404 (không phải 403) khi hồ sơ không tồn tại HOẶC thuộc user khác — chống rò rỉ (BE-09)."""
-    query = db.query(PatientProfile).filter(PatientProfile.id == profile_id)
+    query = db.query(PatientProfile).options(*_patient_load_options()).filter(PatientProfile.id == profile_id)
     if user.role == "patient":
         query = query.filter(PatientProfile.user_id == user.id)
     profile = query.first()
@@ -231,7 +244,12 @@ def get_my_profile(
     không có cách nào biết `profile_id` của mình (`GET /patients` yêu cầu quyền
     dietitian) — tức là không ghi được nhật ký.
     """
-    profile = db.query(PatientProfile).filter(PatientProfile.user_id == user.id).first()
+    profile = (
+        db.query(PatientProfile)
+        .options(*_patient_load_options())
+        .filter(PatientProfile.user_id == user.id)
+        .first()
+    )
     if profile is None:
         raise HTTPException(status.HTTP_404_NOT_FOUND, "Bạn chưa có hồ sơ bệnh nhân")
     return PatientProfileOut.from_model(profile)
@@ -270,6 +288,7 @@ def list_my_profile_update_requests(
         raise HTTPException(status.HTTP_404_NOT_FOUND, "Bạn chưa có hồ sơ bệnh nhân")
     rows = (
         db.query(ProfileUpdateRequest)
+        .options(selectinload(ProfileUpdateRequest.profile).options(*_patient_load_options()))
         .filter(ProfileUpdateRequest.profile_id == profile.id)
         .order_by(ProfileUpdateRequest.created_at.desc())
         .all()
@@ -283,7 +302,9 @@ def list_profile_update_requests(
     db: Session = Depends(get_db),
     _user: CurrentUser = Depends(require_role("dietitian", "admin")),
 ) -> list[ProfileUpdateRequestOut]:
-    query = db.query(ProfileUpdateRequest)
+    query = db.query(ProfileUpdateRequest).options(
+        selectinload(ProfileUpdateRequest.profile).options(*_patient_load_options())
+    )
     if request_status:
         query = query.filter(ProfileUpdateRequest.status == request_status)
     rows = query.order_by(ProfileUpdateRequest.created_at.asc()).limit(200).all()
@@ -375,17 +396,26 @@ def list_patients(
     query = db.query(PatientProfile).join(User, PatientProfile.user_id == User.id)
     if search and search.strip():
         term = f"%{search.strip()}%"
-        query = query.outerjoin(PatientMedication).filter(
+        # Do not join the one-to-many medication table here.  A join creates
+        # duplicate profile rows, and a whole-row DISTINCT then makes
+        # PostgreSQL compare JSON columns (conditions/lab_values), which JSON
+        # does not support.  EXISTS keeps this query one row per profile.
+        query = query.filter(
             or_(
                 PatientProfile.id.ilike(term),
                 User.email.ilike(term),
                 cast(PatientProfile.conditions, Text).ilike(term),
-                PatientMedication.drug_name.ilike(term),
+                PatientProfile.medications.any(PatientMedication.drug_name.ilike(term)),
             )
         )
-    query = query.distinct()
-    total = query.count()
-    items = query.order_by(PatientProfile.id).offset((page - 1) * page_size).limit(page_size).all()
+    total = query.with_entities(func.count(PatientProfile.id)).scalar() or 0
+    items = (
+        query.options(*_patient_load_options())
+        .order_by(PatientProfile.id)
+        .offset((page - 1) * page_size)
+        .limit(page_size)
+        .all()
+    )
     return PatientListOut(
         items=[PatientProfileOut.from_model(p) for p in items], total=total, page=page, page_size=page_size
     )

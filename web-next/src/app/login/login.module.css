@@ -79,7 +79,7 @@
 .error span { flex:0 0 18px; height:18px; display:grid; place-items:center; border-radius:50%; color:white; background:#d75b52; font-weight:700; }
 .submit { height:50px; display:flex; align-items:center; justify-content:center; gap:10px; border:0; border-radius:13px; color:white; background:linear-gradient(135deg,#0877c9,#07579d); box-shadow:0 12px 25px rgba(8,100,175,.22); font-size:13px; font-weight:700; transition:transform .18s,box-shadow .18s,filter .18s; }
 .submit:hover:not(:disabled) { transform:translateY(-1px); box-shadow:0 15px 30px rgba(8,100,175,.28); filter:saturate(1.08); }
-.submit:disabled { opacity:.65; cursor:wait; }.submit>span:last-child { font-size:17px; }
+.submit:disabled { cursor:wait; }.submit>span:last-child { font-size:17px; }
 .spinner { width:16px; height:16px; border:2px solid rgba(255,255,255,.45); border-top-color:white; border-radius:50%; animation:spin .7s linear infinite; }
 .divider { margin:24px 0 15px; display:flex; align-items:center; gap:12px; color:#8aa0b3; font-size:9px; font-weight:700; text-transform:uppercase; letter-spacing:.1em; }
 .divider::before,.divider::after { content:""; height:1px; flex:1; background:#dfebf4; }

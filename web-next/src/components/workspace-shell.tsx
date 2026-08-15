@@ -4,6 +4,7 @@ import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
 import { useEffect, useMemo, useState } from 'react'
 import { Icon, LeafMark } from '@/components/brand-artwork'
+import { ThemeToggleButton } from '@/components/experience-tools'
 import { createApiClient, type Role } from '@/lib/api'
 import { clearSession, getSession, getToken } from '@/lib/auth'
 import { REVIEW_QUEUE_CHANGED_EVENT, type ReviewQueueChangedDetail } from '@/lib/review-queue'
@@ -126,6 +127,9 @@ export function WorkspaceShell({ role, children }: { role: WorkspaceRole; childr
             <strong>{role === 'patient' ? 'Tài khoản người bệnh' : 'Tài khoản chuyên gia'}</strong>
             <small>{role === 'patient' ? 'Người bệnh' : 'Chuyên gia dinh dưỡng'}</small>
           </div>
+          {/* FE-20: dark-mode gộp chung hàng với tài khoản (không còn khối riêng bên dưới
+              chiếm chỗ) — chatbot đã chuyển sang edge-tab toàn cục, xem experience-tools.tsx. */}
+          <ThemeToggleButton className={styles.dockedTheme} />
           <button type="button" onClick={logout} aria-label="Đăng xuất" title="Đăng xuất"><Icon name="logout" /></button>
         </div>
       </aside>

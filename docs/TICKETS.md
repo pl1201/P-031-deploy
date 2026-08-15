@@ -620,6 +620,45 @@ Recharts: kcal/Na/đường theo 7 và 30 ngày, đường ngưỡng.
 
 ---
 
+## EPIC 6b — UI/UX REVISION (S?) — nguồn: `docs/ke-hoach-ui-ux-vnutricare-v2.md`
+
+### `FE-10` ✅ Cảnh báo khi confidence score các ứng viên sát nhau (`food-logs`)
+**MITIGATION — không phải fix gốc.** Gốc rễ là `BE-01` (backend trả confidence score giống hệt nhau cho nhiều ứng viên, vi phạm RULE-2). `FE-10` chỉ hiển thị cảnh báo cho chuyên gia khi chênh lệch max-min giữa các score < `SCORE_DISTINGUISH_THRESHOLD` (1%, hằng số trong `food-logs/page.tsx`).
+**Điều kiện gỡ bỏ:** khi `BE-01` đóng **và** xác nhận score trả về đã phân biệt được thật sự giữa các ứng viên — lúc đó xoá khối cảnh báo + hằng số này, không giữ lại "phòng khi".
+**Đã làm:** `src/app/dietitian/food-logs/page.tsx` (constant + logic) + `followup.module.css` (`.scoreWarning`). Kiểm chứng bằng browser thật trên dữ liệu demo: card "rau" (5 ứng viên cùng 67%) hiện cảnh báo; "trứng"/"thịt bò"/"thịt heo" (có chênh lệch) không hiện.
+
+### `FE-18` ✅ Trạng thái disabled không đủ tương phản (toàn app)
+Nút disabled trước đó chỉ giảm `opacity` trên nền màu gốc (teal/xanh dương...), vẫn đọc được là "bấm được". Đã thêm rule toàn cục `button:disabled` trong `globals.css` dùng token `--c-border2`/`--c-disabled-fg` (xám trung tính, đạt AA), dọn ~10 rule `opacity` cục bộ trùng lặp ở các CSS module khác nhau.
+
+### `FE-19` ⏳ Audit accessibility (WCAG 2.2) — một phần
+Không chạy được axe-core/Lighthouse tự động trong môi trường dev hiện tại (network bị chặn trong headless browser, không có chromedriver). Đã audit thủ công + tính contrast theo công thức WCAG, sửa các phát hiện Critical/Serious an toàn: `role="alert"` có điều kiện cho cảnh báo thuốc–thực phẩm, `--c-muted`/token disabled đạt AA, `:focus-visible` không còn bị `outline:0` cục bộ chặn, lỗi form nhật ký có `role="alert"`/`aria-live`. **Còn thiếu:** chạy audit tự động thật, kiểm tra đủ 12 màn, giả lập mù màu — cần công cụ ngoài sandbox này.
+
+### `FE-20` ⏳ Chiến lược responsive — một phần
+Kiểm kê 39 giá trị breakpoint khác nhau trong toàn app (chưa refactor, rủi ro tương đương `FE-11`, để riêng). Đã sửa: tràn ngang `.audit-row` ở trang `reviews` (700–1050px, do thiếu breakpoint).
+**Nút "Trợ lý"/dark-mode đè nội dung — đã giải quyết triệt để (2026-08-15, không còn là mitigation):** thay vì chỉ giảm độ đục, đã tách state ra `AssistantContext`/`AssistantProvider` (`experience-tools.tsx`) và đưa nút launcher vào ngay trong sidebar (`WorkspaceShell`, dùng chung cho cả `patient` và `dietitian`) — nút giờ nằm trong luồng bố cục bình thường của sidebar, không còn `position:fixed` đè lên nội dung chính ở bất kỳ trang nào dùng `WorkspaceShell` (gần như toàn bộ app). Trang không dùng `WorkspaceShell` (`/login`, `/`, `/eval`) vẫn giữ launcher nổi cũ (đã có sẵn shrink + giảm opacity khi rảnh). Xác nhận bằng browser thật: nút "Mở bản đã lưu" ở `meal-plans/new` không còn bị che dù chỉ 1 pixel.
+Chưa kiểm hết 12 màn trong phạm vi.
+
+### `FE-21` ⏸ Usability test rút gọn trước FE-12
+**Chưa bắt đầu — cần người dùng thật.** Cần 3-5 dinh dưỡng viên + 3-5 bệnh nhân thật và mockup FE-12 (chưa tồn tại). Không phải việc AI agent tự thực hiện được (tuyển người, phỏng vấn). Khi cần chạy: xem kịch bản nhiệm vụ đã định nghĩa sẵn ở `docs/ke-hoach-ui-ux-vnutricare-v2.md` mục 7.
+
+### `FE-13` ⏳ Dọn thuật ngữ kỹ thuật + icon + chip + quy ước badge/nút — một phần
+Đã làm (2026-08-15, `web-next`): text implementation-note ở `meal-plans/new` đổi sang ngôn ngữ nghiệp vụ; nhãn `matched_on` map sang tiếng Việt (`exact`/`alias`/`token` — enum xác nhận từ `src/clinical/matching.py:112`, trả lời `Q6` ngay từ code, không cần chờ backend); `source_ref` chuyển vào `title` tooltip thay vì hiện thẳng dạng mã kỹ thuật; 4 icon buổi ăn riêng biệt (trước đó breakfast/lunch trùng icon, và `moon` gán nhầm cho snack thay vì dinner); chip ràng buộc thêm `min-width:0`+`overflow-wrap` chống tràn.
+**Còn thiếu:** quy ước badge/nút bằng văn bản (đã phác thảo trong `ke-hoach-ui-ux-vnutricare-v2.md` §4.6 nhưng chưa tách file riêng), 2 vị trí "Cần thêm dữ liệu"/"Quay về thực đơn hôm nay" ở `weekly/page.tsx` (để dành cho `FE-12`, tránh sửa 2 lần), grep xác nhận sạch toàn bộ `/dietitian/**`+`/patient/**`.
+
+### `FE-16` ✅ Polish: tên tab, nhãn stepper, layout radio lẻ ô
+Đã làm (2026-08-15, `web-next`): tab `reviews` đổi thành "Chờ duyệt/Đã duyệt/Từ chối/Lịch sử" (dời meta-category ra cuối); nhãn trạng thái stepper `meal-plans/new` đổi sang 1 bộ từ vựng nhất quán; radio 2 cột ở `food-logs` tự giãn hết hàng khi lẻ ô cuối. 2 mục còn lại trong danh sách gốc (baseline nút lệch, khoảng trắng thừa/thiếu empty-state) kiểm tra lại thấy đã không còn tái hiện trên code hiện tại — không sửa thêm.
+
+### `FE-17` ✅ Font serif/sans chưa nhất quán
+Đã làm (2026-08-15, `web-next`). Kiểm kê 16 file CSS module cho thấy `--f-serif` đã dùng nhất quán cho h1/h2/h3/số liệu lớn — là quy ước ngầm định có sẵn, không phải hỗn loạn như lo ngại ban đầu (khác `FE-11`, nơi không có quy ước đa số để hội tụ về). Ngoại lệ duy nhất là `.page-title` dùng chung (`globals.css`, chỉ 2 trang `reviews`/`eval`) đặt sai thành sans — sửa 1 chỗ này theo quy ước đa số. Xác nhận bằng browser thật.
+
+### `FE-12` ⏳ Redesign "Tuần của bạn" — một phần (mục 3 xong, ngoài kế hoạch gate)
+Đã làm (2026-08-15, `web-next`), **theo yêu cầu trực tiếp của người dùng** — bỏ qua nhãn `[cần thiết kế trước]`/`DEC-01` có chủ ý cho riêng phần này: bấm vào 1 cột ngày trong lưới 7 ngày (`weekly/page.tsx`) mở panel `DayDetail` bên dưới, hiện đủ 4 bữa/tên món/gram/trạng thái đối chiếu cho đúng ngày đó. Cột ngày đổi từ `<article>` sang `<button>` thật (có `aria-expanded`, `aria-controls`, bàn phím hoạt động qua semantics chuẩn).
+**Chưa làm** (vẫn cần mockup + `DEC-01` trước khi tiếp tục): 4 chấm/ngày nâng cấp thành có ý nghĩa (hiện vẫn nhị phân done/not-done), sửa lỗi timezone UTC ở highlight "hôm nay", đổi ý nghĩa "hôm nay"→"ngày đang mở", gộp 2 ngưỡng "5 ngày"/"7 ngày" bị lặp code, vùng chạm ≥44px trên mobile, component "thời khóa biểu" riêng ở màn "Hôm nay".
+
+*Các ticket `FE-09` (checklist + cảnh báo thuốc), `FE-11` (color token), `FE-15` xem chi tiết đầy đủ + tiêu chí nghiệm thu tại `docs/ke-hoach-ui-ux-vnutricare-v2.md`. `FE-09`/`FE-11` đang bị khoá bởi decision gate `DEC-01`/`DEC-02` (chưa RESOLVED) — không code trước khi có quyết định.*
+
+---
+
 ## EPIC 7 — TÍNH NĂNG NÂNG CAO (S5) — *Owner chính: R1 + R2*
 
 ### `ADV-01` Phân rã mâm cơm gia đình

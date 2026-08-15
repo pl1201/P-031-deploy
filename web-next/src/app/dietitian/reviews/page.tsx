@@ -126,7 +126,11 @@ export default function ApprovalLogPage() {
       </div>
       <div className="toolbar" style={{ marginBottom: 16 }}>
         <input className="search-box" value={query} onChange={event => setQuery(event.target.value)} placeholder="Tìm mã thực đơn, hồ sơ hoặc ngày…" aria-label="Tìm nhật ký" />
-        <div className="clinical-tabs">{([['pending', `Chờ duyệt (${pending.length})`], ['all', 'Tất cả quyết định'], ['approved', 'Đã duyệt'], ['rejected', 'Từ chối']] as const).map(([value, label]) => <button type="button" key={value} className={`clinical-tab${filter === value ? ' active' : ''}`} onClick={() => setFilter(value)}>{label}</button>)}</div>
+        {/* FE-16: "Tất cả quyết định" là meta-category chen giữa 3 tab trạng thái (Chờ duyệt/
+            Đã duyệt/Từ chối), phá vỡ logic phân loại. Đổi thành "Lịch sử" (danh từ ngang hàng
+            với "Chờ duyệt" — 2 trục khác nhau: đang chờ vs đã quyết định) và dời ra cuối để
+            không chen vào giữa dải trạng thái Đã duyệt/Từ chối. */}
+        <div className="clinical-tabs">{([['pending', `Chờ duyệt (${pending.length})`], ['approved', 'Đã duyệt'], ['rejected', 'Từ chối'], ['all', 'Lịch sử']] as const).map(([value, label]) => <button type="button" key={value} className={`clinical-tab${filter === value ? ' active' : ''}`} onClick={() => setFilter(value)}>{label}</button>)}</div>
       </div>
       {criterion && <div className="active-filter-note"><span>Đang lọc: {criterion === 'blocking' ? 'Cần xử lý ngay' : criterion === 'overdue' ? 'Quá 24 giờ' : 'Có thể duyệt nhanh'}</span><button type="button" onClick={() => { setCriterion(null); window.history.replaceState(null, '', '/dietitian/reviews') }}>Xóa bộ lọc</button></div>}
       {filter === 'pending' && !loading && !error && pending.length > 0 && <div className="bulk-review-bar">

@@ -128,6 +128,9 @@ export default function PatientDashboard() {
 
       {error && <div className={styles.error} role="alert"><Icon name="warning" /><div><strong>Chưa thể tải đầy đủ dữ liệu</strong><p>{error}</p></div><button type="button" onClick={() => void load()}>Thử lại</button></div>}
       {notice && <div className={styles.toast} role="status"><Icon name="check" />{notice}</div>}
+      {plan && (groups[currentSlot] ?? []).length > 0 && !loggedSlots.has(currentSlot) && (
+        <ReminderBanner slot={currentSlot} onLog={() => setLogSlot(currentSlot)} />
+      )}
 
       {!plan ? (
         <section className={styles.empty}>
@@ -188,12 +191,7 @@ export default function PatientDashboard() {
                 {plan.computed_nutrition && isNumber(plan.computed_nutrition.kcal) ? (
                   <>
                     <div className={styles.energy}><strong>{Math.round(plan.computed_nutrition.kcal).toLocaleString('vi-VN')}</strong><span>kcal</span></div>
-                    <div className={styles.nutrientGrid}>
-                      <Nutrient label="Carbohydrate" value={plan.computed_nutrition.carb_g} unit="g" />
-                      <Nutrient label="Protein" value={plan.computed_nutrition.protein_g} unit="g" />
-                      <Nutrient label="Chất xơ" value={plan.computed_nutrition.fiber_g} unit="g" />
-                      <Nutrient label="Chất béo" value={plan.computed_nutrition.fat_g} unit="g" />
-                    </div>
+                    <MacroChart carbG={plan.computed_nutrition.carb_g} proteinG={plan.computed_nutrition.protein_g} fatG={plan.computed_nutrition.fat_g} fiberG={plan.computed_nutrition.fiber_g} />
                     <p><Icon name="database" />Số liệu do backend tính từ nguồn dinh dưỡng đã lưu.</p>
                   </>
                 ) : <div className={styles.compactEmpty}>Chưa đủ dữ liệu để hiển thị tổng dinh dưỡng.</div>}
@@ -225,8 +223,42 @@ function Reason({ icon, title, text }: { icon: string; title: string; text: stri
   return <article><span><Icon name={icon} /></span><div><h3>{title}</h3><p>{text}</p></div></article>
 }
 
-function Nutrient({ label, value, unit }: { label: string; value: number; unit: string }) {
-  return <div><small>{label}</small><strong>{isNumber(value) ? Math.round(value) : '—'} <i>{unit}</i></strong></div>
+const SLOT_ICON: Record<Slot, string> = { breakfast: 'sun', lunch: 'bowl', snack: 'sparkle', dinner: 'moon' }
+
+function ReminderBanner({ slot, onLog }: { slot: Slot; onLog: () => void }) {
+  return (
+    <div className={styles.reminder} role="status">
+      <span><Icon name={SLOT_ICON[slot]} /></span>
+      <div><strong>Đến giờ {SLOT_META[slot].label.toLowerCase()} rồi!</strong><p>Ghi lại ngay để giữ chuỗi ngày theo dõi liên tục — chỉ mất chưa đến 20 giây.</p></div>
+      <button type="button" onClick={onLog}>Ghi nhận ngay<Icon name="arrowRight" /></button>
+    </div>
+  )
+}
+
+// FE: thay bảng số liệu dinh dưỡng (Carbohydrate/Protein/Chất béo dạng chữ) bằng biểu đồ
+// thanh xếp chồng theo tỉ lệ calo — dễ đọc lướt hơn 1 danh sách 4 con số cùng cỡ chữ.
+// Chất xơ không tính calo theo cùng cách nên tách thành nhãn phụ, không gộp vào thanh.
+function MacroChart({ carbG, proteinG, fatG, fiberG }: { carbG: number; proteinG: number; fatG: number; fiberG: number }) {
+  const carbKcal = isNumber(carbG) ? carbG * 4 : 0
+  const proteinKcal = isNumber(proteinG) ? proteinG * 4 : 0
+  const fatKcal = isNumber(fatG) ? fatG * 9 : 0
+  const total = carbKcal + proteinKcal + fatKcal
+  const parts = [
+    { key: 'carb', label: 'Carb', grams: carbG, kcal: carbKcal, className: styles.macroCarb },
+    { key: 'protein', label: 'Đạm', grams: proteinG, kcal: proteinKcal, className: styles.macroProtein },
+    { key: 'fat', label: 'Béo', grams: fatG, kcal: fatKcal, className: styles.macroFat },
+  ]
+  return (
+    <div className={styles.macroChart}>
+      {total > 0 && <div className={styles.macroBar}>{parts.map(part => part.kcal > 0 && <i key={part.key} className={part.className} style={{ width: `${(part.kcal / total) * 100}%` }} />)}</div>}
+      <div className={styles.macroLegend}>
+        {parts.map(part => (
+          <div key={part.key}><i className={part.className} /><small>{part.label}</small><strong>{isNumber(part.grams) ? Math.round(part.grams) : '—'} g</strong><span>{total > 0 ? `${Math.round((part.kcal / total) * 100)}%` : ''}</span></div>
+        ))}
+        <div><i className={styles.macroFiber} /><small>Xơ</small><strong>{isNumber(fiberG) ? Math.round(fiberG) : '—'} g</strong><span /></div>
+      </div>
+    </div>
+  )
 }
 
 function MealDrawer({ slot, items, plan, onClose, onLog }: { slot: Slot; items: MealPlanItem[]; plan: MealPlan; onClose: () => void; onLog: () => void }) {

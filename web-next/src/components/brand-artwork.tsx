@@ -1,9 +1,10 @@
 import type { SVGProps } from 'react'
 
 export function Icon({name, ...props}: SVGProps<SVGSVGElement> & {name:string}) {
-  const common={fill:'none',stroke:'currentColor',strokeWidth:1.8,strokeLinecap:'round' as const,strokeLinejoin:'round' as const}
+  const common={fill:'none',stroke:'currentColor',strokeWidth:2,strokeLinecap:'round' as const,strokeLinejoin:'round' as const}
   const paths:Record<string,React.ReactNode>={
     user:<><circle cx="12" cy="7" r="3.5"/><path d="M5 21v-2a7 7 0 0 1 14 0v2"/></>,
+    robot:<><rect x="4" y="9" width="16" height="11" rx="3"/><path d="M12 9V5M9 3.5h6"/><circle cx="12" cy="5" r="1.4" fill="currentColor" stroke="none"/><circle cx="9" cy="14.5" r="1.3" fill="currentColor" stroke="none"/><circle cx="15" cy="14.5" r="1.3" fill="currentColor" stroke="none"/><path d="M8 18h8M1 12v3M23 12v3"/></>,
     expert:<><circle cx="12" cy="6" r="3"/><path d="M6 21v-3a6 6 0 0 1 12 0v3M9 11l3 4 3-4M12 15v6"/></>,
     mail:<><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m4 7 8 6 8-6"/></>,
     lock:<><rect x="5" y="10" width="14" height="11" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3M12 15v2"/></>,
