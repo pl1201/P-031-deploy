@@ -56,6 +56,19 @@ export interface ClinicalNote {
   updated_at: string
 }
 
+export interface ProfileUpdateRequest {
+  id: string
+  profile_id: string
+  requester_id: string
+  message: string
+  status: 'pending' | 'resolved'
+  resolved_by: string | null
+  resolution_note: string | null
+  created_at: string
+  resolved_at: string | null
+  patient: PatientProfile
+}
+
 export interface ReviewEvent {
   id: string
   meal_plan_id: string
@@ -137,7 +150,7 @@ export interface Violation {
 
 // --- Nhật ký ăn uống (BE-07) ---------------------------------------------
 
-export type MatchStatus = 'unmatched' | 'auto' | 'llm' | 'expert' | 'no_data'
+export type MatchStatus = 'unmatched' | 'auto' | 'patient_confirmed' | 'llm' | 'expert' | 'no_data'
 
 export interface MatchSuggestion {
   food_id: number
@@ -310,14 +323,26 @@ export function createApiClient(accessToken?: string) {
     health: () => request<{ status: string }>('/health'),
 
     // Patients
-    listPatients: (page = 1, pageSize = 20) =>
+    listPatients: (page = 1, pageSize = 20, search?: string) =>
       request<{ items: PatientProfile[]; total: number; page: number; page_size: number }>(
-        `/patients?page=${page}&page_size=${pageSize}`
+        `/patients?page=${page}&page_size=${pageSize}${search?.trim() ? `&search=${encodeURIComponent(search.trim())}` : ''}`
       ),
     getPatient: (id: string) => request<PatientProfile>(`/patients/${id}`),
     /** Hồ sơ của chính người đang đăng nhập — session chỉ có user_id, API cần profile_id. */
     getMyProfile: () => request<PatientProfile>('/patients/me'),
-    createPatient: (data: Omit<PatientProfile, 'id'>) =>
+    createProfileUpdateRequest: (message: string) =>
+      request<ProfileUpdateRequest>('/patients/me/update-requests', {
+        method: 'POST', body: JSON.stringify({ message }),
+      }),
+    listMyProfileUpdateRequests: () =>
+      request<ProfileUpdateRequest[]>('/patients/me/update-requests'),
+    listProfileUpdateRequests: (status = 'pending') =>
+      request<ProfileUpdateRequest[]>(`/patients/update-requests?status=${encodeURIComponent(status)}`),
+    resolveProfileUpdateRequest: (id: string, resolutionNote: string) =>
+      request<ProfileUpdateRequest>(`/patients/update-requests/${id}`, {
+        method: 'PATCH', body: JSON.stringify({ resolution_note: resolutionNote }),
+      }),
+    createPatient: (data: Omit<PatientProfile, 'id' | 'user_id'> & { user_id?: string; patient_email?: string }) =>
       request<PatientProfile>('/patients', { method: 'POST', body: JSON.stringify(data) }),
     updatePatient: (id: string, data: Partial<PatientProfile>) =>
       request<PatientProfile>(`/patients/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
@@ -380,10 +405,16 @@ export function createApiClient(accessToken?: string) {
     createFoodLog: (data: {
       profile_id: string
       free_text_vi: string
+      food_id?: number | null
       grams?: number | null
       slot?: string
       note_vi?: string | null
     }) => request<FoodLog>('/food-logs', { method: 'POST', body: JSON.stringify(data) }),
+
+    suggestFoods: (query: string, limit = 5) =>
+      request<{ query: string; suggestions: MatchSuggestion[] }>(
+        `/food-logs/suggestions?q=${encodeURIComponent(query)}&limit=${limit}`
+      ),
 
     listFoodLogs: (profileId: string, day?: string) =>
       request<FoodLog[]>(`/food-logs?profile_id=${profileId}${day ? `&day=${day}` : ''}`),

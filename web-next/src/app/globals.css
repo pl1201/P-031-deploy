@@ -71,6 +71,7 @@ body {
     radial-gradient(circle at 84% 0%, rgba(24,165,167,.10), transparent 30rem),
     var(--c-bg);
   -webkit-font-smoothing: antialiased;
+  transition: color .25s ease, background-color .25s ease;
 }
 h1, h2, h3, h4, h5, h6, p, label, button, input, textarea, select, table {
   letter-spacing: 0;
@@ -510,6 +511,10 @@ tr:hover td { background: rgba(0,0,0,.015); }
 .safety-strip-ok { background: #e8f5ee; border: 1px solid #b8dfc8; color: var(--c-green); }
 .safety-strip-warn { background: #fef5e4; border: 1px solid #f5dfa0; color: #8a6020; }
 .safety-strip-error { background: #fde8e8; border: 1px solid #f5c6c6; color: var(--c-red); }
+.safety-strip > svg { width: 20px; height: 20px; flex: 0 0 20px; }
+.review-decision-summary { align-items: flex-start; }
+.review-decision-summary strong { display: block; font-size: 14px; }
+.review-decision-summary p { margin-top: 4px; color: var(--c-muted); line-height: 1.5; }
 
 /* ─── Disclaimer ─── */
 .disclaimer {
@@ -868,3 +873,621 @@ tr:hover td { background: rgba(0,0,0,.015); }
 
 /* Interaction states shared by the redesigned workspaces. */
 .active-filter-note{margin:-2px 0 14px;padding:9px 12px;display:flex;align-items:center;justify-content:space-between;border:1px solid #b9ddda;border-radius:10px;color:#245f60;background:#eef9f7;font-size:10px}.active-filter-note button{color:#0d8385;font-weight:750;text-decoration:underline}
+
+/* Readable typography for both patient and dietitian workspaces. */
+[data-role="patient"],
+[data-role="dietitian"] {
+  font-size: 15px;
+}
+
+[data-role="patient"] :is(p, label, li, td, th),
+[data-role="dietitian"] :is(p, label, li, td, th) {
+  font-size: 15px !important;
+  line-height: 1.5;
+}
+
+[data-role="patient"] :is(a, button),
+[data-role="dietitian"] :is(a, button) {
+  font-size: 14px !important;
+}
+
+[data-role="patient"] :is(input, textarea, select),
+[data-role="dietitian"] :is(input, textarea, select) {
+  font-size: 16px !important;
+  line-height: 1.45;
+}
+
+[data-role="patient"] :is(small, .text-sm, .page-subtitle, .panel-subtitle, .metric-note),
+[data-role="dietitian"] :is(small, .text-sm, .page-subtitle, .panel-subtitle, .metric-note) {
+  font-size: 13px !important;
+  line-height: 1.45;
+}
+
+[data-role="patient"] > main :is(span, time, code, dt, dd, summary, em),
+[data-role="dietitian"] > main :is(span, time, code, dt, dd, summary, em) {
+  font-size: 13px !important;
+  line-height: 1.45;
+}
+
+[data-role="patient"] > aside :is(span, small, button),
+[data-role="dietitian"] > aside :is(span, small, button) {
+  font-size: 13px !important;
+  line-height: 1.35;
+}
+
+[data-role="patient"] > main button:not([aria-label]),
+[data-role="dietitian"] > main button:not([aria-label]) {
+  min-height: 42px;
+  padding-block: 8px;
+}
+
+[data-role="patient"] > main :is(input, select),
+[data-role="dietitian"] > main :is(input, select) {
+  min-height: 44px;
+}
+
+@media (max-width: 680px) {
+  [data-role="patient"] > main,
+  [data-role="dietitian"] > main {
+    font-size: 15px;
+  }
+
+  [data-role="patient"] > main :is(p, label, li, td, th),
+  [data-role="dietitian"] > main :is(p, label, li, td, th) {
+    line-height: 1.6;
+  }
+}
+
+.diary-suggestion-panel {
+  margin-top: 10px;
+  padding: 14px;
+  border: 1px solid #b9ddda;
+  border-radius: 8px;
+  background: #f4fbfa;
+}
+
+.diary-suggestion-panel > div:first-child {
+  display: grid;
+  gap: 3px;
+}
+
+.diary-suggestion-panel small {
+  color: #607878;
+}
+
+.diary-suggestion-list {
+  margin-top: 10px;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.diary-suggestion-list button {
+  min-height: 58px;
+  padding: 9px 11px;
+  display: grid;
+  gap: 3px;
+  text-align: left;
+  border: 1px solid #cadbd8;
+  border-radius: 8px;
+  color: #244b4b;
+  background: #fff;
+}
+
+.diary-suggestion-list button:hover,
+.diary-suggestion-list button.selected {
+  border-color: #18a5a7;
+  background: #e8f7f5;
+  box-shadow: 0 0 0 2px rgba(24, 165, 167, 0.1);
+}
+
+@media (max-width: 680px) {
+  .diary-suggestion-list {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Login must remain readable for older adults and first-time users. */
+[data-page="login"] {
+  font-size: 15px;
+}
+
+[data-page="login"] :is(p, label, button, span) {
+  font-size: 14px !important;
+  line-height: 1.5;
+}
+
+[data-page="login"] :is(small) {
+  font-size: 13px !important;
+  line-height: 1.45;
+}
+
+[data-page="login"] input {
+  min-height: 46px;
+  font-size: 16px !important;
+}
+
+[data-page="login"] button:not([aria-label]) {
+  min-height: 48px;
+  padding-block: 9px;
+}
+
+[data-page="login"] form > label > div {
+  min-height: 50px;
+}
+
+[data-page="login"] form > div {
+  flex-wrap: wrap;
+  gap: 8px 14px;
+}
+
+[data-page="login"] form > div button {
+  margin-left: auto;
+}
+
+[data-page="login"] [class*="demoGrid"] button {
+  min-height: 72px;
+}
+
+[data-page="login"] [class*="demoGrid"] :is(strong, small) {
+  font-size: 13px !important;
+}
+
+/* Public landing page uses the same moderate, readable type scale. */
+[data-page="landing"] {
+  font-size: 15px;
+}
+
+[data-page="landing"] :is(p, li) {
+  font-size: 15px !important;
+  line-height: 1.55;
+}
+
+[data-page="landing"] :is(a, button) {
+  font-size: 14px !important;
+}
+
+[data-page="landing"] small {
+  font-size: 13px !important;
+  line-height: 1.4;
+}
+
+
+@media (max-width: 520px) {
+  [data-page="login"] h1 {
+    font-size: 36px;
+    line-height: 1.12;
+  }
+
+  [data-page="login"] button:not([aria-label]) {
+    width: 100%;
+  }
+}
+
+/* Cross-page workflow controls added to compact CSS-module surfaces. */
+[class*="requestQueue"] {
+  margin-top: 20px;
+  padding: 18px;
+  border: 1px solid #e6d4a7;
+  border-radius: 8px;
+  background: #fffaf0;
+}
+[class*="requestQueue"] > header { display: flex; justify-content: space-between; gap: 16px; }
+[class*="requestQueue"] > header h2 { margin-top: 4px; font-family: var(--f-serif); font-size: 22px; }
+[class*="requestQueue"] > header > span { padding: 7px 10px; border-radius: 999px; background: #fff0c5; font-size: 9px; }
+[class*="requestQueue"] > article { margin-top: 12px; padding-top: 12px; display: grid; grid-template-columns: minmax(220px,1fr) auto minmax(220px,.7fr) auto; gap: 10px; align-items: center; border-top: 1px solid #eadfca; }
+[class*="requestQueue"] > article p { margin-top: 4px; color: #526767; font-size: 10px; }
+[class*="requestQueue"] > article small { display: block; margin-top: 5px; color: #7a8989; font-size: 8px; }
+[class*="requestQueue"] > article :is(a,button) { min-height: 38px; padding: 0 12px; display: grid; place-items: center; border: 1px solid #cbd8d6; border-radius: 8px; font-size: 9px; font-weight: 750; }
+[class*="requestQueue"] > article button { color: #fff; border-color: #168e90; background: #168e90; }
+[class*="requestQueue"] > article textarea { min-height: 52px; padding: 9px; border: 1px solid #cfdcda; border-radius: 8px; resize: vertical; font: inherit; font-size: 9px; }
+[class*="caseSelect"] > input { width: 100%; height: 38px; margin-bottom: 6px; padding: 0 11px; border: 1px solid #cedcda; border-radius: 9px; background: #fff; font-size: 9px; }
+.patient-pagination { margin-top: 16px; display: flex; align-items: center; justify-content: center; gap: 12px; }
+.patient-pagination button { min-height: 38px; padding: 0 13px; border: 1px solid #cbd8d6; border-radius: 8px; background: #fff; font-size: 9px; font-weight: 750; }
+.patient-pagination button:disabled { opacity: .45; }
+.patient-pagination span { color: #667a79; font-size: 9px; }
+@media (max-width: 1050px) {
+  [class*="requestQueue"] > article { grid-template-columns: 1fr auto; }
+  [class*="requestQueue"] > article textarea { grid-column: 1 / -1; }
+}
+@media (max-width: 560px) {
+  [class*="requestQueue"] > article { grid-template-columns: 1fr; }
+  [class*="requestQueue"] > article textarea { grid-column: auto; }
+}
+
+/* Landing page: final mobile layout overrides legacy desktop rules. */
+@media (max-width: 720px) {
+  [data-page="landing"] { overflow-x: hidden; }
+  [data-page="landing"] [class*="nav"] { width: calc(100% - 28px); height: 72px; gap: 8px; justify-content: space-between; }
+  [data-page="landing"] [class*="brand"] { min-width: 0; gap: 7px; }
+  [data-page="landing"] [class*="brand"] > svg { width: 25px; height: 34px; }
+  [data-page="landing"] [class*="brand"] strong { font-size: 19px; }
+  [data-page="landing"] [class*="actions"] { flex: none; gap: 0; }
+  [data-page="landing"] [class*="demo"] { min-height: 42px; max-width: 132px; padding: 0 14px; display: grid; place-items: center; text-align: center; font-size: 11px; line-height: 1.3; }
+
+  [data-page="landing"] [class*="hero"] { width: calc(100% - 28px); padding: 48px 0 18px; display: block; }
+  [data-page="landing"] [class*="copy"] { padding: 0; }
+  [data-page="landing"] [class*="eyebrow"] { display: block; font-size: 9px; line-height: 1.5; }
+  [data-page="landing"] [class*="copy"] h1 { margin: 18px 0; font-size: 40px; line-height: 1.02; letter-spacing: 0; }
+  [data-page="landing"] [class*="copy"] > p { font-size: 14px; line-height: 1.65; }
+  [data-page="landing"] [class*="ctas"] { margin-top: 22px; display: grid; grid-template-columns: 1fr; gap: 9px; }
+  [data-page="landing"] [class*="ctas"] a { width: 100%; min-height: 48px; justify-content: center; padding: 0 16px; }
+  [data-page="landing"] [class*="safety"] { align-items: flex-start; flex-wrap: wrap; font-size: 10px; line-height: 1.5; }
+  [data-page="landing"] [class*="safety"] i { display: none; }
+  [data-page="landing"] [class*="safety"] strong { margin-right: 12px; }
+  [data-page="landing"] [class*="rice"] { display: none; }
+  [data-page="landing"] [class*="visual"] { min-height: 360px; margin: 20px -14px 0; transform: none; overflow: hidden; }
+  [data-page="landing"] [class*="visual"]::before { width: 390px; height: 390px; }
+  [data-page="landing"] [class*="mealPhoto"] { width: 430px; max-width: 116vw; height: 360px; transform: none; }
+  [data-page="landing"] [class*="nutrition"] { top: 54px; right: 4px; width: 132px; padding: 13px; border-radius: 8px; }
+  [data-page="landing"] [class*="nutrition"] small { font-size: 7px; }
+  [data-page="landing"] [class*="nutrition"] strong { margin-top: 8px; font-size: 29px; }
+  [data-page="landing"] [class*="nutrition"] strong i { font-size: 9px; }
+  [data-page="landing"] [class*="nutrition"] b { margin-top: 8px; padding: 7px; font-size: 7px; }
+  [data-page="landing"] [class*="approved"],
+  [data-page="landing"] [class*="source"] { display: none; }
+
+  [data-page="landing"] [class*="trust"] { width: calc(100% - 28px); min-height: 0; padding: 22px 18px; grid-template-columns: 1fr; gap: 0; border-radius: 8px; }
+  [data-page="landing"] [class*="trust"] > article { min-width: 0; padding: 16px 0; display: grid; grid-template-columns: 46px minmax(0,1fr); gap: 12px; border-bottom: 1px solid #e1e8e7; }
+  [data-page="landing"] [class*="trust"] > article > span { width: 44px; height: 44px; }
+  [data-page="landing"] [class*="trust"] > article h2 { font-size: 16px; }
+  [data-page="landing"] [class*="trust"] > article p { font-size: 11px; line-height: 1.6; }
+  [data-page="landing"] [class*="process"] { padding: 22px 0 4px; }
+  [data-page="landing"] [class*="process"] h2 { text-align: left; font-size: 18px; }
+  [data-page="landing"] [class*="process"] > div { grid-template-columns: 1fr 1fr; gap: 20px 12px; }
+  [data-page="landing"] [class*="process"] span { min-height: 0; grid-template-rows: 52px auto; gap: 7px; }
+  [data-page="landing"] [class*="process"] span > b { width: 50px; min-width: 50px; height: 50px; }
+  [data-page="landing"] [class*="process"] span > strong { font-size: 10px; }
+
+  [data-page="landing"] [class*="caseStudy"],
+  [data-page="landing"] [class*="proofMoment"],
+  [data-page="landing"] [class*="rolesSection"],
+  [data-page="landing"] [class*="finalCta"],
+  [data-page="landing"] [class*="footer"] { width: calc(100% - 28px); }
+  [data-page="landing"] [class*="caseStudy"] { padding: 64px 0; }
+  [data-page="landing"] [class*="caseIntro"] h2,
+  [data-page="landing"] [class*="proofCopy"] h2,
+  [data-page="landing"] [class*="rolesSection"] h2 { font-size: 32px; line-height: 1.08; letter-spacing: 0; }
+  [data-page="landing"] [class*="caseIntro"] > p,
+  [data-page="landing"] [class*="proofCopy"] > p,
+  [data-page="landing"] [class*="rolesSection"] article > p { font-size: 13px; line-height: 1.7; }
+  [data-page="landing"] [class*="patientCard"] { margin: 32px 0 18px; padding: 15px; grid-template-columns: 48px minmax(0,1fr); border-radius: 8px; }
+  [data-page="landing"] [class*="patientAvatar"] { width: 46px; height: 46px; }
+  [data-page="landing"] [class*="patientCard"] > b { grid-column: 2; }
+  [data-page="landing"] [class*="trace"] { grid-template-columns: 1fr; border-radius: 8px; }
+  [data-page="landing"] [class*="trace"] article { min-height: 96px; padding: 16px; grid-template-columns: 52px 1fr; gap: 13px; align-items: center; justify-items: start; text-align: left; border-right: 0; border-bottom: 1px solid #e1e9e7; }
+  [data-page="landing"] [class*="trace"] article:last-child { border-bottom: 0; }
+  [data-page="landing"] [class*="trace"] article > div { min-width: 0; }
+  [data-page="landing"] [class*="trace"] h3 { margin-top: 0; font-size: 11px; }
+  [data-page="landing"] [class*="trace"] p { margin-top: 5px; font-size: 10px; }
+  [data-page="landing"] [class*="trace"] article > svg { display: none; }
+
+  [data-page="landing"] [class*="proofMoment"] { padding: 56px 18px; gap: 30px; border-radius: 8px; }
+  [data-page="landing"] [class*="proofCopy"] li { align-items: flex-start; font-size: 11px; line-height: 1.45; }
+  [data-page="landing"] [class*="swapCard"] { padding: 17px; border-radius: 8px; }
+  [data-page="landing"] [class*="swapCard"] header > span { width: fit-content; }
+  [data-page="landing"] [class*="compare"] { padding: 14px; border-radius: 8px; }
+  [data-page="landing"] [class*="compare"] article { width: 100%; }
+  [data-page="landing"] [class*="swapCard"] footer { display: grid; grid-template-columns: 1fr 1fr; }
+  [data-page="landing"] [class*="swapCard"] footer a { grid-column: 1 / -1; width: 100%; margin: 0; justify-content: center; }
+
+  [data-page="landing"] [class*="rolesSection"] { padding: 58px 0; gap: 12px; }
+  [data-page="landing"] [class*="rolesSection"] article { padding: 24px 20px; border-radius: 8px; }
+  [data-page="landing"] [class*="miniQueue"] { grid-template-columns: 1fr; }
+  [data-page="landing"] [class*="miniQueue"] span { min-height: 72px; }
+  [data-page="landing"] [class*="finalCta"] { padding: 38px 20px; border-radius: 8px 8px 0 0; }
+  [data-page="landing"] [class*="finalCta"] h2 { font-size: 30px; letter-spacing: 0; }
+  [data-page="landing"] [class*="footer"] { padding: 28px 20px; gap: 18px; }
+}
+
+/* Theme and motion: restrained activity keeps the clinical UI calm and legible. */
+:root[data-theme="dark"] {
+  --c-bg: #101717;
+  --c-surface: #172222;
+  --c-card: #1b2727;
+  --c-border: #344545;
+  --c-border2: #526363;
+  --c-ink: #f3f8f7;
+  --c-ink2: #d1dddd;
+  --c-muted: #a9bbbb;
+  --c-subtle: #819494;
+  --c-lime: #183636;
+  --c-lime2: #193030;
+  --shadow-sm: 0 8px 24px rgba(0,0,0,.18);
+  --shadow-md: 0 12px 32px rgba(0,0,0,.28);
+  --shadow-lg: 0 18px 50px rgba(0,0,0,.34);
+  --shadow-xl: 0 30px 72px rgba(0,0,0,.42);
+}
+:root[data-theme="dark"] body { background: radial-gradient(circle at 84% 0%, rgba(24,165,167,.13), transparent 30rem), var(--c-bg); }
+:root[data-theme="dark"] :is([data-page="landing"], [data-page="login"], [data-role="patient"], [data-role="dietitian"], [class*="main"], [class*="section"], [class*="panel"]) { color: var(--c-ink); }
+:root[data-theme="dark"] :is([data-page="landing"], [data-page="login"], [data-role="patient"], [data-role="dietitian"]) :is(input, textarea, select) { color: var(--c-ink); border-color: var(--c-border) !important; background-color: #172222 !important; }
+:root[data-theme="dark"] :is([data-page="landing"], [data-page="login"], [data-role="patient"], [data-role="dietitian"]) :is([class*="card"], [class*="Card"], [class*="panel"], [class*="Panel"], [class*="queue"], [class*="Queue"], [class*="trace"], [class*="trust"]) { color: var(--c-ink); border-color: var(--c-border) !important; background-color: var(--c-card); }
+:root[data-theme="dark"] [data-page="landing"] :is(p, li),
+:root[data-theme="dark"] [data-page="login"] :is(p, small),
+:root[data-theme="dark"] :is([data-role="patient"], [data-role="dietitian"]) :is(p, small, label) { color: var(--c-muted) !important; }
+:root[data-theme="dark"] [data-page="landing"] [class*="proofMoment"] { background: linear-gradient(135deg, #172626, #193333); }
+:root[data-theme="dark"] [data-page="landing"] [class*="compare"] { background: #132020; }
+:root[data-theme="dark"] [data-page="landing"] [class*="footer"] { border-color: var(--c-border); }
+:root[data-theme="dark"] [data-assistant="panel"] { color:#f3f8f7; border-color:#3b4e4e; background:#1b2727; box-shadow:0 24px 70px rgba(0,0,0,.5); }
+:root[data-theme="dark"] [data-assistant="notice"] { color:#b6c7c7; background:#172222; }
+:root[data-theme="dark"] [data-assistant="messages"] { background:#111b1b; }
+:root[data-theme="dark"] [data-assistant="messages"] [data-from="assistant"] p { color:#edf5f4; border-color:#354747; background:#1b2929; }
+:root[data-theme="dark"] [data-assistant="starters"] { border-color:#354747; background:#1b2727; }
+:root[data-theme="dark"] [data-assistant="starters"] button { color:#c7eeee; border-color:#3b5959; background:#1a3333; }
+:root[data-theme="dark"] [data-assistant="panel"] form { border-color:#354747; background:#1b2727; }
+:root[data-theme="dark"] [data-assistant="panel"] form input { color:#f3f8f7; border-color:#3b4e4e; background:#131f1f; }
+:root[data-theme="dark"] [data-assistant="panel"] form input::placeholder { color:#8da0a0; }
+[data-assistant="messages"] p { white-space:pre-line; }
+
+[data-page="landing"] [class*="demo"],
+[data-page="landing"] [class*="ctas"] a:first-child { animation: landingAccent 5s ease-in-out infinite; }
+[data-page="landing"] [class*="nutrition"] { animation: nutritionFloat 4.5s ease-in-out infinite; }
+[data-page="landing"] [class*="process"] span > b { animation: processPulse 5s ease-in-out infinite; }
+[data-page="landing"] [class*="process"] span:nth-child(2) > b { animation-delay: .7s; }
+[data-page="landing"] [class*="process"] span:nth-child(3) > b { animation-delay: 1.4s; }
+[data-page="landing"] [class*="process"] span:nth-child(4) > b { animation-delay: 2.1s; }
+@keyframes landingAccent { 0%,100% { filter:saturate(1); box-shadow:0 8px 22px rgba(24,165,167,.14); } 50% { filter:saturate(1.18); box-shadow:0 12px 28px rgba(24,165,167,.3); } }
+@keyframes nutritionFloat { 0%,100% { transform:translateY(0); } 50% { transform:translateY(-7px); } }
+@keyframes processPulse { 0%,72%,100% { box-shadow:0 0 0 0 rgba(24,165,167,0); } 84% { box-shadow:0 0 0 8px rgba(24,165,167,.1); } }
+@media (prefers-reduced-motion: reduce) {
+  [data-page="landing"] [class*="demo"], [data-page="landing"] [class*="ctas"] a:first-child,
+  [data-page="landing"] [class*="nutrition"], [data-page="landing"] [class*="process"] span > b { animation:none !important; }
+}
+
+/* Complete dark mode overrides CSS-module surfaces that use literal light colors. */
+:root[data-theme="dark"] body,
+:root[data-theme="dark"] [data-page="landing"],
+:root[data-theme="dark"] [data-page="login"],
+:root[data-theme="dark"] [data-role="patient"],
+:root[data-theme="dark"] [data-role="dietitian"],
+:root[data-theme="dark"] [data-role="patient"] > main,
+:root[data-theme="dark"] [data-role="dietitian"] > main {
+  color: #f4f8f8 !important;
+  background: #101717 !important;
+}
+
+:root[data-theme="dark"] :is([data-page="landing"], [data-page="login"], [data-role="patient"], [data-role="dietitian"]) :is(
+  h1, h2, h3, h4, h5, h6, strong, b, label, dt, dd, th, td
+) { color: #f4f8f8 !important; }
+
+:root[data-theme="dark"] :is([data-page="landing"], [data-page="login"], [data-role="patient"], [data-role="dietitian"]) :is(
+  p, small, time
+) { color: #b6c5c5 !important; }
+
+:root[data-theme="dark"] :is([data-page="landing"], [data-page="login"], [data-role="patient"], [data-role="dietitian"]) :is(
+  [class*="card"], [class*="Card"], [class*="panel"], [class*="Panel"],
+  [class*="metric"], [class*="Metric"], [class*="queue"], [class*="Queue"],
+  [class*="attention"], [class*="release"], [class*="quickLinks"],
+  [class*="statusStrip"], [class*="toolbar"], [class*="modal"],
+  [class*="trace"], [class*="trust"], [class*="compare"],
+  [class*="patientCard"], [class*="rolesSection"] article,
+  [class*="miniMeals"] > span, [class*="weekStats"] article,
+  [class*="noteList"] article, [class*="requestQueue"], [class*="diary-suggestion-panel"]
+) {
+  color: #f4f8f8 !important;
+  border-color: #354747 !important;
+  background: #1a2525 !important;
+  box-shadow: 0 10px 32px rgba(0,0,0,.24) !important;
+}
+
+:root[data-theme="dark"] :is([data-role="patient"], [data-role="dietitian"]) :is(
+  [class*="row"], [class*="list"] > *, [class*="history"] > *, [class*="planList"] > *
+) {
+  color: #f4f8f8;
+  border-color: #334444 !important;
+  background-color: #182323 !important;
+}
+
+:root[data-theme="dark"] :is([data-role="patient"], [data-role="dietitian"]) [class*="sidebar"] {
+  color: #fff !important;
+  background: linear-gradient(165deg,#102929,#163737) !important;
+  box-shadow: 14px 0 38px rgba(0,0,0,.3) !important;
+}
+:root[data-theme="dark"] :is([data-role="patient"], [data-role="dietitian"]) [class*="sidebar"] :is(p,small,strong,span) { color:#eef7f6 !important; }
+:root[data-theme="dark"] :is([data-role="patient"], [data-role="dietitian"]) [class*="nav"] a[class*="active"] { color:#fff !important; background:#245050 !important; }
+
+:root[data-theme="dark"] [data-page="landing"] :is([class*="nav"], [class*="hero"], [class*="caseStudy"], [class*="rolesSection"], [class*="footer"]),
+:root[data-theme="dark"] [data-page="login"] :is([class*="header"], [class*="shell"], [class*="authColumn"], [class*="footer"]) {
+  color: #f4f8f8 !important;
+  border-color: #334444 !important;
+  background-color: #101717 !important;
+}
+
+:root[data-theme="dark"] [data-page="landing"] :is([class*="float"], [class*="source"], [class*="secondary"], [class*="swapCard"], [class*="patientCard"], [class*="trace"]),
+:root[data-theme="dark"] [data-page="login"] :is([class*="authCard"], [class*="demoAccount"], [class*="systemBadge"]) {
+  color: #f4f8f8 !important;
+  border-color: #3a4d4d !important;
+  background: #1a2525 !important;
+}
+
+:root[data-theme="dark"] :is([data-page="landing"], [data-page="login"], [data-role="patient"], [data-role="dietitian"]) :is(input,textarea,select) {
+  color: #f7fbfa !important;
+  border-color: #455858 !important;
+  background: #111b1b !important;
+  caret-color: #67d0d1;
+}
+:root[data-theme="dark"] :is([data-page="landing"], [data-page="login"], [data-role="patient"], [data-role="dietitian"]) :is(input,textarea)::placeholder { color:#829595 !important; }
+:root[data-theme="dark"] :is([data-page="landing"], [data-page="login"], [data-role="patient"], [data-role="dietitian"]) hr { border-color:#354747 !important; }
+
+@media (max-width: 720px) {
+  :root[data-theme="dark"] [data-page="landing"] [class*="trust"] > article { border-color:#354747; }
+}
+
+/* Dark-mode completion for login v2, legacy clinical controls and landing icons. */
+:root[data-theme="dark"] [data-page="login"] [class*="formSide"] {
+  color:#f4f8f8 !important;
+  background:radial-gradient(circle at 0 80%,rgba(24,165,167,.09),transparent 28%),#101717 !important;
+}
+:root[data-theme="dark"] [data-page="login"] [class*="formWrap"] > p,
+:root[data-theme="dark"] [data-page="login"] [class*="options"] > span,
+:root[data-theme="dark"] [data-page="login"] [class*="support"] { color:#b6c5c5 !important; }
+:root[data-theme="dark"] [data-page="login"] [class*="roles"] { border-color:#3f6969 !important; background:#162222 !important; }
+:root[data-theme="dark"] [data-page="login"] [class*="roles"] button:not([class*="active"]) { color:#b8c8c8 !important; }
+:root[data-theme="dark"] [data-page="login"] form label > div { border-color:#405252 !important; background:#172222 !important; }
+:root[data-theme="dark"] [data-page="login"] [class*="demo"] { color:#f4f8f8 !important; border-color:#426262 !important; background:#182525 !important; }
+:root[data-theme="dark"] [data-page="login"] [class*="or"] { color:#9babab !important; }
+:root[data-theme="dark"] [data-page="login"] [class*="or"]::before,
+:root[data-theme="dark"] [data-page="login"] [class*="or"]::after { background:#354747 !important; }
+
+:root[data-theme="dark"] [data-page="landing"] :is(
+  [class*="process"] b, [class*="trace"] article > span, [class*="trust"] article > span,
+  [class*="patientAvatar"]
+) { color:#70d5d5 !important; border-color:#426262 !important; background:#203434 !important; }
+:root[data-theme="dark"] [data-page="landing"] :is([class*="process"], [class*="trace"], [class*="trust"]) svg { color:#70d5d5 !important; opacity:1 !important; }
+:root[data-theme="dark"] [data-page="landing"] [class*="process"] > div::before { border-color:#487474 !important; }
+:root[data-theme="dark"] [data-page="landing"] [class*="nutrition"] b { color:#d8f4f3 !important; background:#254242 !important; }
+:root[data-theme="dark"] [data-page="landing"] [class*="patientCard"] > b { color:#ffe3a2 !important; border:1px solid #6b5730 !important; background:#45391f !important; }
+
+:root[data-theme="dark"] :is([data-role="patient"], [data-role="dietitian"]) :is(
+  .page-header, .toolbar, .clinical-tabs, .bulk-review-bar, .active-filter-note
+) { color:#f4f8f8 !important; border-color:#354747 !important; background:#182525 !important; }
+:root[data-theme="dark"] :is([data-role="patient"], [data-role="dietitian"]) .page-header :is(h1,h2,p,small,span) { color:inherit !important; }
+:root[data-theme="dark"] :is([data-role="patient"], [data-role="dietitian"]) .search-box { color:#f4f8f8 !important; border-color:#405656 !important; background:#111b1b !important; }
+:root[data-theme="dark"] :is([data-role="patient"], [data-role="dietitian"]) .clinical-tab { color:#aebebe !important; background:transparent !important; }
+:root[data-theme="dark"] :is([data-role="patient"], [data-role="dietitian"]) .clinical-tab.active { color:#fff !important; background:#245050 !important; box-shadow:none !important; }
+:root[data-theme="dark"] :is([data-role="patient"], [data-role="dietitian"]) .bulk-review-bar :is(label,span) { color:#eef7f6 !important; }
+:root[data-theme="dark"] :is([data-role="patient"], [data-role="dietitian"]) :is(.audit-list,.audit-row,.card,.card-header,.card-body,.empty-state) { color:#f4f8f8 !important; border-color:#354747 !important; background:#182323 !important; }
+:root[data-theme="dark"] :is([data-role="patient"], [data-role="dietitian"]) :is(.btn-secondary,.patient-pagination button) { color:#f4f8f8 !important; border-color:#486060 !important; background:#1b2929 !important; }
+:root[data-theme="dark"] :is([data-role="patient"], [data-role="dietitian"]) [class*="toolbar"] label { border-color:#405656 !important; background:#172222 !important; }
+:root[data-theme="dark"] :is([data-role="patient"], [data-role="dietitian"]) :is(.badge-draft,[class*="condition"],[class*="medication"],[class*="pending"]) { color:#ffe4a8 !important; border-color:#655633 !important; background:#40371f !important; }
+
+/* App workspaces: explicit surface map for every patient and plan-builder screen. */
+:root[data-theme="dark"] :is([data-role="patient"], [data-role="dietitian"]) :is(
+  [class*="planStatus"], [class*="empty"], [class*="Empty"],
+  [class*="form"], [class*="logs"], [class*="coverage"], [class*="verdicts"], [class*="help"],
+  [class*="summary"] article, [class*="day"], [class*="coach"],
+  [class*="profileHero"], [class*="details"] > div,
+  [class*="workflow"], [class*="caseBand"], [class*="generateRow"],
+  [class*="draft"], [class*="evidence"], [class*="constraint"],
+  [class*="actionBar"], [class*="swapPanel"], [class*="swapCompare"],
+  [class*="candidates"] > button, [class*="candidateEmpty"]
+) {
+  color:#f4f8f8 !important;
+  border-color:#354949 !important;
+  background:#192626 !important;
+  box-shadow:0 10px 30px rgba(0,0,0,.2) !important;
+}
+
+:root[data-theme="dark"] :is([data-role="patient"], [data-role="dietitian"]) :is(
+  [class*="summary"] article, [class*="day"], [class*="details"] > div,
+  [class*="caseBand"], [class*="workflow"], [class*="generateRow"]
+) { background:#1d2b2b !important; }
+
+:root[data-theme="dark"] :is([data-role="patient"], [data-role="dietitian"]) :is(
+  [class*="empty"], [class*="Empty"], [class*="logs"], [class*="coverage"],
+  [class*="verdicts"], [class*="help"], [class*="profileHero"]
+) :is(h1,h2,h3,strong,b,dd) { color:#f4f8f8 !important; }
+
+:root[data-theme="dark"] :is([data-role="patient"], [data-role="dietitian"]) :is(
+  [class*="empty"], [class*="Empty"], [class*="logs"], [class*="coverage"],
+  [class*="verdicts"], [class*="help"], [class*="profileHero"], [class*="details"],
+  [class*="summary"], [class*="day"], [class*="coach"]
+) :is(p,small,span,dt) { color:#afc0c0 !important; }
+
+:root[data-theme="dark"] :is([data-role="patient"], [data-role="dietitian"]) :is(
+  [class*="empty"], [class*="Empty"], [class*="help"], [class*="insights"],
+  [class*="nextStep"], [class*="releaseIcon"]
+) > svg,
+:root[data-theme="dark"] :is([data-role="patient"], [data-role="dietitian"]) :is(
+  [class*="empty"], [class*="Empty"], [class*="help"], [class*="insights"]
+) > span {
+  color:#72d6d6 !important;
+  background:#203b3b !important;
+}
+
+:root[data-theme="dark"] :is([data-role="patient"], [data-role="dietitian"]) [class*="day"] [class*="dots"] i { background:#314343 !important; }
+:root[data-theme="dark"] :is([data-role="patient"], [data-role="dietitian"]) [class*="day"] [class*="dots"] i[class*="done"] { background:#18a5a7 !important; }
+
+:root[data-theme="dark"] :is([data-role="patient"], [data-role="dietitian"]) :is(
+  [class*="header"] > a, [class*="header"] > button, [class*="secondary"],
+  [class*="tabs"], [class*="optionTabs"]
+) { color:#eef7f6 !important; border-color:#456060 !important; background:#1b2a2a !important; }
+
+:root[data-theme="dark"] :is([data-role="patient"], [data-role="dietitian"]) :is(
+  [class*="tabs"], [class*="optionTabs"]
+) button[class*="active"],
+:root[data-theme="dark"] :is([data-role="patient"], [data-role="dietitian"]) :is(
+  [class*="tabs"], [class*="optionTabs"]
+) button[class*="selected"] { color:#fff !important; background:#275151 !important; }
+
+:root[data-theme="dark"] :is([data-role="patient"], [data-role="dietitian"]) :is(
+  [class*="notice"], [class*="warning"], [class*="drugCheck"]
+) { color:#f5dba3 !important; border-color:#6d5930 !important; background:#3a321f !important; }
+
+:root[data-theme="dark"] :is([data-role="patient"], [data-role="dietitian"]) :is(
+  [class*="modal"] footer, [class*="swapPanel"] footer, [class*="actionBar"]
+) { color:#f4f8f8 !important; border-color:#354949 !important; background:rgba(20,31,31,.97) !important; }
+
+:root[data-theme="dark"] :is([data-role="patient"], [data-role="dietitian"]) :is(
+  [class*="skeleton"], [class*="Skeleton"]
+) { background:linear-gradient(90deg,#182323,#243434,#182323) !important; background-size:200% 100% !important; }
+
+/* Legacy global cards used by review and reconciliation pages. */
+:root[data-theme="dark"] :is([data-role="patient"], [data-role="dietitian"]) :is(
+  .stats-grid > *, .stat-card, .metric-card, .empty-card, .panel,
+  .section-card, .data-card, .form-card, .content-card
+) { color:#f4f8f8 !important; border-color:#354949 !important; background:#192626 !important; }
+
+:root[data-theme="dark"] :is([data-role="patient"], [data-role="dietitian"]) :is(
+  [class*="page"], .page-body
+) { color:#f4f8f8 !important; background:#101717 !important; }
+:root[data-theme="dark"] :is([data-role="patient"], [data-role="dietitian"]) .topbar,
+:root[data-theme="dark"] :is([data-role="patient"], [data-role="dietitian"]).clinical-shell .topbar {
+  color:#f4f8f8 !important;
+  border-color:#354949 !important;
+  background:#182525 !important;
+  box-shadow:none !important;
+}
+:root[data-theme="dark"] :is([data-role="patient"], [data-role="dietitian"]) .topbar :is(h1,h2,p,span) { color:inherit !important; }
+
+/* Remaining compact controls and identity marks. */
+:root[data-theme="dark"] :is([data-role="patient"], [data-role="dietitian"]) :is(
+  [class*="metrics"] > article, [class*="headerActions"] > *,
+  [class*="header"] > span, .synthetic-label
+) { color:#f4f8f8 !important; border-color:#405555 !important; background:#1b2929 !important; }
+:root[data-theme="dark"] :is([data-role="patient"], [data-role="dietitian"]) [class*="headerActions"] > * svg { color:#74d5d5 !important; }
+:root[data-theme="dark"] :is([data-role="patient"], [data-role="dietitian"]) [class*="account"] > span { color:#dff7f6 !important; border:1px solid #416060 !important; background:#234141 !important; }
+:root[data-theme="dark"] :is([data-role="patient"], [data-role="dietitian"]) [class*="account"] > div :is(strong,small) { color:#eef7f6 !important; }
+:root[data-theme="dark"] :is([data-role="patient"], [data-role="dietitian"]) .synthetic-label { color:#79d7d7 !important; }
+
+:root[data-theme="dark"] :is([data-role="patient"], [data-role="dietitian"]) button:not([class*="primary"]):not([class*="submit"]):not([class*="create"]):not([class*="active"]):not([class*="launch"]) {
+  border-color:#405858;
+}
+
+/* Workspace motion gives feedback without distracting from clinical content. */
+:is([data-role="patient"], [data-role="dietitian"]) > main :is(section, article, [class*="card"], [class*="empty"], [class*="panel"]) {
+  animation:appSurfaceIn .42s var(--ease-out) both;
+}
+:is([data-role="patient"], [data-role="dietitian"]) > main :is(section, article):nth-child(2) { animation-delay:.05s; }
+:is([data-role="patient"], [data-role="dietitian"]) > main :is(section, article):nth-child(3) { animation-delay:.1s; }
+:is([data-role="patient"], [data-role="dietitian"]) > main :is(section, article):nth-child(4) { animation-delay:.15s; }
+
+:is([data-role="patient"], [data-role="dietitian"]) > main :is(
+  [class*="metric"], [class*="day"], [class*="row"], [class*="card"], .audit-row
+) { transition:transform .2s var(--ease-out),border-color .2s ease,box-shadow .2s ease; }
+:is([data-role="patient"], [data-role="dietitian"]) > main :is(
+  [class*="metric"], [class*="day"], [class*="row"], [class*="card"], .audit-row
+):hover { transform:translateY(-2px); border-color:#4e7777 !important; box-shadow:0 14px 34px rgba(0,0,0,.18); }
+
+:is([data-role="patient"], [data-role="dietitian"]) > main :is(button,a) { transition:transform .18s ease,filter .18s ease,background-color .18s ease,border-color .18s ease; }
+:is([data-role="patient"], [data-role="dietitian"]) > main :is(button,a):active { transform:translateY(1px); }
+:is([data-role="patient"], [data-role="dietitian"]) > main :is(
+  [class*="primary"], [class*="submit"], [class*="create"], [class*="generateRow"] button
+) { position:relative; overflow:hidden; isolation:isolate; }
+:is([data-role="patient"], [data-role="dietitian"]) > main :is(
+  [class*="primary"], [class*="submit"], [class*="create"], [class*="generateRow"] button
+)::after { content:""; position:absolute; z-index:-1; inset:0; background:linear-gradient(110deg,transparent 20%,rgba(255,255,255,.22) 45%,transparent 70%); transform:translateX(-125%); animation:actionSheen 4.8s ease-in-out infinite; }
+
+:is([data-role="patient"], [data-role="dietitian"]) > main :is(
+  [class*="approvalMark"], [class*="current"] > span, [class*="progress"] i,
+  [class*="empty"] > svg, [class*="Empty"] > svg
+) { animation:statusBreathe 3.2s ease-in-out infinite; }
+
+@keyframes appSurfaceIn { from { opacity:0; transform:translateY(10px); } to { opacity:1; transform:translateY(0); } }
+@keyframes actionSheen { 0%,58%,100% { transform:translateX(-125%); } 76% { transform:translateX(125%); } }
+@keyframes statusBreathe { 0%,100% { filter:brightness(1); box-shadow:0 0 0 0 rgba(24,165,167,0); } 50% { filter:brightness(1.12); box-shadow:0 0 0 7px rgba(24,165,167,.08); } }
+
+@media (prefers-reduced-motion:reduce) {
+  :is([data-role="patient"], [data-role="dietitian"]) > main *,
+  :is([data-role="patient"], [data-role="dietitian"]) > main *::after { animation:none !important; transition:none !important; }
+}

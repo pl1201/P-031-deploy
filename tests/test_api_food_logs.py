@@ -114,6 +114,39 @@ def test_ten_chung_khong_tu_chon_hang_cu_the_ma_goi_y_cho_nguoi_chon(client, pat
 # --- Test vàng: không bịa số ----------------------------------------------
 
 
+def test_benh_nhan_xem_goi_y_truoc_khi_luu_va_tu_xac_nhan(client, patient, profile_id):
+    _, headers = patient
+    response = client.get("/api/v1/food-logs/suggestions?q=thit%20bo", headers=headers)
+    assert response.status_code == 200, response.text
+    candidates = response.json()["suggestions"]
+    assert candidates
+
+    selected = candidates[0]
+    created = client.post(
+        "/api/v1/food-logs",
+        json={
+            "profile_id": profile_id,
+            "free_text_vi": "thit bo",
+            "food_id": selected["food_id"],
+            "grams": 100,
+        },
+        headers=headers,
+    )
+    assert created.status_code == 201, created.text
+    assert created.json()["food_id"] == selected["food_id"]
+    assert created.json()["match_status"] == "patient_confirmed"
+
+
+def test_benh_nhan_khong_the_gui_food_id_khong_ton_tai(client, patient, profile_id):
+    _, headers = patient
+    response = client.post(
+        "/api/v1/food-logs",
+        json={"profile_id": profile_id, "free_text_vi": "mon la", "food_id": 999999, "grams": 100},
+        headers=headers,
+    )
+    assert response.status_code == 422
+
+
 def test_mon_chua_tra_duoc_khong_bao_gio_thanh_so_0(client, patient, profile_id):
     """Test quan trọng nhất: OOV không được cộng vào tổng, và KHÔNG được kết luận 'đạt'."""
     _, headers = patient

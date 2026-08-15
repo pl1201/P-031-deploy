@@ -85,6 +85,29 @@ class PatientProfile(Base):
     observations: Mapped[list[PatientObservation]] = relationship(back_populates="profile")
     clinical_notes: Mapped[list[ClinicalNote]] = relationship(back_populates="profile")
     review_events: Mapped[list[MealPlanReviewEvent]] = relationship(back_populates="profile")
+    update_requests: Mapped[list[ProfileUpdateRequest]] = relationship(back_populates="profile")
+
+
+class ProfileUpdateRequest(Base):
+    """Patient-submitted request for a clinician-verified profile change."""
+
+    __tablename__ = "profile_update_requests"
+    __table_args__ = (
+        Index("ix_profile_update_requests_status_created", "status", "created_at"),
+        Index("ix_profile_update_requests_profile_created", "profile_id", "created_at"),
+    )
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=_uuid)
+    profile_id: Mapped[str] = mapped_column(ForeignKey("patient_profiles.id"))
+    requester_id: Mapped[str] = mapped_column(ForeignKey("users.id"))
+    message: Mapped[str] = mapped_column(Text)
+    status: Mapped[str] = mapped_column(String(20), default="pending")
+    resolved_by: Mapped[str | None] = mapped_column(ForeignKey("users.id"), nullable=True)
+    resolution_note: Mapped[str | None] = mapped_column(Text, nullable=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+    resolved_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
+
+    profile: Mapped[PatientProfile] = relationship(back_populates="update_requests")
 
 
 class PatientMedication(Base):
@@ -403,6 +426,7 @@ class FoodLog(Base):
     # unmatched: chưa tra được, KHÔNG có số → chờ chuyên gia giải quyết
     # auto:      matcher tất định tự nhận (Làn A)
     # llm:       LLM map trong danh sách ứng viên (Làn B)
+    # patient_confirmed: bệnh nhân chọn rõ một ứng viên từ danh sách gợi ý
     # expert:    chuyên gia gán tay
     # no_data:   chuyên gia xác nhận không đủ dữ liệu, cố ý không tính vào tổng
     match_status: Mapped[str] = mapped_column(String(20), default="unmatched", index=True)
@@ -570,6 +594,7 @@ __all__ = [
     "PatientMedication",
     "PatientObservation",
     "PatientProfile",
+    "ProfileUpdateRequest",
     "ServingSize",
     "SubstitutionScope",
     "User",

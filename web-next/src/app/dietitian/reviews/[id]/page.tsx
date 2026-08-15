@@ -188,6 +188,7 @@ export default function MealPlanReviewPage() {
   // một bản nháp bị chặn vì safety finding P0 vẫn hiện nút Duyệt và luôn nhận 422.
   const packetCanApprove = plan?.review_packet?.can_approve
   const p0Findings = plan?.safety_findings?.filter(f => f.risk_level === 'P0') ?? []
+  const confirmationFindings = plan?.safety_findings?.filter(f => f.risk_level === 'P1' || f.risk_level === 'P2') ?? []
   const gateReasons = [
     ...(plan?.review_packet?.target_gate_reasons ?? []),
     ...p0Findings.map(f => f.message_vi),
@@ -301,13 +302,22 @@ export default function MealPlanReviewPage() {
               </div>
             </div>
           )}
-          {hardViolations.length === 0 && packetCanApprove !== false && (
-            <div className="safety-strip safety-strip-ok">
+          {hardViolations.length === 0 && packetCanApprove !== false && confirmationFindings.length > 0 && (
+            <div className="safety-strip safety-strip-warn review-decision-summary">
+              <Icon name="warning" />
+              <div>
+                <strong>Có thể duyệt sau khi chuyên gia xác nhận</strong>
+                <p>Không có lỗi bắt buộc chặn, nhưng còn {confirmationFindings.length} cảnh báo cần đọc và ghi nhận trước khi gửi cho bệnh nhân.</p>
+              </div>
+            </div>
+          )}
+          {hardViolations.length === 0 && packetCanApprove !== false && confirmationFindings.length === 0 && (
+            <div className="safety-strip safety-strip-ok review-decision-summary">
               <Icon name="check" />
-              <span>
-                <strong>Không có vi phạm cứng</strong>
-                {softViolations.length > 0 && ` · ${softViolations.length} cảnh báo mềm cần lưu ý`}
-              </span>
+              <div>
+                <strong>Đã qua kiểm tra an toàn</strong>
+                <p>Không có lỗi bắt buộc chặn{softViolations.length > 0 ? `; còn ${softViolations.length} lưu ý không chặn duyệt.` : '.'}</p>
+              </div>
             </div>
           )}
 
@@ -316,7 +326,7 @@ export default function MealPlanReviewPage() {
           {(plan.safety_findings?.length ?? 0) > 0 && (
             <div className="card">
               <div className="card-header">
-                <h2 className="card-title">Phát hiện an toàn</h2>
+                <h2 className="card-title">Cảnh báo cần xem trước khi duyệt</h2>
                 <span style={{ fontSize: 11, color: 'var(--c-muted)' }}>{RISK_LABEL[plan.highest_risk] ?? plan.highest_risk} · {plan.highest_risk}</span>
               </div>
               <div className="card-body" style={{ display: 'grid', gap: 10 }}>

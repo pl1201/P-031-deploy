@@ -32,24 +32,26 @@ depends_on = None
 
 
 def upgrade() -> None:
-    op.alter_column(
-        "clinical_rules", "overridden_by", existing_type=sa.String(length=50), type_=sa.String(length=255)
-    )
-    op.alter_column(
-        "clinical_rules", "disabled_by_flag", existing_type=sa.String(length=50), type_=sa.String(length=255)
-    )
-    op.alter_column(
-        "clinical_rules", "requires_flag", existing_type=sa.String(length=50), type_=sa.String(length=255)
-    )
+    with op.batch_alter_table("clinical_rules") as batch:
+        batch.alter_column(
+            "overridden_by", existing_type=sa.String(length=50), type_=sa.String(length=255)
+        )
+        batch.alter_column(
+            "disabled_by_flag", existing_type=sa.String(length=50), type_=sa.String(length=255)
+        )
+        batch.alter_column(
+            "requires_flag", existing_type=sa.String(length=50), type_=sa.String(length=255)
+        )
 
 
 def downgrade() -> None:
-    op.alter_column(
-        "clinical_rules", "requires_flag", existing_type=sa.String(length=255), type_=sa.String(length=50)
-    )
-    op.alter_column(
-        "clinical_rules", "disabled_by_flag", existing_type=sa.String(length=255), type_=sa.String(length=50)
-    )
-    op.alter_column(
-        "clinical_rules", "overridden_by", existing_type=sa.String(length=255), type_=sa.String(length=50)
-    )
+    with op.batch_alter_table("clinical_rules") as batch:
+        batch.alter_column(
+            "requires_flag", existing_type=sa.String(length=255), type_=sa.String(length=50)
+        )
+        batch.alter_column(
+            "disabled_by_flag", existing_type=sa.String(length=255), type_=sa.String(length=50)
+        )
+        batch.alter_column(
+            "overridden_by", existing_type=sa.String(length=255), type_=sa.String(length=50)
+        )
