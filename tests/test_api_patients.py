@@ -173,3 +173,63 @@ def test_benh_nhan_lay_duoc_ho_so_cua_chinh_minh(client):
 def test_chua_co_ho_so_thi_me_tra_404(client):
     _, headers = _register_and_login(client, "bn_chua_hs@example.com", "patient")
     assert client.get("/api/v1/patients/me", headers=headers).status_code == 404
+
+
+def test_patient_profile_update_request_has_real_clinician_workflow(client, dietitian, patient_user):
+    _, dietitian_headers = dietitian
+    patient_id, patient_headers = patient_user
+    profile = client.post("/api/v1/patients", json=_profile_payload(patient_id), headers=dietitian_headers).json()
+
+    created = client.post(
+        "/api/v1/patients/me/update-requests",
+        json={"message": "Tôi vừa đổi thuốc và cần chuyên gia kiểm tra lại hồ sơ."},
+        headers=patient_headers,
+    )
+    assert created.status_code == 201, created.text
+    assert created.json()["profile_id"] == profile["id"]
+    assert created.json()["status"] == "pending"
+
+    duplicate = client.post(
+        "/api/v1/patients/me/update-requests",
+        json={"message": "Tạo thêm một yêu cầu khi yêu cầu cũ chưa xử lý."},
+        headers=patient_headers,
+    )
+    assert duplicate.status_code == 409
+
+    queue = client.get("/api/v1/patients/update-requests", headers=dietitian_headers)
+    assert queue.status_code == 200
+    assert [item["id"] for item in queue.json()] == [created.json()["id"]]
+
+    forbidden = client.patch(
+        f"/api/v1/patients/update-requests/{created.json()['id']}",
+        json={"resolution_note": "Đã xử lý"},
+        headers=patient_headers,
+    )
+    assert forbidden.status_code == 403
+
+    resolved = client.patch(
+        f"/api/v1/patients/update-requests/{created.json()['id']}",
+        json={"resolution_note": "Đã liên hệ và cập nhật thuốc trong hồ sơ."},
+        headers=dietitian_headers,
+    )
+    assert resolved.status_code == 200, resolved.text
+    assert resolved.json()["status"] == "resolved"
+
+    history = client.get("/api/v1/patients/me/update-requests", headers=patient_headers)
+    assert history.status_code == 200
+    assert history.json()[0]["resolution_note"] == "Đã liên hệ và cập nhật thuốc trong hồ sơ."
+
+
+def test_patient_search_runs_on_server(client, dietitian):
+    _, dietitian_headers = dietitian
+    matching_id, _ = _register_and_login(client, "search-match@example.com", "patient")
+    other_id, _ = _register_and_login(client, "search-other@example.com", "patient")
+    matching = _profile_payload(matching_id)
+    matching["medications"] = ["losartan"]
+    client.post("/api/v1/patients", json=matching, headers=dietitian_headers)
+    client.post("/api/v1/patients", json=_profile_payload(other_id), headers=dietitian_headers)
+
+    response = client.get("/api/v1/patients?search=losartan&page_size=1", headers=dietitian_headers)
+    assert response.status_code == 200, response.text
+    assert response.json()["total"] == 1
+    assert response.json()["items"][0]["user_id"] == matching_id

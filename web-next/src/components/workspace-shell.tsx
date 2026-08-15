@@ -22,17 +22,18 @@ type NavItem = {
 
 const PATIENT_NAV: NavItem[] = [
   { href: '/patient', label: 'Hôm nay', icon: 'home', exact: true },
-  { href: '/patient/diary', label: 'Nhật ký', icon: 'diary' },
+  { href: '/patient/diary', label: 'Món đã ăn', icon: 'diary' },
   { href: '/patient/weekly', label: 'Tuần của tôi', icon: 'trend' },
   { href: '/patient/profile', label: 'Hồ sơ', icon: 'user' },
 ]
 
 const DIETITIAN_NAV: NavItem[] = [
-  { href: '/dietitian', label: 'Cần xử lý', icon: 'home', exact: true },
+  { href: '/dietitian', label: 'Tổng quan hôm nay', icon: 'home', exact: true },
   { href: '/dietitian/patients', label: 'Bệnh nhân', icon: 'user' },
-  { href: '/dietitian/reviews', label: 'Hàng chờ duyệt', icon: 'clipboard', badge: 'pending' },
-  { href: '/dietitian/meal-plans/new', label: 'Tạo phương án', icon: 'sparkles' },
-  { href: '/dietitian/food-logs', label: 'Theo dõi tuần', icon: 'trend' },
+  { href: '/dietitian/reviews', label: 'Duyệt thực đơn', icon: 'clipboard', badge: 'pending' },
+  { href: '/dietitian/meal-plans/new', label: 'Tạo thực đơn', icon: 'sparkles' },
+  { href: '/dietitian/food-logs', label: 'Đối chiếu nhật ký', icon: 'trend' },
+  { href: '/dietitian/analytics', label: 'Thống kê chuyên môn', icon: 'chart' },
   { href: '/eval', label: 'Đánh giá hệ thống', icon: 'shield', adminOnly: true },
 ]
 

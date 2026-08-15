@@ -22,7 +22,7 @@ const SLOT_META: Record<Slot, { label: string; time: string; tone: string }> = {
 const TOUR: TourStep[] = [
   { selector: '[data-tour="today-plan"]', eyebrow: 'Bước 1/4', title: 'Đây là thực đơn hôm nay', description: 'Chỉ thực đơn đã được phát hành mới xuất hiện trong không gian người bệnh.' },
   { selector: '[data-tour="meal-timeline"]', eyebrow: 'Bước 2/4', title: 'Mở một bữa để xem khẩu phần', description: 'Mỗi bữa cho biết món, gram và nguồn dữ liệu. Nhấn vào card để mở chi tiết.' },
-  { selector: '[data-tour="log-action"]', eyebrow: 'Bước 3/4', title: 'Ghi nhận sau khi ăn', description: 'Bạn có thể báo đã ăn đủ, ăn một phần, ăn món khác hoặc bỏ bữa.' },
+  { selector: '[data-tour="log-action"]', eyebrow: 'Bước 3/4', title: 'Xác nhận bữa theo kế hoạch', description: 'Báo đã ăn đủ, ăn một phần, ăn món khác hoặc bỏ bữa. Món ăn thêm được ghi tại mục Món đã ăn.' },
   { selector: '[data-tour="weekly-progress"]', eyebrow: 'Bước 4/4', title: 'Theo dõi theo tuần', description: 'Các ghi nhận được tổng hợp để chuyên gia chỉ chú ý khi có vấn đề đáng quan tâm.' },
 ]
 
@@ -123,7 +123,7 @@ export default function PatientDashboard() {
           <h1>{profile ? `Chào ${profile.sex === 'male' ? 'anh' : 'chị'} trở lại` : 'Thực đơn hôm nay'}</h1>
           <p>{formatDate(todayISO())}</p>
         </div>
-        {plan && <button className={styles.primary} type="button" data-tour="log-action" onClick={() => setLogSlot(currentSlot)}><Icon name="diary" />Ghi nhận bữa hiện tại</button>}
+        {plan && <button className={styles.primary} type="button" data-tour="log-action" onClick={() => setLogSlot(currentSlot)}><Icon name="diary" />Xác nhận bữa theo kế hoạch</button>}
       </header>
 
       {error && <div className={styles.error} role="alert"><Icon name="warning" /><div><strong>Chưa thể tải đầy đủ dữ liệu</strong><p>{error}</p></div><button type="button" onClick={() => void load()}>Thử lại</button></div>}

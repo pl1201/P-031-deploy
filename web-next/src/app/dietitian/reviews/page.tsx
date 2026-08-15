@@ -117,7 +117,7 @@ export default function ApprovalLogPage() {
   return <>
     <div className="topbar">
       <div><p className="page-kicker">Clinical audit trail</p><h1 className="page-title">Hàng chờ &amp; nhật ký phê duyệt</h1></div>
-      <span className="synthetic-label">DỮ LIỆU MÔ PHỎNG</span>
+      <span className="synthetic-label">DỮ LIỆU HỆ THỐNG</span>
     </div>
     <div className="page-body">
       <div className="page-heading-row" style={{ marginBottom: 18 }}>

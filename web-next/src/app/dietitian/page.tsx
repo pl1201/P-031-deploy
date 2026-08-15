@@ -3,6 +3,7 @@
 import Link from 'next/link'
 import { useEffect, useMemo, useState } from 'react'
 import { Icon } from '@/components/brand-artwork'
+import { PatientAvatar } from '@/components/patient-avatar'
 import { GuidedTour, type TourStep } from '@/components/guided-tour'
 import { ApiError, createApiClient, type FoodLog, type MealPlan, type PatientProfile } from '@/lib/api'
 import { getToken } from '@/lib/auth'
@@ -48,7 +49,7 @@ export default function DietitianDashboard(){
   const attentionProfiles=useMemo(()=>Object.entries(unresolved.reduce<Record<string,number>>((acc,log)=>{acc[log.profile_id]=(acc[log.profile_id]||0)+1;return acc},{})).sort((a,b)=>b[1]-a[1]).slice(0,4),[unresolved])
 
   return <div className={styles.page}>
-    <header className={styles.heading}><div><span>CLINICAL WORKSPACE</span><h1>Cần xử lý hôm nay</h1><p>Ưu tiên ngoại lệ và quyết định; các ca ổn định tiếp tục theo policy đã định.</p></div><Link href="/dietitian/meal-plans/new" className={styles.create} data-tour="create-plan"><Icon name="sparkles"/>Tạo phương án thực đơn</Link></header>
+    <header className={styles.heading}><div><span>TRUNG TÂM CÔNG VIỆC</span><h1>Tổng quan hôm nay</h1><p>Các ca cần quyết định được đưa lên trước; ca ổn định không tạo thêm thao tác.</p></div><Link href="/dietitian/meal-plans/new" className={styles.create} data-tour="create-plan"><Icon name="sparkles"/>Tạo thực đơn</Link></header>
     {error&&<div className={styles.error}><Icon name="warning"/><span>{error}</span><button type="button" onClick={()=>window.location.reload()}>Tải lại</button></div>}
     <section className={styles.metrics} data-tour="action-metrics">
       <Metric loading={loading} icon="warning" label="Cần xử lý ngay" value={metrics.blocking} tone="danger" href="/dietitian/reviews?priority=blocking" />
@@ -64,7 +65,7 @@ export default function DietitianDashboard(){
       </section>
 
       <aside className={styles.side}>
-        <section className={styles.attention} data-tour="weekly-attention"><div className={styles.sectionTitle}><div><small>THEO DÕI THEO NGOẠI LỆ</small><h2>Cần chú ý tuần này</h2></div><span>{metrics.attention}</span></div>{attentionProfiles.length?attentionProfiles.map(([profileId,count])=>{const patient=patients[profileId];return <Link key={profileId} href="/dietitian/food-logs"><span>{patient?.sex==='female'?'Nữ':'N'}</span><div><strong>{patient?`${patient.sex==='male'?'Nam':'Nữ'}, ${patient.age} tuổi`:`Hồ sơ #${profileId.slice(0,8)}`}</strong><small>{count} món chưa được đối chiếu</small></div><Icon name="chevronRight"/></Link>}):<p className={styles.compactEmpty}>Không có nhật ký chưa đối chiếu.</p>}</section>
+        <section className={styles.attention} data-tour="weekly-attention"><div className={styles.sectionTitle}><div><small>THEO DÕI THEO NGOẠI LỆ</small><h2>Cần chú ý tuần này</h2></div><span>{metrics.attention}</span></div>{attentionProfiles.length?attentionProfiles.map(([profileId,count])=>{const patient=patients[profileId];return <Link key={profileId} href={`/dietitian/food-logs?profile_id=${profileId}`}>{patient?<PatientAvatar sex={patient.sex} size="sm"/>:<Icon name="user"/>}<div><strong>{patient?`${patient.sex==='male'?'Nam':'Nữ'}, ${patient.age} tuổi`:`Mã hồ sơ ${profileId.slice(0,8).toUpperCase()}`}</strong><small>{count} món chưa được đối chiếu</small></div><Icon name="chevronRight"/></Link>}):<p className={styles.compactEmpty}>Không có nhật ký chưa đối chiếu.</p>}</section>
         <section className={styles.release} data-tour="release-control"><div className={styles.releaseIcon}><Icon name="shield"/></div><div><small>KIỂM SOÁT PHÁT HÀNH</small><h2>Chỉ bản approved được gửi đi</h2><p>{releasedToday} thực đơn được phát hành hôm nay. Bản nháp và bản chờ duyệt không xuất hiện phía người bệnh.</p></div></section>
         <section className={styles.quickLinks}><h2>Đi nhanh tới công việc</h2><Link href="/dietitian/patients"><Icon name="user"/><span><strong>Mở hồ sơ bệnh nhân</strong><small>Xem lâm sàng, thực đơn và lịch sử</small></span><Icon name="chevronRight"/></Link><Link href="/dietitian/food-logs"><Icon name="diary"/><span><strong>Đối chiếu nhật ký</strong><small>{unresolved.length} dòng đang chờ</small></span><Icon name="chevronRight"/></Link></section>
       </aside>
@@ -77,7 +78,7 @@ function Metric({loading,icon,label,value,tone,href}:{loading:boolean;icon:strin
 
 function QueueRow({plan,patient,referenceTime}:{plan:MealPlan;patient?:PatientProfile;referenceTime:number}){
   const ageMs=referenceTime-new Date(plan.created_at).getTime();const hours=Math.max(0,Math.floor(ageMs/3600000));const finding=plan.safety_findings?.[0]?.message_vi||plan.violations?.[0]?.message_vi||plan.review_packet?.summary||'Đã chuẩn bị đủ dữ liệu kiểm tra.'
-  return <article className={styles.row} data-risk={plan.highest_risk}><span className={styles.riskBar}/><div className={styles.patient}><i>{patient?.sex==='female'?'Nữ':'N'}</i><div><strong>{patient?`${patient.sex==='male'?'Nam':'Nữ'}, ${patient.age} tuổi`:`Hồ sơ #${plan.patient_id.slice(0,8)}`}</strong><small>{patient?.conditions.map(item=>item.code).join(' · ')||'Chưa có chẩn đoán được hiển thị'}</small></div></div><div className={styles.finding}><span>{riskLabel[plan.highest_risk]||'Cần xem'}</span><strong>{finding}</strong></div><div className={styles.plan}><small>NGÀY ÁP DỤNG</small><strong>{new Date(`${plan.plan_date}T00:00:00`).toLocaleDateString('vi-VN')}</strong><span>Đã chờ {hours<1?'dưới 1 giờ':`${hours} giờ`}</span></div><Link href={`/dietitian/reviews/${plan.id}`}>Xem và quyết định<Icon name="arrowRight"/></Link></article>
+  return <article className={styles.row} data-risk={plan.highest_risk}><span className={styles.riskBar}/><div className={styles.patient}>{patient?<PatientAvatar sex={patient.sex} size="sm"/>:<Icon name="user"/>}<div><strong>{patient?`${patient.sex==='male'?'Nam':'Nữ'}, ${patient.age} tuổi`:`Mã hồ sơ ${plan.patient_id.slice(0,8).toUpperCase()}`}</strong><small>{patient?.conditions.map(item=>item.code).join(' · ')||'Chưa có chẩn đoán được hiển thị'}</small></div></div><div className={styles.finding}><span>{riskLabel[plan.highest_risk]||'Cần xem'}</span><strong>{finding}</strong></div><div className={styles.plan}><small>NGÀY ÁP DỤNG</small><strong>{new Date(`${plan.plan_date}T00:00:00`).toLocaleDateString('vi-VN')}</strong><span>Đã chờ {hours<1?'dưới 1 giờ':`${hours} giờ`}</span></div><Link href={`/dietitian/reviews/${plan.id}`}>Xem và quyết định<Icon name="arrowRight"/></Link></article>
 }
 
 function QueueSkeleton(){return <div className={styles.skeleton}><i/><i/><i/></div>}
