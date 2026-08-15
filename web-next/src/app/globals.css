@@ -27,8 +27,8 @@
   --c-purple:  #596fc7;
 
   /* Typography */
-  --f-serif: 'Times New Roman', 'Noto Serif', serif;
-  --f-sans:  'Segoe UI', Arial, sans-serif;
+  --f-serif: 'Palatino Linotype', 'Book Antiqua', Georgia, 'Times New Roman', serif;
+  --f-sans:  Aptos, 'Segoe UI Variable', 'Segoe UI', sans-serif;
   --f-mono:  'Cascadia Mono', 'SFMono-Regular', Consolas, monospace;
 
   /* Spacing */
@@ -647,6 +647,26 @@ tr:hover td { background: rgba(0,0,0,.015); }
 .audit-list { display:grid; }
 .audit-row { display:grid; grid-template-columns:110px minmax(180px,1fr) minmax(150px,.8fr) 120px auto; gap:14px; align-items:center; padding:14px 18px; border-bottom:1px solid var(--c-border); }
 .audit-row:last-child { border-bottom:0; }
+.audit-row-selectable { grid-template-columns:28px 110px minmax(180px,1fr) minmax(150px,.8fr) 120px auto; }
+.audit-check { display:grid; place-items:center; }
+.audit-check input,.bulk-review-select input { width:17px; height:17px; accent-color:#149fa5; cursor:pointer; }
+.bulk-review-bar { display:flex; align-items:center; gap:12px; padding:12px 14px; margin-bottom:16px; border:1px solid #b9dddd; border-radius:13px; background:#edfafa; }
+.bulk-review-select { display:flex; align-items:center; gap:9px; color:var(--c-ink); font-weight:650; cursor:pointer; }
+.bulk-review-count { margin-right:auto; color:var(--c-muted); font-size:12px; }
+.bulk-review-overlay { position:fixed; inset:0; z-index:1000; display:grid; place-items:center; padding:20px; background:rgba(7,42,45,.46); backdrop-filter:blur(4px); }
+.bulk-review-dialog { width:min(480px,100%); padding:26px; border:1px solid rgba(255,255,255,.65); border-radius:20px; background:#fff; box-shadow:0 28px 80px rgba(9,55,58,.25); }
+.bulk-review-dialog-mark { display:grid; place-items:center; width:44px; height:44px; margin-bottom:16px; border-radius:50%; font-size:24px; font-weight:800; }
+.bulk-review-dialog-mark.approve { color:#087f83; background:#def4f3; }
+.bulk-review-dialog-mark.reject { color:#b73939; background:#fde9e7; }
+.bulk-review-dialog h2 { font-size:23px; }
+.bulk-review-dialog p { margin:8px 0 18px; color:var(--c-muted); line-height:1.55; }
+.bulk-review-dialog label { display:grid; gap:8px; font-size:12px; font-weight:700; }
+.bulk-review-dialog textarea { width:100%; padding:12px 14px; resize:vertical; border:1px solid var(--c-border); border-radius:11px; color:var(--c-ink); background:#fbfdfd; font:inherit; font-weight:400; }
+.bulk-review-dialog textarea:focus { outline:3px solid rgba(20,159,165,.12); border-color:#149fa5; }
+.bulk-review-dialog small { display:block; margin-top:7px; }
+.bulk-review-dialog-actions { display:flex; justify-content:flex-end; gap:10px; margin-top:22px; }
+.btn-danger { color:#fff; background:#b94444; border-color:#b94444; }
+.text-danger { color:#b94444; }
 .review-progress-grid { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:10px; }
 
 @media (max-width:1050px) {
@@ -664,6 +684,11 @@ tr:hover td { background: rgba(0,0,0,.015); }
   .patient-card-actions { grid-column:1/-1; width:100%; }
   .patient-card-actions .btn { flex:1; }
   .audit-row { grid-template-columns:1fr; gap:5px; }
+  .audit-row-selectable { grid-template-columns:28px 1fr; }
+  .audit-row-selectable > *:not(.audit-check) { grid-column:2; }
+  .audit-row-selectable .audit-check { grid-column:1; grid-row:1/6; align-self:start; padding-top:2px; }
+  .bulk-review-bar { align-items:stretch; flex-direction:column; }
+  .bulk-review-count { margin-right:0; }
 }
 
 /* Product shell v2 — clinical intelligence navigation */
@@ -840,3 +865,6 @@ tr:hover td { background: rgba(0,0,0,.015); }
 .sidebar-brand>svg{width:38px;height:48px;flex:none;color:#fff}
 .sidebar-brand>.brand-name{font-family:var(--f-serif);font-size:23px;font-weight:600;letter-spacing:.015em}
 .clinical-sidebar .sidebar-brand>svg{width:38px;height:48px}
+
+/* Interaction states shared by the redesigned workspaces. */
+.active-filter-note{margin:-2px 0 14px;padding:9px 12px;display:flex;align-items:center;justify-content:space-between;border:1px solid #b9ddda;border-radius:10px;color:#245f60;background:#eef9f7;font-size:10px}.active-filter-note button{color:#0d8385;font-weight:750;text-decoration:underline}

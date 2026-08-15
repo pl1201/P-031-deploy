@@ -210,7 +210,7 @@ export interface MealPlan {
   id: string
   patient_id: string
   plan_date: string
-  status: 'drafting' | 'pending_review' | 'approved' | 'rejected' | 'failed'
+  status: 'drafting' | 'pending_review' | 'manual_review_required' | 'approved' | 'rejected' | 'failed'
   items: MealPlanItem[]
   targets: ClinicalTargets
   computed_nutrition: ComputedNutrition | null
@@ -265,14 +265,23 @@ function decodeJwt(token: string): { sub: string; role: Role; exp: number } {
 }
 
 export function createApiClient(accessToken?: string) {
-  async function request<T>(path: string, init: RequestInit = {}): Promise<T> {
+  async function request<T>(path: string, init: RequestInit = {}, timeoutMs = 30000): Promise<T> {
     const headers = new Headers(init.headers)
     headers.set('Content-Type', 'application/json')
     if (accessToken) headers.set('Authorization', `Bearer ${accessToken}`)
 
+    const controller = new AbortController()
+    const timeout = window.setTimeout(() => controller.abort(), timeoutMs)
     let res: Response
-    try { res = await fetch(`${BASE_URL}${path}`, { ...init, headers }) }
-    catch { throw new ApiError(0, 'Không kết nối được máy chủ. Hãy kiểm tra Docker/backend rồi thử lại.') }
+    try { res = await fetch(`${BASE_URL}${path}`, { ...init, headers, signal: init.signal ?? controller.signal }) }
+    catch (error) {
+      if (error instanceof DOMException && error.name === 'AbortError') {
+        throw new ApiError(408, 'Máy chủ chưa sẵn sàng sau thời gian chờ. Nếu đang dùng Render miễn phí, hãy thử lại sau khi service được đánh thức.')
+      }
+      throw new ApiError(0, 'Không kết nối được máy chủ. Hãy kiểm tra Docker/backend rồi thử lại.')
+    } finally {
+      window.clearTimeout(timeout)
+    }
 
     if (!res.ok) {
       const body = await res.json().catch(() => null) as { detail?: string } | null
@@ -285,7 +294,7 @@ export function createApiClient(accessToken?: string) {
     // Auth
     login: async (email: string, password: string): Promise<AuthSession> => {
       const r = await request<{ access_token: string; refresh_token: string; expires_in: number }>(
-        '/auth/login', { method: 'POST', body: JSON.stringify({ email, password }) }
+        '/auth/login', { method: 'POST', body: JSON.stringify({ email, password }) }, 75000
       )
       const claims = decodeJwt(r.access_token)
       return {

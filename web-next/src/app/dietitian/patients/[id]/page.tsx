@@ -1,32 +1,39 @@
 'use client'
 
-import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { useParams } from 'next/navigation'
-import { createApiClient, type ClinicalNote, type MealPlan, type PatientObservation, type PatientProfile, type ReviewEvent } from '@/lib/api'
+import { useCallback, useEffect, useMemo, useState } from 'react'
+import { Icon } from '@/components/brand-artwork'
+import {
+  ApiError,
+  createApiClient,
+  type ClinicalNote,
+  type FoodLog,
+  type MealPlan,
+  type PatientObservation,
+  type PatientProfile,
+  type ReviewEvent,
+} from '@/lib/api'
 import { getToken } from '@/lib/auth'
+import styles from './patient-detail.module.css'
+
+type Tab = 'overview' | 'clinical' | 'plans' | 'diary' | 'weekly' | 'notes' | 'history'
 
 const CONDITION_LABELS: Record<string, string> = {
-  T2DM: 'Đái tháo đường type 2',
-  HTN: 'Tăng huyết áp',
-  CKD: 'Bệnh thận mạn',
-  GOUT: 'Gout',
+  T2DM: 'Đái tháo đường type 2', HTN: 'Tăng huyết áp', CKD: 'Bệnh thận mạn', GOUT: 'Gout',
 }
-
 const STATUS_LABELS: Record<string, string> = {
-  drafting: 'Đang sinh',
-  pending_review: 'Chờ duyệt',
-  approved: 'Đã duyệt',
-  rejected: 'Đã từ chối',
-  failed: 'Thất bại',
+  drafting: 'Đang tạo', pending_review: 'Chờ duyệt', approved: 'Đã duyệt', rejected: 'Đã từ chối', failed: 'Thất bại',
 }
+const SLOT_LABELS: Record<string, string> = { breakfast: 'Bữa sáng', lunch: 'Bữa trưa', snack: 'Bữa phụ', dinner: 'Bữa tối' }
 
-const STATUS_CLASS: Record<string, string> = {
-  drafting: 'badge-draft',
-  pending_review: 'badge-pending',
-  approved: 'badge-approved',
-  rejected: 'badge-rejected',
-  failed: 'badge-failed',
+function recentDays() {
+  const today = new Date()
+  return Array.from({ length: 7 }, (_, index) => {
+    const value = new Date(today)
+    value.setDate(today.getDate() - index)
+    return value.toISOString().slice(0, 10)
+  })
 }
 
 export default function PatientDetailPage() {
@@ -36,40 +43,58 @@ export default function PatientDetailPage() {
   const [observations, setObservations] = useState<PatientObservation[]>([])
   const [notes, setNotes] = useState<ClinicalNote[]>([])
   const [reviewEvents, setReviewEvents] = useState<ReviewEvent[]>([])
+  const [logs, setLogs] = useState<FoodLog[]>([])
   const [loading, setLoading] = useState(true)
+  const [loadedExtras, setLoadedExtras] = useState<Record<string, boolean>>({})
+  const [extraLoading, setExtraLoading] = useState(false)
   const [error, setError] = useState('')
-  const [activeTab, setActiveTab] = useState<'overview' | 'observations' | 'plans' | 'notes' | 'reviews'>('overview')
+  const [notice, setNotice] = useState('')
+  const [activeTab, setActiveTab] = useState<Tab>('overview')
+  const [editing, setEditing] = useState(false)
   const [noteContent, setNoteContent] = useState('')
   const [savingNote, setSavingNote] = useState(false)
 
-  useEffect(() => {
+  const load = useCallback(async () => {
     const token = getToken()
     if (!token || !id) return
-    let cancelled = false
-    const api = createApiClient(token)
-    void Promise.all([api.getPatient(id), api.listMealPlans(id), api.listObservations(id), api.listClinicalNotes(id), api.listPatientReviewEvents(id)])
-      .then(([profile, history, observationHistory, clinicalNotes, reviewHistory]) => {
-        if (cancelled) return
-        setPatient(profile)
-        setPlans(history.items)
-        setObservations(observationHistory)
-        setNotes(clinicalNotes)
-        setReviewEvents(reviewHistory)
-      })
-      .catch(e => { if (!cancelled) setError(e.message) })
-      .finally(() => { if (!cancelled) setLoading(false) })
-    return () => { cancelled = true }
+    setError('')
+    try {
+      const api = createApiClient(token)
+      const [profile, history] = await Promise.all([api.getPatient(id), api.listMealPlans(id)])
+      setPatient(profile)
+      setPlans(history.items)
+    } catch (value) {
+      setError(value instanceof ApiError ? value.message : 'Không thể tải hồ sơ bệnh nhân.')
+    } finally {
+      setLoading(false)
+    }
   }, [id])
 
-  if (loading) return <div style={{ display: 'grid', placeItems: 'center', height: '60vh' }}><span className="spinner" style={{ width: 34, height: 34, color: 'var(--c-green2)' }} /></div>
-  if (error || !patient) return <div className="page-body"><div className="safety-strip safety-strip-error">{error || 'Không tìm thấy hồ sơ'}</div></div>
+  useEffect(() => { const timer = window.setTimeout(() => void load(), 0); return () => window.clearTimeout(timer) }, [load])
 
-  const bmi = patient.weight_kg / (patient.height_cm / 100) ** 2
-  const latestPlan = plans[0]
-  const approvedCount = plans.filter(plan => plan.status === 'approved').length
-  const pendingCount = plans.filter(plan => plan.status === 'pending_review').length
+  useEffect(() => {
+    const key = activeTab === 'clinical' ? 'clinical' : activeTab === 'notes' ? 'notes' : activeTab === 'history' ? 'history' : activeTab === 'diary' || activeTab === 'weekly' ? 'logs' : ''
+    const token = getToken()
+    if (!key || !token || !id || loadedExtras[key]) return
+    let cancelled = false
+    const loadingTimer = window.setTimeout(() => { if (!cancelled) setExtraLoading(true) }, 0)
+    const api = createApiClient(token)
+    const task = key === 'clinical' ? api.listObservations(id).then(setObservations)
+      : key === 'notes' ? api.listClinicalNotes(id).then(setNotes)
+      : key === 'history' ? api.listPatientReviewEvents(id).then(setReviewEvents)
+      : Promise.all(recentDays().map(day => api.listFoodLogs(id, day))).then(days => setLogs(days.flat()))
+    void task.then(() => { if (!cancelled) setLoadedExtras(current => ({ ...current, [key]: true })) })
+      .catch(value => { if (!cancelled) setError(value instanceof ApiError ? value.message : 'Không thể tải dữ liệu của mục này.') })
+      .finally(() => { if (!cancelled) setExtraLoading(false) })
+    return () => { cancelled = true; window.clearTimeout(loadingTimer) }
+  }, [activeTab, id, loadedExtras])
 
-  const handleCreateNote = async () => {
+  const latestPlan = useMemo(() => [...plans].sort((a, b) => b.plan_date.localeCompare(a.plan_date))[0], [plans])
+  const activePlan = useMemo(() => [...plans].filter(plan => plan.status === 'approved').sort((a, b) => b.plan_date.localeCompare(a.plan_date))[0], [plans])
+  const skipped = logs.filter(log => log.free_text_vi?.toLocaleLowerCase('vi-VN').startsWith('bỏ ')).length
+  const unmatched = logs.filter(log => log.match_status === 'unmatched' && !log.free_text_vi?.toLocaleLowerCase('vi-VN').startsWith('bỏ ')).length
+
+  async function handleCreateNote() {
     const token = getToken()
     if (!token || !noteContent.trim()) return
     setSavingNote(true)
@@ -77,112 +102,83 @@ export default function PatientDetailPage() {
       const note = await createApiClient(token).createClinicalNote(id, { note_type: 'follow_up', content: noteContent.trim(), visibility: 'care_team' })
       setNotes(current => [note, ...current])
       setNoteContent('')
+      setNotice('Đã lưu ghi chú vào hồ sơ chăm sóc.')
+    } catch (value) {
+      setError(value instanceof ApiError ? value.message : 'Không thể lưu ghi chú.')
     } finally {
       setSavingNote(false)
     }
   }
 
-  return (
-    <>
-      <div className="topbar">
-        <div>
-          <p className="page-kicker">Patient record · #{patient.id.slice(0, 8)}</p>
-          <h1 className="page-title">Hồ sơ dinh dưỡng cá nhân</h1>
-        </div>
-        <div className="topbar-actions">
-          <Link href="/dietitian/patients" className="btn btn-secondary">← Danh sách</Link>
-        </div>
-      </div>
+  if (loading) return <PatientDetailSkeleton />
+  if (!patient) return <div className={styles.page}><div className={styles.error}><Icon name="warning" />{error || 'Không tìm thấy hồ sơ.'}<button type="button" onClick={() => void load()}>Thử lại</button></div></div>
 
-      <div className="page-body">
-        <section className="command-banner">
-          <div style={{ position: 'relative', zIndex: 1 }}>
-            <div style={{ display: 'flex', gap: 7, flexWrap: 'wrap', marginBottom: 12 }}>
-              {patient.conditions.map(condition => <span key={condition.code} className="badge" style={{ color: '#0b4b8a', background: '#dff1ff', border: '1px solid rgba(255,255,255,.45)' }}>{CONDITION_LABELS[condition.code] ?? condition.code}{condition.stage ? ` · ${condition.stage}` : ''}</span>)}
-            </div>
-            <h2>{patient.sex === 'male' ? 'Nam' : 'Nữ'}, {patient.age} tuổi · BMI {bmi.toFixed(1)}</h2>
-            <p>{patient.height_cm} cm · {patient.weight_kg} kg · Mức hoạt động {patient.activity_level} · Khu vực {patient.region ?? 'chưa cập nhật'}</p>
-          </div>
-          <div className="banner-meta">
-            <strong>{plans.length}</strong>
-            <span>thực đơn trong lịch sử</span>
-          </div>
-        </section>
+  const bmi = patient.weight_kg / (patient.height_cm / 100) ** 2
 
-        <div className="metric-grid">
-          <div className="metric-card"><div className="metric-label">Thực đơn gần nhất</div><div className="metric-value" style={{ fontSize: 22 }}>{latestPlan?.plan_date ?? '—'}</div><div className="metric-note">{latestPlan ? STATUS_LABELS[latestPlan.status] : 'Chưa có dữ liệu'}</div></div>
-          <div className="metric-card" style={{ '--metric-color': '#239ac7' } as React.CSSProperties}><div className="metric-label">Đã được duyệt</div><div className="metric-value">{approvedCount}</div><div className="metric-note">Có thể hiển thị cho bệnh nhân</div></div>
-          <div className="metric-card" style={{ '--metric-color': '#e8b84b' } as React.CSSProperties}><div className="metric-label">Đang chờ duyệt</div><div className="metric-value">{pendingCount}</div><div className="metric-note">Cần chuyên gia quyết định</div></div>
-          <div className="metric-card" style={{ '--metric-color': '#596fc7' } as React.CSSProperties}><div className="metric-label">Dị ứng đã ghi nhận</div><div className="metric-value">{patient.allergies.length}</div><div className="metric-note">{patient.allergies.join(', ') || 'Không ghi nhận'}</div></div>
-        </div>
+  return <div className={styles.page}>
+    <header className={styles.header}>
+      <div><Link href="/dietitian/patients"><Icon name="arrowLeft" />Danh sách bệnh nhân</Link><small>PATIENT 360 · #{patient.id.slice(0, 8)}</small><h1>{patient.sex === 'male' ? 'Nam' : 'Nữ'}, {patient.age} tuổi</h1><p>{patient.conditions.map(item => CONDITION_LABELS[item.code] ?? item.code).join(' · ') || 'Chưa ghi nhận bệnh nền'} · BMI {bmi.toFixed(1)}</p></div>
+      <div className={styles.headerActions}><button type="button" onClick={() => setEditing(true)}><Icon name="edit" />Chỉnh sửa hồ sơ</button><Link href={`/dietitian/meal-plans/new?profile_id=${patient.id}`}><Icon name="sparkles" />Tạo phương án</Link></div>
+    </header>
 
-        <div className="clinical-tabs" style={{ marginBottom: 18 }}>
-          <button className={`clinical-tab${activeTab === 'overview' ? ' active' : ''}`} onClick={() => setActiveTab('overview')}>Tổng quan lâm sàng</button>
-          <button className={`clinical-tab${activeTab === 'observations' ? ' active' : ''}`} onClick={() => setActiveTab('observations')}>Chỉ số & diễn biến</button>
-          <button className={`clinical-tab${activeTab === 'plans' ? ' active' : ''}`} onClick={() => setActiveTab('plans')}>Thực đơn</button>
-          <button className={`clinical-tab${activeTab === 'notes' ? ' active' : ''}`} onClick={() => setActiveTab('notes')}>Ghi chú chuyên gia</button>
-          <button className={`clinical-tab${activeTab === 'reviews' ? ' active' : ''}`} onClick={() => setActiveTab('reviews')}>Lịch sử phê duyệt</button>
-        </div>
+    {error && <div className={styles.error}><Icon name="warning" />{error}<button type="button" onClick={() => void load()}>Thử lại</button></div>}
+    {notice && <div className={styles.notice}><Icon name="check" />{notice}<button type="button" aria-label="Đóng" onClick={() => setNotice('')}><Icon name="close" /></button></div>}
 
-        {activeTab === 'plans' && (
-          <section className="card">
-            <div className="card-header"><div><h2 className="card-title">Lịch sử thực đơn</h2><p className="page-subtitle">Bao gồm bản đang sinh, chờ duyệt, đã duyệt và bị từ chối.</p></div><span className="badge badge-draft">{plans.length} bản</span></div>
-            <div className="card-body">
-              {plans.length === 0 ? <div className="empty-state"><div className="empty-icon">◇</div><div className="empty-title">Chưa có thực đơn</div><div className="empty-desc">Chưa có lịch sử thực đơn liên kết với hồ sơ này.</div></div> : (
-                <div className="plan-history-grid">
-                  {plans.map(plan => {
-                    const hard = plan.violations.filter(item => item.severity === 'hard').length
-                    return <Link key={plan.id} href={`/dietitian/reviews/${plan.id}`} className="plan-history-card">
-                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8 }}><span className={`badge ${STATUS_CLASS[plan.status] ?? 'badge-draft'}`}>{STATUS_LABELS[plan.status] ?? plan.status}</span><span className="font-mono text-sm text-muted">#{plan.id.slice(0, 8)}</span></div>
-                      <div style={{ fontFamily: 'var(--f-serif)', fontSize: 22, marginTop: 14 }}>{plan.plan_date}</div>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 12, fontSize: 11, color: 'var(--c-muted)' }}><span>{plan.items.length} món · lần thử {plan.retry_count}</span><span style={{ color: hard ? 'var(--c-red)' : 'var(--c-green2)' }}>{hard ? `${hard} vi phạm cứng` : 'Sẵn sàng xem'}</span></div>
-                    </Link>
-                  })}
-                </div>
-              )}
-            </div>
-          </section>
-        )}
-        {activeTab === 'overview' && (
-          <section className="card">
-            <div className="card-header"><h2 className="card-title">Thông tin phục vụ lập thực đơn</h2></div>
-            <div className="card-body">
-              <div className="info-grid">
-                <div className="info-tile"><span>Tuổi / giới tính</span><strong>{patient.age} · {patient.sex === 'male' ? 'Nam' : 'Nữ'}</strong></div>
-                <div className="info-tile"><span>Chiều cao / cân nặng</span><strong>{patient.height_cm} cm · {patient.weight_kg} kg</strong></div>
-                <div className="info-tile"><span>Mức hoạt động</span><strong>{patient.activity_level}</strong></div>
-                <div className="info-tile"><span>Dị ứng</span><strong>{patient.allergies.join(', ') || 'Không ghi nhận'}</strong></div>
-                <div className="info-tile"><span>Thuốc đang dùng</span><strong>{patient.medications.join(', ') || 'Không ghi nhận'}</strong></div>
-                <div className="info-tile"><span>Khu vực</span><strong>{patient.region ?? 'Chưa cập nhật'}</strong></div>
-              </div>
-              {Object.keys(patient.lab_values).length > 0 && <div style={{ marginTop: 22 }}><div className="section-heading"><h2>Chỉ số xét nghiệm</h2></div><div className="info-grid">{Object.entries(patient.lab_values).map(([key, value]) => <div className="info-tile" key={key}><span>{key}</span><strong>{value}</strong></div>)}</div></div>}
-            </div>
-          </section>
-        )}
-        {activeTab === 'observations' && (
-          <section className="card">
-            <div className="card-header"><div><h2 className="card-title">Chỉ số và diễn biến</h2><p className="page-subtitle">Các phép đo được giữ theo thời gian, không ghi đè lịch sử.</p></div><span className="badge badge-draft">{observations.length} bản ghi</span></div>
-            <div className="card-body">
-              {observations.length === 0 ? <div className="empty-state"><div className="empty-title">Chưa có chỉ số theo thời gian</div></div> : <div className="audit-list">{observations.map(observation => <div className="audit-row" key={observation.id}><strong>{observation.observation_type.toUpperCase()}</strong><span><strong>{observation.value} {observation.unit}</strong><small className="text-muted" style={{ display: 'block' }}>{observation.source}</small></span><span>{new Date(observation.measured_at).toLocaleString('vi-VN')}</span><span className="text-muted">{observation.note || '—'}</span></div>)}</div>}
-            </div>
-          </section>
-        )}
-        {activeTab === 'notes' && (
-          <section className="card">
-            <div className="card-header"><div><h2 className="card-title">Ghi chú chuyên gia</h2><p className="page-subtitle">Ghi chú care team được tách khỏi ghi chú phê duyệt thực đơn.</p></div></div>
-            <div className="card-body">
-              <div className="form-group" style={{ marginBottom: 20 }}><label className="form-label" htmlFor="clinical-note">Thêm ghi chú theo dõi</label><textarea id="clinical-note" className="form-textarea" value={noteContent} onChange={event => setNoteContent(event.target.value)} placeholder="Đánh giá, mục tiêu hoặc nội dung cần theo dõi…" /><div style={{ display: 'flex', justifyContent: 'flex-end' }}><button className="btn btn-primary btn-sm" disabled={savingNote || !noteContent.trim()} onClick={handleCreateNote}>{savingNote ? 'Đang lưu…' : 'Lưu ghi chú'}</button></div></div>
-              <div className="patient-list">{notes.map(note => <article className="info-tile" key={note.id}><div style={{ display: 'flex', justifyContent: 'space-between', gap: 12 }}><strong>{note.note_type}</strong><span className="badge badge-draft">{note.visibility}</span></div><p style={{ marginTop: 10 }}>{note.content}</p><small className="text-muted" style={{ display: 'block', marginTop: 8 }}>{new Date(note.created_at).toLocaleString('vi-VN')}</small></article>)}</div>
-            </div>
-          </section>
-        )}
-        {activeTab === 'reviews' && (
-          <section className="card">
-            <div className="card-header"><div><h2 className="card-title">Lịch sử phê duyệt</h2><p className="page-subtitle">Dòng sự kiện append-only cho các quyết định chuyên gia.</p></div><span className="badge badge-draft">{reviewEvents.length} sự kiện</span></div>
-            <div className="audit-list">{reviewEvents.length === 0 ? <div className="empty-state"><div className="empty-title">Chưa có sự kiện phê duyệt mới</div><div className="empty-desc">Các quyết định sau khi nâng cấp backend sẽ xuất hiện tại đây.</div></div> : reviewEvents.map(event => <Link href={`/dietitian/reviews/${event.meal_plan_id}`} className="audit-row" key={event.id}><span className={`badge badge-${event.decision === 'approved' ? 'approved' : 'rejected'}`}>{event.decision === 'approved' ? 'Đã duyệt' : 'Từ chối'}</span><span className="font-mono text-sm">#{event.meal_plan_id.slice(0, 8)}</span><span>{new Date(event.created_at).toLocaleString('vi-VN')}</span><span>{event.notes || event.reason || 'Không có ghi chú'}</span><span>Phiên bản {event.menu_version}</span></Link>)}</div>
-          </section>
-        )}
-      </div>
-    </>
-  )
+    <section className={styles.statusStrip}>
+      <article><small>TRẠNG THÁI THEO DÕI</small><strong>Đang theo dõi</strong><span>Hồ sơ có thể dùng để lập phương án</span></article>
+      <article><small>THỰC ĐƠN ĐANG ÁP DỤNG</small><strong>{activePlan?.plan_date ? new Date(`${activePlan.plan_date}T00:00:00`).toLocaleDateString('vi-VN') : 'Chưa có'}</strong><span>{activePlan ? `#${activePlan.id.slice(0, 8)} · ${activePlan.items.length} món` : 'Chưa có bản được phát hành'}</span></article>
+      <article><small>BẢN GẦN NHẤT</small><strong>{latestPlan ? STATUS_LABELS[latestPlan.status] ?? latestPlan.status : 'Chưa có'}</strong><span>{latestPlan ? `${latestPlan.plan_date} · #${latestPlan.id.slice(0, 8)}` : 'Tạo phương án đầu tiên'}</span></article>
+      <article><small>7 NGÀY GẦN NHẤT</small><strong>{loadedExtras.logs ? `${logs.length} ghi nhận` : 'Tải khi cần'}</strong><span>{loadedExtras.logs ? `${skipped} bỏ bữa · ${unmatched} món cần đối chiếu` : 'Mở Nhật ký hoặc Báo cáo tuần'}</span></article>
+    </section>
+
+    <nav className={styles.tabs} aria-label="Nội dung hồ sơ">
+      {([['overview','Tổng quan'],['clinical','Lâm sàng'],['plans','Thực đơn'],['diary','Nhật ký'],['weekly','Báo cáo tuần'],['notes','Ghi chú'],['history','Lịch sử']] as Array<[Tab,string]>).map(([value,label]) => <button type="button" key={value} className={activeTab === value ? styles.active : undefined} onClick={() => setActiveTab(value)}>{label}</button>)}
+    </nav>
+
+    {activeTab === 'overview' && <Overview patient={patient} activePlan={activePlan} />}
+    {extraLoading && <TabLoading />}
+    {!extraLoading && activeTab === 'clinical' && <Clinical patient={patient} observations={observations} />}
+    {activeTab === 'plans' && <Plans plans={plans} />}
+    {!extraLoading && activeTab === 'diary' && <Diary logs={logs} />}
+    {!extraLoading && activeTab === 'weekly' && <Weekly logs={logs} skipped={skipped} unmatched={unmatched} />}
+    {!extraLoading && activeTab === 'notes' && <Notes notes={notes} value={noteContent} saving={savingNote} onChange={setNoteContent} onSave={() => void handleCreateNote()} />}
+    {!extraLoading && activeTab === 'history' && <History events={reviewEvents} />}
+    {editing && <EditPatientModal patient={patient} onClose={() => setEditing(false)} onSaved={updated => { setPatient(updated); setEditing(false); setNotice('Đã cập nhật hồ sơ. Thuốc, dị ứng, bệnh nền hoặc chỉ số thay đổi cần được kiểm tra lại trước lần phát hành tiếp theo.') }} />}
+  </div>
 }
+
+function Overview({patient,activePlan}:{patient:PatientProfile;activePlan?:MealPlan}) {
+  return <div className={styles.twoColumns}><section className={styles.card}><CardTitle eyebrow="THÔNG TIN CỐT LÕI" title="Dữ liệu đang được sử dụng"/><dl className={styles.details}><div><dt>Chiều cao</dt><dd>{patient.height_cm} cm</dd></div><div><dt>Cân nặng</dt><dd>{patient.weight_kg} kg</dd></div><div><dt>Hoạt động</dt><dd>{patient.activity_level}</dd></div><div><dt>Vùng miền</dt><dd>{patient.region ?? 'Chưa cập nhật'}</dd></div><div><dt>Dị ứng</dt><dd>{patient.allergies.join(', ') || 'Không ghi nhận'}</dd></div><div><dt>Thuốc</dt><dd>{patient.medications.join(', ') || 'Không ghi nhận'}</dd></div></dl></section><aside className={styles.card}><CardTitle eyebrow="ĐƯỜNG ĐI TIẾP THEO" title="Thực đơn và an toàn"/><div className={styles.nextStep}><span><Icon name={activePlan?'check':'info'}/></span><div><strong>{activePlan?'Đã có thực đơn đang áp dụng':'Chưa có thực đơn được phát hành'}</strong><p>{activePlan?'Người bệnh chỉ nhìn thấy phiên bản đã được duyệt.':'Tạo phương án mới sau khi hồ sơ lâm sàng đã đủ dữ liệu.'}</p></div></div><Link className={styles.primaryLink} href={`/dietitian/meal-plans/new?profile_id=${patient.id}`}>Tạo phương án thực đơn<Icon name="arrowRight"/></Link></aside></div>
+}
+
+function Clinical({patient,observations}:{patient:PatientProfile;observations:PatientObservation[]}) {
+  return <div className={styles.twoColumns}><section className={styles.card}><CardTitle eyebrow="AN TOÀN LÂM SÀNG" title="Bệnh nền, thuốc và dị ứng"/><DataGroup title="Bệnh lý" values={patient.conditions.map(item => `${CONDITION_LABELS[item.code] ?? item.code}${item.stage ? ` · ${item.stage}` : ''}`)}/><DataGroup title="Thuốc đang dùng" values={patient.medications}/><DataGroup title="Dị ứng" values={patient.allergies}/><div className={styles.warning}><Icon name="warning"/>Thay đổi các dữ liệu này có thể làm quyết định duyệt cũ không còn phù hợp.</div></section><section className={styles.card}><CardTitle eyebrow="DÒNG THỜI GIAN" title="Chỉ số và diễn biến"/><div className={styles.list}>{observations.length ? observations.map(item => <article key={item.id}><span><Icon name="trend"/></span><div><strong>{item.observation_type.toUpperCase()} · {item.value} {item.unit}</strong><p>{item.source}{item.note ? ` · ${item.note}` : ''}</p></div><time>{new Date(item.measured_at).toLocaleDateString('vi-VN')}</time></article>) : <Empty text="Chưa có chỉ số được ghi theo thời gian."/>}</div></section></div>
+}
+
+function Plans({plans}:{plans:MealPlan[]}) { return <section className={styles.card}><CardTitle eyebrow="VERSIONED MEAL PLANS" title="Lịch sử thực đơn"/><div className={styles.planList}>{plans.length ? [...plans].sort((a,b)=>b.plan_date.localeCompare(a.plan_date)).map(plan => <Link href={`/dietitian/reviews/${plan.id}`} key={plan.id}><span className={`${styles.badge} ${styles[plan.status] ?? ''}`}>{STATUS_LABELS[plan.status] ?? plan.status}</span><div><strong>{new Date(`${plan.plan_date}T00:00:00`).toLocaleDateString('vi-VN')}</strong><small>#{plan.id.slice(0,8)} · {plan.items.length} món · phiên bản {plan.menu_version}</small></div><Icon name="chevronRight"/></Link>) : <Empty text="Hồ sơ này chưa có thực đơn."/>}</div></section> }
+
+function Diary({logs}:{logs:FoodLog[]}) { return <section className={styles.card}><CardTitle eyebrow="7 NGÀY GẦN NHẤT" title="Nhật ký ăn uống"/><div className={styles.logList}>{logs.length ? [...logs].sort((a,b)=>b.logged_at.localeCompare(a.logged_at)).map(log => <article key={log.id}><span><Icon name="diary"/></span><div><strong>{log.free_text_vi || 'Ghi nhận bữa ăn'}</strong><small>{SLOT_LABELS[log.slot ?? ''] ?? 'Chưa rõ bữa'} · {log.grams ? `${Math.round(log.grams)} g` : 'không có gram'} · {log.match_status}</small></div><time>{new Date(log.logged_at).toLocaleString('vi-VN')}</time></article>) : <Empty text="Người bệnh chưa có ghi nhận trong 7 ngày gần nhất."/>}</div></section> }
+
+function Weekly({logs,skipped,unmatched}:{logs:FoodLog[];skipped:number;unmatched:number}) {
+  const activeDays = new Set(logs.map(log => log.logged_at.slice(0,10))).size
+  return <div className={styles.twoColumns}><section className={styles.card}><CardTitle eyebrow="TÓM TẮT NGOẠI LỆ" title="Điểm cần chuyên gia chú ý"/><div className={styles.weekStats}><article><strong>{activeDays}/7</strong><span>ngày có dữ liệu</span></article><article><strong>{skipped}</strong><span>bữa được báo bỏ</span></article><article><strong>{unmatched}</strong><span>món cần đối chiếu</span></article></div><div className={styles.warning}><Icon name="info"/>Đây là tóm tắt từ dữ liệu hiện có, chưa phải báo cáo lâm sàng tự động đầy đủ.</div></section><aside className={styles.card}><CardTitle eyebrow="HÀNH ĐỘNG" title="Theo dõi theo ngoại lệ"/><p className={styles.bodyText}>{skipped || unmatched ? 'Hồ sơ đang có dữ liệu cần xem. Chuyên gia có thể đối chiếu món hoặc ghi nhận hướng theo dõi ở tab Ghi chú.' : 'Chưa phát hiện ngoại lệ từ nhật ký hiện có. Không cần mở từng bữa để duyệt lại.'}</p><Link className={styles.primaryLink} href="/dietitian/food-logs">Mở trung tâm theo dõi tuần<Icon name="arrowRight"/></Link></aside></div>
+}
+
+function Notes({notes,value,saving,onChange,onSave}:{notes:ClinicalNote[];value:string;saving:boolean;onChange:(value:string)=>void;onSave:()=>void}) { return <section className={styles.card}><CardTitle eyebrow="CARE TEAM" title="Ghi chú chuyên gia"/><div className={styles.noteComposer}><textarea value={value} onChange={event=>onChange(event.target.value)} placeholder="Đánh giá, mục tiêu hoặc nội dung cần theo dõi…"/><button type="button" disabled={saving || value.trim().length < 3} onClick={onSave}>{saving?'Đang lưu…':'Lưu ghi chú'}</button></div><div className={styles.noteList}>{notes.length ? notes.map(note=><article key={note.id}><header><strong>{note.note_type}</strong><time>{new Date(note.created_at).toLocaleString('vi-VN')}</time></header><p>{note.content}</p><small>{note.visibility} · phiên bản {note.version}</small></article>) : <Empty text="Chưa có ghi chú chăm sóc."/>}</div></section> }
+
+function History({events}:{events:ReviewEvent[]}) { return <section className={styles.card}><CardTitle eyebrow="AUDIT TRAIL" title="Lịch sử quyết định"/><div className={styles.history}>{events.length ? events.map(event=><Link href={`/dietitian/reviews/${event.meal_plan_id}`} key={event.id}><span><Icon name={event.decision==='approved'?'check':'close'}/></span><div><strong>{event.decision==='approved'?'Đã duyệt':'Đã từ chối'} · phiên bản {event.menu_version}</strong><p>{event.notes || event.reason || 'Không có ghi chú'}</p></div><time>{new Date(event.created_at).toLocaleString('vi-VN')}</time></Link>) : <Empty text="Chưa có quyết định duyệt được ghi nhận."/>}</div></section> }
+
+function EditPatientModal({patient,onClose,onSaved}:{patient:PatientProfile;onClose:()=>void;onSaved:(patient:PatientProfile)=>void}) {
+  const [form,setForm]=useState<{age:string;height:string;weight:string;activity:string;region:string;conditions:string;medications:string;allergies:string}>({age:String(patient.age),height:String(patient.height_cm),weight:String(patient.weight_kg),activity:patient.activity_level,region:patient.region??'',conditions:patient.conditions.map(item=>item.code).join(', '),medications:patient.medications.join(', '),allergies:patient.allergies.join(', ')})
+  const [saving,setSaving]=useState(false)
+  const [error,setError]=useState('')
+  const split=(value:string)=>value.split(',').map(item=>item.trim()).filter(Boolean)
+  async function save(){const token=getToken();if(!token)return;setSaving(true);setError('');try{const conditionCodes=split(form.conditions);const updated=await createApiClient(token).updatePatient(patient.id,{age:Number(form.age),height_cm:Number(form.height),weight_kg:Number(form.weight),activity_level:form.activity as PatientProfile['activity_level'],region:(form.region||null) as PatientProfile['region'],conditions:conditionCodes.map(code=>({code,stage:patient.conditions.find(item=>item.code===code)?.stage??null})),medications:split(form.medications),allergies:split(form.allergies)});onSaved(updated)}catch(value){setError(value instanceof ApiError?value.message:'Không thể cập nhật hồ sơ.')}finally{setSaving(false)}}
+  return <div className={styles.modalLayer} role="dialog" aria-modal="true" aria-label="Chỉnh sửa hồ sơ"><button className={styles.scrim} type="button" onClick={onClose} aria-label="Đóng"/><form className={styles.modal} onSubmit={event=>{event.preventDefault();void save()}}><header><div><small>CHỈNH SỬA CÓ KIỂM SOÁT</small><h2>Cập nhật hồ sơ</h2><p>Thay đổi lâm sàng quan trọng cần được kiểm tra lại trước lần phát hành tiếp theo.</p></div><button type="button" onClick={onClose} aria-label="Đóng"><Icon name="close"/></button></header>{error&&<div className={styles.formError}>{error}</div>}<div className={styles.formGrid}><label>Tuổi<input required type="number" min="1" max="120" value={form.age} onChange={e=>setForm({...form,age:e.target.value})}/></label><label>Chiều cao (cm)<input required type="number" min="50" max="250" value={form.height} onChange={e=>setForm({...form,height:e.target.value})}/></label><label>Cân nặng (kg)<input required type="number" min="10" max="500" step="0.1" value={form.weight} onChange={e=>setForm({...form,weight:e.target.value})}/></label><label>Mức hoạt động<select value={form.activity} onChange={e=>setForm({...form,activity:e.target.value})}><option value="light">Nhẹ</option><option value="moderate">Trung bình</option><option value="heavy">Nặng</option><option value="very_heavy">Rất nặng</option></select></label><label>Vùng miền<select value={form.region} onChange={e=>setForm({...form,region:e.target.value})}><option value="">Chưa cập nhật</option><option value="north">Miền Bắc</option><option value="central">Miền Trung</option><option value="south">Miền Nam</option></select></label><label className={styles.full}>Mã bệnh lý, cách nhau bằng dấu phẩy<input value={form.conditions} onChange={e=>setForm({...form,conditions:e.target.value})}/></label><label className={styles.full}>Thuốc đang dùng, cách nhau bằng dấu phẩy<input value={form.medications} onChange={e=>setForm({...form,medications:e.target.value})}/></label><label className={styles.full}>Dị ứng, cách nhau bằng dấu phẩy<input value={form.allergies} onChange={e=>setForm({...form,allergies:e.target.value})}/></label></div><footer><button type="button" onClick={onClose}>Hủy</button><button type="submit" disabled={saving}>{saving?'Đang lưu…':'Lưu thay đổi'}</button></footer></form></div>
+}
+
+function CardTitle({eyebrow,title}:{eyebrow:string;title:string}) { return <div className={styles.cardTitle}><small>{eyebrow}</small><h2>{title}</h2></div> }
+function DataGroup({title,values}:{title:string;values:string[]}) { return <div className={styles.dataGroup}><h3>{title}</h3><div>{values.length?values.map(value=><span key={value}>{value}</span>):<span>Chưa ghi nhận</span>}</div></div> }
+function Empty({text}:{text:string}) { return <div className={styles.empty}><Icon name="info"/><p>{text}</p></div> }
+function TabLoading(){return <section className={styles.card}><div className={styles.empty}><Icon name="clock"/><p>Đang tải dữ liệu của mục này…</p></div></section>}
+function PatientDetailSkeleton(){return <div className={styles.page}><div className={styles.skeletonHeader}/><div className={styles.skeletonMetrics}/><div className={styles.skeletonBody}/></div>}
