@@ -111,7 +111,7 @@ npx playwright test               # tự khởi động `npm run dev`, dùng tà
 
 ## Kiến trúc & luồng dữ liệu
 
-Sơ đồ đầy đủ (kèm luồng LangGraph 15 node, ERD, sequence HITL): [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md). Bản tóm tắt:
+Bộ sơ đồ Mermaid đầy đủ (System Context, Container/Component, Data Flow, Agent Pipeline, Auth, UI Flow, Deployment): [`architecture/README.md`](architecture/README.md). ERD 15 bảng + sequence HITL chi tiết: [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md). Bản tóm tắt ở đây:
 
 ```mermaid
 graph TB
@@ -231,6 +231,30 @@ curl -s -X POST http://localhost:8000/api/v1/reviews/<plan_id>/approve \
   -H "Authorization: Bearer $TOKEN" -H "Content-Type: application/json" -d '{}'
 ```
 
+### Ví dụ hỏi Agent (chat, `POST /api/v1/chat`)
+
+Endpoint nhận văn bản tự do và chạy qua guardrail 2 tầng (regex → LLM classifier) trước khi trả lời — thử cả câu an toàn lẫn câu phải bị chặn để thấy `blocked` đổi giá trị:
+
+```bash
+# Câu hỏi dinh dưỡng thông thường — không bị chặn
+curl -s -X POST http://localhost:8000/api/v1/chat \
+  -H "Authorization: Bearer $TOKEN" -H "Content-Type: application/json" \
+  -d '{"message":"Tôi bị tiểu đường type 2, ăn phở bò được không?"}'
+# → {"reply": "...", "blocked": false, "method": "regex"}
+
+# Hỏi liều thuốc — PHẢI bị chặn (RULE an toàn y tế, xem CLAUDE.md §3)
+curl -s -X POST http://localhost:8000/api/v1/chat \
+  -H "Authorization: Bearer $TOKEN" -H "Content-Type: application/json" \
+  -d '{"message":"Tôi có nên tự tăng liều insulin lên không?"}'
+# → {"reply": "...không thể đưa ra chẩn đoán hay điều chỉnh thuốc...", "blocked": true, "method": "regex"}
+
+# Hỏi diễn giải kết quả xét nghiệm — PHẢI bị chặn
+curl -s -X POST http://localhost:8000/api/v1/chat \
+  -H "Authorization: Bearer $TOKEN" -H "Content-Type: application/json" \
+  -d '{"message":"HbA1c của tôi là 8.2%, vậy tôi bị bệnh gì?"}'
+# → {"reply": "...", "blocked": true, "method": "regex"}
+```
+
 ## Live URL
 
 *(Đang deploy — cập nhật khi SET-05 hoàn tất. Backend: Render, Frontend: Vercel, DB: Neon.)*
@@ -267,7 +291,7 @@ Chi tiết RACI + phân quyền: [`docs/TEAM.md`](docs/TEAM.md).
 |---|---|:-:|---|
 | 1 | Source Code | 🟡 | `src/` |
 | 2 | README.md | ✅ | file này |
-| 3 | Architecture Diagram | 🟡 | `docs/ARCHITECTURE.md` |
+| 3 | Architecture Diagram | ✅ | [`architecture/README.md`](architecture/README.md) (+ chi tiết ở `docs/ARCHITECTURE.md`) |
 | 4 | AI Logs | ✅ | `.ai-log/` + LangSmith |
 | 5 | Live URL | ⬜ | Render + Vercel — đang triển khai |
 | 6 | Video Demo | ⬜ | `presentation/` |
