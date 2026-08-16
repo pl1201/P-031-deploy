@@ -75,6 +75,29 @@ make run             # hoặc: uvicorn src.main:app --reload --port 8000
 # Swagger UI: http://localhost:8000/docs
 ```
 
+### Biến môi trường
+
+Copy từ `.env.example` — tên biến phải khớp **chính xác** field trong `src/config.py` (pydantic-settings, `extra="ignore"` nghĩa là biến sai tên bị bỏ qua âm thầm, không báo lỗi).
+
+| Biến | Bắt buộc | Mặc định | Ghi chú |
+|---|:-:|---|---|
+| `APP_ENV`, `APP_PORT`, `APP_HOST` | — | `development`, `8000`, `0.0.0.0` | |
+| `CORS_ORIGINS` | — | `localhost:3000,8000` | danh sách phân cách bằng dấu phẩy |
+| `DATABASE_URL` | ✅ | — | `sqlite:///./data/app.db` để chạy dev không cần Postgres |
+| `DB_POOL_SIZE`, `DB_MAX_OVERFLOW`, `DB_*_TIMEOUT_SEC` | — | xem `.env.example` | tuning connection pool cho Postgres |
+| `CHROMA_PERSIST_DIR` | — | `./data/chroma` | vector store cục bộ (dev) |
+| `GEMINI_API_KEY` (+ `_2`..`_5`) | ✅ nếu `MENU_GENERATOR≠cpsat` | — | nguồn LLM chính; nhiều key để xoay vòng khi rate-limit |
+| `GEMINI_MODEL` | — | `gemini-2.5-flash` | |
+| `OPENAI_API_KEY`, `MODEL_NAME`, `LLM_TEMPERATURE` | — | — | dự phòng, chưa dùng chính |
+| `USDA_API_KEY` | — | — | tra cứu USDA FoodData Central (DAT-03) |
+| `MENU_GENERATOR` | — | `hybrid` | `hybrid` \| `cpsat` (không cần LLM key) \| `gemini` |
+| `JWT_SECRET` | ✅ | — | `openssl rand -hex 32` khi lên production |
+| `JWT_ALGORITHM`, `JWT_ACCESS_TTL_MIN`, `JWT_REFRESH_TTL_DAYS` | — | `HS256`, `15`, `7` | |
+| `LANGCHAIN_API_KEY`, `LANGCHAIN_PROJECT`, `LANGCHAIN_TRACING_V2` | — | tắt (`false`) | bật để trace graph trên LangSmith |
+| `AI_LOG_SERVER`, `AI_LOG_API_KEY`, `AI_LOG_DIR` | ✅ | `.ai-log` | bắt buộc cho hook chấm điểm SET-02, key do giảng viên cấp |
+
+**Không bao giờ** đọc secrets qua `os.getenv()` rải rác trong code — chỉ qua `src/config.py` (xem `CLAUDE.md` §4).
+
 ### E2E test frontend (Playwright)
 
 Cần backend đang chạy (bước 7) + `make seed && make seed-demo-users` trước. Key LLM đọc từ `.env` gốc (`GEMINI_API_KEY*`) — không cần tên khác.
@@ -85,6 +108,61 @@ npm install
 npx playwright install chromium   # 1 lần
 npx playwright test               # tự khởi động `npm run dev`, dùng tài khoản demo trong .env
 ```
+
+## Kiến trúc & luồng dữ liệu
+
+Sơ đồ đầy đủ (kèm luồng LangGraph 15 node, ERD, sequence HITL): [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md). Bản tóm tắt:
+
+```mermaid
+graph TB
+    subgraph Client["Client — web-next/"]
+        PW[Patient Portal]
+        DW[Dietitian Dashboard]
+    end
+
+    subgraph API["FastAPI — src/api/routes"]
+        AUTH[auth / RBAC]
+        SVC[patients · targets · meal_plans · reviews · food_logs]
+    end
+
+    subgraph AGENT["LangGraph Agent — src/agents"]
+        GEN[generate_menu<br/>gọi LLM — chỉ trả food_id + gram]
+        CKPT[(Postgres Checkpointer<br/>interrupt trước to_review)]
+    end
+
+    subgraph CORE["Clinical Core — src/clinical<br/>KHÔNG import LLM (RULE-1)"]
+        CALC[targets · rules_engine<br/>allergy · drug_food]
+    end
+
+    subgraph DATA["PostgreSQL 16 + pgvector"]
+        FOOD[(food_items / dishes<br/>clinical_rules)]
+        PLAN[(meal_plans — status)]
+        AUDT[(audit_log — append only)]
+    end
+
+    subgraph EXT["Ngoài"]
+        LLM[Gemini / OpenAI]
+    end
+
+    PW -->|đăng nhập, xem thực đơn approved| AUTH
+    DW -->|duyệt / từ chối / sửa| AUTH
+    AUTH --> SVC
+    SVC -->|tạo yêu cầu thực đơn| GEN
+    SVC -->|approve/reject → Command resume| CKPT
+    GEN --> LLM
+    GEN -->|food_id + gram| CALC
+    CALC -->|SQL, tính kcal/Na/K/P| FOOD
+    CALC --> CKPT
+    CKPT -->|status=pending_review| PLAN
+    SVC -->|status=approved| PLAN
+    SVC --> AUDT
+
+    style CORE fill:#e8f5e9,stroke:#2e7d32
+    style AGENT fill:#e3f2fd,stroke:#1565c0
+    style EXT fill:#fff3e0,stroke:#ef6c00
+```
+
+Điểm mấu chốt: `generate_menu` là node **duy nhất** gọi LLM và chỉ được trả `food_id`+gram; mọi con số dinh dưỡng đi qua `src/clinical` bằng SQL. Graph luôn dừng ở `to_review` (Postgres checkpointer `interrupt_before`) — API bệnh nhân chỉ đọc `meal_plans` có `status=approved`.
 
 ## Cấu trúc dự án
 
@@ -121,6 +199,37 @@ Chi tiết đầy đủ (input/output/ràng buộc/lỗi): [`docs/ARCHITECTURE.m
 | POST/GET | `/api/v1/meal-plans` | Sinh thực đơn (chạy graph nền, `202`) / xem thực đơn |
 | GET/POST | `/api/v1/reviews/pending`, `/{id}/approve`, `/{id}/reject` | Hàng chờ duyệt (HITL) |
 | POST | `/api/v1/chat` | Chat guardrail 2 tầng (regex + LLM classifier, AGT-07) — chặn câu hỏi chỉ định y khoa |
+
+### Ví dụ truy vấn
+
+Chạy sau `make run` + `make seed && make seed-demo-users`. Thay `$TOKEN` bằng `access_token` lấy từ bước login.
+
+```bash
+# 1. Đăng nhập lấy JWT
+curl -s -X POST http://localhost:8000/api/v1/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{"email":"dietitian1@nutricare.demo","password":"Demo1234"}'
+# → {"access_token": "...", "refresh_token": "...", "token_type": "bearer"}
+
+# 2. Tính định mức lâm sàng cho một bệnh nhân (deterministic, KHÔNG gọi LLM)
+curl -s -X POST http://localhost:8000/api/v1/targets/compute \
+  -H "Authorization: Bearer $TOKEN" -H "Content-Type: application/json" \
+  -d '{"patient_id":"<profile_id>"}'
+# → { "bmr_kcal": ..., "tdee_kcal": ..., "targets": {"natri": {...}, ...}, "needs_expert_review": false }
+
+# 3. Yêu cầu sinh thực đơn cho một ngày — chạy graph nền, trả 202 ngay
+curl -s -X POST http://localhost:8000/api/v1/meal-plans \
+  -H "Authorization: Bearer $TOKEN" -H "Content-Type: application/json" \
+  -d '{"patient_id":"<profile_id>","plan_date":"2026-08-20","preferences":{"dislikes":["mắm tôm"]}}'
+# → {"plan_id": "...", "status": "drafting"}  — poll GET /meal-plans/{plan_id} tới khi status != drafting
+
+# 4. Hàng chờ duyệt của chuyên gia (RULE-3)
+curl -s http://localhost:8000/api/v1/reviews/pending -H "Authorization: Bearer $TOKEN"
+
+# 5. Duyệt thực đơn — chỉ sau bước này bệnh nhân mới thấy được
+curl -s -X POST http://localhost:8000/api/v1/reviews/<plan_id>/approve \
+  -H "Authorization: Bearer $TOKEN" -H "Content-Type: application/json" -d '{}'
+```
 
 ## Live URL
 
