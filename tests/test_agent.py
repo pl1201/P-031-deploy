@@ -163,10 +163,11 @@ class TestAgentFlow:
         assert out["status"] == "pending_review"
         nodes = [event.node for event in out["audit_events"]]
         fallback_at = nodes.index("fallback_template")
-        assert nodes[fallback_at : fallback_at + 5] == [
+        assert nodes[fallback_at : fallback_at + 6] == [
             "fallback_template",
             "compute_nutrition",
             "safety_validate",
+            "culinary_validate",
             "risk_triage",
             "explain_with_citations",
         ]

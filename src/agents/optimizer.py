@@ -38,6 +38,20 @@ import math
 
 from ortools.sat.python import cp_model  # type: ignore[import-not-found]  # chưa có type stub
 
+from src.agents.vietnamese_cuisine import (
+    allowed_component_in_slot,
+    allowed_in_slot,
+    has_meal_blueprint_catalog,
+    is_main_component,
+    is_patient_meal_dish,
+    is_primary_dish,
+    is_rice_food,
+    is_simple_snack_food,
+    is_water_dish,
+    raw_food_allowed_in_slot,
+    slot_candidates,
+)
+from src.clinical.dish_roles import DishRole
 from src.clinical.models import (
     ClinicalTargets,
     DishCandidate,
@@ -83,7 +97,10 @@ GRAM_STEP = 25
 MAX_GRAMS_PER_ITEM = 300
 MIN_ITEMS_PER_SLOT = 1
 MAX_ITEMS_PER_SLOT = 5
-SOLVE_TIME_LIMIT_SECONDS = 30.0
+# A request must leave time for deterministic nutrition + safety validation.
+# The model is intentionally small (top-K retrieval happens upstream), so a
+# 4-second cap is sufficient while preventing an API worker from hanging.
+SOLVE_TIME_LIMIT_SECONDS = 4.0
 
 # Bug đã audit thực tế (2026-08-07): KHÔNG có ràng buộc này, cùng một nguyên
 # liệu (VD gừng) có thể được chọn MAX_GRAMS_PER_ITEM ở CẢ 4 bữa/ngày = 1200 g/
@@ -93,26 +110,64 @@ SOLVE_TIME_LIMIT_SECONDS = 30.0
 # lỗi "chọn lặp" này).
 MAX_GRAMS_PER_FOOD_PER_DAY = 400
 
+# Prepared dishes are scaled as complete recipes in patient-facing mode. This
+# avoids the former behaviour where CP-SAT kept a fixed tiny dish serving and
+# filled nutrient gaps with a standalone raw ingredient.
+_MAIN_DISH_MIN_GRAMS = {
+    MealSlot.BREAKFAST: 250,
+    MealSlot.LUNCH: 300,
+    MealSlot.DINNER: 300,
+}
+_MAX_DISH_SERVING_GRAMS = 500
+
 # Tối đa 1 món hoàn chỉnh (DishCandidate) mỗi bữa — một bữa không ăn 2 tô phở.
 MAX_DISHES_PER_SLOT = 1
 
 
 def _max_grams_per_slot(food: FoodItem) -> int:
+    if is_rice_food(food):
+        # Cooked rice is an explicit component of the lunch/dinner plate, not
+        # an optimiser residue.  400 g is a generous but recognisable serving.
+        return 400
     category = (food.category or "").strip().lower()
     if category in {"gia vị", "dầu mỡ"}:
         return 25
     if category == "hạt":
         return 50
+    if category == "trái cây" or is_simple_snack_food(food):
+        return 200
     return MAX_GRAMS_PER_ITEM
 
 
 def _max_grams_per_day(food: FoodItem) -> int:
+    if is_rice_food(food):
+        return 800
     category = (food.category or "").strip().lower()
     if category in {"gia vị", "dầu mỡ"}:
         return 50
     if category == "hạt":
         return 100
+    if category == "trái cây" or is_simple_snack_food(food):
+        return 250
     return MAX_GRAMS_PER_FOOD_PER_DAY
+
+
+def _dish_serving_bounds(slot: MealSlot, dish: DishCandidate) -> tuple[int, int]:
+    """Return a practical serving range for one prepared dish/component."""
+    recipe_grams = sum(item.grams for item in dish.ingredients)
+    # Lunch/dinner are assembled as a plate.  The former shared 300 g minimum
+    # made a single protein component effectively a 300 g serving, which is
+    # both implausible and often infeasible for CKD/Gout protein limits.
+    if slot in {MealSlot.LUNCH, MealSlot.DINNER}:
+        if DishRole.PROTEIN in dish.roles:
+            return 75, min(225, max(125, round(recipe_grams * 2)))
+        if DishRole.VEGETABLE in dish.roles:
+            return 100, min(300, max(175, round(recipe_grams * 2)))
+        if DishRole.SOUP in dish.roles:
+            return 150, min(400, max(250, round(recipe_grams * 2)))
+    minimum = _MAIN_DISH_MIN_GRAMS.get(slot, max(75, min(200, round(recipe_grams))))
+    maximum = max(minimum, min(_MAX_DISH_SERVING_GRAMS, max(round(recipe_grams * 2), minimum)))
+    return minimum, maximum
 
 
 # CP-SAT chỉ nhận hệ số nguyên, nên giá trị/100 g phải làm tròn về bội của
@@ -284,6 +339,56 @@ def _dish_has_complete_nutrient(dish: DishCandidate, foods: FoodRepository, fiel
     )
 
 
+def _dishes_by_slot(
+    dishes: list[tuple[DishCandidate, dict[str, float]]],
+    *,
+    prefer_vietnamese_pattern: bool,
+    meal_blueprint_mode: bool = False,
+) -> dict[MealSlot, list[tuple[DishCandidate, dict[str, float]]]]:
+    """Apply Vietnamese slot policy when role metadata is available.
+
+    Unit tests and legacy integrations may inject ``DishCandidate`` without
+    ``roles``.  Preserve their legacy all-slot behaviour; production DB rows
+    carry roles and therefore take the safe, slot-aware path.
+    """
+    if not dishes:
+        return {slot: [] for slot in _SLOTS}
+    if not any(dish.roles for dish, _ in dishes):
+        return {slot: list(dishes) for slot in _SLOTS}
+
+    totals_by_id = {dish.dish_id: totals for dish, totals in dishes}
+    if meal_blueprint_mode:
+        # A normal rice meal is assembled from reviewed components.  Do not
+        # let CP-SAT replace it with one arbitrary `one_dish` record such as
+        # xôi or bánh mì merely because that record happens to fit macros.
+        breakfast = [dish for dish, _ in dishes if allowed_in_slot(dish, MealSlot.BREAKFAST)]
+        water_breakfast = [dish for dish in breakfast if is_water_dish(dish)]
+        plate_components = [dish for dish, _ in dishes if allowed_component_in_slot(dish, MealSlot.LUNCH)]
+        return {
+            MealSlot.BREAKFAST: [
+                (dish, totals_by_id[dish.dish_id]) for dish in (water_breakfast or breakfast)[:18]
+            ],
+            MealSlot.LUNCH: [(dish, totals_by_id[dish.dish_id]) for dish in plate_components[:24]],
+            MealSlot.DINNER: [(dish, totals_by_id[dish.dish_id]) for dish in plate_components[:24]],
+            MealSlot.SNACK: [],
+        }
+
+    policy = slot_candidates(
+        (dish for dish, _ in dishes), prefer=prefer_vietnamese_pattern, include_components=True
+    )
+    out: dict[MealSlot, list[tuple[DishCandidate, dict[str, float]]]] = {}
+    for slot in _SLOTS:
+        slot_dishes = policy.get(slot, [])
+        if slot in {MealSlot.LUNCH, MealSlot.DINNER}:
+            primary = [dish for dish in slot_dishes if is_primary_dish(dish)][:16]
+            components = [dish for dish in slot_dishes if is_main_component(dish) and dish not in primary][:12]
+            slot_dishes = primary + components
+        else:
+            slot_dishes = slot_dishes[:18]
+        out[slot] = [(dish, totals_by_id[dish.dish_id]) for dish in slot_dishes]
+    return out
+
+
 def _solve_day(
     candidates: list[FoodItem],
     targets: ClinicalTargets,
@@ -347,27 +452,82 @@ def _solve_day(
         attempts.append(narrowed)
     attempts.append(bounds)
 
-    for attempt in attempts:
-        draft = _try_solve(eligible, attempt, dish_totals)
-        if draft is not None:
-            return draft
+    # First find a culturally diverse day with no repeated prepared dish.  A
+    # sparse clinical catalog can make that impossible, so only then relax
+    # diversity (the culinary gate will surface that fallback as P2 to HITL).
+    has_role_metadata = any(dish.roles for dish, _ in dish_totals)
+    meal_blueprint_mode = has_role_metadata and has_meal_blueprint_catalog(
+        (dish for dish, _ in dish_totals), eligible
+    )
+    strict_patient_dish_mode = meal_blueprint_mode
+    diversity_modes = (True, False) if has_role_metadata else (False,)
+    for enforce_dish_diversity in diversity_modes:
+        # First favour culturally expected patterns (món nước buổi sáng; cơm
+        # trưa/tối). If that cannot meet clinical bounds, broaden the slot-safe
+        # catalog before relaxing diversity.
+        for prefer_vietnamese_pattern in (True, False):
+            dish_totals_by_slot = _dishes_by_slot(
+                dish_totals,
+                prefer_vietnamese_pattern=prefer_vietnamese_pattern,
+                meal_blueprint_mode=meal_blueprint_mode,
+            )
+            if meal_blueprint_mode:
+                # The reviewed catalog has no safe snack recipes (it currently
+                # contains xôi/chè/bánh).  Build this slot only from the narrow
+                # fruit/dairy/nut whitelist rather than presenting a heavy main
+                # dish as a mid-afternoon snack.
+                dish_totals_by_slot[MealSlot.SNACK] = []
+            elif not strict_patient_dish_mode:
+                # Preserve the legacy ingredient-only/seed behaviour used by
+                # focused tests that do not carry snack taxonomy.
+                dish_totals_by_slot[MealSlot.SNACK] = list(dish_totals)
+            for attempt in attempts:
+                draft = _try_solve(
+                    eligible,
+                    attempt,
+                    dish_totals_by_slot,
+                    enforce_dish_diversity=enforce_dish_diversity,
+                    strict_patient_dish_mode=strict_patient_dish_mode,
+                    meal_blueprint_mode=meal_blueprint_mode,
+                )
+                if draft is not None:
+                    return draft
     return MenuDraft()
 
 
 def _try_solve(
     eligible: list[FoodItem],
     bounds: dict[str, tuple[float | None, float | None]],
-    dish_totals: list[tuple[DishCandidate, dict[str, float]]] | None = None,
+    dish_totals_by_slot: (
+        dict[MealSlot, list[tuple[DishCandidate, dict[str, float]]]]
+        | list[tuple[DishCandidate, dict[str, float]]]
+        | None
+    ) = None,
+    *,
+    enforce_dish_diversity: bool = False,
+    strict_patient_dish_mode: bool = False,
+    meal_blueprint_mode: bool = False,
 ) -> MenuDraft | None:
     """Một lần giải khả thi. Trả None khi vô nghiệm (để caller thử pha kế tiếp)."""
-    dish_totals = dish_totals or []
+    # Backward-compatible internal contract for equivalent.py and focused tests
+    # that still pass one all-slot list.
+    if isinstance(dish_totals_by_slot, list):
+        dish_totals_by_slot = {slot: list(dish_totals_by_slot) for slot in _SLOTS}
+    dish_totals_by_slot = dish_totals_by_slot or {slot: [] for slot in _SLOTS}
     model = cp_model.CpModel()
+    prepared_dish_mode = strict_patient_dish_mode and any(dish_totals_by_slot.get(slot) for slot in _SLOTS)
 
     # Biến cho từng cặp (bữa, món): số đơn vị GRAM_STEP gram + cờ có chọn không.
     units: dict[tuple[MealSlot, int], cp_model.IntVar] = {}
     chosen: dict[tuple[MealSlot, int], cp_model.BoolVarT] = {}
     for slot in _SLOTS:
         for food in eligible:
+            # In the Vietnamese blueprint, raw records are not residuals:
+            # only cooked rice may appear on a lunch/dinner plate, and only a
+            # displayable fruit/dairy/nut may appear as snack.  Legacy callers
+            # retain their ingredient-level behaviour.
+            if prepared_dish_mode and not raw_food_allowed_in_slot(food, slot):
+                continue
             key = (slot, food.id)
             units[key] = model.new_int_var(0, _max_grams_per_slot(food) // GRAM_STEP, f"units_{slot.value}_{food.id}")
             chosen[key] = model.new_bool_var(f"chosen_{slot.value}_{food.id}")
@@ -377,31 +537,96 @@ def _try_solve(
     # Biến cho từng cặp (bữa, món hoàn chỉnh): chọn cả món hay không — món là tổ
     # hợp nguyên liệu CỐ ĐỊNH (không stepping theo GRAM_STEP như nguyên liệu thô).
     dish_chosen: dict[tuple[MealSlot, str], cp_model.BoolVarT] = {}
+    dish_units: dict[tuple[MealSlot, str], cp_model.IntVar] = {}
     for slot in _SLOTS:
-        for dish, _totals in dish_totals:
-            dish_chosen[(slot, dish.dish_id)] = model.new_bool_var(f"dish_{slot.value}_{dish.dish_id}")
+        for dish, _totals in dish_totals_by_slot.get(slot, []):
+            key = (slot, dish.dish_id)
+            dish_chosen[key] = model.new_bool_var(f"dish_{slot.value}_{dish.dish_id}")
+            min_grams, max_grams = _dish_serving_bounds(slot, dish)
+            dish_units[key] = model.new_int_var(0, max_grams // GRAM_STEP, f"dish_units_{slot.value}_{dish.dish_id}")
+            model.add(dish_units[key] >= math.ceil(min_grams / GRAM_STEP)).only_enforce_if(dish_chosen[key])
+            model.add(dish_units[key] == 0).only_enforce_if(dish_chosen[key].negated())
+
+    # A patient-facing day must not show the same prepared dish twice.  This is
+    # a culinary diversity constraint, independent from nutrient thresholds.
+    has_role_metadata = any(
+        dish.roles for slot_dishes in dish_totals_by_slot.values() for dish, _totals in slot_dishes
+    )
+    if enforce_dish_diversity and has_role_metadata:
+        dish_vars_by_id: dict[str, list[cp_model.BoolVarT]] = {}
+        for (_slot, dish_id), variable in dish_chosen.items():
+            dish_vars_by_id.setdefault(dish_id, []).append(variable)
+        for variables in dish_vars_by_id.values():
+            if len(variables) > 1:
+                model.add(sum(variables) <= 1)
 
     # Số món mỗi bữa (nguyên liệu rời + món hoàn chỉnh cùng tính) — ràng buộc
     # DUY NHẤT còn theo bữa, để không dồn hết một chỗ.
     for slot in _SLOTS:
-        in_slot = [chosen[(slot, f.id)] for f in eligible]
-        in_slot += [dish_chosen[(slot, d.dish_id)] for d, _t in dish_totals]
+        in_slot = [chosen[(slot, f.id)] for f in eligible if (slot, f.id) in chosen]
+        in_slot += [dish_chosen[(slot, d.dish_id)] for d, _t in dish_totals_by_slot.get(slot, [])]
         model.add(sum(in_slot) >= MIN_ITEMS_PER_SLOT)
-        model.add(sum(in_slot) <= MAX_ITEMS_PER_SLOT)
+        max_items = 2 if prepared_dish_mode and slot is MealSlot.SNACK else MAX_ITEMS_PER_SLOT
+        model.add(sum(in_slot) <= max_items)
 
     # Mỗi khung bữa có đúng 1 món hoàn chỉnh khi catalog món khả dụng. Phần
     # food_id chỉ là dữ liệu bổ sung để cân bằng định lượng, không phải món ăn.
     for slot in _SLOTS:
-        if dish_totals:
-            selected_dishes = sum(dish_chosen[(slot, d.dish_id)] for d, _t in dish_totals)
-            model.add(selected_dishes == MAX_DISHES_PER_SLOT)
+        slot_dishes = dish_totals_by_slot.get(slot, [])
+        if meal_blueprint_mode and slot in {MealSlot.LUNCH, MealSlot.DINNER}:
+            proteins = [
+                dish_chosen[(slot, dish.dish_id)]
+                for dish, _ in slot_dishes
+                if DishRole.PROTEIN in dish.roles
+            ]
+            vegetables_or_soups = [
+                dish_chosen[(slot, dish.dish_id)]
+                for dish, _ in slot_dishes
+                if DishRole.VEGETABLE in dish.roles or DishRole.SOUP in dish.roles
+            ]
+            rice = [chosen[(slot, food.id)] for food in eligible if (slot, food.id) in chosen and is_rice_food(food)]
+            # A standard tray has exactly one main protein and at least one
+            # green vegetable or soup.  The UI therefore cannot show a lone
+            # xôi/bánh/noodle as lunch or dinner again.
+            model.add(sum(proteins) == 1)
+            model.add(sum(vegetables_or_soups) >= 1)
+            model.add(sum(vegetables_or_soups) <= 2)
+            model.add(sum(rice) == 1)
+            # 25 g is mathematically non-zero yet is not a rice meal.  The
+            # lower bound is on the cooked-rice component, not a new clinical
+            # target; it only makes the displayed Vietnamese plate credible.
+            rice_units = [units[(slot, food.id)] for food in eligible if (slot, food.id) in units and is_rice_food(food)]
+            model.add(sum(rice_units) >= 6)  # 150 g cooked rice
+            model.add(sum(dish_chosen[(slot, dish.dish_id)] for dish, _ in slot_dishes) <= 3)
+        elif slot_dishes:
+            selected_dishes = sum(dish_chosen[(slot, d.dish_id)] for d, _t in slot_dishes)
+            if has_role_metadata and slot in {MealSlot.LUNCH, MealSlot.DINNER}:
+                primary = [dish_chosen[(slot, d.dish_id)] for d, _t in slot_dishes if is_primary_dish(d)]
+                components = [
+                    dish_chosen[(slot, d.dish_id)]
+                    for d, _t in slot_dishes
+                    if is_main_component(d) and not is_patient_meal_dish(d)
+                ]
+                one_dish = [dish_chosen[(slot, d.dish_id)] for d, _t in slot_dishes if is_patient_meal_dish(d)]
+                model.add(sum(primary) == 1)
+                # At most two reviewed side dishes (for example rau + canh),
+                # while retaining a compact, recognisable Vietnamese plate.
+                model.add(sum(components) <= 2)
+                model.add(selected_dishes <= 3)
+                # A complete rice/noodle dish already represents a full plate;
+                # side dishes are only paired with a staple such as cơm tẻ.
+                model.add(sum(components) <= 2 * (1 - sum(one_dish)))
+            else:
+                model.add(selected_dishes == MAX_DISHES_PER_SLOT)
 
     # Trần tổng gram/ngày cho MỖI nguyên liệu thô (audit 2026-08-07: thiếu ràng
     # buộc này khiến CP-SAT có thể chọn cùng 1 nguyên liệu ở cả 4 bữa, VD gừng
     # 300g×4 = 1200g/ngày — hợp lệ về toán nhưng vô lý lâm sàng/ẩm thực). KHÔNG
     # áp cho gram bên trong món hoàn chỉnh — công thức món đã là tổ hợp cố định.
     for food in eligible:
-        model.add(sum(units[(slot, food.id)] for slot in _SLOTS) <= _max_grams_per_day(food) // GRAM_STEP)
+        food_units = [units[(slot, food.id)] for slot in _SLOTS if (slot, food.id) in units]
+        if food_units:
+            model.add(sum(food_units) <= _max_grams_per_day(food) // GRAM_STEP)
 
     # Ràng buộc dinh dưỡng trên TỔNG cả ngày.
     # Tổng thật = Σ gram × (giá trị/100 g) / 100. Nhân cả hai vế với
@@ -425,11 +650,13 @@ def _try_solve(
                 units[(slot, f.id)] * GRAM_STEP * math.ceil(getattr(f, field) * VALUE_SCALE)
                 for slot in _SLOTS
                 for f in eligible
+                if (slot, f.id) in units
             )
             total_ceil += sum(
-                dish_chosen[(slot, d.dish_id)] * math.ceil(totals[field] * scale)
+                dish_units[(slot, d.dish_id)]
+                * math.ceil(totals[field] * GRAM_STEP * scale / sum(item.grams for item in d.ingredients))
                 for slot in _SLOTS
-                for d, totals in dish_totals
+                for d, totals in dish_totals_by_slot.get(slot, [])
             )
             model.add(total_ceil <= math.floor((hi - SUMMARY_ROUND_MARGIN) * scale))
         if lo is not None:
@@ -437,11 +664,13 @@ def _try_solve(
                 units[(slot, f.id)] * GRAM_STEP * math.floor(getattr(f, field) * VALUE_SCALE)
                 for slot in _SLOTS
                 for f in eligible
+                if (slot, f.id) in units
             )
             total_floor += sum(
-                dish_chosen[(slot, d.dish_id)] * math.floor(totals[field] * scale)
+                dish_units[(slot, d.dish_id)]
+                * math.floor(totals[field] * GRAM_STEP * scale / sum(item.grams for item in d.ingredients))
                 for slot in _SLOTS
-                for d, totals in dish_totals
+                for d, totals in dish_totals_by_slot.get(slot, [])
             )
             model.add(total_floor >= math.ceil((lo + SUMMARY_ROUND_MARGIN) * scale))
 
@@ -468,18 +697,22 @@ def _try_solve(
         # hoàn chỉnh cùng food_id (hiếm nhưng có thể xảy ra) thành một dòng.
         grams_by_food: dict[int, float] = {}
         for f in eligible:
+            if (slot, f.id) not in units:
+                continue
             g = solver.Value(units[(slot, f.id)]) * GRAM_STEP
             if g > 0:
                 grams_by_food[f.id] = grams_by_food.get(f.id, 0.0) + g
-        for dish, _totals in dish_totals:
+        for dish, _totals in dish_totals_by_slot.get(slot, []):
             if solver.Value(dish_chosen[(slot, dish.dish_id)]):
+                serving_grams = solver.Value(dish_units[(slot, dish.dish_id)]) * GRAM_STEP
+                recipe_grams = sum(ingredient.grams for ingredient in dish.ingredients)
                 planned_dishes.setdefault(slot, []).append(
                     PlannedDish(
-                        dish_id=dish.dish_id, serving_grams=sum(ingredient.grams for ingredient in dish.ingredients)
+                        dish_id=dish.dish_id, serving_grams=serving_grams
                     )
                 )
                 for ing in dish.ingredients:
-                    grams_by_food[ing.food_id] = grams_by_food.get(ing.food_id, 0.0) + ing.grams
+                    grams_by_food[ing.food_id] = grams_by_food.get(ing.food_id, 0.0) + ing.grams * serving_grams / recipe_grams
         if grams_by_food:
             items[slot] = [MenuItem(food_id=fid, grams=g) for fid, g in grams_by_food.items()]
     return MenuDraft(items=items, planned_dishes=planned_dishes)

@@ -19,6 +19,7 @@ from sqlalchemy.orm import Session, selectinload
 from src.agents.assembly import build_nutricare_graph
 from src.api.clinical_bridge import to_clinical_profile
 from src.api.security import CurrentUser, get_current_user
+from src.clinical.dish_roles import parse_roles
 from src.clinical.dishes import load_dish_food_repository
 from src.clinical.models import DishCandidate, MenuItem
 from src.clinical.models import PatientProfile as ClinicalPatientProfile
@@ -209,6 +210,7 @@ def _load_db_dish_candidates(session: Session) -> list[DishCandidate]:
             dish_id=row.dish_id,
             name_vi=row.name_vi,
             region=row.region,
+            roles=parse_roles(row.roles),
             verified_by=row.verified_by,
             is_reviewed=bool(row.verified_by and row.verified_by.lower() not in {"pending", "todo"}),
             ingredients=[MenuItem(food_id=part.food_id, grams=part.grams) for part in row.ingredients],
@@ -269,19 +271,39 @@ def _run_graph_and_persist(
         # audit 2026-08-07 khi merge PR#57 dish-day-cap với PR#59 dish-repo).
         dish_foods = load_dish_food_repository()
         raw_foods = _load_db_aligned_food_repository(session)
-        uses_raw_candidates = get_settings().menu_generator in ("cpsat", "hybrid")
+        generator_choice = get_settings().menu_generator
+        # All patient-facing generator modes now use real Dish rows.  Gemini is
+        # a structured dish selector, never an unconstrained synthetic-food
+        # generator, so persistence and nutrition share one catalog.
+        uses_raw_candidates = generator_choice in ("cpsat", "hybrid", "gemini")
         foods = raw_foods if uses_raw_candidates else dish_foods
         generator = None
         if uses_raw_candidates:
             from src.agents.hybrid import HybridMenuGenerator
             from src.agents.optimizer import CPSATMenuOptimizer
+            from src.services.gemini_dish_selector import GeminiDishMenuGenerator
 
-            optimizer = CPSATMenuOptimizer(dishes=_load_db_dish_candidates(session), foods=raw_foods)
-            generator = (
-                optimizer if get_settings().menu_generator == "cpsat" else HybridMenuGenerator(optimizer=optimizer)
-            )
+            db_dishes = _load_db_dish_candidates(session)
+            optimizer = CPSATMenuOptimizer(dishes=db_dishes, foods=raw_foods)
+            if generator_choice == "cpsat":
+                generator = optimizer
+            else:
+                # ``gemini`` is intentionally routed through the same safe
+                # CP-SAT-first policy as ``hybrid``.  A direct LLM selection of
+                # fixed recipe servings can be culturally plausible yet wildly
+                # miss clinical targets; Gemini is only allowed after the
+                # deterministic solver has no feasible/validated answer.
+                generator = HybridMenuGenerator(
+                    optimizer=optimizer,
+                    llm_factory=lambda: GeminiDishMenuGenerator(dishes=db_dishes, foods=raw_foods),
+                )
         graph = build_nutricare_graph(
-            profiles=_DbProfileRepository(session, clinical_profile), foods=foods, generator=generator
+            profiles=_DbProfileRepository(session, clinical_profile),
+            foods=foods,
+            generator=generator,
+            # Use the same reviewed catalog for solver, persistence and the
+            # final Vietnamese-meal-structure gate.
+            dishes=db_dishes,
         )
         result = graph.invoke({"patient_id": clinical_profile.patient_id, "trace_id": plan_id})
 
