@@ -93,13 +93,14 @@ def test_sau_khi_tra_ve_graph_da_chay_xong_va_ghi_ket_qua(client, dietitian, pro
     assert body["status"] == "pending_review", body
     assert len(body["items"]) > 0
     assert all(item["name_vi"] and item["source"] and item["source_ref"] for item in body["items"])
-    # Mỗi bữa phải có món hoàn chỉnh lấy từ cùng bảng Dish mà API/UI sử dụng.
-    # food_id rời (nếu có) chỉ là phần cân chỉnh định lượng, không được thay thế
-    # toàn bộ cấu trúc món như lỗi cucumber/raw-food fallback trước đây.
+    # Ba bữa chính phải có món công thức từ cùng bảng Dish mà API/UI sử dụng.
+    # Bữa phụ được phép là trái cây/sữa/hạt có định danh (không phải nguyên liệu
+    # dư của solver), nên không ép dish_id cho riêng slot này.
     assert all(
         any(item["dish_id"] for item in body["items"] if item["slot"] == slot)
-        for slot in {"breakfast", "lunch", "dinner", "snack"}
+        for slot in {"breakfast", "lunch", "dinner"}
     )
+    assert any(item["slot"] == "snack" for item in body["items"])
     assert body["menu_hash_ready"] is True
     assert body["nutrition_hash_ready"] is True
     assert body["review_packet"]

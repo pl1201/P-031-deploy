@@ -9,7 +9,7 @@ from __future__ import annotations
 from src.agents.graph import build_graph
 from src.agents.nodes.core import FallbackMenuProvider, MenuGenerator, ProfileRepository
 from src.clinical.dishes import load_dish_food_repository
-from src.clinical.models import MealSlot, MenuDraft, MenuItem, PatientProfile
+from src.clinical.models import DishCandidate, MealSlot, MenuDraft, MenuItem, PatientProfile
 from src.clinical.nutrition import FoodRepository
 from src.clinical.rules import ClinicalRule
 from src.clinical.seeds import load_vn_dishes
@@ -78,6 +78,7 @@ def build_nutricare_graph(
     foods: FoodRepository | None = None,
     fallback_provider: FallbackMenuProvider | None = None,
     rules: list[ClinicalRule] | None = None,
+    dishes: list[DishCandidate] | None = None,
     interrupt_for_hitl: bool = False,
     checkpointer=None,
 ):
@@ -93,6 +94,7 @@ def build_nutricare_graph(
         generator=generator,
         fallback_provider=fallback_provider or SimpleFallbackProvider(foods),
         rules=rules,
+        dishes=dishes,
         interrupt_for_hitl=interrupt_for_hitl,
         checkpointer=checkpointer,
     )

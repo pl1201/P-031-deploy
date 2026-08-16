@@ -55,6 +55,7 @@ class SafetyFinding(BaseModel):
         "medication_timing",
         "incomplete_data",
         "generation",
+        "culinary",
     ]
     message_vi: str
     suggestion: str | None = None
