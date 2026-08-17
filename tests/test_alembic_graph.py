@@ -5,8 +5,8 @@ newer migrations still referenced them.  Alembic then failed before it could
 run any command, including ``current`` and ``upgrade``.
 """
 
-from pathlib import Path
 from importlib.util import module_from_spec, spec_from_file_location
+from pathlib import Path
 
 from alembic.config import Config
 from alembic.script import ScriptDirectory
