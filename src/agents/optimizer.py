@@ -97,10 +97,35 @@ GRAM_STEP = 25
 MAX_GRAMS_PER_ITEM = 300
 MIN_ITEMS_PER_SLOT = 1
 MAX_ITEMS_PER_SLOT = 5
-# A request must leave time for deterministic nutrition + safety validation.
-# The model is intentionally small (top-K retrieval happens upstream), so a
-# 4-second cap is sufficient while preventing an API worker from hanging.
-SOLVE_TIME_LIMIT_SECONDS = 4.0
+# Trần cho solver — HAI đại lượng khác nhau, đừng gộp làm một.
+#
+# `max_deterministic_time` đếm KHỐI LƯỢNG TÌM KIẾM, không đếm giây thật: cùng
+# một model luôn tiêu tốn đúng chừng đó dù chạy trên máy nhanh hay máy đang tải
+# nặng. Đây mới là thứ diễn tả "bài toán khó tới đâu".
+#
+# `max_time_in_seconds` là ĐỒNG HỒ TREO TƯỜNG, phụ thuộc máy đang bận cỡ nào.
+# Dùng nó làm trần chính là đo nhầm đại lượng: một máy tải nặng sẽ bị cắt giữa
+# chừng dù bài toán dễ, và CP-SAT trả về "không có lời giải" y hệt như khi bài
+# toán thật sự vô nghiệm — hai tình huống cần xử lý hoàn toàn khác nhau.
+#
+# Số đo thật (2026-08-18, đo trên 7 kịch bản của `tests/test_cpsat_optimizer.py`):
+#
+#   | kịch bản                | đồng hồ | tất định |
+#   |-------------------------|---------|----------|
+#   | mon_hoan_chinh (nặng nhất) | 3,56 s | 1,247   |
+#   | fat-htn                 | 2,10 s  | 0,305    |
+#   | các kịch bản còn lại    | ≤1,91 s | ≤0,244   |
+#
+# Bài toán không hề khó (tất định ≤1,25); 3,56 s kia là máy bận. Với trần cũ
+# 4,0 s thì dư chưa tới nửa giây, nên trên runner CI chậm hơn ~2,6 lần đúng 3
+# kịch bản nặng nhất vô nghiệm — trong khi các kịch bản nhẹ vẫn qua.
+#
+# Giữ nguyên ý định của trần 4,0 s (chặn worker API treo, để dành thời gian cho
+# bước tính dinh dưỡng + kiểm an toàn phía sau) nhưng giao đúng việc cho đúng
+# tham số: ngân sách tất định quyết định khi nào bỏ cuộc, đồng hồ treo tường chỉ
+# còn là lưới chặn treo.
+SOLVE_DETERMINISTIC_BUDGET = 10.0  # ~8x kịch bản nặng nhất (1,247)
+SOLVE_TIME_LIMIT_SECONDS = 30.0  # chỉ để worker không treo vô hạn
 
 # Bug đã audit thực tế (2026-08-07): KHÔNG có ràng buộc này, cùng một nguyên
 # liệu (VD gừng) có thể được chọn MAX_GRAMS_PER_ITEM ở CẢ 4 bữa/ngày = 1200 g/
@@ -667,11 +692,10 @@ def _try_solve(
             model.add(total_floor >= math.ceil((lo + SUMMARY_ROUND_MARGIN) * scale))
 
     solver = cp_model.CpSolver()
-    # Bài toán nhỏ nên việc TÌM LỜI GIẢI gần như tức thì (deterministic_time đo
-    # được chỉ ~0,003 s). Nhưng lần đầu native library của OR-Tools (~24 MB)
-    # được nạp vào tiến trình tốn cỡ 8 s cố định, không liên quan tới độ khó bài
-    # toán — nên cần trần thời gian đủ rộng để không bị cắt giữa chừng
-    # (production giữ process sống lâu, không trả giá nạp thư viện mỗi lần giải).
+    # Ngân sách tất định là trần THẬT (không phụ thuộc tải máy); đồng hồ treo
+    # tường chỉ còn là lưới an toàn chặn worker treo. Xem ghi chú ở chỗ khai báo
+    # hằng số phía trên để biết vì sao phải tách hai đại lượng này.
+    solver.parameters.max_deterministic_time = SOLVE_DETERMINISTIC_BUDGET
     solver.parameters.max_time_in_seconds = SOLVE_TIME_LIMIT_SECONDS
     status = solver.Solve(model)
 
