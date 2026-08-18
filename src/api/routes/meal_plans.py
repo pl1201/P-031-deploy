@@ -11,6 +11,7 @@ from __future__ import annotations
 import logging
 from collections.abc import Callable
 from datetime import date, datetime
+from typing import TYPE_CHECKING
 
 from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Query, status
 from pydantic import BaseModel, Field
@@ -31,6 +32,9 @@ from src.db.base import get_db, get_session_factory
 from src.db.models import Dish, DishIngredient, MealPlan, MealPlanItem
 from src.db.models import FoodItem as DbFoodItem
 from src.db.models import PatientProfile as DbPatientProfile
+
+if TYPE_CHECKING:  # chỉ dùng cho annotation — giữ nguyên import trễ ở runtime
+    from src.agents.nodes.core import MenuGenerator
 
 logger = logging.getLogger(__name__)
 
@@ -277,7 +281,10 @@ def _run_graph_and_persist(
         # generator, so persistence and nutrition share one catalog.
         uses_raw_candidates = generator_choice in ("cpsat", "hybrid", "gemini")
         foods = raw_foods if uses_raw_candidates else dish_foods
-        generator = None
+        # Annotate theo Protocol `MenuGenerator`, không theo lớp cụ thể: nhánh
+        # dưới gán cả `CPSATMenuOptimizer` lẫn `HybridMenuGenerator`. Thiếu
+        # annotation thì mypy chốt kiểu từ lần gán đầu rồi báo lỗi ở lần thứ hai.
+        generator: MenuGenerator | None = None
         if uses_raw_candidates:
             from src.agents.hybrid import HybridMenuGenerator
             from src.agents.optimizer import CPSATMenuOptimizer
