@@ -139,8 +139,14 @@ def has_meal_blueprint_catalog(dishes: Iterable[DishCandidate], foods: Iterable[
     dish_list = list(dishes)
     return (
         any(allowed_in_slot(dish, MealSlot.BREAKFAST) for dish in dish_list)
-        and any(DishRole.PROTEIN in dish.roles and allowed_component_in_slot(dish, MealSlot.LUNCH) for dish in dish_list)
-        and any((DishRole.VEGETABLE in dish.roles or DishRole.SOUP in dish.roles) and allowed_component_in_slot(dish, MealSlot.LUNCH) for dish in dish_list)
+        and any(
+            DishRole.PROTEIN in dish.roles and allowed_component_in_slot(dish, MealSlot.LUNCH) for dish in dish_list
+        )
+        and any(
+            (DishRole.VEGETABLE in dish.roles or DishRole.SOUP in dish.roles)
+            and allowed_component_in_slot(dish, MealSlot.LUNCH)
+            for dish in dish_list
+        )
         and any(is_rice_food(food) for food in foods)
         and any(is_simple_snack_food(food) for food in foods)
     )

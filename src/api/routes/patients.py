@@ -245,10 +245,7 @@ def get_my_profile(
     dietitian) — tức là không ghi được nhật ký.
     """
     profile = (
-        db.query(PatientProfile)
-        .options(*_patient_load_options())
-        .filter(PatientProfile.user_id == user.id)
-        .first()
+        db.query(PatientProfile).options(*_patient_load_options()).filter(PatientProfile.user_id == user.id).first()
     )
     if profile is None:
         raise HTTPException(status.HTTP_404_NOT_FOUND, "Bạn chưa có hồ sơ bệnh nhân")
