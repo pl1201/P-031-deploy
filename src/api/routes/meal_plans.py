@@ -9,6 +9,7 @@ chỉ ráp graph rồi giao việc cho background task.
 from __future__ import annotations
 
 import logging
+import traceback
 from collections.abc import Callable
 from datetime import date, datetime
 from typing import TYPE_CHECKING
@@ -390,7 +391,7 @@ def _run_graph_and_persist(
                             )
                         )
         session.commit()
-    except Exception:
+    except Exception as exc:
         # Biên ngoài cùng của 1 background task fire-and-forget: không có request
         # nào đang chờ để propagate lỗi tới. Log đầy đủ + đánh dấu failed thay vì
         # để tiến trình chết lặng lẽ — đây LÀ cách "xử lý" ở biên này, không phải
@@ -401,6 +402,23 @@ def _run_graph_and_persist(
         plan = session.get(MealPlan, plan_id)
         if plan is not None:
             plan.status = "failed"
+            # Ghi luôn nguyên nhân vào `last_error`. Trước đây cột này tồn tại
+            # trong schema nhưng KHÔNG BAO GIỜ được ghi, nên một `status=failed`
+            # do crash và một `failed` do hết đường sinh thực đơn nhìn giống hệt
+            # nhau từ DB lẫn từ UI — UI chỉ hiện "Không thể tạo phương án an
+            # toàn với cấu hình này", đọc như kết luận lâm sàng chứ không phải
+            # sự cố kỹ thuật. Hệ quả đo được: 43 plan `failed` trong DB dùng
+            # chung mà không truy được một dòng nguyên nhân nào, phải suy ngược
+            # từ log Render (đã xoay vòng mất) — xem docs/SET-05.
+            #
+            # Chỉ lưu loại lỗi + thông điệp + đuôi traceback: đủ để chẩn đoán,
+            # không kèm hồ sơ bệnh nhân. Cột này chỉ chuyên gia/R1 đọc, KHÔNG
+            # hiển thị cho bệnh nhân và KHÔNG đưa vào prompt LLM.
+            plan.last_error = {
+                "type": type(exc).__name__,
+                "message": str(exc)[:2000],
+                "traceback": "".join(traceback.format_exc()).strip()[-4000:],
+            }
             session.commit()
     finally:
         session.close()

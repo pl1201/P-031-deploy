@@ -151,3 +151,57 @@ def test_plan_id_khong_ton_tai_tra_404(client, dietitian):
     _, dt_headers = dietitian
     r = client.get("/api/v1/meal-plans/khong-ton-tai", headers=dt_headers)
     assert r.status_code == 404
+
+
+class TestGhiNguyenNhanThatBai:
+    """`status=failed` phải kèm nguyên nhân, không được im lặng.
+
+    Bối cảnh (chẩn đoán 18/08/2026): DB dùng chung có 43 thực đơn `failed`, cột
+    `last_error` NULL sạch ở cả 43 dòng — vì `_run_graph_and_persist` chỉ đặt
+    `status="failed"` rồi bỏ exception đi. Từ phía UI, một crash kỹ thuật hiện
+    ra y hệt một ca không tìm được phương án an toàn ("Không thể tạo phương án
+    an toàn với cấu hình này"), nên đội đọc thành lỗi lâm sàng chứ không phải
+    sự cố, và không ai biết có gì để sửa.
+    """
+
+    def test_crash_khi_sinh_thuc_don_duoc_ghi_vao_last_error(self, client, db_session, dietitian, profile_id):
+        import src.api.routes.meal_plans as mp
+        from src.db.models import MealPlan
+
+        _, dt_headers = dietitian
+
+        def no_bung(*_args, **_kwargs):
+            raise RuntimeError("kho món hỏng — mô phỏng sự cố hạ tầng")
+
+        goc = mp.load_dish_food_repository
+        mp.load_dish_food_repository = no_bung
+        try:
+            r = client.post(
+                "/api/v1/meal-plans", json={"patient_id": profile_id, "plan_date": "2026-09-02"}, headers=dt_headers
+            )
+            assert r.status_code == 202, r.text
+            plan_id = r.json()["plan_id"]
+        finally:
+            mp.load_dish_food_repository = goc
+
+        db_session.expire_all()
+        plan = db_session.get(MealPlan, plan_id)
+        assert plan is not None
+        assert plan.status == "failed"
+        assert plan.last_error is not None, "crash mà last_error vẫn NULL — đúng lỗ hổng đang vá"
+        assert plan.last_error["type"] == "RuntimeError"
+        assert "kho món hỏng" in plan.last_error["message"]
+        assert "Traceback" in plan.last_error["traceback"]
+
+    def test_thuc_don_sinh_thanh_cong_khong_ghi_last_error(self, client, db_session, dietitian, profile_id):
+        from src.db.models import MealPlan
+
+        _, dt_headers = dietitian
+        r = client.post(
+            "/api/v1/meal-plans", json={"patient_id": profile_id, "plan_date": "2026-09-03"}, headers=dt_headers
+        )
+        assert r.status_code == 202, r.text
+        plan = db_session.get(MealPlan, r.json()["plan_id"])
+        assert plan is not None
+        assert plan.status != "failed"
+        assert plan.last_error is None
