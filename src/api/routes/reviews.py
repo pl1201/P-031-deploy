@@ -125,7 +125,9 @@ def _draft_and_repository(plan: MealPlan):
                     name_vi=item.dish.name_vi,
                     region=item.dish.region,
                     roles=parse_roles(item.dish.roles),
-                    is_reviewed=bool(item.dish.verified_by and item.dish.verified_by.lower() not in {"pending", "todo"}),
+                    is_reviewed=bool(
+                        item.dish.verified_by and item.dish.verified_by.lower() not in {"pending", "todo"}
+                    ),
                     verified_by=item.dish.verified_by,
                     ingredients=[MenuItem(food_id=part.food_id, grams=part.grams) for part in item.dish.ingredients],
                 ),

@@ -365,17 +365,13 @@ def _dishes_by_slot(
         water_breakfast = [dish for dish in breakfast if is_water_dish(dish)]
         plate_components = [dish for dish, _ in dishes if allowed_component_in_slot(dish, MealSlot.LUNCH)]
         return {
-            MealSlot.BREAKFAST: [
-                (dish, totals_by_id[dish.dish_id]) for dish in (water_breakfast or breakfast)[:18]
-            ],
+            MealSlot.BREAKFAST: [(dish, totals_by_id[dish.dish_id]) for dish in (water_breakfast or breakfast)[:18]],
             MealSlot.LUNCH: [(dish, totals_by_id[dish.dish_id]) for dish in plate_components[:24]],
             MealSlot.DINNER: [(dish, totals_by_id[dish.dish_id]) for dish in plate_components[:24]],
             MealSlot.SNACK: [],
         }
 
-    policy = slot_candidates(
-        (dish for dish, _ in dishes), prefer=prefer_vietnamese_pattern, include_components=True
-    )
+    policy = slot_candidates((dish for dish, _ in dishes), prefer=prefer_vietnamese_pattern, include_components=True)
     out: dict[MealSlot, list[tuple[DishCandidate, dict[str, float]]]] = {}
     for slot in _SLOTS:
         slot_dishes = policy.get(slot, [])
@@ -456,9 +452,7 @@ def _solve_day(
     # sparse clinical catalog can make that impossible, so only then relax
     # diversity (the culinary gate will surface that fallback as P2 to HITL).
     has_role_metadata = any(dish.roles for dish, _ in dish_totals)
-    meal_blueprint_mode = has_role_metadata and has_meal_blueprint_catalog(
-        (dish for dish, _ in dish_totals), eligible
-    )
+    meal_blueprint_mode = has_role_metadata and has_meal_blueprint_catalog((dish for dish, _ in dish_totals), eligible)
     strict_patient_dish_mode = meal_blueprint_mode
     diversity_modes = (True, False) if has_role_metadata else (False,)
     for enforce_dish_diversity in diversity_modes:
@@ -549,9 +543,7 @@ def _try_solve(
 
     # A patient-facing day must not show the same prepared dish twice.  This is
     # a culinary diversity constraint, independent from nutrient thresholds.
-    has_role_metadata = any(
-        dish.roles for slot_dishes in dish_totals_by_slot.values() for dish, _totals in slot_dishes
-    )
+    has_role_metadata = any(dish.roles for slot_dishes in dish_totals_by_slot.values() for dish, _totals in slot_dishes)
     if enforce_dish_diversity and has_role_metadata:
         dish_vars_by_id: dict[str, list[cp_model.BoolVarT]] = {}
         for (_slot, dish_id), variable in dish_chosen.items():
@@ -574,11 +566,7 @@ def _try_solve(
     for slot in _SLOTS:
         slot_dishes = dish_totals_by_slot.get(slot, [])
         if meal_blueprint_mode and slot in {MealSlot.LUNCH, MealSlot.DINNER}:
-            proteins = [
-                dish_chosen[(slot, dish.dish_id)]
-                for dish, _ in slot_dishes
-                if DishRole.PROTEIN in dish.roles
-            ]
+            proteins = [dish_chosen[(slot, dish.dish_id)] for dish, _ in slot_dishes if DishRole.PROTEIN in dish.roles]
             vegetables_or_soups = [
                 dish_chosen[(slot, dish.dish_id)]
                 for dish, _ in slot_dishes
@@ -595,7 +583,9 @@ def _try_solve(
             # 25 g is mathematically non-zero yet is not a rice meal.  The
             # lower bound is on the cooked-rice component, not a new clinical
             # target; it only makes the displayed Vietnamese plate credible.
-            rice_units = [units[(slot, food.id)] for food in eligible if (slot, food.id) in units and is_rice_food(food)]
+            rice_units = [
+                units[(slot, food.id)] for food in eligible if (slot, food.id) in units and is_rice_food(food)
+            ]
             model.add(sum(rice_units) >= 6)  # 150 g cooked rice
             model.add(sum(dish_chosen[(slot, dish.dish_id)] for dish, _ in slot_dishes) <= 3)
         elif slot_dishes:
@@ -707,12 +697,12 @@ def _try_solve(
                 serving_grams = solver.Value(dish_units[(slot, dish.dish_id)]) * GRAM_STEP
                 recipe_grams = sum(ingredient.grams for ingredient in dish.ingredients)
                 planned_dishes.setdefault(slot, []).append(
-                    PlannedDish(
-                        dish_id=dish.dish_id, serving_grams=serving_grams
-                    )
+                    PlannedDish(dish_id=dish.dish_id, serving_grams=serving_grams)
                 )
                 for ing in dish.ingredients:
-                    grams_by_food[ing.food_id] = grams_by_food.get(ing.food_id, 0.0) + ing.grams * serving_grams / recipe_grams
+                    grams_by_food[ing.food_id] = (
+                        grams_by_food.get(ing.food_id, 0.0) + ing.grams * serving_grams / recipe_grams
+                    )
         if grams_by_food:
             items[slot] = [MenuItem(food_id=fid, grams=g) for fid, g in grams_by_food.items()]
     return MenuDraft(items=items, planned_dishes=planned_dishes)

@@ -646,11 +646,11 @@ def make_culinary_validate(
                     continue
                 scale = item.serving_grams / base_grams
                 for ingredient in dish.ingredients:
-                    recipe_grams[ingredient.food_id] = recipe_grams.get(ingredient.food_id, 0.0) + ingredient.grams * scale
+                    recipe_grams[ingredient.food_id] = (
+                        recipe_grams.get(ingredient.food_id, 0.0) + ingredient.grams * scale
+                    )
             residuals = [
-                item
-                for item in draft.items.get(slot, [])
-                if item.grams > recipe_grams.get(item.food_id, 0.0) + 0.1
+                item for item in draft.items.get(slot, []) if item.grams > recipe_grams.get(item.food_id, 0.0) + 0.1
             ]
             unexpected_residuals = [
                 item
@@ -697,7 +697,9 @@ def make_culinary_validate(
             for item in draft.planned_dishes.get(slot, [])
             if item.dish_id in by_id
         ]
-        repeated = sorted({dish.dish_id for dish in chosen if sum(other.dish_id == dish.dish_id for other in chosen) > 1})
+        repeated = sorted(
+            {dish.dish_id for dish in chosen if sum(other.dish_id == dish.dish_id for other in chosen) > 1}
+        )
         if repeated:
             findings.append(
                 SafetyFinding(
