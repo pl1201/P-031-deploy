@@ -534,12 +534,14 @@ def _try_solve(
     dish_units: dict[tuple[MealSlot, str], cp_model.IntVar] = {}
     for slot in _SLOTS:
         for dish, _totals in dish_totals_by_slot.get(slot, []):
-            key = (slot, dish.dish_id)
-            dish_chosen[key] = model.new_bool_var(f"dish_{slot.value}_{dish.dish_id}")
+            dish_key = (slot, dish.dish_id)
+            dish_chosen[dish_key] = model.new_bool_var(f"dish_{slot.value}_{dish.dish_id}")
             min_grams, max_grams = _dish_serving_bounds(slot, dish)
-            dish_units[key] = model.new_int_var(0, max_grams // GRAM_STEP, f"dish_units_{slot.value}_{dish.dish_id}")
-            model.add(dish_units[key] >= math.ceil(min_grams / GRAM_STEP)).only_enforce_if(dish_chosen[key])
-            model.add(dish_units[key] == 0).only_enforce_if(dish_chosen[key].negated())
+            dish_units[dish_key] = model.new_int_var(
+                0, max_grams // GRAM_STEP, f"dish_units_{slot.value}_{dish.dish_id}"
+            )
+            model.add(dish_units[dish_key] >= math.ceil(min_grams / GRAM_STEP)).only_enforce_if(dish_chosen[dish_key])
+            model.add(dish_units[dish_key] == 0).only_enforce_if(dish_chosen[dish_key].negated())
 
     # A patient-facing day must not show the same prepared dish twice.  This is
     # a culinary diversity constraint, independent from nutrient thresholds.
