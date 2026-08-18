@@ -83,11 +83,7 @@ def _draft_from_selection(
     selection: _DishSelection,
     by_slot: dict[MealSlot, list[DishCandidate]],
 ) -> MenuDraft:
-    allowed = {
-        (slot, dish.dish_id): dish
-        for slot, dishes in by_slot.items()
-        for dish in dishes
-    }
+    allowed = {(slot, dish.dish_id): dish for slot, dishes in by_slot.items() for dish in dishes}
     selected: dict[MealSlot, DishCandidate] = {}
     for item in selection.items:
         slot = MealSlot(item.slot)
@@ -157,7 +153,9 @@ class GeminiDishMenuGenerator:
         prompt_parts = [_SYSTEM_PROMPT, fence("CATALOG MÓN ĐƯỢC PHÉP", _format_catalog(by_slot))]
         if feedback:
             prompt_parts.append(fence("PHẢN HỒI KIỂM TRA", feedback))
-        prompt_parts.append("Trả JSON gồm đúng 4 item: breakfast, lunch, dinner, snack; mỗi item chỉ có slot và dish_id.")
+        prompt_parts.append(
+            "Trả JSON gồm đúng 4 item: breakfast, lunch, dinner, snack; mỗi item chỉ có slot và dish_id."
+        )
         prompt = "\n\n".join(prompt_parts)
         assert_no_egress(prompt, where="prompt chọn dish_id")
 
