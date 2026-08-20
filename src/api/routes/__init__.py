@@ -11,6 +11,7 @@ from src.api.routes import (
     meal_plans,
     menu_explainer,
     misc,
+    notifications,
     pantry,
     patient_workspace,
     patients,
@@ -30,3 +31,4 @@ router.include_router(reviews.router)
 router.include_router(food_logs.router)
 router.include_router(pantry.router)
 router.include_router(equivalent.router)
+router.include_router(notifications.router)

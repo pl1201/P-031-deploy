@@ -86,7 +86,6 @@ BANH-XEO-VCB,76,100,"Ước lượng quy đổi từ đơn vị bếp (chưa câ
 CA-KHO-TO-VCB,137,30,Nguồn: vietnamesecookbook.com
 CA-KHO-TO-VCB,149,12,Nguồn: vietnamesecookbook.com
 CA-KHO-TO-VCB,151,15,"Ước lượng quy đổi từ đơn vị bếp (chưa cân đo thật), nguồn: vietnamesecookbook.com"
-CA-KHO-TO-VCB,137,30,Nguồn: vietnamesecookbook.com
 CA-KHO-TO-VCB,122,150,Nguồn: vietnamesecookbook.com
 CA-KHO-TO-VCB,129,15,Nguồn: vietnamesecookbook.com
 CA-KHO-TO-VCB,79,20,"Ước lượng quy đổi từ đơn vị bếp (chưa cân đo thật), nguồn: vietnamesecookbook.com"
@@ -415,3 +414,41 @@ COM-TAM-VCB,1,320,"Gạo tẻ (sống) — công thức gốc KHÔNG có nguyên
 MI-QUANG-VCB,4,600,"Bún tươi — proxy cho sợi mì Quảng to bản (không có food_item riêng), ĐÚNG như proxy note gốc đã đề xuất nhưng chưa từng được thêm vào công thức. 600g cho cả mẻ 4 người (~150g/người), khớp quy mô các món VCB khác dùng bún tươi/bánh phở tươi trong cùng file."
 BUN-RIEU-VCB,49,400,"Cua đồng — thành phần định danh của 'bún riêu CUA', công thức gốc hoàn toàn thiếu. 400g cho cả mẻ 4 người (~100g/người), mức phổ biến để đủ tạo riêu/gạch cua khi nấu."
 BANH-MI-THIT-VCB,19,300,"Thịt lợn nạc — proxy cho chả lụa/thịt nguội (không có food_item riêng). Đây là thành phần 'thịt' định danh của bánh mì thịt, công thức gốc chỉ có gan gà (đã giảm xuống mức pate hợp lý, xem dòng gan gà). 300g cho cả mẻ 4 người (~75g/người), mức phổ biến cho 1 ổ bánh mì thịt đầy đủ."
+RAU-MUONG-LUOC,65,170,Rau muống
+RAU-MUONG-LUOC,137,4,Nước mắm chấm
+CAI-NGOT-XAO-TOI,68,170,Cải ngọt
+CAI-NGOT-XAO-TOI,151,3,Tỏi
+CAI-NGOT-XAO-TOI,129,5,Dầu ăn
+CAI-NGOT-XAO-TOI,137,3,Nước mắm nêm
+BAP-CAI-CA-ROT-LUOC,71,120,Bắp cải
+BAP-CAI-CA-ROT-LUOC,86,50,Cà rốt
+BAP-CAI-CA-ROT-LUOC,137,4,Nước mắm chấm
+SU-SU-XAO-TOI,89,170,Su su
+SU-SU-XAO-TOI,151,2,Tỏi
+SU-SU-XAO-TOI,129,5,Dầu ăn
+SU-SU-XAO-TOI,137,3,Nước mắm nêm
+CAI-THAO-LUOC,70,170,Cải thảo
+CAI-THAO-LUOC,137,4,Nước mắm chấm
+CANH-BAU-NAU-TOM,92,180,Bầu
+CANH-BAU-NAU-TOM,47,40,Tôm biển
+CANH-BAU-NAU-TOM,79,5,Hành lá
+CANH-BAU-NAU-TOM,139,1.5,Muối
+CANH-BAU-NAU-TOM,137,3,Nước mắm
+CANH-CAI-XANH-THIT-BAM,69,150,Cải xanh
+CANH-CAI-XANH-THIT-BAM,19,40,Thịt lợn nạc
+CANH-CAI-XANH-THIT-BAM,79,5,Hành lá
+CANH-CAI-XANH-THIT-BAM,139,1.5,Muối
+CANH-BI-XANH-NAU-TOM,3012,180,Bí xanh
+CANH-BI-XANH-NAU-TOM,47,40,Tôm biển
+CANH-BI-XANH-NAU-TOM,79,5,Hành lá
+CANH-BI-XANH-NAU-TOM,139,1.5,Muối
+CANH-RAU-MUONG-NAU-TOM,65,150,Rau muống
+CANH-RAU-MUONG-NAU-TOM,47,30,Tôm biển
+CANH-RAU-MUONG-NAU-TOM,139,1.5,Muối
+CANH-CA-ROT-KHOAI-TAY-THIT,86,60,Cà rốt
+CANH-CA-ROT-KHOAI-TAY-THIT,12,80,Khoai tây
+CANH-CA-ROT-KHOAI-TAY-THIT,19,40,Thịt lợn nạc
+CANH-CA-ROT-KHOAI-TAY-THIT,139,1.5,Muối
+KHOAI-LANG-LUOC,11,200,Khoai lang
+KHOAI-TAY-LUOC,12,200,Khoai tây
+COM-TRANG-KHAU-PHAN,2,150,Cơm tẻ

@@ -1,0 +1,205 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<title>Prototype UI/UX — Tích hợp Wearable (R2 draft nội dung)</title>
+<style>
+  :root {
+    --bg: #f4f5f7; --panel: #ffffff; --ink: #1a2333; --sub: #5b6472;
+    --line: #e2e5ea; --accent: #2f6f4f; --accent-bg: #eaf5ee;
+    --warn: #8a5a00; --warn-bg: #fff4e0; --warn-line: #f0c96a;
+    --danger: #a3272c; --danger-bg: #fdeceb; --danger-line: #f0b3ae;
+    --phone-w: 300px;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--bg); color: var(--ink);
+    font-family: -apple-system, "Segoe UI", Roboto, sans-serif;
+    padding: 32px 20px 60px;
+  }
+  h1 { font-size: 1.4rem; margin: 0 0 4px; }
+  .subtitle { color: var(--sub); font-size: 0.9rem; margin-bottom: 28px; }
+  .note-banner {
+    background: var(--accent-bg); border: 1px solid #bfe0cc; border-radius: 10px;
+    padding: 14px 18px; font-size: 0.85rem; color: #21492f; max-width: 900px; margin-bottom: 32px;
+  }
+  .flow {
+    display: flex; gap: 20px; overflow-x: auto; padding-bottom: 20px;
+  }
+  .step {
+    flex: 0 0 var(--phone-w); display: flex; flex-direction: column;
+  }
+  .step-label {
+    font-size: 0.78rem; font-weight: 600; color: var(--sub); text-transform: uppercase;
+    letter-spacing: 0.03em; margin-bottom: 8px;
+  }
+  .phone {
+    background: var(--panel); border: 1px solid var(--line); border-radius: 22px;
+    box-shadow: 0 2px 10px rgba(20,30,50,0.06); padding: 18px 16px; min-height: 480px;
+    display: flex; flex-direction: column; gap: 12px;
+  }
+  .screen-title { font-size: 1rem; font-weight: 700; margin: 0 0 2px; }
+  .screen-sub { font-size: 0.78rem; color: var(--sub); margin: 0 0 6px; }
+  .card {
+    border: 1px solid var(--line); border-radius: 12px; padding: 12px;
+    background: #fbfbfc;
+  }
+  .card-title { font-size: 0.82rem; font-weight: 600; margin: 0 0 4px; }
+  .metric-row {
+    display: flex; justify-content: space-between; align-items: baseline;
+    font-size: 0.85rem; padding: 6px 0; border-bottom: 1px dashed var(--line);
+  }
+  .metric-row:last-child { border-bottom: none; }
+  .metric-val { font-weight: 700; }
+  .tag {
+    display: inline-block; font-size: 0.68rem; padding: 2px 8px; border-radius: 999px;
+    font-weight: 600;
+  }
+  .tag-reliable { background: var(--accent-bg); color: var(--accent); }
+  .tag-caution { background: var(--warn-bg); color: var(--warn); border: 1px solid var(--warn-line); }
+  .tag-danger { background: var(--danger-bg); color: var(--danger); border: 1px solid var(--danger-line); }
+  .disclaimer {
+    font-size: 0.72rem; color: var(--sub); font-style: italic; margin-top: 4px; line-height: 1.4;
+  }
+  .btn {
+    text-align: center; padding: 10px; border-radius: 10px; font-size: 0.85rem; font-weight: 600;
+  }
+  .btn-primary { background: var(--accent); color: white; }
+  .btn-ghost { border: 1px solid var(--line); color: var(--ink); }
+  .divider { height: 1px; background: var(--line); margin: 4px 0; }
+  .flag-card {
+    background: var(--danger-bg); border: 1px solid var(--danger-line); border-radius: 12px; padding: 12px;
+  }
+  .flag-title { font-size: 0.85rem; font-weight: 700; color: var(--danger); margin: 0 0 4px; }
+  .flag-body { font-size: 0.78rem; color: #5c1f22; line-height: 1.45; }
+  .annot {
+    margin-top: 10px; font-size: 0.76rem; color: var(--sub); background: #fff;
+    border: 1px dashed var(--line); border-radius: 8px; padding: 10px;
+  }
+  .annot b { color: var(--ink); }
+  footer { margin-top: 40px; font-size: 0.78rem; color: var(--sub); max-width: 900px; }
+  a { color: var(--accent); }
+</style>
+</head>
+<body>
+
+<h1>Prototype luồng UI/UX — Tích hợp Wearable</h1>
+<p class="subtitle">R2 phác thảo NỘI DUNG và NHÃN dữ liệu (không phải thiết kế thị giác cuối cùng — R4 quyết định layout/màu/font thật). Mục đích: minh hoạ nguyên tắc "hiển thị tham khảo, không tự động hoá" thành cụ thể trên màn hình.</p>
+
+<div class="note-banner">
+  Nguyên tắc xuyên suốt 4 màn hình: <b>không có màn hình nào cho phép dữ liệu wearable tự động đổi mục tiêu kcal/khẩu phần</b>. Calo tiêu hao luôn có nhãn cảnh báo sai số. Chỉ chuyên gia mới đọc và quyết định điều chỉnh.
+</div>
+
+<div class="flow">
+
+  <!-- STEP 1 -->
+  <div class="step">
+    <div class="step-label">1. Kết nối thiết bị</div>
+    <div class="phone">
+      <p class="screen-title">Kết nối Apple Health</p>
+      <p class="screen-sub">Chọn chỉ số bạn muốn chia sẻ</p>
+
+      <div class="card">
+        <div class="metric-row"><span>🚶 Bước chân</span><span class="tag tag-reliable">Đáng tin cao</span></div>
+        <div class="metric-row"><span>❤️ Nhịp tim nghỉ</span><span class="tag tag-reliable">Đáng tin cao</span></div>
+        <div class="metric-row"><span>😴 Giấc ngủ</span><span class="tag tag-caution">Tham khảo</span></div>
+        <div class="metric-row"><span>🔥 Calo tiêu hao</span><span class="tag tag-danger">Sai số lớn</span></div>
+      </div>
+
+      <p class="disclaimer">Mỗi chỉ số hiển thị đúng mức độ tin cậy của nó — không gộp chung "đồng bộ tất cả" như một khối duy nhất, để bệnh nhân không hiểu nhầm mọi số đều chính xác như nhau.</p>
+
+      <div style="flex:1"></div>
+      <div class="btn btn-primary">Đồng ý & Kết nối</div>
+      <div class="btn btn-ghost">Bỏ qua, nhập tay như trước</div>
+
+      <div class="annot"><b>R2 quyết định:</b> nhãn "Đáng tin cao / Tham khảo / Sai số lớn" đi kèm §3.1 — bước chân/nhịp tim khác hẳn calo tiêu hao (sai 20-90%, Stanford 2017). Không cho phép người dùng "chọn tin tất cả như nhau".</div>
+    </div>
+  </div>
+
+  <!-- STEP 2 -->
+  <div class="step">
+    <div class="step-label">2. Xem dữ liệu tham khảo</div>
+    <div class="phone">
+      <p class="screen-title">Hoạt động hôm nay</p>
+      <p class="screen-sub">Từ Apple Health · cập nhật 08:14</p>
+
+      <div class="card">
+        <div class="card-title">🚶 Bước chân</div>
+        <div class="metric-row"><span>Hôm nay</span><span class="metric-val">6.240 bước</span></div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">❤️ Nhịp tim nghỉ</div>
+        <div class="metric-row"><span>Trung bình sáng</span><span class="metric-val">72 bpm</span></div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">🔥 Calo tiêu hao <span class="tag tag-danger">ước tính thiết bị</span></div>
+        <div class="metric-row"><span>Apple Watch báo</span><span class="metric-val">~340 kcal</span></div>
+        <p class="disclaimer">Số liệu do đồng hồ ước tính, có thể sai lệch 20–90% tuỳ cường độ vận động (theo Stanford 2017). KHÔNG dùng số này để tự tính lại khẩu phần ăn hôm nay.</p>
+      </div>
+
+      <div class="divider"></div>
+      <p class="disclaimer">Dữ liệu này chỉ để bạn và chuyên gia tham khảo — mục tiêu dinh dưỡng của bạn không tự động thay đổi theo hoạt động trong ngày.</p>
+
+      <div class="annot"><b>R2 quyết định:</b> disclaimer bắt buộc đi kèm mọi lần hiển thị calo tiêu hao — không được rút gọn/bỏ ở bản rút gọn UI. Đây chính là quy tắc K3 (cấm khuôn mẫu "đốt X kcal được ăn thêm X kcal") áp dụng cho wearable.</div>
+    </div>
+  </div>
+
+  <!-- STEP 3 -->
+  <div class="step">
+    <div class="step-label">3. Chuyên gia đọc dữ liệu</div>
+    <div class="phone">
+      <p class="screen-title">Hồ sơ bệnh nhân — Nguyễn V.A.</p>
+      <p class="screen-sub">Góc nhìn chuyên gia dinh dưỡng</p>
+
+      <div class="card">
+        <div class="card-title">7 ngày gần nhất (nguồn: wearable, tự khai)</div>
+        <div class="metric-row"><span>Bước chân TB/ngày</span><span class="metric-val">5.180</span></div>
+        <div class="metric-row"><span>Nhịp tim nghỉ TB</span><span class="metric-val">74 bpm</span></div>
+        <div class="metric-row"><span>Giấc ngủ TB</span><span class="metric-val">5,4 giờ</span></div>
+        <div class="metric-row"><span>Vận động tự ghi</span><span class="metric-val">2 buổi/tuần</span></div>
+      </div>
+
+      <p class="disclaimer">Dữ liệu tự báo/thiết bị, chưa xác thực bằng thiết bị y tế — cần chuyên gia đánh giá trực tiếp trước khi hành động (đúng câu chữ chuẩn §5.5).</p>
+
+      <div class="divider"></div>
+      <div class="btn btn-ghost">Ghi chú PES</div>
+      <div class="btn btn-ghost">Xem chi tiết 30 ngày</div>
+
+      <div class="annot"><b>R2 quyết định:</b> đây là màn hình DUY NHẤT nơi dữ liệu wearable ảnh hưởng tới quyết định — nhưng luôn qua người, không qua code. Giấc ngủ ngắn (5,4h) hiển thị nguyên số, không tự gắn kết luận "kháng insulin" — đó là việc chẩn đoán, ngoài phạm vi hệ thống (CLAUDE.md §3).</div>
+    </div>
+  </div>
+
+  <!-- STEP 4 -->
+  <div class="step">
+    <div class="step-label">4. Red flag phát sinh</div>
+    <div class="phone">
+      <p class="screen-title">Cảnh báo cần xem</p>
+      <p class="screen-sub">Chuyên gia phụ trách: Vũ T.H.</p>
+
+      <div class="flag-card">
+        <p class="flag-title">🔴 Red flag #6 (dự kiến)</p>
+        <p class="flag-body">
+          Bệnh nhân Nguyễn V.A. — nhịp tim nghỉ &gt;100 bpm liên tục 3 ngày (Apple Health).<br><br>
+          Cảnh báo dựa trên dữ liệu thiết bị tự báo, chưa được hệ thống xác minh y khoa — cần chuyên gia đánh giá trực tiếp trước khi hành động.
+        </p>
+      </div>
+
+      <p class="disclaimer">SLA: phản hồi trong 24 giờ làm việc (khớp §5.4). Hệ thống KHÔNG tự diễn giải nguyên nhân — không gợi ý "có thể do sốt/loạn nhịp/stress".</p>
+
+      <div style="flex:1"></div>
+      <div class="btn btn-primary">Xem hồ sơ đầy đủ</div>
+
+      <div class="annot"><b>R2 quyết định:</b> ngưỡng "&gt;100 hoặc &lt;50 bpm, ≥3 ngày" là ĐỀ XUẤT SƠ BỘ trong kế hoạch, chưa chốt — cần R2 duyệt số cụ thể trước khi R1 code thật.</div>
+    </div>
+  </div>
+
+</div>
+
+<footer>
+  Nguồn văn bản: <code>R2_KE_HOACH_TICH_HOP_WEARABLE.md</code> §3. File này chỉ minh hoạ NỘI DUNG/NHÃN — không phải bản thiết kế cuối; R4 quyết định visual design, animation, responsive layout thật khi triển khai.
+</footer>
+
+</body>
+</html>

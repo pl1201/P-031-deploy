@@ -47,17 +47,20 @@ export function Icon({name, ...props}: SVGProps<SVGSVGElement> & {name:string}) 
     scale:<><path d="M12 3v18M6 6h12M4 6l-3 6h6zM20 6l-3 6h6zM8 21h8"/></>,
     sparkle:<><path d="m12 2 1.4 5.6L19 9l-5.6 1.4L12 16l-1.4-5.6L5 9l5.6-1.4zM19 16l.7 2.3L22 19l-2.3.7L19 22l-.7-2.3L16 19l2.3-.7z"/></>,
     sun:<><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/><circle cx="12" cy="12" r="4"/></>,
+    globe:<><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a14 14 0 0 1 0 18M12 3a14 14 0 0 0 0 18"/></>,
     moon:<path d="M20 15.5A8.5 8.5 0 0 1 8.5 4 8.5 8.5 0 1 0 20 15.5Z"/>,
     warn:<><path d="M12 3 2 21h20zM12 9v5M12 18h.01"/></>,
     save:<><path d="M5 3h12l2 2v16H5zM8 3v6h8V3M8 21v-7h8v7"/></>,
+    more:<><circle cx="5" cy="12" r="1.6" fill="currentColor" stroke="none"/><circle cx="12" cy="12" r="1.6" fill="currentColor" stroke="none"/><circle cx="19" cy="12" r="1.6" fill="currentColor" stroke="none"/></>,
   }
   return <svg viewBox="0 0 24 24" aria-hidden="true" {...props} {...common}>{paths[name]}</svg>
 }
 
 export function LeafMark({className}:{className?:string}){
-  return <svg className={className} viewBox="0 0 42 52" aria-hidden="true"><g fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 49C19 31 23 16 36 3M21 37C12 33 7 26 6 18c8 1 14 5 17 11M25 26c7-2 12-8 13-15-7 1-12 4-15 9M18 24C11 20 8 14 9 7c7 2 11 6 13 11M27 15c4-2 7-6 8-11"/></g></svg>
+  return <svg className={className} viewBox="0 0 512 512" aria-hidden="true"><image href="/images/vnutricare-mark.png" width="512" height="512" preserveAspectRatio="xMidYMid meet"/></svg>
 }
 
 export function RiceBotanical({className}:{className?:string}){
   return <svg className={className} viewBox="0 0 480 720" aria-hidden="true"><image href="/images/vnutricare-rice-botanical.png" width="480" height="720" preserveAspectRatio="xMinYMax meet"/></svg>
 }
+

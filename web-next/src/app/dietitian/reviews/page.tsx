@@ -1,11 +1,22 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import Link from 'next/link'
 import { Icon } from '@/components/brand-artwork'
+import { PatientAvatar } from '@/components/patient-avatar'
 import { createApiClient, type MealPlan, type PatientProfile } from '@/lib/api'
 import { getToken } from '@/lib/auth'
 import { notifyReviewQueueChanged } from '@/lib/review-queue'
+
+function timeAgo(iso: string): string {
+  const diffMs = Date.now() - new Date(iso).getTime()
+  const min = Math.round(diffMs / 60000)
+  if (min < 1) return 'Vừa xong'
+  if (min < 60) return `${min} phút trước`
+  const hr = Math.round(min / 60)
+  if (hr < 24) return `${hr} giờ trước`
+  return `${Math.round(hr / 24)} ngày trước`
+}
 
 const STATUS_LABELS: Record<string, string> = {
   approved: 'Đã duyệt', rejected: 'Đã từ chối', pending_review: 'Chờ duyệt', manual_review_required: 'Bị chặn',
@@ -13,6 +24,11 @@ const STATUS_LABELS: Record<string, string> = {
 const STATUS_BADGE: Record<string, string> = {
   approved: 'approved', rejected: 'rejected', pending_review: 'pending', manual_review_required: 'rejected',
 }
+// C1-FE-02: badge mức rủi ro P0/P1/P2 ngay trên từng dòng — highest_risk đã có sẵn ở
+// MealPlanOut, chỉ cần hiển thị, không cần đổi API. Tái dùng thang badge-hard/soft/draft/ok
+// đã có (không tạo màu mới) để không lẫn với các hệ badge khác trên trang.
+const RISK_BADGE: Record<string, string> = { P0: 'hard', P1: 'soft', P2: 'info', none: 'ok' }
+const RISK_LABEL: Record<string, string> = { P0: 'P0 · Chặn', P1: 'P1 · Cần xác nhận', P2: 'P2 · Tham khảo', none: 'Không rủi ro' }
 type Tab = 'pending' | 'all' | 'approved' | 'rejected'
 type BulkAction = 'approve' | 'reject'
 
@@ -29,6 +45,7 @@ export default function ApprovalLogPage() {
   const [bulkNote, setBulkNote] = useState('')
   const [bulkBusy, setBulkBusy] = useState(false)
   const [bulkMessage, setBulkMessage] = useState('')
+  const [selectedId, setSelectedId] = useState<string | null>(null)
   const [criterion, setCriterion] = useState<'blocking' | 'overdue' | 'quick' | null>(() => {
     if (typeof window === 'undefined') return null
     const params = new URLSearchParams(window.location.search)
@@ -64,9 +81,14 @@ export default function ApprovalLogPage() {
       || (criterion === 'quick' && plan.status === 'pending_review' && plan.review_packet?.can_approve && plan.highest_risk !== 'P0')
     return matchesFilter && matchesQuery && matchesCriterion
   })
+  const p0Count = pending.filter(plan => plan.highest_risk === 'P0').length
+  const overdueCount = pending.filter(plan => referenceTime - new Date(plan.created_at).getTime() > 24 * 60 * 60 * 1000).length
+  const approvedCount = plans.filter(plan => plan.status === 'approved').length
   const visiblePendingIds = filter === 'pending' ? visible.map(plan => plan.id) : []
   const allVisibleSelected = visiblePendingIds.length > 0 && visiblePendingIds.every(id => selected.has(id))
   const approvableSelected = pending.filter(plan => selected.has(plan.id) && plan.status === 'pending_review' && plan.review_packet?.can_approve && plan.highest_risk !== 'P0')
+  const detailPlan = useMemo(() => visible.find(plan => plan.id === selectedId) ?? visible[0] ?? null, [visible, selectedId])
+  const detailPatient = detailPlan ? patients[detailPlan.patient_id] : undefined
 
   const toggleAllVisible = () => setSelected(current => {
     const next = new Set(current)
@@ -116,14 +138,31 @@ export default function ApprovalLogPage() {
 
   return <>
     <div className="topbar">
-      <div><p className="page-kicker">Clinical audit trail</p><h1 className="page-title">Hàng chờ &amp; nhật ký phê duyệt</h1></div>
-      <span className="synthetic-label">DỮ LIỆU HỆ THỐNG</span>
+      <div><p className="page-kicker">Chờ chuyên gia quyết định</p><h1 className="page-title">Hàng chờ &amp; nhật ký phê duyệt</h1><p className="page-subtitle">{filter === 'pending' ? 'Bản nháp đã sinh và kiểm tra xong, chờ chuyên gia quyết định.' : 'Theo dõi thực đơn đã duyệt hoặc từ chối và toàn bộ bằng chứng của từng quyết định.'}</p></div>
+      <div className="topbar-actions">
+        <span className="synthetic-label">DỮ LIỆU HỆ THỐNG</span>
+        <Link href="/dietitian/meal-plans/new" className="btn btn-primary btn-sm"><Icon name="sparkles" />Sinh thực đơn mới</Link>
+      </div>
     </div>
     <div className="page-body">
-      <div className="page-heading-row" style={{ marginBottom: 18 }}>
-        <div><h2 style={{ fontSize: 22 }}>{filter === 'pending' ? 'Thực đơn đang chờ chuyên gia' : 'Lịch sử quyết định chuyên gia'}</h2><p className="page-subtitle">{filter === 'pending' ? 'Bản nháp đã sinh và kiểm tra xong, chờ chuyên gia quyết định.' : 'Theo dõi thực đơn đã duyệt hoặc từ chối và toàn bộ bằng chứng của từng quyết định.'}</p></div>
-        <span className="badge badge-draft">{filter === 'pending' ? `${pending.length} chờ duyệt` : `${plans.length} quyết định`}</span>
-      </div>
+      {!loading && !error && <div className="summary-tiles">
+        <div className="summary-tile" data-tone="neutral">
+          <div className="summary-tile-row"><span className="summary-tile-icon"><Icon name="clipboard" /></span><span className="summary-tile-tag">Hôm nay</span></div>
+          <div className="summary-tile-num">{pending.length}</div><div className="summary-tile-label">Tổng số hồ sơ chờ</div>
+        </div>
+        <div className="summary-tile" data-tone="ok">
+          <div className="summary-tile-row"><span className="summary-tile-icon"><Icon name="check" /></span></div>
+          <div className="summary-tile-num">{approvedCount}</div><div className="summary-tile-label">Đã duyệt gần đây</div>
+        </div>
+        <div className="summary-tile" data-tone="warn">
+          <div className="summary-tile-row"><span className="summary-tile-icon"><Icon name="clock" /></span></div>
+          <div className="summary-tile-num">{overdueCount}</div><div className="summary-tile-label">Đang chờ quá 24 giờ</div>
+        </div>
+        <div className="summary-tile" data-tone="danger">
+          <div className="summary-tile-row"><span className="summary-tile-icon"><Icon name="warning" /></span>{p0Count > 0 && <span className="summary-tile-tag">Cần trước</span>}</div>
+          <div className="summary-tile-num">{p0Count}</div><div className="summary-tile-label">Cảnh báo P0 · chặn phát hành</div>
+        </div>
+      </div>}
       <div className="toolbar" style={{ marginBottom: 16 }}>
         <input className="search-box" value={query} onChange={event => setQuery(event.target.value)} placeholder="Tìm mã thực đơn, hồ sơ hoặc ngày…" aria-label="Tìm nhật ký" />
         {/* FE-16: "Tất cả quyết định" là meta-category chen giữa 3 tab trạng thái (Chờ duyệt/
@@ -140,21 +179,72 @@ export default function ApprovalLogPage() {
         <button type="button" className="btn btn-primary btn-sm" disabled={approvableSelected.length === 0} onClick={() => setBulkAction('approve')}>Duyệt {approvableSelected.length} bản đủ điều kiện</button>
       </div>}
       {bulkMessage && <div className={`safety-strip ${bulkMessage.includes('Không xử lý được') ? 'safety-strip-warning' : 'safety-strip-success'}`} role="status" style={{ marginBottom: 16 }}>{bulkMessage}</div>}
-      <section className="card">
-        {loading ? <div className="empty-state"><span className="spinner" /></div> : error ? <div className="card-body"><div className="safety-strip safety-strip-error">{error}</div></div> : visible.length === 0 ? <div className="empty-state"><div className="empty-title">{filter === 'pending' ? 'Không có thực đơn chờ duyệt' : 'Chưa có quyết định phù hợp'}</div><div className="empty-desc">{filter === 'pending' ? 'Các bản nháp đã qua bước sinh và kiểm tra sẽ xuất hiện tại đây.' : 'Các lần duyệt và từ chối sẽ xuất hiện tại đây.'}</div></div> : <div className="audit-list">
-          {visible.map(plan => {
-            const patient = patients[plan.patient_id]
-            const identity = <span className="patient-identity"><strong>{patient ? `${patient.sex === 'male' ? 'Nam' : 'Nữ'}, ${patient.age} tuổi` : 'Hồ sơ bệnh nhân'}</strong><span>#{plan.patient_id.slice(0, 8)}</span></span>
-            const date = <span><strong>{plan.plan_date}</strong><small className="text-muted" style={{ display: 'block', marginTop: 3 }}>{plan.items.length} món · sinh lần {plan.retry_count} · bản {plan.menu_version}</small></span>
-            const status = <span className={`badge badge-${STATUS_BADGE[plan.status] ?? 'draft'}`}>{STATUS_LABELS[plan.status] ?? plan.status}</span>
-            if (filter === 'pending') return <div className="audit-row audit-row-selectable" key={plan.id}>
-              <label className="audit-check" aria-label={`Chọn thực đơn ${plan.id}`}><input type="checkbox" checked={selected.has(plan.id)} onChange={() => togglePlan(plan.id)} /></label>
-              {status}{identity}{date}<span className="font-mono text-sm">#{plan.id.slice(0, 8)}</span><Link className="btn btn-secondary btn-sm" href={`/dietitian/reviews/${plan.id}`}>Xem xét →</Link>
-            </div>
-            return <Link className="audit-row" href={`/dietitian/reviews/${plan.id}`} key={plan.id}>{status}{identity}{date}<span className="font-mono text-sm">#{plan.id.slice(0, 8)}</span><span className="btn btn-secondary btn-sm">Xem chi tiết <Icon name="arrowRight" /></span></Link>
-          })}
-        </div>}
-      </section>
+
+      {filter === 'pending' ? (
+        <div className="review-layout">
+          <section className="card">
+            {loading ? <div className="empty-state"><span className="spinner" /></div> : error ? <div className="card-body"><div className="safety-strip safety-strip-error">{error}</div></div> : visible.length === 0 ? <div className="empty-state"><div className="empty-title">Không có thực đơn chờ duyệt</div><div className="empty-desc">Các bản nháp đã qua bước sinh và kiểm tra sẽ xuất hiện tại đây.</div></div> : <div>
+              {visible.map(plan => {
+                const patient = patients[plan.patient_id]
+                return <div className={`qrow${plan.id === detailPlan?.id ? ' sel' : ''}`} key={plan.id} onClick={() => setSelectedId(plan.id)}>
+                  <label onClick={event => event.stopPropagation()} aria-label={`Chọn thực đơn ${plan.id}`}><input type="checkbox" checked={selected.has(plan.id)} onChange={() => togglePlan(plan.id)} /></label>
+                  {patient ? <PatientAvatar sex={patient.sex} size="sm" /> : <span className="qrow-id">—</span>}
+                  <div className="qrow-who"><strong>{patient ? `${patient.sex === 'male' ? 'Nam' : 'Nữ'}, ${patient.age} tuổi` : 'Hồ sơ bệnh nhân'}</strong><small>#{plan.patient_id.slice(0, 8)} · {patient?.conditions.map(c => c.code).join(', ') || 'Chưa rõ bệnh lý'}</small></div>
+                  <span className="pill" data-risk={plan.highest_risk}><Icon name="warning" />{RISK_LABEL[plan.highest_risk] ?? plan.highest_risk}</span>
+                  <span className="qstatus" data-s="wait"><i className="dot" />{STATUS_LABELS[plan.status] ?? plan.status}</span>
+                  <span className="qrow-time">{timeAgo(plan.created_at)}</span>
+                </div>
+              })}
+            </div>}
+          </section>
+
+          <aside className="card detail-panel">
+            {!detailPlan ? <div className="detail-empty">Chọn 1 hồ sơ trong danh sách để xem chi tiết.</div> : <>
+              <div className="detail-head">
+                {detailPatient ? <PatientAvatar sex={detailPatient.sex} size="lg" /> : <Icon name="user" />}
+                <h3>{detailPatient ? `${detailPatient.sex === 'male' ? 'Nam' : 'Nữ'}, ${detailPatient.age} tuổi` : 'Hồ sơ bệnh nhân'}</h3>
+                <p>Mã hồ sơ #{detailPlan.patient_id.slice(0, 8)}</p>
+              </div>
+              <div className="detail-body">
+                <dl className="kv">
+                  <dt>Ngày áp dụng</dt><dd>{detailPlan.plan_date}</dd>
+                  <dt>Phiên bản thực đơn</dt><dd>v{detailPlan.menu_version}</dd>
+                  <dt>Năng lượng tính được</dt><dd>{detailPlan.computed_nutrition?.kcal != null ? `${Math.round(detailPlan.computed_nutrition.kcal)} kcal` : 'Chưa tính được'}</dd>
+                  <dt>Số lần sinh lại</dt><dd>{detailPlan.retry_count}</dd>
+                </dl>
+                <div>
+                  <div className="detail-section-title">Cảnh báo cần xử lý</div>
+                  {detailPlan.safety_findings.length === 0
+                    ? <div className="finding-mini-ok"><Icon name="check" />Không phát hiện cảnh báo an toàn.</div>
+                    : detailPlan.safety_findings.slice(0, 4).map((finding, index) => (
+                      <div className="finding-mini" key={`${finding.code}-${index}`}>
+                        <Icon name="warning" />
+                        <div><b>{finding.message_vi}</b>{finding.suggestion && <span>{finding.suggestion}</span>}</div>
+                      </div>
+                    ))}
+                </div>
+              </div>
+              <div className="detail-actions">
+                <button type="button" className="btn btn-ghost" onClick={() => { setBulkAction('reject'); setSelected(new Set([detailPlan.id])) }}>Từ chối</button>
+                <Link className="btn btn-primary" href={`/dietitian/reviews/${detailPlan.id}`}>Mở để duyệt</Link>
+              </div>
+            </>}
+          </aside>
+        </div>
+      ) : (
+        <section className="card">
+          {loading ? <div className="empty-state"><span className="spinner" /></div> : error ? <div className="card-body"><div className="safety-strip safety-strip-error">{error}</div></div> : visible.length === 0 ? <div className="empty-state"><div className="empty-title">Chưa có quyết định phù hợp</div><div className="empty-desc">Các lần duyệt và từ chối sẽ xuất hiện tại đây.</div></div> : <div className="audit-list">
+            {visible.map(plan => {
+              const patient = patients[plan.patient_id]
+              const identity = <span className="patient-identity"><strong>{patient ? `${patient.sex === 'male' ? 'Nam' : 'Nữ'}, ${patient.age} tuổi` : 'Hồ sơ bệnh nhân'}</strong><span>#{plan.patient_id.slice(0, 8)}</span></span>
+              const date = <span><strong>{plan.plan_date}</strong><small className="text-muted" style={{ display: 'block', marginTop: 3 }}>{plan.items.length} món · sinh lần {plan.retry_count} · bản {plan.menu_version}</small></span>
+              const status = <span className={`badge badge-${STATUS_BADGE[plan.status] ?? 'draft'}`}>{STATUS_LABELS[plan.status] ?? plan.status}</span>
+              const risk = <span className={`badge badge-${RISK_BADGE[plan.highest_risk] ?? 'draft'}`} title="Mức rủi ro cao nhất phát hiện trong thực đơn">{RISK_LABEL[plan.highest_risk] ?? plan.highest_risk}</span>
+              return <Link className="audit-row" href={`/dietitian/reviews/${plan.id}`} key={plan.id}>{risk}{status}{identity}{date}<span className="font-mono text-sm">#{plan.id.slice(0, 8)}</span><span className="btn btn-secondary btn-sm">Xem chi tiết <Icon name="arrowRight" /></span></Link>
+            })}
+          </div>}
+        </section>
+      )}
     </div>
     {bulkAction && <div className="bulk-review-overlay" role="presentation" onMouseDown={event => { if (event.target === event.currentTarget && !bulkBusy) setBulkAction(null) }}>
       <section className="bulk-review-dialog" role="dialog" aria-modal="true" aria-labelledby="bulk-review-title">

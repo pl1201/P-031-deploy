@@ -94,6 +94,16 @@ export interface MealPlanItem {
   source_ref: string
   is_estimated: boolean
   ingredients: MealPlanIngredient[]
+  kcal: number | null
+  protein_g: number | null
+  carb_g: number | null
+  fat_g: number | null
+  fiber_g: number | null
+  sugar_g: number | null
+  sugar_is_complete: boolean
+  purine_mg: number | null
+  purine_is_complete: boolean
+  khau_phan_mo_ta: string | null
 }
 
 export interface MealPlanIngredient {
@@ -240,6 +250,7 @@ export interface MealPlan {
   reviewer_id: string | null
   reviewer_notes: string | null
   created_at: string
+  last_error: { type: string; message: string; traceback: string } | null
 }
 
 export interface ClinicalTargets {
@@ -250,6 +261,32 @@ export interface ClinicalTargets {
   applied_rule_ids: string[]
   needs_expert_review: boolean
   conflict_notes: string[]
+}
+
+export interface PatientPreferences {
+  disliked_foods: string[]
+  usual_meal_times: Record<string, string>
+  meal_reminders_enabled: boolean
+  updated_at: string
+}
+
+export interface MeStatus {
+  terms_accepted_at: string | null
+  onboarding_completed_at: string | null
+}
+
+export type NotificationType = 'meal_reminder' | 'safety_alert' | 'review_decision' | 'system'
+export type NotificationSeverity = 'info' | 'warning' | 'critical'
+
+export interface AppNotification {
+  id: string
+  type: NotificationType
+  severity: NotificationSeverity
+  title: string
+  body: string
+  related_meal_plan_id: string | null
+  read_at: string | null
+  created_at: string
 }
 
 export interface ReplacementCandidate {
@@ -291,7 +328,7 @@ export function createApiClient(accessToken?: string) {
       if (error instanceof DOMException && error.name === 'AbortError') {
         throw new ApiError(408, 'Máy chủ chưa sẵn sàng sau thời gian chờ. Nếu đang dùng Render miễn phí, hãy thử lại sau khi service được đánh thức.')
       }
-      throw new ApiError(0, 'Không kết nối được máy chủ. Hãy kiểm tra Docker/backend rồi thử lại.')
+      throw new ApiError(0, 'Không kết nối được máy chủ. Vui lòng kiểm tra kết nối mạng rồi thử lại.')
     } finally {
       window.clearTimeout(timeout)
     }
@@ -360,6 +397,38 @@ export function createApiClient(accessToken?: string) {
     listPatientReviewEvents: (profileId: string) =>
       request<ReviewEvent[]>(`/patients/${profileId}/review-events`),
 
+    // Cân nặng tự ghi (bệnh nhân) — tách khỏi listObservations (chuyên gia, mọi loại)
+    listMyWeightObservations: () =>
+      request<PatientObservation[]>('/patients/me/observations?observation_type=weight'),
+    logMyWeight: (value: number, measuredAt?: string, note?: string) =>
+      request<PatientObservation>('/patients/me/observations', {
+        method: 'POST',
+        body: JSON.stringify({ value, measured_at: measuredAt ?? new Date().toISOString(), note: note ?? null }),
+      }),
+
+    // Sở thích / khảo sát đầu vào (onboarding)
+    getMyPreferences: () => request<PatientPreferences>('/patients/me/preferences'),
+    updateMyPreferences: (data: Partial<PatientPreferences>) =>
+      request<PatientPreferences>('/patients/me/preferences', { method: 'PUT', body: JSON.stringify({
+        disliked_foods: data.disliked_foods ?? [],
+        usual_meal_times: data.usual_meal_times ?? {},
+        meal_reminders_enabled: data.meal_reminders_enabled ?? true,
+      }) }),
+
+    // Điều khoản & onboarding
+    getMeStatus: () => request<MeStatus>('/auth/me/status'),
+    acceptTerms: () => request<MeStatus>('/auth/me/accept-terms', { method: 'POST' }),
+    completeOnboarding: () => request<MeStatus>('/auth/me/onboarding-complete', { method: 'POST' }),
+
+    // Thông báo
+    listNotifications: (unreadOnly = false) =>
+      request<AppNotification[]>(`/notifications${unreadOnly ? '?unread_only=true' : ''}`),
+    unreadNotificationCount: () => request<{ unread: number }>('/notifications/unread-count'),
+    markNotificationRead: (id: string) =>
+      request<AppNotification>(`/notifications/${id}/read`, { method: 'PATCH' }),
+    markAllNotificationsRead: () =>
+      request<{ unread: number }>('/notifications/read-all', { method: 'PATCH' }),
+
     // Targets
     computeTargets: (patientId: string) =>
       request<ClinicalTargets>('/targets/compute', { method: 'POST', body: JSON.stringify({ patient_id: patientId }) }),
@@ -408,6 +477,8 @@ export function createApiClient(accessToken?: string) {
       food_id?: number | null
       grams?: number | null
       slot?: string
+      /** ISO datetime — cho phép ghi bù cho một ngày/giờ đã qua thay vì luôn mặc định "bây giờ". */
+      logged_at?: string
       note_vi?: string | null
     }) => request<FoodLog>('/food-logs', { method: 'POST', body: JSON.stringify(data) }),
 

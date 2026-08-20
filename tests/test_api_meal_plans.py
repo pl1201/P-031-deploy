@@ -5,12 +5,17 @@ from __future__ import annotations
 from types import SimpleNamespace
 
 import pytest
+from conftest import _create_user_directly
 
 from src.api.routes.meal_plans import MealPlanOut
 from src.config import get_settings
 
 
 def _register_and_login(client, email, role, password="matkhau123"):
+    if role != "patient":
+        user_id = _create_user_directly(client, email, role, password)
+        login = client.post("/api/v1/auth/login", json={"email": email, "password": password})
+        return user_id, {"Authorization": f"Bearer {login.json()['access_token']}"}
     reg = client.post(
         "/api/v1/auth/register",
         json={"email": email, "password": password, "role": role, "full_name": "Test User"},
@@ -67,7 +72,20 @@ def test_yeu_cau_sinh_thuc_don_tra_202_ngay(client, dietitian, profile_id):
 
 def test_serialize_dish_item_uses_dish_name():
     """Regression: dish-backed rows must not reference an undefined display_name variable."""
-    food = SimpleNamespace(id=1, name_vi="Gạo lứt", source="VNE", source_ref="VNE:1")
+    food = SimpleNamespace(
+        id=1,
+        name_vi="Gạo lứt",
+        source="VNE",
+        source_ref="VNE:1",
+        kcal_100g=130.0,
+        protein_g=2.7,
+        carb_g=28.0,
+        fat_g=0.3,
+        fiber_g=0.4,
+        sugar_g=None,
+        purine_mg=15.0,
+        is_estimated=False,
+    )
     ingredient = SimpleNamespace(food_id=1, food=food, grams=100.0)
     dish = SimpleNamespace(name_vi="Cơm gạo lứt", serving_g=100.0, ingredients=[ingredient])
     item = SimpleNamespace(id="item-1", slot="lunch", dish_id="com-gao-lut", dish=dish, grams=150.0)
@@ -75,6 +93,9 @@ def test_serialize_dish_item_uses_dish_name():
     result = MealPlanOut._item_out(item)
 
     assert result.name_vi == "Cơm gạo lứt"
+    assert result.kcal == 195.0
+    assert result.sugar_g is None
+    assert result.sugar_is_complete is False
     assert result.ingredients[0].grams == 150.0
 
 

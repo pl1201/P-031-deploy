@@ -2,8 +2,14 @@
 
 from __future__ import annotations
 
+from conftest import _create_user_directly
+
 
 def _register_and_login(client, email: str, role: str):
+    if role != "patient":
+        user_id = _create_user_directly(client, email, role)
+        login = client.post("/api/v1/auth/login", json={"email": email, "password": "matkhau123"})
+        return user_id, {"Authorization": f"Bearer {login.json()['access_token']}"}
     registration = client.post(
         "/api/v1/auth/register",
         json={"email": email, "password": "matkhau123", "role": role, "full_name": "Test User"},

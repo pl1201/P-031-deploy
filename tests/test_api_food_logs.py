@@ -8,9 +8,14 @@ về kết luận "đạt ngưỡng" khi dữ liệu còn khuyết, các test d�
 from __future__ import annotations
 
 import pytest
+from conftest import _create_user_directly
 
 
 def _register_and_login(client, email, role, password="matkhau123"):
+    if role != "patient":
+        user_id = _create_user_directly(client, email, role, password)
+        login = client.post("/api/v1/auth/login", json={"email": email, "password": password})
+        return user_id, {"Authorization": f"Bearer {login.json()['access_token']}"}
     reg = client.post(
         "/api/v1/auth/register",
         json={"email": email, "password": password, "role": role, "full_name": "Test User"},
@@ -83,6 +88,21 @@ def test_ghi_mon_la_thi_giu_nguyen_chu_nguoi_dung_go(client, patient, profile_id
     assert body["food_id"] is None
     assert body["grams"] is None, "Không được giữ gram cho món chưa biết là gì"
     assert body["free_text_vi"] == "canh rau tập tàng bà Bảy"
+
+
+def test_food_log_chan_chi_dinh_y_khoa_trong_free_text(client, patient, profile_id):
+    _, headers = patient
+    response = client.post(
+        "/api/v1/food-logs",
+        json={
+            "profile_id": profile_id,
+            "free_text_vi": "tôi muốn ngừng uống metformin, ăn gì để thay thế?",
+            "grams": 100,
+        },
+        headers=headers,
+    )
+    assert response.status_code == 422
+    assert response.json()["detail"]["blocked"] is True
 
 
 def test_biet_mon_nhung_khong_ro_khau_phan_van_la_chua_du_du_lieu(client, patient, profile_id):

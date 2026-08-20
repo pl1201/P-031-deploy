@@ -31,7 +31,11 @@ class Settings(BaseSettings):
     gemini_api_key_3: str = ""
     gemini_api_key_4: str = ""
     gemini_api_key_5: str = ""
-    gemini_model: str = "gemini-2.5-flash"  # 2.0-flash free-tier limit=0; 1.5 đã ngừng
+    # 2026-08-18: 2.5-flash bị Google khai tử cho tài khoản mới (404 NOT_FOUND,
+    # "no longer available to new users") — xác minh trực tiếp qua API, không phải bug code.
+    # 2.0-flash free-tier limit=0; 1.5 đã ngừng. Đã thử thật với key hiện tại: 3.5-flash chạy
+    # được, 2.5-flash-lite CŨNG đã bị khai tử, "-latest" alias hay bị 503 quá tải dùng chung.
+    gemini_model: str = "gemini-3.5-flash"
 
     # USDA FoodData Central (món nhập khẩu / vi chất NIN thiếu) — DAT-03
     usda_api_key: str = ""

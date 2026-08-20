@@ -142,7 +142,14 @@ def seed_dish_ingredients(session: Session, path: Path | None = None) -> tuple[i
                 )
                 skipped += 1
                 continue
-            existing = session.query(DishIngredient).filter_by(dish_id=dish_id, food_id=food_id).one_or_none()
+            # Một số món ở lô crawl VCB có 2 dòng nguyên liệu trùng dish_id+food_id với gram
+            # khác nhau (lỗi trích xuất công thức gốc, chưa được R2 rà) — .one_or_none() sẽ
+            # crash toàn bộ seed vì việc này. Lấy dòng đầu (id nhỏ nhất) để không chặn seed,
+            # nhưng cảnh báo rõ để không âm thầm bỏ qua mâu thuẫn dữ liệu.
+            matches = session.query(DishIngredient).filter_by(dish_id=dish_id, food_id=food_id).order_by(DishIngredient.id).all()
+            if len(matches) > 1:
+                print(f"  CẢNH BÁO dish_ingredients: {dish_id} × food_id={food_id} có {len(matches)} dòng trùng trong DB — cần R2 rà công thức gốc")
+            existing = matches[0] if matches else None
             if existing is not None:
                 existing.grams = float(row["grams"])
                 existing.note = _opt_str(row.get("note"))

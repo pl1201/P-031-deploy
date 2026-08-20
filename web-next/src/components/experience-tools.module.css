@@ -1,55 +1,67 @@
 /* FE-20 (v2): chatbot chuyển từ launcher góc dưới-phải sang tab kéo ra giữa cạnh phải màn
    hình. Tab luôn nằm ngoài rìa nội dung (không đè lên gì); khung chat trượt ra thành 1 dải
    toàn chiều cao bên phải khi mở, giống ngăn kéo (drawer) hơn là card nổi. */
-.edgeTab{position:fixed;z-index:141;right:0;top:50%;transform:translateY(-50%);width:40px;height:64px;padding:0;display:flex;align-items:center;justify-content:center;border:1px solid rgba(255,255,255,.28);border-right:0;border-radius:16px 0 0 16px;color:#fff;background:#118f92;box-shadow:-10px 0 26px rgba(10,48,49,.22);transition:right .28s ease,background .18s ease}
-.edgeTab:hover{background:#0d7a7d}
-.edgeTab svg{width:22px;flex:none}
-.edgeTabOpen{right:min(420px,92vw)}
+.edgeTab{position:fixed;z-index:141;right:22px;bottom:22px;width:58px;height:58px;padding:0;display:grid;place-items:center;border:1px solid rgba(255,255,255,.65);border-radius:50%;color:#0873a5;background:linear-gradient(145deg,#fff,#e8f5f8);box-shadow:0 16px 38px rgba(8,58,82,.28);transition:transform .2s ease,box-shadow .2s ease,background .18s ease}
+.edgeTab:hover{transform:translateY(-2px);box-shadow:0 20px 44px rgba(8,58,82,.34)}
+.edgeTab svg{width:48px;height:48px;flex:none}
+.edgeTab>i{position:absolute;right:2px;bottom:4px;width:13px;height:13px;border:3px solid #fff;border-radius:50%;background:#35bf83}
+.edgeTabOpen{border-color:#69a9c4;box-shadow:0 0 0 5px rgba(17,119,163,.13),0 16px 38px rgba(8,58,82,.3)}
 
-.themeFallback{position:fixed;z-index:141;right:16px;bottom:16px;width:44px;height:44px;display:flex;align-items:center;justify-content:center;border:1px solid rgba(255,255,255,.7);border-radius:50%;color:#fff;background:#183a3a;box-shadow:0 12px 30px rgba(10,48,49,.2);opacity:.6;transition:opacity .15s ease}
+.themeFallback{position:fixed;z-index:141;right:16px;bottom:16px;width:44px;height:44px;display:flex;align-items:center;justify-content:center;border:1px solid rgba(255,255,255,.7);border-radius:50%;color:#fff;background:var(--c-ink);box-shadow:0 12px 30px rgba(10,48,49,.2);opacity:.6;transition:opacity .15s ease}
 .themeFallback:hover,.themeFallback:focus-visible{opacity:1}
 .themeFallback svg{width:18px}
 
-.theme{width:48px;height:48px;display:flex;align-items:center;justify-content:center;border:1px solid rgba(255,255,255,.7);border-radius:50%;color:#fff;background:#183a3a;box-shadow:0 12px 34px rgba(10,48,49,.22)}
+.theme{width:48px;height:48px;display:flex;align-items:center;justify-content:center;border:1px solid rgba(255,255,255,.7);border-radius:50%;color:#fff;background:var(--c-ink);box-shadow:0 12px 34px rgba(10,48,49,.22)}
 .theme svg{width:20px;flex:none}
 
-.drawerBackdrop{position:fixed;inset:0;z-index:139;border:0;background:rgba(12,42,42,.28);backdrop-filter:blur(2px);cursor:pointer}
+.drawerBackdrop{display:none;position:fixed;inset:0;z-index:139;border:0;background:rgba(8,26,36,.36);backdrop-filter:blur(2px);cursor:pointer}
 
-.chat{position:fixed;top:0;right:0;bottom:0;z-index:140;width:min(420px,92vw)!important;height:100vh!important;transform:translateX(100%);visibility:hidden;transition:transform .28s ease;display:grid;grid-template-rows:auto auto 1fr auto auto;overflow:hidden;border:0!important;border-left:1px solid #cadbd8;border-radius:0!important;color:#183a3a;background:#fff;box-shadow:-24px 0 60px rgba(10,45,46,.22)}
-.chatOpen{transform:translateX(0);visibility:visible}
-.chat>header{min-height:72px;padding:13px 14px;display:grid;grid-template-columns:42px 1fr 34px;gap:10px;align-items:center;color:#fff;background:#176f72}
-.botMark{width:40px;height:40px;display:grid;place-items:center;border-radius:50%;color:#176f72;background:#e5f5f3;position:relative}
-.botMark svg{width:21px}
-.botMark i{position:absolute;right:0;bottom:1px;width:9px;height:9px;border:2px solid #176f72;border-radius:50%;background:#8ce0b5}
+.chat{position:fixed;right:22px;bottom:92px;z-index:140;width:min(390px,calc(100vw - 32px))!important;height:min(620px,calc(100vh - 118px))!important;transform:translateY(12px) scale(.98);transform-origin:bottom right;opacity:0;visibility:hidden;transition:transform .22s ease,opacity .18s ease;display:grid;grid-template-rows:auto auto 1fr auto auto;overflow:visible;border:1px solid #cad8db!important;border-radius:20px!important;color:var(--c-ink);background:#fff;box-shadow:0 28px 80px rgba(8,43,58,.3)}
+.chatOpen{transform:translateY(0) scale(1);opacity:1;visibility:visible}
+.chat::after{content:"";position:absolute;right:20px;bottom:-12px;width:0;height:0;border-right:12px solid transparent;border-left:12px solid transparent;border-top:13px solid #fff;filter:drop-shadow(0 3px 1px rgba(8,43,58,.12));pointer-events:none}
+.chat>header{min-height:72px;padding:13px 14px;display:grid;grid-template-columns:42px 1fr 34px;gap:10px;align-items:center;border-radius:19px 19px 0 0;color:#fff;background:#174c72}
+.botMark{width:44px;height:44px;display:grid;place-items:center;border-radius:50%;color:#0a789f;background:#e5f5f7;position:relative}
+.botMark svg{width:42px;height:42px}
+.botMark i{position:absolute;right:0;bottom:1px;width:9px;height:9px;border:2px solid #174c72;border-radius:50%;background:#8ce0d5}
 .chat header div:nth-child(2){display:grid}
-.chat header strong{font-size:13px}
-.chat header span{margin-top:2px;color:rgba(255,255,255,.76);font-size:9px}
+.chat header strong{font-size:var(--text-base);font-weight:600}
+.chat header span{margin-top:2px;color:rgba(255,255,255,.76);font-size:var(--text-xs)}
 .chat header button{width:34px;height:34px;display:grid;place-items:center;border-radius:50%;background:rgba(255,255,255,.1)}
 .chat header button svg{width:17px}
-.context{min-height:38px;padding:8px 13px;display:flex;align-items:center;gap:7px;color:#5b7171;background:#eef7f5;font-size:9px}
-.context svg{width:15px;color:#118789}
-.messages{padding:14px;overflow-y:auto;display:flex;flex-direction:column;gap:11px;background:#f8fbfa}
+.context{min-height:40px;padding:8px 13px;display:flex;align-items:center;gap:7px;color:var(--c-ink2);background:#eef6f7;font-size:var(--text-sm)}
+.context svg{width:15px;color:var(--c-green2)}
+.messages{padding:14px;overflow-y:auto;display:flex;flex-direction:column;gap:11px;background:#f8fbfb}
 .assistant,.user{max-width:88%;display:flex;align-items:flex-end;gap:7px}
-.assistant>span{width:27px;height:27px;display:grid;place-items:center;flex:none;border-radius:50%;color:#117f82;background:#ddf1ef}
-.assistant>span svg{width:14px}
-.assistant p,.user p{padding:10px 12px;border:1px solid #dce7e5;border-radius:8px 8px 8px 2px;background:#fff;font-size:11px;line-height:1.55}
+.assistant>span{width:32px;height:32px;display:grid;place-items:center;flex:none;border-radius:50%;color:#0a789f;background:#e2f1f4}
+.assistant>span svg{width:30px;height:30px}
+.assistant p,.user p{padding:11px 13px;border:1px solid #dce5e7;border-radius:8px 8px 8px 2px;background:#fff;font-size:var(--text-base);line-height:var(--lh-base)}
 .user{align-self:flex-end}
-.user p{color:#fff;border-color:#168f92;border-radius:8px 8px 2px 8px;background:#168f92}
+.user p{color:#fff;border-color:#166092;border-radius:8px 8px 2px 8px;background:#166092}
 .typing{display:flex;gap:4px}
-.typing i{width:5px;height:5px;border-radius:50%;background:#6c8584;animation:typing 1s infinite}
+.typing i{width:5px;height:5px;border-radius:50%;background:#6c7d85;animation:typing 1s infinite}
 .typing i:nth-child(2){animation-delay:.15s}
 .typing i:nth-child(3){animation-delay:.3s}
-.starters{padding:10px 12px;display:flex;gap:6px;overflow-x:auto;border-top:1px solid #e0e8e6}
-.starters button{min-height:32px;padding:0 10px;flex:none;border:1px solid #c8dcda;border-radius:16px;color:#176f72;background:#f3f9f8;font-size:9px;font-weight:700}
-.chat form{padding:10px 12px;display:grid;grid-template-columns:1fr 39px;gap:7px;border-top:1px solid #dce6e4;background:#fff}
-.chat form input{min-width:0;height:40px;padding:0 12px;border:1px solid #cbdad8;border-radius:8px;outline:0;background:#f8fbfa;font-size:11px}
-.chat form input:focus{border-color:#18a5a7;box-shadow:0 0 0 3px rgba(24,165,167,.1)}
-.chat form button{width:39px;height:39px;display:grid;place-items:center;border-radius:50%;color:#fff;background:#168f92}
+.starters{padding:10px 12px;display:flex;gap:6px;overflow-x:auto;border-top:1px solid #e0e7e8}
+.starters button{min-height:40px;padding:0 12px;flex:none;border:1px solid #c8d6dc;border-radius:16px;color:#174c72;background:#f3f8f9;font-size:var(--text-sm);font-weight:600}
+.chat form{padding:10px 12px;display:grid;grid-template-columns:1fr 39px;gap:7px;border-top:1px solid #dce4e6;border-radius:0 0 19px 19px;background:#fff}
+.chat form input{min-width:0;height:44px;padding:0 13px;border:1px solid #cbd6da;border-radius:8px;outline:0;background:#f8fbfb;font-size:var(--text-base)}
+.chat form input:focus{border-color:var(--c-green);box-shadow:0 0 0 3px rgba(0,114,188,.1)}
+.chat form button{width:39px;height:39px;display:grid;place-items:center;border-radius:50%;color:#fff;background:#166092}
 .chat form svg{width:18px}
 @keyframes typing{0%,60%,100%{opacity:.35;transform:translateY(0)}30%{opacity:1;transform:translateY(-3px)}}
-@media(max-width:560px){
-  .edgeTab{width:36px;height:56px}
-  .edgeTabOpen{right:100vw}
-  .chat{width:100vw!important}
+/* FE-26: dưới 900px (ngưỡng chuyển sang thanh tab dưới cùng của WorkspaceShell), tab
+   "Trợ lý" không còn canh giữa theo chiều dọc viewport (top:50%) — trên màn hình ngắn,
+   vị trí giữa màn hình trùng ngay vào nội dung chính (banner, ô nhập liệu...) nên đè
+   lên nội dung bất kể trang nào đang mở. Neo xuống góc dưới-phải, cách mép và nằm trên
+   thanh tab bar (64px + safe-area) như .themeFallback đã làm đúng, thay vì canh giữa. */
+@media(max-width:900px){
+  .edgeTab{bottom:calc(78px + env(safe-area-inset-bottom));right:14px;width:52px;height:52px}
 }
+@media(max-width:560px){
+  .edgeTab{width:48px;height:48px}
+  .drawerBackdrop{display:block}
+  .chat{right:8px;bottom:calc(142px + env(safe-area-inset-bottom));width:calc(100vw - 16px)!important;height:min(620px,calc(100vh - 160px - env(safe-area-inset-bottom)))!important;border-radius:18px!important}
+  .chat::after{right:17px}
+}
+:global(html[data-theme="dark"]) .chat::after{border-top-color:#182025}
 @media(prefers-reduced-motion:reduce){.chat,.edgeTab,.typing i{transition:none;animation:none!important}}

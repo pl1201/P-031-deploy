@@ -35,6 +35,12 @@ def test_dang_ky_role_khong_hop_le_bi_tu_choi(client):
     assert r.status_code == 422
 
 
+def test_dang_ky_cong_khai_voi_role_dietitian_phuc_vu_demo(client):
+    r = _register(client, role="dietitian")
+    assert r.status_code == 201
+    assert r.json()["role"] == "dietitian"
+
+
 def test_dang_nhap_thanh_cong_tra_ca_2_token(client):
     _register(client)
     r = client.post("/api/v1/auth/login", json={"email": "user@example.com", "password": "matkhau123"})

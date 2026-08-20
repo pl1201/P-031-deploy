@@ -58,6 +58,8 @@ class User(Base):
     email: Mapped[str] = mapped_column(String(255), unique=True, index=True)
     password_hash: Mapped[str] = mapped_column(String(255))
     role: Mapped[str] = mapped_column(String(20))  # patient|dietitian|admin
+    terms_accepted_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
+    onboarding_completed_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
 
     profile: Mapped[PatientProfile | None] = relationship(back_populates="user", uselist=False)
 
@@ -86,6 +88,7 @@ class PatientProfile(Base):
     clinical_notes: Mapped[list[ClinicalNote]] = relationship(back_populates="profile")
     review_events: Mapped[list[MealPlanReviewEvent]] = relationship(back_populates="profile")
     update_requests: Mapped[list[ProfileUpdateRequest]] = relationship(back_populates="profile")
+    preferences: Mapped[PatientPreferences | None] = relationship(back_populates="profile", uselist=False)
 
 
 class ProfileUpdateRequest(Base):
@@ -576,6 +579,45 @@ class AuditLog(Base):
     after: Mapped[dict | None] = mapped_column(JSON, nullable=True)
 
 
+class PatientPreferences(Base):
+    """Sở thích/khảo sát đầu vào phi lâm sàng — KHÔNG dùng cho tính toán dinh dưỡng
+    (xem RULE-1/RULE-2). Tách khỏi `PatientProfile` (hồ sơ lâm sàng do chuyên gia sở
+    hữu) vì bệnh nhân được tự ghi trực tiếp bảng này qua onboarding, không cần chuyên
+    gia duyệt như `ProfileUpdateRequest`.
+    """
+
+    __tablename__ = "patient_preferences"
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=_uuid)
+    profile_id: Mapped[str] = mapped_column(ForeignKey("patient_profiles.id"), unique=True)
+    disliked_foods: Mapped[list] = mapped_column(JSON, default=list)
+    usual_meal_times: Mapped[dict] = mapped_column(JSON, default=dict)
+    meal_reminders_enabled: Mapped[bool] = mapped_column(Boolean, default=True)
+    updated_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+    profile: Mapped[PatientProfile] = relationship(back_populates="preferences")
+
+
+class Notification(Base):
+    """Thông báo hệ thống → người dùng, một chiều (BE→FE). Không phải tin nhắn 2
+    chiều — không có `sender_id`, chỉ có nguồn sinh phía server (quyết định duyệt,
+    cảnh báo an toàn) theo đúng dữ liệu đã tính sẵn, không tính lại gì mới.
+    """
+
+    __tablename__ = "notifications"
+    __table_args__ = (Index("ix_notifications_user_read_created", "user_id", "read_at", "created_at"),)
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=_uuid)
+    user_id: Mapped[str] = mapped_column(ForeignKey("users.id"))
+    type: Mapped[str] = mapped_column(String(30))  # meal_reminder|safety_alert|review_decision|system
+    severity: Mapped[str] = mapped_column(String(20), default="info")  # info|warning|critical
+    title: Mapped[str] = mapped_column(String(200))
+    body: Mapped[str] = mapped_column(Text)
+    related_meal_plan_id: Mapped[str | None] = mapped_column(ForeignKey("meal_plans.id"), nullable=True)
+    read_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+
+
 __all__ = [
     "AuditLog",
     "ClinicalNote",
@@ -589,10 +631,12 @@ __all__ = [
     "MealPlan",
     "MealPlanItem",
     "MealPlanReviewEvent",
+    "Notification",
     "PantryItem",
     "PatientAllergy",
     "PatientMedication",
     "PatientObservation",
+    "PatientPreferences",
     "PatientProfile",
     "ProfileUpdateRequest",
     "ServingSize",

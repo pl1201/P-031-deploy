@@ -29,6 +29,20 @@ from src.clinical.nutrition import InMemoryFoodRepository
 FIXTURE_REF = "TEST-FIXTURE (dữ liệu giả, không dùng lâm sàng)"
 
 
+def _create_user_directly(client, email: str, role: str, password: str = "matkhau123") -> str:
+    """Provision non-public roles in tests without weakening /auth/register."""
+    from src.api.security import hash_password
+    from src.db.base import get_db
+    from src.db.models import User
+
+    db = next(client.app.dependency_overrides[get_db]())
+    user = User(email=email, password_hash=hash_password(password), role=role)
+    db.add(user)
+    db.commit()
+    db.refresh(user)
+    return user.id
+
+
 def _food(fid, name, kcal, pro, carb, fat, fib, na, k, p, purine, allergens=(), aliases=()):
     return FoodItem(
         id=fid,

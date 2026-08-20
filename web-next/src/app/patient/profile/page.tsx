@@ -6,10 +6,8 @@ import { Icon } from '@/components/brand-artwork'
 import { PatientAvatar } from '@/components/patient-avatar'
 import { ApiError, createApiClient, type PatientProfile, type ProfileUpdateRequest } from '@/lib/api'
 import { getToken } from '@/lib/auth'
+import { ACTIVITY_LABELS as activity, CONDITION_LABELS as condition, REGION_LABELS as region } from '@/lib/labels'
 import styles from '../secondary.module.css'
-
-const activity:Record<string,string>={light:'Nhẹ',moderate:'Trung bình',heavy:'Nặng',very_heavy:'Rất nặng'}
-const region:Record<string,string>={north:'Bắc',central:'Trung',south:'Nam'}
 
 export default function PatientProfilePage(){
   const [profile,setProfile]=useState<PatientProfile|null>(null)
@@ -30,7 +28,7 @@ export default function PatientProfilePage(){
         <section className={styles.profileHero}><PatientAvatar sex={profile.sex} size="lg"/><div><h2>Mã hồ sơ {profile.id.slice(0,8).toUpperCase()}</h2><p>{profile.sex==='male'?'Nam':'Nữ'} · {profile.age} tuổi</p></div><span>Đang theo dõi</span></section>
         <section className={styles.card} style={{marginTop:14}}><div className={styles.cardTitle}><div><small>THÔNG TIN CƠ BẢN</small><h2>Chỉ số và thói quen</h2></div></div><dl className={styles.details}><div><dt>Chiều cao</dt><dd>{profile.height_cm} cm</dd></div><div><dt>Cân nặng</dt><dd>{profile.weight_kg} kg</dd></div><div><dt>BMI</dt><dd>{(profile.weight_kg/((profile.height_cm/100)**2)).toFixed(1)}</dd></div><div><dt>Mức vận động</dt><dd>{activity[profile.activity_level]||profile.activity_level}</dd></div><div><dt>Khẩu vị vùng miền</dt><dd>{profile.region?`Miền ${region[profile.region]}`:'Chưa ghi nhận'}</dd></div><div><dt>Mã hồ sơ</dt><dd>#{profile.id.slice(0,8)}</dd></div></dl></section>
       </main>
-      <aside className={styles.card}><div className={styles.cardTitle}><div><small>AN TOÀN LÂM SÀNG</small><h2>Dữ liệu cần đối chiếu</h2></div></div><h3 style={{marginTop:18,fontSize:11}}>Bệnh lý đang ghi nhận</h3><div className={styles.tags}>{profile.conditions.length?profile.conditions.map(item=><span key={`${item.code}-${item.stage}`}>{item.code}{item.stage?` · ${item.stage}`:''}</span>):<span>Chưa ghi nhận</span>}</div><h3 style={{marginTop:18,fontSize:11}}>Thuốc đang dùng</h3><div className={styles.tags}>{profile.medications.length?profile.medications.map(item=><span key={item}>{item}</span>):<span>Chưa ghi nhận</span>}</div><h3 style={{marginTop:18,fontSize:11}}>Dị ứng</h3><div className={styles.tags}>{profile.allergies.length?profile.allergies.map(item=><span key={item}>{item}</span>):<span>Không có dị ứng được ghi nhận</span>}</div><div className={styles.notice}><Icon name="info"/><p>Nếu thuốc, dị ứng, chẩn đoán hoặc chỉ số của bạn đã thay đổi, hãy liên hệ chuyên gia trước khi tiếp tục áp dụng thực đơn hiện tại.</p></div></aside>
+      <aside className={styles.card}><div className={styles.cardTitle}><div><small>AN TOÀN LÂM SÀNG</small><h2>Dữ liệu cần đối chiếu</h2></div></div><h3 style={{marginTop:18,fontSize:11}}>Bệnh lý đang ghi nhận</h3><div className={styles.tags}>{profile.conditions.length?profile.conditions.map(item=><span key={`${item.code}-${item.stage}`}>{condition[item.code]||item.code}{item.stage?` · Giai đoạn ${item.stage}`:''}</span>):<span>Chưa ghi nhận</span>}</div><h3 style={{marginTop:18,fontSize:11}}>Thuốc đang dùng</h3><div className={styles.tags}>{profile.medications.length?profile.medications.map(item=><span key={item}>{item}</span>):<span>Chưa ghi nhận</span>}</div><h3 style={{marginTop:18,fontSize:11}}>Dị ứng</h3><div className={styles.tags}>{profile.allergies.length?profile.allergies.map(item=><span key={item}>{item}</span>):<span>Không có dị ứng được ghi nhận</span>}</div><div className={styles.notice}><Icon name="info"/><p>Nếu thuốc, dị ứng, chẩn đoán hoặc chỉ số của bạn đã thay đổi, hãy liên hệ chuyên gia trước khi tiếp tục áp dụng thực đơn hiện tại.</p></div></aside>
     </div>}
   </div>
 }

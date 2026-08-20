@@ -11,8 +11,14 @@ Test này khoá cả hai mặt: phải có token, VÀ guardrail phải tiếp t�
 
 from __future__ import annotations
 
+from conftest import _create_user_directly
+
 
 def _register_and_login(client, email, role, password="matkhau123"):
+    if role != "patient":
+        _create_user_directly(client, email, role, password)
+        login = client.post("/api/v1/auth/login", json={"email": email, "password": password})
+        return {"Authorization": f"Bearer {login.json()['access_token']}"}
     reg = client.post(
         "/api/v1/auth/register",
         json={"email": email, "password": password, "role": role, "full_name": "Test User"},

@@ -29,8 +29,10 @@ function NutritionBar({ label, value, max, unit, colorClass }: {
   label: string; value: number | null | undefined; max?: number; unit: string; colorClass: string
 }) {
   const hasValue = isFiniteNumber(value)
-  const pct = hasValue && max ? Math.min((value / max) * 100, 120) : 0
-  const over = pct > 100
+  // Không có ngưỡng mục tiêu (VD chất béo) thì hiển thị thanh đầy màu để biểu thị "có giá trị",
+  // không quy đổi thành % so với đích — tránh bịa một mục tiêu không có nguồn (RULE-2).
+  const pct = hasValue ? (max ? Math.min((value / max) * 100, 120) : 100) : 0
+  const over = Boolean(max) && pct > 100
   return (
     <div className="nutrition-bar-row">
       <span className="nutrition-bar-label">{label}</span>
@@ -204,7 +206,11 @@ export default function MealPlanReviewPage() {
     return acc
   }, {}) ?? {}
 
-  const targetKcal = plan?.targets?.targets?.kcal?.max_value ?? undefined
+  // Ngưỡng mục tiêu cho từng dưỡng chất — dùng để tính % thanh tiến độ. Không phải mọi
+  // dưỡng chất đều có rule ngưỡng (VD chất béo); khi không có, NutritionBar hiển thị thanh
+  // đầy màu (không so target) thay vì 0% vô hình như trước.
+  const targetOf = (key: string) => plan?.targets?.targets?.[key]?.max_value ?? plan?.targets?.targets?.[key]?.min_value ?? undefined
+  const targetKcal = targetOf('kcal')
 
   if (loading) return (
     <div style={{ display: 'grid', placeItems: 'center', height: '60vh' }}>
@@ -251,13 +257,13 @@ export default function MealPlanReviewPage() {
           )}
           {!isReviewable && (
             <span className={`badge badge-${plan.status}`} style={{ fontSize: 13, padding: '6px 12px' }}>
-              {plan.status === 'approved' ? <><Icon name="check" /> Đã duyệt</> : plan.status === 'rejected' ? <><Icon name="close" /> Đã từ chối</> : plan.status}
+              {plan.status === 'approved' ? <><Icon name="check" /> Đã duyệt</> : plan.status === 'rejected' ? <><Icon name="close" /> Đã từ chối</> : plan.status === 'drafting' ? 'Đang tạo' : plan.status === 'failed' ? 'Thất bại' : plan.status}
             </span>
           )}
         </div>
       </div>
 
-      <div className="page-body" style={{ display: 'grid', gridTemplateColumns: '1fr 340px', gap: 24, alignItems: 'start' }}>
+      <div className="page-body review-detail-layout">
         {/* Left — meal plan */}
         <div style={{ display: 'grid', gap: 20 }}>
           <section className="card" style={{ padding: '16px 18px' }} aria-label="Quy trình duyệt thực đơn">
@@ -392,8 +398,8 @@ export default function MealPlanReviewPage() {
                           <details className="ingredient-details">
                             <summary>Dữ liệu tính khẩu phần · {item.ingredients.length} thành phần</summary>
                             <div className="ingredient-list">
-                              {item.ingredients.map(ingredient => (
-                                <div key={ingredient.food_id} className="ingredient-line">
+                              {item.ingredients.map((ingredient, index) => (
+                                <div key={`${ingredient.food_id}-${index}`} className="ingredient-line">
                                   <span>{ingredient.name_vi}</span>
                                   <span>{ingredient.grams} g</span>
                       </div>
@@ -460,13 +466,12 @@ export default function MealPlanReviewPage() {
         </div>
 
         {/* Right — sidebar */}
-        <div style={{ display: 'grid', gap: 20, position: 'sticky', top: 80 }}>
+        <div className="review-detail-sidebar">
           {/* Nutrition summary */}
           {hasNutrition && nutrition && (
             <div className="card">
               <div className="card-header">
                 <h2 className="card-title">Dinh dưỡng tổng</h2>
-                <span style={{ fontSize: 11, color: 'var(--c-muted)' }}>Tính bởi server</span>
               </div>
               <div className="card-body">
                 <div style={{ textAlign: 'center', marginBottom: 20 }}>
@@ -483,12 +488,12 @@ export default function MealPlanReviewPage() {
                   </div>
                 </div>
                 <div className="nutrition-bar-wrap">
-                  <NutritionBar label="Năng lượng" value={nutrition.kcal} max={targetKcal ?? undefined} unit="kcal" colorClass="bar-kcal" />
-                  <NutritionBar label="Carbohydrate" value={nutrition.carb_g} unit="g" colorClass="bar-carb" />
-                  <NutritionBar label="Protein" value={nutrition.protein_g} unit="g" colorClass="bar-protein" />
+                  <NutritionBar label="Năng lượng" value={nutrition.kcal} max={targetKcal} unit="kcal" colorClass="bar-kcal" />
+                  <NutritionBar label="Carbohydrate" value={nutrition.carb_g} max={targetOf('carb_g')} unit="g" colorClass="bar-carb" />
+                  <NutritionBar label="Protein" value={nutrition.protein_g} max={targetOf('protein_g')} unit="g" colorClass="bar-protein" />
                   <NutritionBar label="Chất béo" value={nutrition.fat_g} unit="g" colorClass="bar-fat" />
-                  <NutritionBar label="Chất xơ" value={nutrition.fiber_g} unit="g" colorClass="bar-fiber" />
-                  <NutritionBar label="Natri" value={nutrition.na_mg} max={2000} unit="mg" colorClass="bar-na" />
+                  <NutritionBar label="Chất xơ" value={nutrition.fiber_g} max={targetOf('fiber_g')} unit="g" colorClass="bar-fiber" />
+                  <NutritionBar label="Natri" value={nutrition.na_mg} max={targetOf('na_mg') ?? 2000} unit="mg" colorClass="bar-na" />
                 </div>
                 {nutrition.has_estimated && (
                   <div className="badge badge-estimated" style={{ marginTop: 12, display: 'block', textAlign: 'center' }}>

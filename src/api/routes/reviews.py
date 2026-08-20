@@ -20,8 +20,9 @@ from src.clinical.dishes import load_dish_food_repository
 from src.clinical.integrity import hash_menu, hash_nutrition, payload_has_p0
 from src.clinical.models import ClinicalTargets, DishCandidate, MealSlot, MenuDraft, MenuItem, PlannedDish
 from src.clinical.seeds import load_food_repository
+from src.clinical.tiers import is_patient_facing_dish
 from src.db.base import get_db
-from src.db.models import AuditLog, Dish, MealPlan, MealPlanItem, MealPlanReviewEvent
+from src.db.models import AuditLog, Dish, MealPlan, MealPlanItem, MealPlanReviewEvent, Notification
 
 router = APIRouter(prefix="/reviews", tags=["reviews"])
 
@@ -209,15 +210,28 @@ def replacement_candidates(
     db: Session = Depends(get_db),
     _user: CurrentUser = Depends(require_role("dietitian")),
 ) -> list[ReplacementCandidateOut]:
-    """Return database dishes for an inline reviewer swap; never invent dishes."""
+    """Return database dishes for an inline reviewer swap; never invent dishes.
+
+    Bug đã audit thực tế (2026-08-19): bản trước chỉ lọc khác `dish_id` + trùng
+    vùng miền, không loại khối USDA FNDDS tham chiếu (~2.632 món tên tiếng Anh,
+    `is_patient_facing_dish` đã loại ở nơi SINH thực đơn nhưng thiếu ở đây) và
+    không lọc theo vai trò món (VD gợi ý "Agave liquid sweetener" thay cho "Bí
+    xanh xào" — sai cả ngôn ngữ lẫn vai trò trong bữa). Sắp theo `name_vi` khiến
+    các tên tiếng Anh bắt đầu bằng A/B luôn nổi lên đầu danh sách.
+    """
     plan = _get_pending_plan(db, plan_id)
     item = next((row for row in plan.items if row.id == item_id), None)
     if item is None:
         raise HTTPException(status.HTTP_404_NOT_FOUND, "Không tìm thấy món trong thực đơn")
+    current_roles = set(parse_roles(item.dish.roles)) if item.dish is not None else set()
     query = db.query(Dish).filter(Dish.dish_id != item.dish_id)
     if plan.profile.region:
         query = query.filter((Dish.region == plan.profile.region) | (Dish.region.is_(None)))
-    dishes = query.order_by(Dish.name_vi).limit(30).all()
+    candidates = [
+        dish
+        for dish in query.order_by(Dish.name_vi).all()
+        if is_patient_facing_dish(dish.dish_id) and (not current_roles or current_roles & set(parse_roles(dish.roles)))
+    ][:30]
     return [
         ReplacementCandidateOut(
             dish_id=dish.dish_id,
@@ -225,7 +239,7 @@ def replacement_candidates(
             serving_g=dish.serving_g or 200.0,
             region=dish.region,
         )
-        for dish in dishes
+        for dish in candidates
     ]
 
 
@@ -308,6 +322,16 @@ def approve_review(
             nutrition_hash=plan.nutrition_hash,
         )
     )
+    db.add(
+        Notification(
+            user_id=plan.profile.user_id,
+            type="review_decision",
+            severity="info",
+            title="Thực đơn đã được duyệt",
+            body=f"Thực đơn ngày {plan.plan_date.isoformat()} đã được chuyên gia duyệt.",
+            related_meal_plan_id=plan.id,
+        )
+    )
     db.commit()
     db.refresh(plan)
     return MealPlanOut.from_model(plan)
@@ -346,6 +370,16 @@ def reject_review(
             menu_version=plan.menu_version,
             menu_hash=plan.menu_hash,
             nutrition_hash=plan.nutrition_hash,
+        )
+    )
+    db.add(
+        Notification(
+            user_id=plan.profile.user_id,
+            type="review_decision",
+            severity="warning",
+            title="Thực đơn cần điều chỉnh",
+            body=f"Thực đơn ngày {plan.plan_date.isoformat()} đã bị từ chối: {payload.reason}",
+            related_meal_plan_id=plan.id,
         )
     )
     db.commit()

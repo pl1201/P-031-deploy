@@ -364,6 +364,40 @@ def _dish_has_complete_nutrient(dish: DishCandidate, foods: FoodRepository, fiel
     )
 
 
+def _optional_field_supports_blueprint(
+    field: str,
+    candidates: list[FoodItem],
+    dishes: list[DishCandidate],
+    foods: FoodRepository,
+) -> bool:
+    """Liệu `field` còn đủ dữ liệu để thoả MỌI vai trò bắt buộc của blueprint
+    Việt (`has_meal_blueprint_catalog`), không chỉ "đủ 4 món đâu đó".
+
+    Bug đã audit thực tế (2026-08-18): `Cơm tẻ` là ứng viên rice-food DUY NHẤT
+    trong catalog. Bản đếm phẳng cũ (`>= len(_SLOTS)` món có dữ liệu, đếm gộp
+    toàn catalog) vẫn giữ ràng buộc `sugar_g` dù `Cơm tẻ` thiếu `sugar_g`, vì
+    có ~15 món khác đâu đó có đủ. Hệ quả: vai trò "phải có cơm" trong
+    `has_meal_blueprint_catalog` luôn hỏng cho MỌI bệnh nhân ĐTĐ2 (rule
+    T2DM-SUG-01 luôn đặt ngưỡng `sugar_g`) — CP-SAT infeasible 100% ca, đẩy
+    hết sang LLM dù lẽ ra chỉ cần bỏ ràng buộc `sugar_g` trên nguyên liệu
+    thiếu số liệu (43/119 plan `failed` trong DB — xem DEVLOG). Kiểm tra từng
+    vai trò riêng (sáng/cơm/đạm/rau-canh/snack) thay vì đếm tổng để bắt đúng
+    kiểu nghẽn một-điểm này.
+    """
+    complete_dishes = [d for d in dishes if _dish_has_complete_nutrient(d, foods, field)]
+    complete_foods = [f for f in candidates if getattr(f, field) is not None]
+    return (
+        any(allowed_in_slot(d, MealSlot.BREAKFAST) for d in complete_dishes)
+        and any(DishRole.PROTEIN in d.roles and allowed_component_in_slot(d, MealSlot.LUNCH) for d in complete_dishes)
+        and any(
+            (DishRole.VEGETABLE in d.roles or DishRole.SOUP in d.roles) and allowed_component_in_slot(d, MealSlot.LUNCH)
+            for d in complete_dishes
+        )
+        and any(is_rice_food(f) for f in complete_foods)
+        and any(is_simple_snack_food(f) for f in complete_foods)
+    )
+
+
 def _dishes_by_slot(
     dishes: list[tuple[DishCandidate, dict[str, float]]],
     *,
@@ -437,18 +471,28 @@ def _solve_day(
     # too few complete candidates to compose a varied day. Degrade to the
     # validator's incomplete-data warning instead of making the whole menu
     # infeasible or treating unknown values as zero.
+    has_role_metadata = foods is not None and any(dish.roles for dish in dishes or [])
     for field in _OPTIONAL_FIELDS:
         if field not in bounds:
             continue
-        complete_raw = sum(getattr(food, field) is not None for food in candidates)
-        complete_dishes = (
-            sum(_dish_has_complete_nutrient(dish, foods, field) for dish in dishes or []) if foods is not None else 0
-        )
         # The review validator already represents incomplete sugar/purine as a
         # soft data-quality finding. Do the same here. Keeping a bound that no
         # usable dish can satisfy silently removes every concrete dish and
         # sends the graph to its raw-food fallback (the UI then has 0 dishes).
-        if complete_raw < len(_SLOTS) or (dishes and complete_dishes < len(_SLOTS)):
+        if has_role_metadata:
+            # Blueprint catalog: một điểm nghẽn (VD 1 rice-food duy nhất thiếu
+            # dữ liệu) đủ để hỏng cả ngày dù tổng số món "có dữ liệu" trông đủ
+            # — kiểm tra từng vai trò bắt buộc, không đếm gộp toàn catalog.
+            keep = _optional_field_supports_blueprint(field, candidates, dishes or [], foods)  # type: ignore[arg-type]
+        else:
+            complete_raw = sum(getattr(food, field) is not None for food in candidates)
+            complete_dishes = (
+                sum(_dish_has_complete_nutrient(dish, foods, field) for dish in dishes or [])
+                if foods is not None
+                else 0
+            )
+            keep = complete_raw >= len(_SLOTS) and not (dishes and complete_dishes < len(_SLOTS))
+        if not keep:
             bounds.pop(field)
     if not bounds:
         # Không ràng buộc nào áp dụng được — không đủ căn cứ để chọn món.

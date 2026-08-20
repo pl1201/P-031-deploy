@@ -18,6 +18,7 @@ from src.clinical.models import (
     MenuDraft,
     MenuItem,
     PatientProfile,
+    PlannedDish,
     Sex,
 )
 from src.clinical.rules import compute_targets
@@ -38,6 +39,19 @@ class _SpyGenerator:
 
 
 def _draft_with_items() -> MenuDraft:
+    # Bản "CP-SAT thành công" thật phải có ít nhất 1 món được chọn (planned_dishes),
+    # không chỉ nguyên liệu rời — khớp đúng chốt an toàn ở
+    # `meal_plans.py::_run_graph_and_persist` và điều kiện chấp nhận ở `HybridMenuGenerator`.
+    # Bản chỉ có `items` (không có `planned_dishes`) mô phỏng đúng bug đã sửa: xem
+    # `test_cpsat_khong_chon_mon_van_chuyen_sang_llm` bên dưới.
+    return MenuDraft(
+        items={MealSlot.LUNCH: [MenuItem(food_id=1, grams=100)]},
+        planned_dishes={MealSlot.LUNCH: [PlannedDish(dish_id="MON-TEST-01", serving_grams=100)]},
+    )
+
+
+def _draft_items_only_no_dish() -> MenuDraft:
+    """Mô phỏng đúng bug đã sửa: CP-SAT giải được nhưng không chọn món nào, chỉ nguyên liệu rời."""
     return MenuDraft(items={MealSlot.LUNCH: [MenuItem(food_id=1, grams=100)]})
 
 
@@ -85,6 +99,24 @@ def test_cpsat_vo_nghiem_thi_chuyen_sang_llm(profile, targets):
     assert cpsat.calls == 1
     assert llm.calls == 1
     assert draft.all_items()
+
+
+def test_cpsat_khong_chon_mon_van_chuyen_sang_llm(profile, targets):
+    """Hồi quy: CP-SAT trả về nguyên liệu rời (không planned_dishes) trước đây bị Hybrid
+    coi là "đã xong" rồi dừng — thực đơn kiểu này sau đó bị `meal_plans.py` chặn ngay trước
+    khi lưu (không cho thực đơn "không có món" tới bệnh nhân), khiến plan luôn `failed` dù
+    Gemini/nới lỏng có thể vẫn giải được. `all_items()` không đủ để xác nhận thành công,
+    phải có `planned_dishes` thật."""
+    cpsat = _SpyGenerator(_draft_items_only_no_dish())
+    llm = _SpyGenerator(_draft_with_items())
+
+    draft = HybridMenuGenerator(optimizer=cpsat, llm_factory=lambda: llm).generate(
+        profile, targets, candidates=[], feedback=None
+    )
+
+    assert cpsat.calls == 1
+    assert llm.calls == 1, "CP-SAT không chọn món nào (chỉ nguyên liệu rời) thì phải thử LLM, không được coi là xong"
+    assert draft.planned_dishes, "kết quả cuối cùng phải có món thật, không chỉ nguyên liệu rời"
 
 
 def test_co_feedback_thi_di_thang_llm_khong_goi_lai_cpsat(profile, targets):

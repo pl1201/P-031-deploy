@@ -23,7 +23,7 @@ from pydantic import BaseModel, Field
 from sqlalchemy.orm import Session
 
 from src.api.clinical_bridge import to_clinical_profile
-from src.api.security import CurrentUser, get_current_user, require_role
+from src.api.security import CurrentUser, get_current_user, guard_free_text, require_role
 from src.clinical.diary import LoggedFood, summarize_day
 from src.clinical.matching import FoodMatcher
 from src.clinical.models import MealSlot
@@ -225,6 +225,7 @@ def create_food_log(
     payload: FoodLogCreate,
     db: Session = Depends(get_db),
     user: CurrentUser = Depends(get_current_user),
+    _: None = Depends(guard_free_text("free_text_vi")),
 ) -> FoodLogOut:
     """Ghi một món đã ăn.
 
