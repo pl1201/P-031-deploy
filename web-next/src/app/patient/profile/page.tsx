@@ -1,0 +1,34 @@
+'use client'
+
+import Link from 'next/link'
+import { useEffect, useState } from 'react'
+import { Icon } from '@/components/brand-artwork'
+import { PatientAvatar } from '@/components/patient-avatar'
+import { ApiError, createApiClient, type PatientProfile, type ProfileUpdateRequest } from '@/lib/api'
+import { getToken } from '@/lib/auth'
+import { ACTIVITY_LABELS as activity, CONDITION_LABELS as condition, REGION_LABELS as region } from '@/lib/labels'
+import styles from '../secondary.module.css'
+
+export default function PatientProfilePage(){
+  const [profile,setProfile]=useState<PatientProfile|null>(null)
+  const [error,setError]=useState('')
+  const [requestInfo,setRequestInfo]=useState(false)
+  const [requestText,setRequestText]=useState('')
+  const [requests,setRequests]=useState<ProfileUpdateRequest[]>([])
+  const [sending,setSending]=useState(false)
+  useEffect(()=>{const token=getToken();if(!token)return;const api=createApiClient(token);Promise.all([api.getMyProfile(),api.listMyProfileUpdateRequests()]).then(([nextProfile,nextRequests])=>{setProfile(nextProfile);setRequests(nextRequests)}).catch(value=>setError(value instanceof ApiError?value.message:'Không thể tải hồ sơ.'))},[])
+  async function sendRequest(event:React.FormEvent){event.preventDefault();const token=getToken();if(!token||!requestText.trim())return;setSending(true);setError('');try{const created=await createApiClient(token).createProfileUpdateRequest(requestText.trim());setRequests(current=>[created,...current]);setRequestText('');setRequestInfo(false)}catch(value){setError(value instanceof ApiError?value.message:'Không thể gửi yêu cầu cập nhật.')}finally{setSending(false)}}
+  return <div className={styles.page}>
+    <header className={styles.header}><div><small>THÔNG TIN ĐANG ĐƯỢC SỬ DỤNG</small><h1>Hồ sơ của tôi</h1><p>Đây là dữ liệu hệ thống dùng để cá nhân hóa và kiểm tra an toàn. Thay đổi lâm sàng cần được chuyên gia xác nhận.</p></div><div style={{display:'flex',gap:8,flexWrap:'wrap'}}><button type="button" onClick={()=>setRequestInfo(value=>!value)}><Icon name="message"/>Yêu cầu cập nhật</button><Link href="/patient"><Icon name="arrowLeft"/>Về hôm nay</Link></div></header>
+    {requestInfo&&<form className={styles.notice} onSubmit={sendRequest}><Icon name="info"/><div style={{display:'grid',gap:8,width:'100%'}}><strong>Nội dung cần cập nhật</strong><p>Yêu cầu sẽ được chuyển vào hàng chờ của chuyên gia. Hồ sơ chỉ thay đổi sau khi chuyên gia xác minh.</p><textarea value={requestText} onChange={event=>setRequestText(event.target.value)} placeholder="Ví dụ: tôi vừa đổi thuốc, có dị ứng mới hoặc cân nặng đã thay đổi" rows={3} minLength={5} maxLength={2000} required/><button type="submit" disabled={sending}>{sending?'Đang gửi…':'Gửi cho chuyên gia'}</button></div></form>}
+    {requests.length>0&&<section className={styles.card} style={{marginBottom:14}}><div className={styles.cardTitle}><div><small>YÊU CẦU CẬP NHẬT</small><h2>Trạng thái xử lý</h2></div><span>{requests.filter(item=>item.status==='pending').length} đang chờ</span></div><div className={styles.tags} style={{display:'grid'}}>{requests.slice(0,3).map(item=><div key={item.id} className={styles.notice}><Icon name={item.status==='resolved'?'check':'clock'}/><div><strong>{item.status==='resolved'?'Đã xử lý':'Đang chờ chuyên gia'}</strong><p>{item.message}</p>{item.resolution_note&&<p><b>Phản hồi:</b> {item.resolution_note}</p>}<small>{new Date(item.created_at).toLocaleString('vi-VN')}</small></div></div>)}</div></section>}
+    {error&&<div className={styles.error}>{error}</div>}
+    {!profile?<div className={styles.skeleton}/>:<div className={styles.profileGrid}>
+      <main>
+        <section className={styles.profileHero}><PatientAvatar sex={profile.sex} size="lg"/><div><h2>Mã hồ sơ {profile.id.slice(0,8).toUpperCase()}</h2><p>{profile.sex==='male'?'Nam':'Nữ'} · {profile.age} tuổi</p></div><span>Đang theo dõi</span></section>
+        <section className={styles.card} style={{marginTop:14}}><div className={styles.cardTitle}><div><small>THÔNG TIN CƠ BẢN</small><h2>Chỉ số và thói quen</h2></div></div><dl className={styles.details}><div><dt>Chiều cao</dt><dd>{profile.height_cm} cm</dd></div><div><dt>Cân nặng</dt><dd>{profile.weight_kg} kg</dd></div><div><dt>BMI</dt><dd>{(profile.weight_kg/((profile.height_cm/100)**2)).toFixed(1)}</dd></div><div><dt>Mức vận động</dt><dd>{activity[profile.activity_level]||profile.activity_level}</dd></div><div><dt>Khẩu vị vùng miền</dt><dd>{profile.region?`Miền ${region[profile.region]}`:'Chưa ghi nhận'}</dd></div><div><dt>Mã hồ sơ</dt><dd>#{profile.id.slice(0,8)}</dd></div></dl></section>
+      </main>
+      <aside className={styles.card}><div className={styles.cardTitle}><div><small>AN TOÀN LÂM SÀNG</small><h2>Dữ liệu cần đối chiếu</h2></div></div><h3 style={{marginTop:18,fontSize:11}}>Bệnh lý đang ghi nhận</h3><div className={styles.tags}>{profile.conditions.length?profile.conditions.map(item=><span key={`${item.code}-${item.stage}`}>{condition[item.code]||item.code}{item.stage?` · Giai đoạn ${item.stage}`:''}</span>):<span>Chưa ghi nhận</span>}</div><h3 style={{marginTop:18,fontSize:11}}>Thuốc đang dùng</h3><div className={styles.tags}>{profile.medications.length?profile.medications.map(item=><span key={item}>{item}</span>):<span>Chưa ghi nhận</span>}</div><h3 style={{marginTop:18,fontSize:11}}>Dị ứng</h3><div className={styles.tags}>{profile.allergies.length?profile.allergies.map(item=><span key={item}>{item}</span>):<span>Không có dị ứng được ghi nhận</span>}</div><div className={styles.notice}><Icon name="info"/><p>Nếu thuốc, dị ứng, chẩn đoán hoặc chỉ số của bạn đã thay đổi, hãy liên hệ chuyên gia trước khi tiếp tục áp dụng thực đơn hiện tại.</p></div></aside>
+    </div>}
+  </div>
+}

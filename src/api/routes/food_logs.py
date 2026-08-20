@@ -23,7 +23,7 @@ from pydantic import BaseModel, Field
 from sqlalchemy.orm import Session
 
 from src.api.clinical_bridge import to_clinical_profile
-from src.api.security import CurrentUser, get_current_user, require_role
+from src.api.security import CurrentUser, get_current_user, guard_free_text, require_role
 from src.clinical.diary import LoggedFood, summarize_day
 from src.clinical.matching import FoodMatcher
 from src.clinical.models import MealSlot
@@ -38,6 +38,7 @@ router = APIRouter(prefix="/food-logs", tags=["food-logs"])
 # Trạng thái khớp — xem docstring cột `match_status` trong src/db/models.py.
 MATCH_UNMATCHED = "unmatched"
 MATCH_AUTO = "auto"
+MATCH_PATIENT_CONFIRMED = "patient_confirmed"
 MATCH_EXPERT = "expert"
 MATCH_NO_DATA = "no_data"
 
@@ -74,6 +75,7 @@ def _get_matcher() -> FoodMatcher:
 class FoodLogCreate(BaseModel):
     profile_id: str
     free_text_vi: str = Field(min_length=1, max_length=255)
+    food_id: int | None = None
     grams: float | None = Field(default=None, gt=0, le=5000)
     slot: MealSlot = MealSlot.LUNCH
     logged_at: datetime | None = None
@@ -85,6 +87,11 @@ class MatchSuggestion(BaseModel):
     name_vi: str
     score: float
     matched_on: str
+
+
+class MatchSuggestionList(BaseModel):
+    query: str
+    suggestions: list[MatchSuggestion]
 
 
 class FoodLogOut(BaseModel):
@@ -199,11 +206,26 @@ def _profile_or_404(db: Session, profile_id: str, user: CurrentUser) -> DbPatien
 # --------------------------------------------------------------------------
 # Ghi nhật ký
 # --------------------------------------------------------------------------
+@router.get("/suggestions", response_model=MatchSuggestionList)
+def suggest_foods(
+    q: str = Query(min_length=2, max_length=255),
+    limit: int = Query(default=5, ge=1, le=10),
+    _user: CurrentUser = Depends(get_current_user),
+) -> MatchSuggestionList:
+    """Return deterministic candidates before a diary row is created."""
+    suggestions = [
+        MatchSuggestion(food_id=c.food_id, name_vi=c.name_vi, score=c.score, matched_on=c.matched_on)
+        for c in _get_matcher().match(q)[:limit]
+    ]
+    return MatchSuggestionList(query=q.strip(), suggestions=suggestions)
+
+
 @router.post("", response_model=FoodLogOut, status_code=status.HTTP_201_CREATED)
 def create_food_log(
     payload: FoodLogCreate,
     db: Session = Depends(get_db),
     user: CurrentUser = Depends(get_current_user),
+    _: None = Depends(guard_free_text("free_text_vi")),
 ) -> FoodLogOut:
     """Ghi một món đã ăn.
 
@@ -220,7 +242,14 @@ def create_food_log(
         for c in matcher.match(payload.free_text_vi)
     ]
 
-    if best is not None and payload.grams is not None:
+    confirmed_food = _get_repo().get(payload.food_id) if payload.food_id is not None else None
+    if payload.food_id is not None and confirmed_food is None:
+        raise HTTPException(status.HTTP_422_UNPROCESSABLE_ENTITY, "Món đã chọn không còn trong cơ sở dữ liệu")
+
+    if confirmed_food is not None and payload.grams is not None:
+        food_id, match_status, confidence = confirmed_food.id, MATCH_PATIENT_CONFIRMED, 1.0
+        grams = payload.grams
+    elif best is not None and payload.grams is not None:
         food_id, match_status, confidence = best.food_id, MATCH_AUTO, best.score
         grams = payload.grams
     else:

@@ -1,337 +1,39 @@
 'use client'
-import { useCallback, useEffect, useState } from 'react'
-import {
-  createApiClient,
-  type DaySummary,
-  type FoodLog,
-  type NutrientVerdict,
-  type Violation,
-} from '@/lib/api'
+
+import Link from 'next/link'
+import { useCallback, useEffect, useMemo, useState } from 'react'
+import { Icon } from '@/components/brand-artwork'
+import { ApiError, createApiClient, type DaySummary, type FoodLog, type Verdict } from '@/lib/api'
 import { getToken } from '@/lib/auth'
 
-const SLOTS = [
-  { value: 'breakfast', label: 'Sáng' },
-  { value: 'lunch', label: 'Trưa' },
-  { value: 'dinner', label: 'Tối' },
-  { value: 'snack', label: 'Phụ' },
-]
+const SLOTS=[['breakfast','Bữa sáng'],['lunch','Bữa trưa'],['snack','Bữa phụ'],['dinner','Bữa tối']] as const
+const VERDICT:Record<Verdict,{label:string;tone:string}>={exceeded:{label:'Cần chú ý',tone:'bg-[#c96b55]'},below_min:{label:'Nên bổ sung',tone:'bg-[#d7a33f]'},within:{label:'Đang phù hợp',tone:'bg-[#4f927c]'},insufficient_data:{label:'Cần ghi thêm',tone:'bg-[#aab8bb]'}}
+type DayEntry={iso:string;summary:DaySummary|null}
+function todayISO(){return new Date().toISOString().slice(0,10)}
+function shiftDate(iso:string,delta:number){const d=new Date(`${iso}T00:00:00`);d.setDate(d.getDate()+delta);return d.toISOString().slice(0,10)}
+function shortDate(iso:string){return new Date(`${iso}T00:00:00`).toLocaleDateString('vi-VN',{day:'2-digit',month:'2-digit'})}
+function nutrient(value:number|null,unit:string|null){if(value==null)return 'Chưa tính được';return `${new Intl.NumberFormat('vi-VN',{maximumFractionDigits:unit==='kcal'||unit==='mg'?0:1}).format(value)}${unit?` ${unit}`:''}`}
 
-/**
- * Nhãn cho từng kết luận.
- *
- * `insufficient_data` CÓ Ý ĐỒ không dùng màu xanh và không dùng chữ "đạt":
- * khi còn món chưa tra được, tổng tính ra chỉ là MỨC TỐI THIỂU, nên "chưa vượt
- * ngưỡng" hoàn toàn không đồng nghĩa với "ổn". Hiển thị nhầm chỗ này là biến
- * một hệ thống trung thực thành một hệ thống trấn an sai.
- */
-const VERDICT_UI: Record<string, { text: string; cls: string; icon: string }> = {
-  exceeded: { text: 'Đã vượt ngưỡng', cls: 'badge-hard', icon: '▲' },
-  below_min: { text: 'Thấp hơn mức tối thiểu', cls: 'badge-soft', icon: '▼' },
-  within: { text: 'Trong ngưỡng', cls: 'badge-ok', icon: '✓' },
-  insufficient_data: { text: 'Chưa đủ dữ liệu để kết luận', cls: 'badge-draft', icon: '?' },
+export default function DiaryPage(){
+ const [profileId,setProfileId]=useState(''),[day,setDay]=useState(todayISO()),[week,setWeek]=useState<DayEntry[]>([]),[logs,setLogs]=useState<FoodLog[]>([]),[loading,setLoading]=useState(true),[error,setError]=useState('')
+ const refresh=useCallback(async(pid:string,anchor:string)=>{const token=getToken();if(!token)return;const api=createApiClient(token);const dates=Array.from({length:7},(_,i)=>shiftDate(anchor,i-6));const [summaries,dayLogs]=await Promise.all([Promise.all(dates.map(async iso=>({iso,summary:await api.getDaySummary(pid,iso).catch(()=>null)}))),api.listFoodLogs(pid,anchor)]);setWeek(summaries);setLogs(dayLogs)},[])
+ useEffect(()=>{const token=getToken();if(!token)return;createApiClient(token).getMyProfile().then(p=>setProfileId(p.id)).catch(v=>setError(v instanceof ApiError?v.message:'Không thể tải hồ sơ.'))},[])
+ useEffect(()=>{if(!profileId)return;const timer=window.setTimeout(()=>{setLoading(true);setError('');refresh(profileId,day).catch(v=>setError(v instanceof ApiError?v.message:'Không thể tải tiến trình dinh dưỡng.')).finally(()=>setLoading(false))},0);return()=>window.clearTimeout(timer)},[profileId,day,refresh])
+ const summary=week.find(e=>e.iso===day)?.summary??null
+ const days=week.filter(e=>e.summary&&(e.summary.matched_count+e.summary.unmatched_count)>0).length
+ const all=useMemo(()=>week.flatMap(e=>e.summary?.verdicts??[]),[week]);const best=all.filter(v=>v.verdict==='within').at(-1);const focus=all.filter(v=>v.verdict==='exceeded'||v.verdict==='below_min').at(-1);const coverage=summary?Math.round(summary.coverage*100):0
+ return <div className="min-h-screen px-[38px] pb-12 pt-[34px] text-[var(--c-ink)] max-[680px]:px-[15px] max-[680px]:pb-[30px] max-[680px]:pt-[72px]">
+  <header className="flex items-end justify-between gap-5 max-[720px]:grid"><div><small className="text-xs font-bold tracking-[.08em] text-[var(--c-green2)]">THEO DÕI THÓI QUEN ĂN UỐNG</small><h1 className="mt-1.5 font-[family-name:var(--f-serif)] text-[clamp(30px,4vw,38px)] font-semibold leading-[1.15]">Tiến trình dinh dưỡng</h1><p className="mt-1.5 text-base text-[var(--c-muted)]">Những thay đổi đáng chú ý từ các bữa ăn bạn đã ghi lại.</p></div><label className="grid w-fit gap-1.5 text-sm font-semibold">Ngày đang xem<input className="h-11 rounded-[9px] border border-[#cad5d8] bg-white px-3 text-base" type="date" value={day} max={todayISO()} onChange={e=>setDay(e.target.value)}/></label></header>
+  {error&&<div className="mt-4 flex gap-2 rounded-xl border border-[#efb4a4] bg-[#fff5f1] p-3 text-sm text-[#8b3d2b]" role="alert"><Icon name="warning" className="w-[18px]"/>{error}</div>}
+  {loading?<div className="mt-5 h-[390px] animate-pulse rounded-2xl bg-[#e7eeef]"/>:<>
+   <section className="mt-5 overflow-hidden rounded-[22px] border border-[#cfe0df] bg-[linear-gradient(125deg,#f7fbfa,#edf7f5_62%,#e5f1f5)] p-6 max-[680px]:p-5"><div className="grid grid-cols-[1fr_auto] items-center gap-8 max-[680px]:grid-cols-1"><div><span className="inline-flex rounded-full bg-white/80 px-3 py-1.5 text-xs font-semibold text-[var(--c-green2)] shadow-sm">7 ngày gần nhất</span><h2 className="mt-4 font-[family-name:var(--f-serif)] text-[clamp(24px,3vw,32px)] font-semibold">Bạn đã ghi bữa trong {days}/7 ngày</h2><p className="mt-2 max-w-[58ch] text-base leading-[1.6] text-[var(--c-muted)]">{days>=5?'Bạn đang duy trì khá đều. Dữ liệu này đã giúp bạn nhìn thấy những xu hướng đầu tiên.':'Hãy ghi thêm vài bữa trong tuần để hệ thống hiểu thói quen của bạn rõ hơn.'}</p></div><div className="grid h-28 w-28 place-items-center rounded-full bg-white shadow-[0_12px_35px_rgba(38,102,98,.12)]"><div className="text-center"><strong className="block text-3xl font-semibold text-[var(--c-green2)]">{days}</strong><span className="text-sm text-[var(--c-muted)]">trên 7 ngày</span></div></div></div></section>
+   <section className="mt-3.5 grid grid-cols-3 gap-3.5 max-[980px]:grid-cols-1" aria-label="Điểm nổi bật trong tuần"><Insight icon="check" eyebrow="BẠN ĐANG DUY TRÌ TỐT" title={best?.label_vi??'Thói quen ghi bữa'} body={best?'Chỉ số này đang ở mức phù hợp trong ngày bạn đã ghi.':'Mỗi bữa được ghi lại đều giúp việc theo dõi chính xác hơn.'} tone="good"/><Insight icon="info" eyebrow="ĐIỀU NÊN ĐỂ Ý" title={focus?.label_vi??'Chưa có xu hướng rõ'} body={focus?(focus.verdict==='below_min'?'Lượng ghi nhận đang thấp hơn mức được khuyến nghị.':'Lượng ghi nhận có lúc cao hơn mức được khuyến nghị.'):'Hãy tiếp tục ghi bữa để nhận gợi ý phù hợp hơn.'} tone="watch"/><Insight icon="arrowRight" eyebrow="BƯỚC NHỎ TIẾP THEO" title={focus?.verdict==='below_min'?`Bổ sung thêm ${focus.label_vi.toLowerCase()}`:'Ghi lại bữa tiếp theo'} body={focus?.verdict==='below_min'?'Thử điều chỉnh một phần nhỏ trong bữa tiếp theo, không cần thay đổi mọi thứ cùng lúc.':'Chỉ mất ít phút và không cần ghi thật hoàn hảo.'} tone="action"/></section>
+   <div className="mt-3.5 grid grid-cols-[minmax(0,1.3fr)_minmax(290px,.7fr)] gap-3.5 max-[980px]:grid-cols-1"><section className="rounded-2xl border border-[#d8e1e3] bg-white p-5 shadow-[0_9px_28px_rgba(27,83,81,.045)]"><div className="flex items-center justify-between gap-3"><div><small className="text-xs font-bold tracking-[.08em] text-[var(--c-green2)]">NGÀY {shortDate(day)}</small><h2 className="mt-1 text-2xl font-semibold">Các bữa bạn đã ghi</h2></div><span className="rounded-full bg-[#e3f0f4] px-3 py-1.5 text-xs font-semibold text-[var(--c-green2)]">{logs.length} món</span></div>{logs.length?<div className="mt-3">{logs.map(log=><LogRow key={log.id} log={log}/>)}</div>:<div className="grid min-h-[210px] place-items-center content-center text-center"><Icon name="diary" className="w-[42px] rounded-2xl bg-[#e3f0f4] p-2.5 text-[var(--c-green2)]"/><h3 className="mt-2.5 text-lg font-semibold">Chưa có bữa nào được ghi</h3><p className="mt-1 text-sm text-[var(--c-muted)]">Bạn có thể thêm món ở trang Tuần của tôi.</p></div>}</section>
+    <aside><section className="rounded-2xl border border-[#d8e1e3] bg-white p-5 shadow-[0_9px_28px_rgba(27,83,81,.045)]"><small className="text-xs font-bold tracking-[.08em] text-[var(--c-green2)]">MỨC ĐỘ GHI NHẬN</small><div className="mt-2 flex items-end justify-between gap-3"><h2 className="text-xl font-semibold">Bạn đã ghi đủ để xem chưa?</h2><strong className="text-xl tabular-nums text-[var(--c-green2)]">{coverage}%</strong></div><div className="mt-4 h-2 overflow-hidden rounded-full bg-[#e5edef]"><i className="block h-full rounded-full bg-[var(--c-green)] transition-[width] duration-500" style={{width:`${coverage}%`}}/></div><p className="mt-3 text-sm leading-[1.6] text-[var(--c-muted)]">{summary?.is_complete?'Các món trong ngày đã có đủ thông tin để xem tổng quan.':'Một vài món vẫn đang được cập nhật. Hãy ghi thêm để kết quả rõ hơn.'}</p><Link className="mt-4 flex min-h-11 items-center justify-between rounded-xl bg-[var(--c-green2)] px-4 text-sm font-semibold text-white" href="/patient/weekly">Ghi thêm món<Icon name="arrowRight" className="w-4"/></Link></section></aside></div>
+   <details className="mt-3.5 rounded-2xl border border-[#d8e1e3] bg-white shadow-[0_9px_28px_rgba(27,83,81,.045)]"><summary className="flex min-h-[72px] cursor-pointer list-none items-center justify-between gap-4 px-5"><div><small className="text-xs font-bold tracking-[.08em] text-[var(--c-green2)]">DÀNH CHO NGƯỜI MUỐN XEM KỸ</small><h2 className="mt-1 text-lg font-semibold">Chi tiết dinh dưỡng ngày {shortDate(day)}</h2></div><span className="text-sm font-semibold text-[var(--c-green2)]">Mở chi tiết</span></summary><div className="grid grid-cols-2 gap-x-6 border-t border-[#e3e9ea] px-5 py-3 max-[720px]:grid-cols-1">{summary?.verdicts.length?summary.verdicts.map(item=><article key={item.nutrient} className="grid min-h-[68px] grid-cols-[7px_1fr_auto] items-center gap-3 border-b border-[#edf1f2]"><span className={`h-8 w-[6px] rounded-full ${VERDICT[item.verdict].tone}`}/><div><strong className="text-sm font-semibold">{item.label_vi}</strong><small className="mt-1 block text-xs text-[var(--c-muted)]">{nutrient(item.counted,item.unit)}</small></div><span className="text-xs font-semibold">{VERDICT[item.verdict].label}</span></article>):<p className="col-span-full py-8 text-center text-sm text-[var(--c-muted)]">Cần ghi thêm món để xem chi tiết dinh dưỡng.</p>}</div></details>
+  </>}
+ </div>
 }
 
-function todayISO() {
-  return new Date().toISOString().slice(0, 10)
-}
-
-export default function DiaryPage() {
-  const [profileId, setProfileId] = useState<string | null>(null)
-  const [logs, setLogs] = useState<FoodLog[]>([])
-  const [summary, setSummary] = useState<DaySummary | null>(null)
-  const [loading, setLoading] = useState(true)
-  const [saving, setSaving] = useState(false)
-  const [error, setError] = useState<string | null>(null)
-
-  const [text, setText] = useState('')
-  const [grams, setGrams] = useState('')
-  const [slot, setSlot] = useState('lunch')
-  const [lastResult, setLastResult] = useState<FoodLog | null>(null)
-
-  const day = todayISO()
-
-  const refresh = useCallback(async (pid: string) => {
-    const token = getToken()
-    if (!token) return
-    const api = createApiClient(token)
-    const [l, s] = await Promise.all([api.listFoodLogs(pid, day), api.getDaySummary(pid, day)])
-    setLogs(l)
-    setSummary(s)
-  }, [day])
-
-  useEffect(() => {
-    const token = getToken()
-    if (!token) return
-    createApiClient(token)
-      .getMyProfile()
-      .then(async p => {
-        setProfileId(p.id)
-        await refresh(p.id)
-      })
-      .catch((e: Error) => setError(e.message))
-      .finally(() => setLoading(false))
-  }, [refresh])
-
-  async function handleAdd(e: React.FormEvent) {
-    e.preventDefault()
-    if (!profileId || !text.trim()) return
-    setSaving(true)
-    setError(null)
-    try {
-      const api = createApiClient(getToken()!)
-      const created = await api.createFoodLog({
-        profile_id: profileId,
-        free_text_vi: text.trim(),
-        grams: grams ? Number(grams) : null,
-        slot,
-      })
-      setLastResult(created)
-      setText('')
-      setGrams('')
-      await refresh(profileId)
-    } catch (err) {
-      setError((err as Error).message)
-    } finally {
-      setSaving(false)
-    }
-  }
-
-  const unmatchedViolations = summary?.violations.filter(v => v.kind === 'unmatched_food') ?? []
-  const otherViolations = summary?.violations.filter(v => v.kind !== 'unmatched_food') ?? []
-
-  return (
-    <>
-      <div className="topbar">
-        <h1 className="page-title">Nhật ký ăn uống</h1>
-        <div className="topbar-actions">
-          <span style={{ fontSize: 13, color: 'var(--c-muted)' }}>{day}</span>
-        </div>
-      </div>
-
-      <div className="page-body">
-        {loading ? (
-          <div style={{ display: 'grid', placeItems: 'center', height: '40vh' }}>
-            <span className="spinner" style={{ width: 32, height: 32, color: 'var(--c-green)' }} />
-          </div>
-        ) : (
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 340px', gap: 24, alignItems: 'start' }}>
-            {/* ------------------------------------------------ cột trái */}
-            <div style={{ display: 'grid', gap: 20 }}>
-              <form className="card" style={{ padding: 20 }} onSubmit={handleAdd}>
-                <h2 style={{ fontFamily: 'var(--f-serif)', fontSize: 18, marginBottom: 4 }}>
-                  Hôm nay bạn ăn gì?
-                </h2>
-                <p style={{ fontSize: 13, color: 'var(--c-muted)', marginBottom: 14 }}>
-                  Cứ gõ tên món như bạn vẫn gọi. Nếu hệ thống chưa có món đó, chuyên gia dinh dưỡng
-                  sẽ bổ sung giúp bạn — bạn không cần tự tra cứu.
-                </p>
-
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 110px 110px auto', gap: 10 }}>
-                  <input
-                    className="input"
-                    placeholder="VD: cơm tẻ, canh rau muống, thịt kho…"
-                    value={text}
-                    onChange={e => setText(e.target.value)}
-                    maxLength={255}
-                  />
-                  <input
-                    className="input"
-                    type="number"
-                    placeholder="gram"
-                    value={grams}
-                    onChange={e => setGrams(e.target.value)}
-                    min={1}
-                    max={5000}
-                  />
-                  <select className="input" value={slot} onChange={e => setSlot(e.target.value)}>
-                    {SLOTS.map(s => (
-                      <option key={s.value} value={s.value}>{s.label}</option>
-                    ))}
-                  </select>
-                  <button className="btn btn-primary" disabled={saving || !text.trim()}>
-                    {saving ? 'Đang lưu…' : 'Ghi lại'}
-                  </button>
-                </div>
-
-                <p style={{ fontSize: 12, color: 'var(--c-muted)', marginTop: 8 }}>
-                  Không nhớ chính xác bao nhiêu gram? Cứ để trống — thà ghi thiếu còn hơn ghi sai.
-                </p>
-
-                {error && (
-                  <p style={{ color: 'var(--c-red, #c0392b)', fontSize: 13, marginTop: 10 }}>{error}</p>
-                )}
-
-                {lastResult && lastResult.match_status === 'unmatched' && (
-                  <div className="disclaimer" style={{ marginTop: 12 }}>
-                    Đã ghi <strong>“{lastResult.free_text_vi}”</strong>. Hệ thống chưa tra được món này
-                    nên <strong>chưa tính vào tổng của bạn</strong> — chuyên gia sẽ đối chiếu và bổ sung.
-                    {lastResult.suggestions.length > 0 && (
-                      <> Có thể là: {lastResult.suggestions.slice(0, 3).map(s => s.name_vi).join(', ')}.</>
-                    )}
-                  </div>
-                )}
-              </form>
-
-              <div className="card" style={{ padding: 20 }}>
-                <h2 style={{ fontFamily: 'var(--f-serif)', fontSize: 18, marginBottom: 12 }}>
-                  Đã ghi hôm nay ({logs.length})
-                </h2>
-                {logs.length === 0 ? (
-                  <p style={{ color: 'var(--c-muted)', fontSize: 14 }}>Chưa có món nào.</p>
-                ) : (
-                  <div style={{ display: 'grid', gap: 8 }}>
-                    {logs.map(log => (
-                      <LogRow key={log.id} log={log} />
-                    ))}
-                  </div>
-                )}
-              </div>
-            </div>
-
-            {/* ------------------------------------------------ cột phải */}
-            <div style={{ display: 'grid', gap: 16 }}>
-              {summary && <CoverageCard summary={summary} />}
-
-              {summary && (
-                <div className="card" style={{ padding: 18 }}>
-                  <h3 style={{ fontSize: 15, marginBottom: 12 }}>Tổng hợp ngày</h3>
-                  <div style={{ display: 'grid', gap: 10 }}>
-                    {summary.verdicts.map(v => (
-                      <VerdictRow key={v.nutrient} v={v} />
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {unmatchedViolations.length > 0 && (
-                <div className="card" style={{ padding: 18 }}>
-                  <h3 style={{ fontSize: 15, marginBottom: 10 }}>
-                    Món chờ chuyên gia đối chiếu ({unmatchedViolations.length})
-                  </h3>
-                  <div style={{ display: 'grid', gap: 8 }}>
-                    {unmatchedViolations.map((v, i) => (
-                      <ViolationRow key={i} v={v} />
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {otherViolations.length > 0 && (
-                <div className="card" style={{ padding: 18 }}>
-                  <h3 style={{ fontSize: 15, marginBottom: 10 }}>Lưu ý ({otherViolations.length})</h3>
-                  <div style={{ display: 'grid', gap: 8 }}>
-                    {otherViolations.map((v, i) => (
-                      <ViolationRow key={i} v={v} />
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              <p className="disclaimer">
-                ⚕️ Nhật ký giúp chuyên gia hiểu bạn ăn gì. Đây không phải chẩn đoán y khoa.
-              </p>
-            </div>
-          </div>
-        )}
-      </div>
-    </>
-  )
-}
-
-function LogRow({ log }: { log: FoodLog }) {
-  const chuaTraDuoc = log.match_status === 'unmatched'
-  const khongDuDuLieu = log.match_status === 'no_data'
-  return (
-    <div
-      style={{
-        display: 'flex',
-        alignItems: 'center',
-        gap: 10,
-        padding: '10px 12px',
-        borderRadius: 'var(--r-md)',
-        background: chuaTraDuoc || khongDuDuLieu ? 'rgba(0,0,0,.03)' : 'transparent',
-        border: '1px solid var(--c-border, rgba(0,0,0,.08))',
-      }}
-    >
-      <span style={{ fontSize: 13, minWidth: 46, color: 'var(--c-muted)' }}>
-        {SLOTS.find(s => s.value === log.slot)?.label ?? '—'}
-      </span>
-      <span style={{ flex: 1, fontSize: 14 }}>
-        {log.food_name_vi ?? log.free_text_vi}
-        {log.food_name_vi && log.free_text_vi !== log.food_name_vi && (
-          <span style={{ color: 'var(--c-muted)', fontSize: 12 }}> (bạn ghi: {log.free_text_vi})</span>
-        )}
-      </span>
-      <span style={{ fontSize: 13, color: 'var(--c-muted)', minWidth: 60, textAlign: 'right' }}>
-        {log.grams != null ? `${log.grams} g` : '— g'}
-      </span>
-      {chuaTraDuoc && <span className="badge badge-soft">chờ đối chiếu</span>}
-      {khongDuDuLieu && <span className="badge badge-draft">không đủ dữ liệu</span>}
-    </div>
-  )
-}
-
-function CoverageCard({ summary }: { summary: DaySummary }) {
-  const pct = Math.round(summary.coverage * 100)
-  return (
-    <div className="card" style={{ padding: 18 }}>
-      <h3 style={{ fontSize: 15, marginBottom: 8 }}>Độ đầy đủ dữ liệu</h3>
-      <div style={{ display: 'flex', alignItems: 'baseline', gap: 8 }}>
-        <span style={{ fontSize: 30, fontFamily: 'var(--f-serif)' }}>{pct}%</span>
-        <span style={{ fontSize: 13, color: 'var(--c-muted)' }}>
-          {summary.matched_count}/{summary.matched_count + summary.unmatched_count} món tra được
-        </span>
-      </div>
-      {!summary.is_complete && (
-        <p style={{ fontSize: 12.5, color: 'var(--c-muted)', marginTop: 8, lineHeight: 1.5 }}>
-          Còn món chưa tra được, nên các con số bên dưới là <strong>mức tối thiểu</strong> — thực tế
-          có thể cao hơn. Vì vậy hệ thống không kết luận “đạt ngưỡng”.
-        </p>
-      )}
-    </div>
-  )
-}
-
-function VerdictRow({ v }: { v: NutrientVerdict }) {
-  const ui = VERDICT_UI[v.verdict] ?? VERDICT_UI.insufficient_data
-  const gioiHan =
-    v.max_value != null ? `tối đa ${v.max_value}` : v.min_value != null ? `tối thiểu ${v.min_value}` : '—'
-  return (
-    <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13 }}>
-      <span className={`badge ${ui.cls}`} style={{ minWidth: 22, textAlign: 'center' }}>{ui.icon}</span>
-      <span style={{ flex: 1 }}>{v.label_vi}</span>
-      <span style={{ color: 'var(--c-muted)' }}>
-        {/* counted=null nghĩa là chưa cộng được gì — hiện "—", không hiện 0 */}
-        {v.counted != null ? `${v.counted}${v.unit ? ' ' + v.unit : ''}` : '—'}
-        <span style={{ opacity: 0.6 }}> / {gioiHan}</span>
-      </span>
-      <span style={{ fontSize: 11.5, color: 'var(--c-muted)', minWidth: 130, textAlign: 'right' }}>
-        {ui.text}
-      </span>
-    </div>
-  )
-}
-
-function ViolationRow({ v }: { v: Violation }) {
-  return (
-    <div style={{ fontSize: 13, lineHeight: 1.5 }}>
-      <div style={{ display: 'flex', gap: 6, alignItems: 'flex-start' }}>
-        <span className={`badge ${v.severity === 'hard' ? 'badge-hard' : 'badge-soft'}`}>
-          {v.severity === 'hard' ? 'Chặn' : 'Lưu ý'}
-        </span>
-        <span>{v.message_vi}</span>
-      </div>
-      {v.suggestion && (
-        <div style={{ color: 'var(--c-muted)', fontSize: 12.5, marginTop: 3, paddingLeft: 4 }}>
-          → {v.suggestion}
-        </div>
-      )}
-      {/* Chỉ hiện số khi THẬT SỰ có số. actual=null là cảnh báo định tính. */}
-      {v.actual != null && v.limit != null && (
-        <div style={{ color: 'var(--c-muted)', fontSize: 12, marginTop: 2, paddingLeft: 4 }}>
-          {v.actual} / {v.limit} {v.unit}
-        </div>
-      )}
-    </div>
-  )
-}
+function Insight({icon,eyebrow,title,body,tone}:{icon:'check'|'info'|'arrowRight';eyebrow:string;title:string;body:string;tone:'good'|'watch'|'action'}){const color=tone==='good'?'border-[#cfe2dc] bg-[#f7fbf9]':tone==='watch'?'border-[#eadfc8] bg-[#fffaf1]':'border-[#cedee6] bg-[#f5fafc]';return <article className={`min-h-[184px] rounded-2xl border p-5 ${color}`}><Icon name={icon} className="h-10 w-10 rounded-xl bg-white p-2.5 text-[var(--c-green2)] shadow-sm"/><small className="mt-5 block text-xs font-bold tracking-[.08em] text-[var(--c-green2)]">{eyebrow}</small><h2 className="mt-1.5 text-lg font-semibold">{title}</h2><p className="mt-1.5 text-sm leading-[1.55] text-[var(--c-muted)]">{body}</p></article>}
+function LogRow({log}:{log:FoodLog}){const pending=log.match_status==='unmatched'||log.match_status==='no_data';return <article className="grid min-h-[76px] grid-cols-[38px_1fr_auto] items-center gap-3 border-b border-[#e3e9ea] last:border-0"><span className="grid h-9 w-9 place-items-center rounded-xl bg-[#e4f0f4] text-[var(--c-green2)]"><Icon name={pending?'info':'check'} className="w-[18px]"/></span><div><small className="text-xs text-[var(--c-muted)]">{SLOTS.find(([v])=>v===log.slot)?.[1]||'Bữa ăn'} · {new Date(log.logged_at).toLocaleTimeString('vi-VN',{hour:'2-digit',minute:'2-digit'})}</small><strong className="mt-1 block text-base font-semibold">{log.food_name_vi||log.free_text_vi}</strong></div><div className="text-right"><b className="block text-sm font-semibold tabular-nums">{log.grams!=null?`${log.grams} g`:'Chưa có khẩu phần'}</b><small className="mt-1 block text-xs text-[var(--c-muted)]">{pending?'Đang cập nhật dinh dưỡng':'Đã cập nhật'}</small></div></article>}

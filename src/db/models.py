@@ -58,6 +58,8 @@ class User(Base):
     email: Mapped[str] = mapped_column(String(255), unique=True, index=True)
     password_hash: Mapped[str] = mapped_column(String(255))
     role: Mapped[str] = mapped_column(String(20))  # patient|dietitian|admin
+    terms_accepted_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
+    onboarding_completed_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
 
     profile: Mapped[PatientProfile | None] = relationship(back_populates="user", uselist=False)
 
@@ -85,6 +87,30 @@ class PatientProfile(Base):
     observations: Mapped[list[PatientObservation]] = relationship(back_populates="profile")
     clinical_notes: Mapped[list[ClinicalNote]] = relationship(back_populates="profile")
     review_events: Mapped[list[MealPlanReviewEvent]] = relationship(back_populates="profile")
+    update_requests: Mapped[list[ProfileUpdateRequest]] = relationship(back_populates="profile")
+    preferences: Mapped[PatientPreferences | None] = relationship(back_populates="profile", uselist=False)
+
+
+class ProfileUpdateRequest(Base):
+    """Patient-submitted request for a clinician-verified profile change."""
+
+    __tablename__ = "profile_update_requests"
+    __table_args__ = (
+        Index("ix_profile_update_requests_status_created", "status", "created_at"),
+        Index("ix_profile_update_requests_profile_created", "profile_id", "created_at"),
+    )
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=_uuid)
+    profile_id: Mapped[str] = mapped_column(ForeignKey("patient_profiles.id"))
+    requester_id: Mapped[str] = mapped_column(ForeignKey("users.id"))
+    message: Mapped[str] = mapped_column(Text)
+    status: Mapped[str] = mapped_column(String(20), default="pending")
+    resolved_by: Mapped[str | None] = mapped_column(ForeignKey("users.id"), nullable=True)
+    resolution_note: Mapped[str | None] = mapped_column(Text, nullable=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+    resolved_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
+
+    profile: Mapped[PatientProfile] = relationship(back_populates="update_requests")
 
 
 class PatientMedication(Base):
@@ -156,6 +182,20 @@ class Dish(Base):
     dish_id: Mapped[str] = mapped_column(String(64), primary_key=True)
     name_vi: Mapped[str] = mapped_column(String(255), index=True)
     region: Mapped[str | None] = mapped_column(String(20), nullable=True)  # north|central|south
+    # Tầng dữ liệu của dòng: `vn` (món Việt curated, chạm bệnh nhân),
+    # `foreign` (khối tham chiếu USDA FNDDS tiếng Anh, tầng C), `template`
+    # (mẫu CẢ BỮA `MENU-*` trích từ Excel, tầng D — không phải món).
+    #
+    # Trước đây ba tầng này chỉ phân biệt được bằng TIỀN TỐ `dish_id` — một
+    # quy ước chuỗi, không phải dữ liệu, và chính chỗ đó đã để `MENU-*` lọt
+    # lên UI bệnh nhân thành tên món "Bữa sáng - Thực đơn 3" (DEC-022). Cột
+    # này làm ranh giới tầng tra vấn được bằng SQL; `src/clinical/tiers.py`
+    # vẫn giữ nguyên làm lưới an toàn cho dòng cũ chưa gắn nhãn.
+    origin: Mapped[str | None] = mapped_column(String(10), nullable=True)
+    # Vai trò trong cấu trúc bữa, phân tách bằng `|` — xem
+    # `src/clinical/dish_roles.py` (từ vựng duy nhất). RỖNG = không đủ điều
+    # kiện làm một mục độc lập của bữa (fail closed).
+    roles: Mapped[str | None] = mapped_column(String(255), nullable=True)
     serving_g: Mapped[float | None] = mapped_column(Float, nullable=True)
     verified_by: Mapped[str | None] = mapped_column(String(100), nullable=True)  # RULE-2 cho món (DAT-04)
     note: Mapped[str | None] = mapped_column(Text, nullable=True)
@@ -211,9 +251,9 @@ class ClinicalRule(Base):
     guideline_ref: Mapped[str] = mapped_column(Text)  # RULE-2
     guideline_grade: Mapped[str | None] = mapped_column(String(10), nullable=True)
     verify_status: Mapped[str] = mapped_column(String(20), default="to_verify")
-    overridden_by: Mapped[str | None] = mapped_column(String(50), nullable=True)
-    disabled_by_flag: Mapped[str | None] = mapped_column(String(50), nullable=True)
-    requires_flag: Mapped[str | None] = mapped_column(String(50), nullable=True)
+    overridden_by: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    disabled_by_flag: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    requires_flag: Mapped[str | None] = mapped_column(String(255), nullable=True)
 
 
 class DrugFoodInteraction(Base):
@@ -389,6 +429,7 @@ class FoodLog(Base):
     # unmatched: chưa tra được, KHÔNG có số → chờ chuyên gia giải quyết
     # auto:      matcher tất định tự nhận (Làn A)
     # llm:       LLM map trong danh sách ứng viên (Làn B)
+    # patient_confirmed: bệnh nhân chọn rõ một ứng viên từ danh sách gợi ý
     # expert:    chuyên gia gán tay
     # no_data:   chuyên gia xác nhận không đủ dữ liệu, cố ý không tính vào tổng
     match_status: Mapped[str] = mapped_column(String(20), default="unmatched", index=True)
@@ -538,6 +579,45 @@ class AuditLog(Base):
     after: Mapped[dict | None] = mapped_column(JSON, nullable=True)
 
 
+class PatientPreferences(Base):
+    """Sở thích/khảo sát đầu vào phi lâm sàng — KHÔNG dùng cho tính toán dinh dưỡng
+    (xem RULE-1/RULE-2). Tách khỏi `PatientProfile` (hồ sơ lâm sàng do chuyên gia sở
+    hữu) vì bệnh nhân được tự ghi trực tiếp bảng này qua onboarding, không cần chuyên
+    gia duyệt như `ProfileUpdateRequest`.
+    """
+
+    __tablename__ = "patient_preferences"
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=_uuid)
+    profile_id: Mapped[str] = mapped_column(ForeignKey("patient_profiles.id"), unique=True)
+    disliked_foods: Mapped[list] = mapped_column(JSON, default=list)
+    usual_meal_times: Mapped[dict] = mapped_column(JSON, default=dict)
+    meal_reminders_enabled: Mapped[bool] = mapped_column(Boolean, default=True)
+    updated_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+    profile: Mapped[PatientProfile] = relationship(back_populates="preferences")
+
+
+class Notification(Base):
+    """Thông báo hệ thống → người dùng, một chiều (BE→FE). Không phải tin nhắn 2
+    chiều — không có `sender_id`, chỉ có nguồn sinh phía server (quyết định duyệt,
+    cảnh báo an toàn) theo đúng dữ liệu đã tính sẵn, không tính lại gì mới.
+    """
+
+    __tablename__ = "notifications"
+    __table_args__ = (Index("ix_notifications_user_read_created", "user_id", "read_at", "created_at"),)
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=_uuid)
+    user_id: Mapped[str] = mapped_column(ForeignKey("users.id"))
+    type: Mapped[str] = mapped_column(String(30))  # meal_reminder|safety_alert|review_decision|system
+    severity: Mapped[str] = mapped_column(String(20), default="info")  # info|warning|critical
+    title: Mapped[str] = mapped_column(String(200))
+    body: Mapped[str] = mapped_column(Text)
+    related_meal_plan_id: Mapped[str | None] = mapped_column(ForeignKey("meal_plans.id"), nullable=True)
+    read_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+
+
 __all__ = [
     "AuditLog",
     "ClinicalNote",
@@ -551,11 +631,14 @@ __all__ = [
     "MealPlan",
     "MealPlanItem",
     "MealPlanReviewEvent",
+    "Notification",
     "PantryItem",
     "PatientAllergy",
     "PatientMedication",
     "PatientObservation",
+    "PatientPreferences",
     "PatientProfile",
+    "ProfileUpdateRequest",
     "ServingSize",
     "SubstitutionScope",
     "User",

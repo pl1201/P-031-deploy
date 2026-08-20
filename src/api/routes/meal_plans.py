@@ -9,8 +9,10 @@ chỉ ráp graph rồi giao việc cho background task.
 from __future__ import annotations
 
 import logging
+import traceback
 from collections.abc import Callable
 from datetime import date, datetime
+from typing import TYPE_CHECKING
 
 from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Query, status
 from pydantic import BaseModel, Field
@@ -19,6 +21,7 @@ from sqlalchemy.orm import Session, selectinload
 from src.agents.assembly import build_nutricare_graph
 from src.api.clinical_bridge import to_clinical_profile
 from src.api.security import CurrentUser, get_current_user
+from src.clinical.dish_roles import parse_roles
 from src.clinical.dishes import load_dish_food_repository
 from src.clinical.models import DishCandidate, MenuItem
 from src.clinical.models import PatientProfile as ClinicalPatientProfile
@@ -27,9 +30,12 @@ from src.clinical.seeds import load_food_repository
 from src.clinical.tiers import is_patient_facing_dish
 from src.config import get_settings
 from src.db.base import get_db, get_session_factory
-from src.db.models import Dish, DishIngredient, MealPlan, MealPlanItem
+from src.db.models import Dish, DishIngredient, MealPlan, MealPlanItem, Notification, User
 from src.db.models import FoodItem as DbFoodItem
 from src.db.models import PatientProfile as DbPatientProfile
+
+if TYPE_CHECKING:  # chỉ dùng cho annotation — giữ nguyên import trễ ở runtime
+    from src.agents.nodes.core import MenuGenerator
 
 logger = logging.getLogger(__name__)
 
@@ -72,6 +78,16 @@ class MealPlanItemOut(BaseModel):
     source_ref: str
     is_estimated: bool
     ingredients: list[MealPlanIngredientOut] = Field(default_factory=list)
+    kcal: float | None = None
+    protein_g: float | None = None
+    carb_g: float | None = None
+    fat_g: float | None = None
+    fiber_g: float | None = None
+    sugar_g: float | None = None
+    sugar_is_complete: bool = True
+    purine_mg: float | None = None
+    purine_is_complete: bool = True
+    khau_phan_mo_ta: str | None = None
 
     model_config = {"from_attributes": True}
 
@@ -108,6 +124,7 @@ class MealPlanOut(BaseModel):
     reviewer_id: str | None
     reviewer_notes: str | None
     created_at: datetime
+    last_error: dict | None
 
     model_config = {"from_attributes": True}
 
@@ -120,7 +137,9 @@ class MealPlanOut(BaseModel):
             status=plan.status,
             items=[
                 cls._item_out(i)
-                for i in sorted(plan.items, key=lambda i: (i.slot, 0 if i.dish_id else 1, i.dish_id or "", i.food_id or 0))
+                for i in sorted(
+                    plan.items, key=lambda i: (i.slot, 0 if i.dish_id else 1, i.dish_id or "", i.food_id or 0)
+                )
             ],
             targets=plan.targets or {},
             computed_nutrition=plan.computed_nutrition or {},
@@ -137,6 +156,7 @@ class MealPlanOut(BaseModel):
             reviewer_id=plan.reviewer_id,
             reviewer_notes=plan.reviewer_notes,
             created_at=plan.created_at,
+            last_error=plan.last_error,
         )
 
     @staticmethod
@@ -154,6 +174,27 @@ class MealPlanOut(BaseModel):
                 )
                 for part in item.dish.ingredients
             ]
+            kcal = protein_g = carb_g = fat_g = fiber_g = sugar_g = purine_mg = 0.0
+            sugar_is_complete = True
+            purine_is_complete = True
+            has_estimated = False
+            for part in item.dish.ingredients:
+                factor = part.grams * scale / 100.0
+                food = part.food
+                kcal += food.kcal_100g * factor
+                protein_g += food.protein_g * factor
+                carb_g += food.carb_g * factor
+                fat_g += food.fat_g * factor
+                fiber_g += food.fiber_g * factor
+                has_estimated = has_estimated or food.is_estimated
+                if food.sugar_g is None:
+                    sugar_is_complete = False
+                else:
+                    sugar_g += food.sugar_g * factor
+                if food.purine_mg is None:
+                    purine_is_complete = False
+                else:
+                    purine_mg += food.purine_mg * factor
             return MealPlanItemOut(
                 id=item.id,
                 slot=item.slot,
@@ -162,8 +203,17 @@ class MealPlanOut(BaseModel):
                 name_vi=item.dish.name_vi,
                 source="recipe",
                 source_ref=f"dish:{item.dish_id}",
-                is_estimated=False,
+                is_estimated=has_estimated,
                 ingredients=ingredients,
+                kcal=round(kcal, 2),
+                protein_g=round(protein_g, 2),
+                carb_g=round(carb_g, 2),
+                fat_g=round(fat_g, 2),
+                fiber_g=round(fiber_g, 2),
+                sugar_g=round(sugar_g, 2) if sugar_is_complete else None,
+                sugar_is_complete=sugar_is_complete,
+                purine_mg=round(purine_mg, 2) if purine_is_complete else None,
+                purine_is_complete=purine_is_complete,
             )
         assert item.food is not None
         return MealPlanItemOut(
@@ -175,6 +225,17 @@ class MealPlanOut(BaseModel):
             source=item.food.source,
             source_ref=item.food.source_ref,
             is_estimated=item.food.is_estimated,
+            kcal=round(item.food.kcal_100g * item.grams / 100.0, 2),
+            protein_g=round(item.food.protein_g * item.grams / 100.0, 2),
+            carb_g=round(item.food.carb_g * item.grams / 100.0, 2),
+            fat_g=round(item.food.fat_g * item.grams / 100.0, 2),
+            fiber_g=round(item.food.fiber_g * item.grams / 100.0, 2),
+            sugar_g=(round(item.food.sugar_g * item.grams / 100.0, 2) if item.food.sugar_g is not None else None),
+            sugar_is_complete=item.food.sugar_g is not None,
+            purine_mg=(
+                round(item.food.purine_mg * item.grams / 100.0, 2) if item.food.purine_mg is not None else None
+            ),
+            purine_is_complete=item.food.purine_mg is not None,
         )
 
 
@@ -199,21 +260,44 @@ class _DbProfileRepository:
         return self._profile if patient_id == self._profile.patient_id else None
 
 
+# Trần gram hợp lý cho một khẩu phần món — khớp đúng `PlannedDish.serving_grams`
+# (`le=2000`, xem src/clinical/models.py). Một lô món crawl (hậu tố "-VCB") có lỗi trích xuất
+# công thức khiến tổng gram nguyên liệu gấp 3-4 lần `serving_g` đã khai báo (VD
+# BUN-BO-HUE-VCB-GVTT-cá: serving_g=714 nhưng tổng nguyên liệu=2814g) — nếu lọt tới
+# Gemini/CP-SAT, PlannedDish sẽ raise ValidationError giữa chừng, khiến cả lượt sinh thực đơn
+# fail dù các món khác vẫn dùng được. Loại các món vượt trần NGAY khi nạp candidate, không phải
+# đợi crash ở bước chọn — R2 cần rà lại công thức gốc trước khi đưa các món này trở lại.
+_MAX_PLAUSIBLE_SERVING_GRAMS = 2000
+
+
 def _load_db_dish_candidates(session: Session) -> list[DishCandidate]:
     """Build optimizer candidates from the same Dish rows the API later persists."""
     rows = session.query(Dish).options(selectinload(Dish.ingredients)).all()
-    return [
-        DishCandidate(
-            dish_id=row.dish_id,
-            name_vi=row.name_vi,
-            region=row.region,
-            verified_by=row.verified_by,
-            is_reviewed=bool(row.verified_by and row.verified_by.lower() not in {"pending", "todo"}),
-            ingredients=[MenuItem(food_id=part.food_id, grams=part.grams) for part in row.ingredients],
+    candidates = []
+    for row in rows:
+        if not row.ingredients or not is_patient_facing_dish(row.dish_id):
+            continue
+        total_grams = sum(part.grams for part in row.ingredients)
+        if total_grams > _MAX_PLAUSIBLE_SERVING_GRAMS:
+            logger.warning(
+                "Bỏ qua dish_id=%s khỏi candidate: tổng nguyên liệu %.0fg vượt trần %dg hợp lý cho 1 khẩu phần — cần R2 rà công thức gốc",
+                row.dish_id,
+                total_grams,
+                _MAX_PLAUSIBLE_SERVING_GRAMS,
+            )
+            continue
+        candidates.append(
+            DishCandidate(
+                dish_id=row.dish_id,
+                name_vi=row.name_vi,
+                region=row.region,
+                roles=parse_roles(row.roles),
+                verified_by=row.verified_by,
+                is_reviewed=bool(row.verified_by and row.verified_by.lower() not in {"pending", "todo"}),
+                ingredients=[MenuItem(food_id=part.food_id, grams=part.grams) for part in row.ingredients],
+            )
         )
-        for row in rows
-        if row.ingredients and is_patient_facing_dish(row.dish_id)
-    ]
+    return candidates
 
 
 def _load_db_aligned_food_repository(session: Session) -> InMemoryFoodRepository:
@@ -267,17 +351,42 @@ def _run_graph_and_persist(
         # audit 2026-08-07 khi merge PR#57 dish-day-cap với PR#59 dish-repo).
         dish_foods = load_dish_food_repository()
         raw_foods = _load_db_aligned_food_repository(session)
-        uses_raw_candidates = get_settings().menu_generator in ("cpsat", "hybrid")
+        generator_choice = get_settings().menu_generator
+        # All patient-facing generator modes now use real Dish rows.  Gemini is
+        # a structured dish selector, never an unconstrained synthetic-food
+        # generator, so persistence and nutrition share one catalog.
+        uses_raw_candidates = generator_choice in ("cpsat", "hybrid", "gemini")
         foods = raw_foods if uses_raw_candidates else dish_foods
-        generator = None
+        # Annotate theo Protocol `MenuGenerator`, không theo lớp cụ thể: nhánh
+        # dưới gán cả `CPSATMenuOptimizer` lẫn `HybridMenuGenerator`. Thiếu
+        # annotation thì mypy chốt kiểu từ lần gán đầu rồi báo lỗi ở lần thứ hai.
+        generator: MenuGenerator | None = None
         if uses_raw_candidates:
             from src.agents.hybrid import HybridMenuGenerator
             from src.agents.optimizer import CPSATMenuOptimizer
+            from src.services.gemini_dish_selector import GeminiDishMenuGenerator
 
-            optimizer = CPSATMenuOptimizer(dishes=_load_db_dish_candidates(session), foods=raw_foods)
-            generator = optimizer if get_settings().menu_generator == "cpsat" else HybridMenuGenerator(optimizer=optimizer)
+            db_dishes = _load_db_dish_candidates(session)
+            optimizer = CPSATMenuOptimizer(dishes=db_dishes, foods=raw_foods)
+            if generator_choice == "cpsat":
+                generator = optimizer
+            else:
+                # ``gemini`` is intentionally routed through the same safe
+                # CP-SAT-first policy as ``hybrid``.  A direct LLM selection of
+                # fixed recipe servings can be culturally plausible yet wildly
+                # miss clinical targets; Gemini is only allowed after the
+                # deterministic solver has no feasible/validated answer.
+                generator = HybridMenuGenerator(
+                    optimizer=optimizer,
+                    llm_factory=lambda: GeminiDishMenuGenerator(dishes=db_dishes, foods=raw_foods),
+                )
         graph = build_nutricare_graph(
-            profiles=_DbProfileRepository(session, clinical_profile), foods=foods, generator=generator
+            profiles=_DbProfileRepository(session, clinical_profile),
+            foods=foods,
+            generator=generator,
+            # Use the same reviewed catalog for solver, persistence and the
+            # final Vietnamese-meal-structure gate.
+            dishes=db_dishes,
         )
         result = graph.invoke({"patient_id": clinical_profile.patient_id, "trace_id": plan_id})
 
@@ -293,7 +402,9 @@ def _run_graph_and_persist(
         plan.safety_findings = [v.model_dump(mode="json") for v in result.get("safety_findings") or []]
         packet = result.get("review_packet")
         plan.review_packet = packet.model_dump(mode="json") if packet is not None else {}
-        plan.citations = [v.model_dump(mode="json") if hasattr(v, "model_dump") else v for v in result.get("citations") or []]
+        plan.citations = [
+            v.model_dump(mode="json") if hasattr(v, "model_dump") else v for v in result.get("citations") or []
+        ]
         plan.explanation_vi = result.get("explanation_vi")
         plan.highest_risk = result.get("highest_risk") or "none"
         plan.menu_version = result.get("menu_version") or 0
@@ -354,8 +465,25 @@ def _run_graph_and_persist(
                                 plan_id=plan_id, slot=slot.value, food_id=menu_item.food_id, grams=menu_item.grams
                             )
                         )
+
+        # Đẩy cảnh báo P0/P1 lên hàng chờ duyệt cho chuyên gia — dùng đúng
+        # `highest_risk` đã tính ở trên, không suy đoán/tính lại mức rủi ro
+        # nào (RULE-1/RULE-2).
+        if plan.status == "pending_review" and plan.highest_risk in ("P0", "P1"):
+            reviewer_ids = [row[0] for row in session.query(User.id).filter(User.role.in_(("dietitian", "admin")))]
+            for reviewer_id in reviewer_ids:
+                session.add(
+                    Notification(
+                        user_id=reviewer_id,
+                        type="safety_alert",
+                        severity="critical" if plan.highest_risk == "P0" else "warning",
+                        title=f"Thực đơn mới có cảnh báo {plan.highest_risk}",
+                        body=f"Thực đơn ngày {plan.plan_date.isoformat()} cần chuyên gia xem xét trước khi duyệt.",
+                        related_meal_plan_id=plan.id,
+                    )
+                )
         session.commit()
-    except Exception:
+    except Exception as exc:
         # Biên ngoài cùng của 1 background task fire-and-forget: không có request
         # nào đang chờ để propagate lỗi tới. Log đầy đủ + đánh dấu failed thay vì
         # để tiến trình chết lặng lẽ — đây LÀ cách "xử lý" ở biên này, không phải
@@ -366,6 +494,23 @@ def _run_graph_and_persist(
         plan = session.get(MealPlan, plan_id)
         if plan is not None:
             plan.status = "failed"
+            # Ghi luôn nguyên nhân vào `last_error`. Trước đây cột này tồn tại
+            # trong schema nhưng KHÔNG BAO GIỜ được ghi, nên một `status=failed`
+            # do crash và một `failed` do hết đường sinh thực đơn nhìn giống hệt
+            # nhau từ DB lẫn từ UI — UI chỉ hiện "Không thể tạo phương án an
+            # toàn với cấu hình này", đọc như kết luận lâm sàng chứ không phải
+            # sự cố kỹ thuật. Hệ quả đo được: 43 plan `failed` trong DB dùng
+            # chung mà không truy được một dòng nguyên nhân nào, phải suy ngược
+            # từ log Render (đã xoay vòng mất) — xem docs/SET-05.
+            #
+            # Chỉ lưu loại lỗi + thông điệp + đuôi traceback: đủ để chẩn đoán,
+            # không kèm hồ sơ bệnh nhân. Cột này chỉ chuyên gia/R1 đọc, KHÔNG
+            # hiển thị cho bệnh nhân và KHÔNG đưa vào prompt LLM.
+            plan.last_error = {
+                "type": type(exc).__name__,
+                "message": str(exc)[:2000],
+                "traceback": "".join(traceback.format_exc()).strip()[-4000:],
+            }
             session.commit()
     finally:
         session.close()

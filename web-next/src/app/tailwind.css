@@ -1,0 +1,12 @@
+/* Tailwind nạp toàn cục cho web-next (root layout). Các trang cũ vẫn giữ
+   nguyên CSS Modules hiện có — class Tailwind chỉ cộng thêm, không thay thế,
+   nên chuyển đổi từng trang một mà không cần big-bang rewrite. */
+@import "tailwindcss";
+
+/* App đổi theme bằng thuộc tính html[data-theme="dark"] (nút toggle trong sidebar),
+   không phải prefers-color-scheme — khớp biến thể `dark:` của Tailwind với đúng
+   cơ chế đó để không bị lệch theme so với phần còn lại của trang. */
+@custom-variant dark (&:where([data-theme="dark"], [data-theme="dark"] *));
+
+/* Dùng chung cho mọi khối skeleton loading (animate-[skeleton-pulse_1.3s_infinite]). */
+@keyframes skeleton-pulse { to { background-position: -200% 0; } }

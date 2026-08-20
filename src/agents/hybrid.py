@@ -63,9 +63,16 @@ class HybridMenuGenerator:
     ) -> MenuDraft:
         if feedback is None:
             draft = self._optimizer.generate(profile=profile, targets=targets, candidates=candidates, feedback=None)
-            if draft.all_items():
+            # `all_items()` chỉ xác nhận có NGUYÊN LIỆU (food_id+grams), không xác nhận có MÓN
+            # nào được chọn. CP-SAT có một nhánh dự phòng hợp lệ về mặt ràng buộc toán học
+            # nhưng giải toàn bằng nguyên liệu rời, không gói thành món — nhánh đó vốn chỉ để
+            # dùng nội bộ/test, bị `meal_plans.py::_run_graph_and_persist` chặn thẳng trước khi
+            # tới tay bệnh nhân (raise ValueError "refusing ingredient-only patient draft").
+            # Trước bản vá này, Hybrid coi bản đó là "đã xong" và dừng sớm — không thử LLM/nới
+            # lỏng thêm — nên bệnh nhân luôn nhận `status=failed` dù còn cách khác khả thi.
+            if draft.all_items() and draft.planned_dishes:
                 return draft
-            logger.info("HybridMenuGenerator: CP-SAT vô nghiệm, chuyển sang LLM.")
+            logger.info("HybridMenuGenerator: CP-SAT không chọn được món trọn vẹn nào (chỉ có nguyên liệu rời), chuyển sang LLM.")
         else:
             logger.info("HybridMenuGenerator: đã có feedback từ validate, chuyển sang LLM.")
 

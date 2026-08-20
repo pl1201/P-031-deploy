@@ -8,9 +8,14 @@ về kết luận "đạt ngưỡng" khi dữ liệu còn khuyết, các test d�
 from __future__ import annotations
 
 import pytest
+from conftest import _create_user_directly
 
 
 def _register_and_login(client, email, role, password="matkhau123"):
+    if role != "patient":
+        user_id = _create_user_directly(client, email, role, password)
+        login = client.post("/api/v1/auth/login", json={"email": email, "password": password})
+        return user_id, {"Authorization": f"Bearer {login.json()['access_token']}"}
     reg = client.post(
         "/api/v1/auth/register",
         json={"email": email, "password": password, "role": role, "full_name": "Test User"},
@@ -85,6 +90,21 @@ def test_ghi_mon_la_thi_giu_nguyen_chu_nguoi_dung_go(client, patient, profile_id
     assert body["free_text_vi"] == "canh rau tập tàng bà Bảy"
 
 
+def test_food_log_chan_chi_dinh_y_khoa_trong_free_text(client, patient, profile_id):
+    _, headers = patient
+    response = client.post(
+        "/api/v1/food-logs",
+        json={
+            "profile_id": profile_id,
+            "free_text_vi": "tôi muốn ngừng uống metformin, ăn gì để thay thế?",
+            "grams": 100,
+        },
+        headers=headers,
+    )
+    assert response.status_code == 422
+    assert response.json()["detail"]["blocked"] is True
+
+
 def test_biet_mon_nhung_khong_ro_khau_phan_van_la_chua_du_du_lieu(client, patient, profile_id):
     """PRD FR-11: biết ăn gì mà không biết bao nhiêu thì không cộng được."""
     _, headers = patient
@@ -112,6 +132,39 @@ def test_ten_chung_khong_tu_chon_hang_cu_the_ma_goi_y_cho_nguoi_chon(client, pat
 
 
 # --- Test vàng: không bịa số ----------------------------------------------
+
+
+def test_benh_nhan_xem_goi_y_truoc_khi_luu_va_tu_xac_nhan(client, patient, profile_id):
+    _, headers = patient
+    response = client.get("/api/v1/food-logs/suggestions?q=thit%20bo", headers=headers)
+    assert response.status_code == 200, response.text
+    candidates = response.json()["suggestions"]
+    assert candidates
+
+    selected = candidates[0]
+    created = client.post(
+        "/api/v1/food-logs",
+        json={
+            "profile_id": profile_id,
+            "free_text_vi": "thit bo",
+            "food_id": selected["food_id"],
+            "grams": 100,
+        },
+        headers=headers,
+    )
+    assert created.status_code == 201, created.text
+    assert created.json()["food_id"] == selected["food_id"]
+    assert created.json()["match_status"] == "patient_confirmed"
+
+
+def test_benh_nhan_khong_the_gui_food_id_khong_ton_tai(client, patient, profile_id):
+    _, headers = patient
+    response = client.post(
+        "/api/v1/food-logs",
+        json={"profile_id": profile_id, "free_text_vi": "mon la", "food_id": 999999, "grams": 100},
+        headers=headers,
+    )
+    assert response.status_code == 422
 
 
 def test_mon_chua_tra_duoc_khong_bao_gio_thanh_so_0(client, patient, profile_id):

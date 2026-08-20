@@ -6,6 +6,7 @@ LLM: NO.
 from __future__ import annotations
 
 import re
+from datetime import datetime
 
 from fastapi import APIRouter, Depends, HTTPException, status
 from pydantic import BaseModel, EmailStr, Field, field_validator
@@ -13,10 +14,12 @@ from sqlalchemy.orm import Session
 
 from src.api.security import (
     TOKEN_TYPE_REFRESH,
+    CurrentUser,
     InvalidTokenError,
     create_access_token,
     create_refresh_token,
     decode_token,
+    get_current_user,
     hash_password,
     verify_password,
 )
@@ -32,6 +35,8 @@ _PASSWORD_RE = re.compile(r"^(?=.*[A-Za-z])(?=.*\d).{8,}$")
 class RegisterRequest(BaseModel):
     email: EmailStr
     password: str = Field(min_length=8, max_length=128)
+    # Giữ luồng demo hiện tại: public API có thể tạo patient hoặc dietitian.
+    # Trước production cần thay bằng invitation/admin provisioning cho dietitian.
     role: str = Field(pattern="^(patient|dietitian)$")
     full_name: str = Field(min_length=1, max_length=100)
 
@@ -111,3 +116,47 @@ def refresh(payload: RefreshRequest, db: Session = Depends(get_db)) -> TokenResp
         refresh_token=create_refresh_token(user_id=user.id, role=user.role),
         expires_in=settings.jwt_access_ttl_min * 60,
     )
+
+
+class MeStatusOut(BaseModel):
+    terms_accepted_at: datetime | None
+    onboarding_completed_at: datetime | None
+
+
+def _get_self(db: Session, user: CurrentUser) -> User:
+    account = db.get(User, user.id)
+    if account is None:
+        raise HTTPException(status.HTTP_401_UNAUTHORIZED, "Tài khoản không còn tồn tại")
+    return account
+
+
+@router.get("/me/status", response_model=MeStatusOut)
+def get_me_status(
+    db: Session = Depends(get_db),
+    user: CurrentUser = Depends(get_current_user),
+) -> User:
+    return _get_self(db, user)
+
+
+@router.post("/me/accept-terms", response_model=MeStatusOut)
+def accept_terms(
+    db: Session = Depends(get_db),
+    user: CurrentUser = Depends(get_current_user),
+) -> User:
+    account = _get_self(db, user)
+    account.terms_accepted_at = datetime.utcnow()
+    db.commit()
+    db.refresh(account)
+    return account
+
+
+@router.post("/me/onboarding-complete", response_model=MeStatusOut)
+def complete_onboarding(
+    db: Session = Depends(get_db),
+    user: CurrentUser = Depends(get_current_user),
+) -> User:
+    account = _get_self(db, user)
+    account.onboarding_completed_at = datetime.utcnow()
+    db.commit()
+    db.refresh(account)
+    return account

@@ -10,7 +10,8 @@ services:
     environment:
       APP_ENV: production
       CORS_ORIGINS: http://localhost:3000
-      DATABASE_URL: sqlite:////app/data/app.db
+      # Dùng DATABASE_URL trong .env khi kết nối Supabase; giữ SQLite làm mặc định local.
+      DATABASE_URL: ${DATABASE_URL:-sqlite:////app/data/app.db}
     volumes:
       - ./data:/app/data
     command: >-

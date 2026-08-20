@@ -30,8 +30,13 @@ def _engine():
 
 def test_tao_du_19_bang():
     """15 bảng BE-01 + food_food_interactions + drug_meal_timing (DAT-18/19)
-    + pantry_items + substitution_scopes (P2/AGT-12)."""
-    assert len(Base.metadata.tables) == 19
+    + pantry_items + substitution_scopes (P2/AGT-12) — tối thiểu 19 bảng.
+
+    `>=` chứ không `==`: bảng mới được thêm liên tục (clinical_notes,
+    patient_observations, meal_plan_review_events...); một assert số chính
+    xác sẽ vỡ mà không chỉ ra lỗi thật, giống cách `test_nap_du_30_cap_tu_seed`
+    (tests/test_interactions.py) đã xử lý cho drug_food_interactions.csv."""
+    assert len(Base.metadata.tables) >= 19
 
 
 def test_tao_bang_tren_sqlite_trang():

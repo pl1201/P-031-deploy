@@ -38,11 +38,25 @@ patient_datasets:
 # Seed data version
 seeds:
   food_items: v2.1 (7315 rows, 7293 with nutrition data)
+  dishes: v1.1 (113 dishes — +13 vegetable/soup/staple 2026-08-17, see changelog)
   clinical_rules: v1.0 (21 rules, all to_verify status)
   drug_food_interactions: v1.0 (30 pairs)
   gi_values: v1.0 (28 entries)
   purine_values: v1.0 (19 entries)
   usda_values: v1.0 (23 dishes)
+
+# Changelog
+# 2026-08-17: +13 dishes to data/seeds/dishes.csv (RAU-MUONG-LUOC, CAI-NGOT-XAO-TOI,
+#   BAP-CAI-CA-ROT-LUOC, SU-SU-XAO-TOI, CAI-THAO-LUOC, CANH-BAU-NAU-TOM,
+#   CANH-CAI-XANH-THIT-BAM, CANH-BI-XANH-NAU-TOM, CANH-RAU-MUONG-NAU-TOM,
+#   CANH-CA-ROT-KHOAI-TAY-THIT, KHOAI-LANG-LUOC, KHOAI-TAY-LUOC, COM-TRANG-KHAU-PHAN).
+#   Root-caused CP-SAT "failed" generation on local dev DB: original 100-dish set had
+#   only 1 vegetable, 5 soup, 5 staple dishes — not enough non-repeating role coverage
+#   for a 7-day mâm cơm structure. All 13 new dishes built only from food_items already
+#   present with a real source (NIN) — no new nutrition values invented. Seasoning
+#   (nước mắm/muối) kept as separate dish_ingredients lines per skill convention.
+#   verified_by intentionally says "Chưa duyệt" — these are drafts, NOT R2-signed;
+#   flag for R2 review before any production data release. make validate-data: 0 errors.
 
 # Transformation scripts
 # When restoring reproducibility pipeline, list active scripts and their versions here

@@ -2,6 +2,7 @@
 import { useEffect, useState } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import Link from 'next/link'
+import { Icon } from '@/components/brand-artwork'
 import { createApiClient, type MealPlan, type MealPlanItem, ApiError } from '@/lib/api'
 import { getToken } from '@/lib/auth'
 import { notifyReviewQueueChanged } from '@/lib/review-queue'
@@ -18,6 +19,7 @@ const SLOT_TIMES: Record<string, string> = {
   dinner: '18:30',
   snack: '15:00',
 }
+const RISK_LABEL: Record<string, string> = { P0: 'Chặn phát hành', P1: 'Cần chuyên gia xác nhận', P2: 'Thông tin tham khảo', none: 'Không có ngoại lệ' }
 
 function isFiniteNumber(value: unknown): value is number {
   return typeof value === 'number' && Number.isFinite(value)
@@ -27,8 +29,10 @@ function NutritionBar({ label, value, max, unit, colorClass }: {
   label: string; value: number | null | undefined; max?: number; unit: string; colorClass: string
 }) {
   const hasValue = isFiniteNumber(value)
-  const pct = hasValue && max ? Math.min((value / max) * 100, 120) : 0
-  const over = pct > 100
+  // Không có ngưỡng mục tiêu (VD chất béo) thì hiển thị thanh đầy màu để biểu thị "có giá trị",
+  // không quy đổi thành % so với đích — tránh bịa một mục tiêu không có nguồn (RULE-2).
+  const pct = hasValue ? (max ? Math.min((value / max) * 100, 120) : 100) : 0
+  const over = Boolean(max) && pct > 100
   return (
     <div className="nutrition-bar-row">
       <span className="nutrition-bar-label">{label}</span>
@@ -54,7 +58,7 @@ function SourcePopover({ item }: { item: MealPlanItem }) {
         onClick={() => setOpen(o => !o)}
         title={`Nguồn: ${item.source_ref}`}
       >
-        ⌘ {item.source}
+        <Icon name="database" style={{ width: 13, display: 'inline-block', verticalAlign: 'middle', marginRight: 4 }} /> {item.source}
         {item.is_estimated && <span className="badge badge-estimated" style={{ padding: '1px 4px', marginLeft: 4 }}>~</span>}
       </button>
       {open && (
@@ -70,7 +74,7 @@ function SourcePopover({ item }: { item: MealPlanItem }) {
           <div style={{ color: 'var(--c-muted)', fontSize: 11 }}>{item.source_ref}</div>
           {item.is_estimated && (
             <div style={{ marginTop: 6, color: 'var(--c-purple)', fontSize: 11 }}>
-              ⚠ Dữ liệu ước tính — cần chuyên gia kiểm tra
+              <Icon name="warning" /> Dữ liệu ước tính — cần chuyên gia kiểm tra
             </div>
           )}
           <button
@@ -130,6 +134,11 @@ export default function MealPlanReviewPage() {
   const handleApprove = async () => {
     const token = getToken()
     if (!token || !plan) return
+    const requiresOverrideReason = plan.safety_findings?.some(finding => finding.risk_level === 'P1' && finding.reviewer_override_allowed)
+    if (requiresOverrideReason && notes.trim().length < 10) {
+      showToast('Bản có ngoại lệ cần xác nhận: vui lòng ghi lý do tối thiểu 10 ký tự.', 'error')
+      return
+    }
     setSaving(true)
     try {
       const edits = Object.entries(gramEdits)
@@ -181,6 +190,7 @@ export default function MealPlanReviewPage() {
   // một bản nháp bị chặn vì safety finding P0 vẫn hiện nút Duyệt và luôn nhận 422.
   const packetCanApprove = plan?.review_packet?.can_approve
   const p0Findings = plan?.safety_findings?.filter(f => f.risk_level === 'P0') ?? []
+  const confirmationFindings = plan?.safety_findings?.filter(f => f.risk_level === 'P1' || f.risk_level === 'P2') ?? []
   const gateReasons = [
     ...(plan?.review_packet?.target_gate_reasons ?? []),
     ...p0Findings.map(f => f.message_vi),
@@ -196,7 +206,11 @@ export default function MealPlanReviewPage() {
     return acc
   }, {}) ?? {}
 
-  const targetKcal = plan?.targets?.targets?.kcal?.max_value ?? undefined
+  // Ngưỡng mục tiêu cho từng dưỡng chất — dùng để tính % thanh tiến độ. Không phải mọi
+  // dưỡng chất đều có rule ngưỡng (VD chất béo); khi không có, NutritionBar hiển thị thanh
+  // đầy màu (không so target) thay vì 0% vô hình như trước.
+  const targetOf = (key: string) => plan?.targets?.targets?.[key]?.max_value ?? plan?.targets?.targets?.[key]?.min_value ?? undefined
+  const targetKcal = targetOf('kcal')
 
   if (loading) return (
     <div style={{ display: 'grid', placeItems: 'center', height: '60vh' }}>
@@ -215,7 +229,7 @@ export default function MealPlanReviewPage() {
     <>
       <div className="topbar">
         <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-          <Link href="/dietitian" style={{ color: 'var(--c-muted)', fontSize: 13 }}>← Hàng chờ</Link>
+          <Link href="/dietitian/reviews" style={{ color: 'var(--c-muted)', fontSize: 13 }}>← Hàng chờ</Link>
           <span style={{ color: 'var(--c-border2)' }}>/</span>
           <Link href={`/dietitian/patients/${plan.patient_id}`} style={{ color: 'var(--c-green2)', fontSize: 13 }}>Hồ sơ bệnh nhân</Link>
           <span style={{ color: 'var(--c-border2)' }}>/</span>
@@ -229,7 +243,7 @@ export default function MealPlanReviewPage() {
                 onClick={() => setShowRejectDialog(true)}
                 disabled={saving}
               >
-                ✕ Từ chối
+                <Icon name="close" style={{ width: 16 }} /> Từ chối
               </button>
               <button
                 className="btn btn-primary"
@@ -237,19 +251,19 @@ export default function MealPlanReviewPage() {
                 disabled={saving || !canApprove}
                 title={hardViolations.length > 0 ? 'Không thể duyệt khi còn vi phạm cứng' : canApprove ? '' : 'Cổng an toàn của server đang chặn bản nháp này'}
               >
-                ✓ Duyệt thực đơn
+                <Icon name="check" style={{ width: 16 }} /> Duyệt thực đơn
               </button>
             </>
           )}
           {!isReviewable && (
             <span className={`badge badge-${plan.status}`} style={{ fontSize: 13, padding: '6px 12px' }}>
-              {plan.status === 'approved' ? '✓ Đã duyệt' : plan.status === 'rejected' ? '✕ Đã từ chối' : plan.status}
+              {plan.status === 'approved' ? <><Icon name="check" /> Đã duyệt</> : plan.status === 'rejected' ? <><Icon name="close" /> Đã từ chối</> : plan.status === 'drafting' ? 'Đang tạo' : plan.status === 'failed' ? 'Thất bại' : plan.status}
             </span>
           )}
         </div>
       </div>
 
-      <div className="page-body" style={{ display: 'grid', gridTemplateColumns: '1fr 340px', gap: 24, alignItems: 'start' }}>
+      <div className="page-body review-detail-layout">
         {/* Left — meal plan */}
         <div style={{ display: 'grid', gap: 20 }}>
           <section className="card" style={{ padding: '16px 18px' }} aria-label="Quy trình duyệt thực đơn">
@@ -271,20 +285,20 @@ export default function MealPlanReviewPage() {
           {/* Safety strip */}
           {hardViolations.length > 0 && (
             <div className="safety-strip safety-strip-error">
-              <span style={{ fontWeight: 700, marginRight: 4 }}>⚠ {hardViolations.length} vi phạm cứng</span>
+              <span style={{ fontWeight: 700, marginRight: 4 }}><Icon name="warning" /> {hardViolations.length} vi phạm cứng</span>
               — Không thể duyệt cho đến khi xử lý xong.
             </div>
           )}
           {plan.status === 'manual_review_required' && (
             <div className="safety-strip safety-strip-error">
-              <span style={{ fontWeight: 700, marginRight: 4 }}>⚠ Bản nháp bị chặn ở cổng an toàn</span>
+              <span style={{ fontWeight: 700, marginRight: 4 }}><Icon name="warning" /> Bản nháp bị chặn ở cổng an toàn</span>
               — chỉ đọc được. Sửa gram và duyệt đều bị khoá; hãy từ chối kèm lý do rồi sinh lại.
             </div>
           )}
           {hardViolations.length === 0 && packetCanApprove === false && (
             <div className="safety-strip safety-strip-error">
               <div>
-                <span style={{ fontWeight: 700 }}>⚠ Cổng an toàn đang chặn bản nháp này</span>
+                <span style={{ fontWeight: 700 }}><Icon name="warning" /> Cổng an toàn đang chặn bản nháp này</span>
                 {gateReasons.length > 0 && (
                   <ul style={{ margin: '6px 0 0 18px', listStyle: 'disc', fontWeight: 400 }}>
                     {gateReasons.map(reason => <li key={reason}>{reason}</li>)}
@@ -294,13 +308,22 @@ export default function MealPlanReviewPage() {
               </div>
             </div>
           )}
-          {hardViolations.length === 0 && packetCanApprove !== false && (
-            <div className="safety-strip safety-strip-ok">
-              <span>✓</span>
-              <span>
-                <strong>Không có vi phạm cứng</strong>
-                {softViolations.length > 0 && ` · ${softViolations.length} cảnh báo mềm cần lưu ý`}
-              </span>
+          {hardViolations.length === 0 && packetCanApprove !== false && confirmationFindings.length > 0 && (
+            <div className="safety-strip safety-strip-warn review-decision-summary">
+              <Icon name="warning" />
+              <div>
+                <strong>Có thể duyệt sau khi chuyên gia xác nhận</strong>
+                <p>Không có lỗi bắt buộc chặn, nhưng còn {confirmationFindings.length} cảnh báo cần đọc và ghi nhận trước khi gửi cho bệnh nhân.</p>
+              </div>
+            </div>
+          )}
+          {hardViolations.length === 0 && packetCanApprove !== false && confirmationFindings.length === 0 && (
+            <div className="safety-strip safety-strip-ok review-decision-summary">
+              <Icon name="check" />
+              <div>
+                <strong>Đã qua kiểm tra an toàn</strong>
+                <p>Không có lỗi bắt buộc chặn{softViolations.length > 0 ? `; còn ${softViolations.length} lưu ý không chặn duyệt.` : '.'}</p>
+              </div>
             </div>
           )}
 
@@ -309,8 +332,8 @@ export default function MealPlanReviewPage() {
           {(plan.safety_findings?.length ?? 0) > 0 && (
             <div className="card">
               <div className="card-header">
-                <h2 className="card-title">Phát hiện an toàn</h2>
-                <span style={{ fontSize: 11, color: 'var(--c-muted)' }}>Rủi ro cao nhất: {plan.highest_risk}</span>
+                <h2 className="card-title">Cảnh báo cần xem trước khi duyệt</h2>
+                <span style={{ fontSize: 11, color: 'var(--c-muted)' }}>{RISK_LABEL[plan.highest_risk] ?? plan.highest_risk} · {plan.highest_risk}</span>
               </div>
               <div className="card-body" style={{ display: 'grid', gap: 10 }}>
                 {plan.safety_findings.map((finding, index) => (
@@ -321,7 +344,7 @@ export default function MealPlanReviewPage() {
                     border: `1px solid ${finding.risk_level === 'P0' ? '#f5c6c6' : '#f5dfa0'}`,
                   }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
-                      <span className={`badge badge-${finding.risk_level === 'P0' ? 'hard' : 'soft'}`}>{finding.risk_level}</span>
+                      <span className={`badge badge-${finding.risk_level === 'P0' ? 'hard' : 'soft'}`}>{RISK_LABEL[finding.risk_level] ?? finding.risk_level} · {finding.risk_level}</span>
                       <span style={{ fontWeight: 600, fontSize: 13 }}>{finding.message_vi}</span>
                     </div>
                     {finding.suggestion && (
@@ -375,8 +398,8 @@ export default function MealPlanReviewPage() {
                           <details className="ingredient-details">
                             <summary>Dữ liệu tính khẩu phần · {item.ingredients.length} thành phần</summary>
                             <div className="ingredient-list">
-                              {item.ingredients.map(ingredient => (
-                                <div key={ingredient.food_id} className="ingredient-line">
+                              {item.ingredients.map((ingredient, index) => (
+                                <div key={`${ingredient.food_id}-${index}`} className="ingredient-line">
                                   <span>{ingredient.name_vi}</span>
                                   <span>{ingredient.grams} g</span>
                       </div>
@@ -443,13 +466,12 @@ export default function MealPlanReviewPage() {
         </div>
 
         {/* Right — sidebar */}
-        <div style={{ display: 'grid', gap: 20, position: 'sticky', top: 80 }}>
+        <div className="review-detail-sidebar">
           {/* Nutrition summary */}
           {hasNutrition && nutrition && (
             <div className="card">
               <div className="card-header">
                 <h2 className="card-title">Dinh dưỡng tổng</h2>
-                <span style={{ fontSize: 11, color: 'var(--c-muted)' }}>Tính bởi server</span>
               </div>
               <div className="card-body">
                 <div style={{ textAlign: 'center', marginBottom: 20 }}>
@@ -466,16 +488,16 @@ export default function MealPlanReviewPage() {
                   </div>
                 </div>
                 <div className="nutrition-bar-wrap">
-                  <NutritionBar label="Năng lượng" value={nutrition.kcal} max={targetKcal ?? undefined} unit="kcal" colorClass="bar-kcal" />
-                  <NutritionBar label="Carbohydrate" value={nutrition.carb_g} unit="g" colorClass="bar-carb" />
-                  <NutritionBar label="Protein" value={nutrition.protein_g} unit="g" colorClass="bar-protein" />
+                  <NutritionBar label="Năng lượng" value={nutrition.kcal} max={targetKcal} unit="kcal" colorClass="bar-kcal" />
+                  <NutritionBar label="Carbohydrate" value={nutrition.carb_g} max={targetOf('carb_g')} unit="g" colorClass="bar-carb" />
+                  <NutritionBar label="Protein" value={nutrition.protein_g} max={targetOf('protein_g')} unit="g" colorClass="bar-protein" />
                   <NutritionBar label="Chất béo" value={nutrition.fat_g} unit="g" colorClass="bar-fat" />
-                  <NutritionBar label="Chất xơ" value={nutrition.fiber_g} unit="g" colorClass="bar-fiber" />
-                  <NutritionBar label="Natri" value={nutrition.na_mg} max={2000} unit="mg" colorClass="bar-na" />
+                  <NutritionBar label="Chất xơ" value={nutrition.fiber_g} max={targetOf('fiber_g')} unit="g" colorClass="bar-fiber" />
+                  <NutritionBar label="Natri" value={nutrition.na_mg} max={targetOf('na_mg') ?? 2000} unit="mg" colorClass="bar-na" />
                 </div>
                 {nutrition.has_estimated && (
                   <div className="badge badge-estimated" style={{ marginTop: 12, display: 'block', textAlign: 'center' }}>
-                    ⚠ Có món dùng dữ liệu ước tính
+                    <Icon name="warning" /> Có món dùng dữ liệu ước tính
                   </div>
                 )}
               </div>
@@ -538,7 +560,7 @@ export default function MealPlanReviewPage() {
               Sau khi duyệt, thực đơn sẽ hiển thị cho bệnh nhân. Các chỉnh sửa gram sẽ được tính lại dinh dưỡng trên server.
             </p>
             <div className="form-group" style={{ marginBottom: 20 }}>
-              <label className="form-label" htmlFor="approve-notes">Ghi chú chuyên gia <span style={{ fontWeight: 400, color: 'var(--c-muted)' }}>(không bắt buộc)</span></label>
+              <label className="form-label" htmlFor="approve-notes">Ghi chú chuyên gia <span style={{ fontWeight: 400, color: 'var(--c-muted)' }}>({plan.safety_findings?.some(finding => finding.risk_level === 'P1' && finding.reviewer_override_allowed) ? 'bắt buộc để xác nhận ngoại lệ P1' : 'không bắt buộc'})</span></label>
               <textarea
                 id="approve-notes"
                 className="form-textarea"
@@ -550,8 +572,8 @@ export default function MealPlanReviewPage() {
             </div>
             <div style={{ display: 'flex', gap: 10, justifyContent: 'flex-end' }}>
               <button className="btn btn-secondary" onClick={() => setShowApproveDialog(false)}>Hủy</button>
-              <button className="btn btn-primary" onClick={handleApprove} disabled={saving}>
-                {saving ? <><span className="spinner" style={{ width: 14, height: 14 }} /> Đang duyệt...</> : '✓ Xác nhận duyệt'}
+              <button className="btn btn-primary" onClick={handleApprove} disabled={saving || Boolean(plan.safety_findings?.some(finding => finding.risk_level === 'P1' && finding.reviewer_override_allowed) && notes.trim().length < 10)}>
+                {saving ? <><span className="spinner" style={{ width: 14, height: 14 }} /> Đang duyệt...</> : <><Icon name="check" /> Xác nhận duyệt</>}
               </button>
             </div>
           </div>
@@ -587,7 +609,7 @@ export default function MealPlanReviewPage() {
             <div style={{ display: 'flex', gap: 10, justifyContent: 'flex-end' }}>
               <button className="btn btn-secondary" onClick={() => setShowRejectDialog(false)}>Hủy</button>
               <button className="btn btn-danger" onClick={handleReject} disabled={saving || rejectReason.length < 10}>
-                {saving ? <><span className="spinner" style={{ width: 14, height: 14 }} /> Đang xử lý...</> : '✕ Xác nhận từ chối'}
+                {saving ? <><span className="spinner" style={{ width: 14, height: 14 }} /> Đang xử lý...</> : <><Icon name="close" /> Xác nhận từ chối</>}
               </button>
             </div>
           </div>

@@ -15,12 +15,14 @@ from src.agents.graph import build_review_recompute_graph
 from src.api.clinical_bridge import to_clinical_profile
 from src.api.routes.meal_plans import MealPlanOut, meal_plan_load_options
 from src.api.security import CurrentUser, require_role
+from src.clinical.dish_roles import parse_roles
 from src.clinical.dishes import load_dish_food_repository
 from src.clinical.integrity import hash_menu, hash_nutrition, payload_has_p0
-from src.clinical.models import ClinicalTargets, MealSlot, MenuDraft, MenuItem
+from src.clinical.models import ClinicalTargets, DishCandidate, MealSlot, MenuDraft, MenuItem, PlannedDish
 from src.clinical.seeds import load_food_repository
+from src.clinical.tiers import is_patient_facing_dish
 from src.db.base import get_db
-from src.db.models import AuditLog, Dish, MealPlan, MealPlanItem, MealPlanReviewEvent
+from src.db.models import AuditLog, Dish, MealPlan, MealPlanItem, MealPlanReviewEvent, Notification
 
 router = APIRouter(prefix="/reviews", tags=["reviews"])
 
@@ -102,29 +104,49 @@ def _draft_and_repository(plan: MealPlan):
     # all-dish plans alike.
     foods = legacy_foods if has_dishes else dish_foods if uses_dishes else legacy_foods
     draft = MenuDraft()
+    dish_catalog: dict[str, DishCandidate] = {}
     for item in plan.items:
         if has_dishes and item.dish_id:
             if item.dish is None or not item.dish.ingredients:
-                raise HTTPException(status.HTTP_422_UNPROCESSABLE_ENTITY, "Dish recipe no longer exists in the database")
+                raise HTTPException(
+                    status.HTTP_422_UNPROCESSABLE_ENTITY, "Dish recipe no longer exists in the database"
+                )
             recipe_g = sum(part.grams for part in item.dish.ingredients)
             for part in item.dish.ingredients:
                 draft.items.setdefault(MealSlot(item.slot), []).append(
                     MenuItem(food_id=part.food_id, grams=part.grams * item.grams / recipe_g)
                 )
+            draft.planned_dishes.setdefault(MealSlot(item.slot), []).append(
+                PlannedDish(dish_id=item.dish_id, serving_grams=item.grams)
+            )
+            dish_catalog.setdefault(
+                item.dish_id,
+                DishCandidate(
+                    dish_id=item.dish.dish_id,
+                    name_vi=item.dish.name_vi,
+                    region=item.dish.region,
+                    roles=parse_roles(item.dish.roles),
+                    is_reviewed=bool(
+                        item.dish.verified_by and item.dish.verified_by.lower() not in {"pending", "todo"}
+                    ),
+                    verified_by=item.dish.verified_by,
+                    ingredients=[MenuItem(food_id=part.food_id, grams=part.grams) for part in item.dish.ingredients],
+                ),
+            )
             continue
         candidate_id = dish_foods.food_id_for_dish(item.dish_id) if item.dish_id else item.food_id
         if candidate_id is None:
             raise HTTPException(status.HTTP_422_UNPROCESSABLE_ENTITY, "Meal item no longer exists in the food database")
         draft.items.setdefault(MealSlot(item.slot), []).append(MenuItem(food_id=candidate_id, grams=item.grams))
-    return draft, foods
+    return draft, foods, list(dish_catalog.values())
 
 
 def _recompute_downstream(plan: MealPlan, edits: list[ItemEdit], db: Session) -> dict:
     """Run only compute -> safety -> triage -> explain after a reviewer edit."""
     _apply_edits(plan, edits)
     db.flush()
-    draft, foods = _draft_and_repository(plan)
-    graph = build_review_recompute_graph(foods=foods)
+    draft, foods, dishes = _draft_and_repository(plan)
+    graph = build_review_recompute_graph(foods=foods, dishes=dishes)
     result = graph.invoke(
         {
             "patient_id": plan.profile_id,
@@ -188,15 +210,28 @@ def replacement_candidates(
     db: Session = Depends(get_db),
     _user: CurrentUser = Depends(require_role("dietitian")),
 ) -> list[ReplacementCandidateOut]:
-    """Return database dishes for an inline reviewer swap; never invent dishes."""
+    """Return database dishes for an inline reviewer swap; never invent dishes.
+
+    Bug đã audit thực tế (2026-08-19): bản trước chỉ lọc khác `dish_id` + trùng
+    vùng miền, không loại khối USDA FNDDS tham chiếu (~2.632 món tên tiếng Anh,
+    `is_patient_facing_dish` đã loại ở nơi SINH thực đơn nhưng thiếu ở đây) và
+    không lọc theo vai trò món (VD gợi ý "Agave liquid sweetener" thay cho "Bí
+    xanh xào" — sai cả ngôn ngữ lẫn vai trò trong bữa). Sắp theo `name_vi` khiến
+    các tên tiếng Anh bắt đầu bằng A/B luôn nổi lên đầu danh sách.
+    """
     plan = _get_pending_plan(db, plan_id)
     item = next((row for row in plan.items if row.id == item_id), None)
     if item is None:
         raise HTTPException(status.HTTP_404_NOT_FOUND, "Không tìm thấy món trong thực đơn")
+    current_roles = set(parse_roles(item.dish.roles)) if item.dish is not None else set()
     query = db.query(Dish).filter(Dish.dish_id != item.dish_id)
     if plan.profile.region:
         query = query.filter((Dish.region == plan.profile.region) | (Dish.region.is_(None)))
-    dishes = query.order_by(Dish.name_vi).limit(30).all()
+    candidates = [
+        dish
+        for dish in query.order_by(Dish.name_vi).all()
+        if is_patient_facing_dish(dish.dish_id) and (not current_roles or current_roles & set(parse_roles(dish.roles)))
+    ][:30]
     return [
         ReplacementCandidateOut(
             dish_id=dish.dish_id,
@@ -204,7 +239,7 @@ def replacement_candidates(
             serving_g=dish.serving_g or 200.0,
             region=dish.region,
         )
-        for dish in dishes
+        for dish in candidates
     ]
 
 
@@ -287,6 +322,16 @@ def approve_review(
             nutrition_hash=plan.nutrition_hash,
         )
     )
+    db.add(
+        Notification(
+            user_id=plan.profile.user_id,
+            type="review_decision",
+            severity="info",
+            title="Thực đơn đã được duyệt",
+            body=f"Thực đơn ngày {plan.plan_date.isoformat()} đã được chuyên gia duyệt.",
+            related_meal_plan_id=plan.id,
+        )
+    )
     db.commit()
     db.refresh(plan)
     return MealPlanOut.from_model(plan)
@@ -325,6 +370,16 @@ def reject_review(
             menu_version=plan.menu_version,
             menu_hash=plan.menu_hash,
             nutrition_hash=plan.nutrition_hash,
+        )
+    )
+    db.add(
+        Notification(
+            user_id=plan.profile.user_id,
+            type="review_decision",
+            severity="warning",
+            title="Thực đơn cần điều chỉnh",
+            body=f"Thực đơn ngày {plan.plan_date.isoformat()} đã bị từ chối: {payload.reason}",
+            related_meal_plan_id=plan.id,
         )
     )
     db.commit()

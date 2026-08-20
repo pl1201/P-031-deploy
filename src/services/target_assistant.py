@@ -27,7 +27,7 @@ from src.clinical.target_explainer import NutrientExplanation
 from src.config import Settings
 from src.services.gemini_client import call_gemini
 
-_CLINICAL_FLAGS = Literal["frailty_sarcopenia", "metabolically_unstable", "sodium_wasting"]
+_CLINICAL_FLAGS = Literal["frailty_sarcopenia", "metabolically_unstable", "sodium_wasting", "on_dialysis"]
 
 
 class ProfileDelta(BaseModel):
@@ -127,7 +127,7 @@ Mã bệnh lý hợp lệ: T2DM (đái tháo đường týp 2), HTN (tăng huy�
 thận mạn), GOUT (gout). Giai đoạn CKD dùng ký hiệu G1..G5 (có thể có hậu tố
 như G3a/G3b). Cờ lâm sàng hợp lệ: frailty_sarcopenia (suy yếu/thiểu cơ),
 metabolically_unstable (chuyển hoá không ổn định), sodium_wasting (bệnh thận
-mất muối).
+mất muối), on_dialysis (đang lọc máu chu kỳ — thận nhân tạo hoặc lọc màng bụng).
 
 Câu hỏi không nhắc tới bệnh lý mới thì để condition_code = null, chỉ điền cờ
 nếu có nhắc tới. KHÔNG được tự suy đoán ra thông tin không có trong câu hỏi."""

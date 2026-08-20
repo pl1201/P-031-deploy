@@ -5,12 +5,17 @@ from __future__ import annotations
 from types import SimpleNamespace
 
 import pytest
+from conftest import _create_user_directly
 
 from src.api.routes.meal_plans import MealPlanOut
 from src.config import get_settings
 
 
 def _register_and_login(client, email, role, password="matkhau123"):
+    if role != "patient":
+        user_id = _create_user_directly(client, email, role, password)
+        login = client.post("/api/v1/auth/login", json={"email": email, "password": password})
+        return user_id, {"Authorization": f"Bearer {login.json()['access_token']}"}
     reg = client.post(
         "/api/v1/auth/register",
         json={"email": email, "password": password, "role": role, "full_name": "Test User"},
@@ -67,7 +72,20 @@ def test_yeu_cau_sinh_thuc_don_tra_202_ngay(client, dietitian, profile_id):
 
 def test_serialize_dish_item_uses_dish_name():
     """Regression: dish-backed rows must not reference an undefined display_name variable."""
-    food = SimpleNamespace(id=1, name_vi="Gạo lứt", source="VNE", source_ref="VNE:1")
+    food = SimpleNamespace(
+        id=1,
+        name_vi="Gạo lứt",
+        source="VNE",
+        source_ref="VNE:1",
+        kcal_100g=130.0,
+        protein_g=2.7,
+        carb_g=28.0,
+        fat_g=0.3,
+        fiber_g=0.4,
+        sugar_g=None,
+        purine_mg=15.0,
+        is_estimated=False,
+    )
     ingredient = SimpleNamespace(food_id=1, food=food, grams=100.0)
     dish = SimpleNamespace(name_vi="Cơm gạo lứt", serving_g=100.0, ingredients=[ingredient])
     item = SimpleNamespace(id="item-1", slot="lunch", dish_id="com-gao-lut", dish=dish, grams=150.0)
@@ -75,6 +93,9 @@ def test_serialize_dish_item_uses_dish_name():
     result = MealPlanOut._item_out(item)
 
     assert result.name_vi == "Cơm gạo lứt"
+    assert result.kcal == 195.0
+    assert result.sugar_g is None
+    assert result.sugar_is_complete is False
     assert result.ingredients[0].grams == 150.0
 
 
@@ -93,12 +114,14 @@ def test_sau_khi_tra_ve_graph_da_chay_xong_va_ghi_ket_qua(client, dietitian, pro
     assert body["status"] == "pending_review", body
     assert len(body["items"]) > 0
     assert all(item["name_vi"] and item["source"] and item["source_ref"] for item in body["items"])
-    # Mỗi bữa phải có món hoàn chỉnh lấy từ cùng bảng Dish mà API/UI sử dụng.
-    # food_id rời (nếu có) chỉ là phần cân chỉnh định lượng, không được thay thế
-    # toàn bộ cấu trúc món như lỗi cucumber/raw-food fallback trước đây.
-    assert all(any(item["dish_id"] for item in body["items"] if item["slot"] == slot) for slot in {
-        "breakfast", "lunch", "dinner", "snack"
-    })
+    # Ba bữa chính phải có món công thức từ cùng bảng Dish mà API/UI sử dụng.
+    # Bữa phụ được phép là trái cây/sữa/hạt có định danh (không phải nguyên liệu
+    # dư của solver), nên không ép dish_id cho riêng slot này.
+    assert all(
+        any(item["dish_id"] for item in body["items"] if item["slot"] == slot)
+        for slot in {"breakfast", "lunch", "dinner"}
+    )
+    assert any(item["slot"] == "snack" for item in body["items"])
     assert body["menu_hash_ready"] is True
     assert body["nutrition_hash_ready"] is True
     assert body["review_packet"]
@@ -149,3 +172,57 @@ def test_plan_id_khong_ton_tai_tra_404(client, dietitian):
     _, dt_headers = dietitian
     r = client.get("/api/v1/meal-plans/khong-ton-tai", headers=dt_headers)
     assert r.status_code == 404
+
+
+class TestGhiNguyenNhanThatBai:
+    """`status=failed` phải kèm nguyên nhân, không được im lặng.
+
+    Bối cảnh (chẩn đoán 18/08/2026): DB dùng chung có 43 thực đơn `failed`, cột
+    `last_error` NULL sạch ở cả 43 dòng — vì `_run_graph_and_persist` chỉ đặt
+    `status="failed"` rồi bỏ exception đi. Từ phía UI, một crash kỹ thuật hiện
+    ra y hệt một ca không tìm được phương án an toàn ("Không thể tạo phương án
+    an toàn với cấu hình này"), nên đội đọc thành lỗi lâm sàng chứ không phải
+    sự cố, và không ai biết có gì để sửa.
+    """
+
+    def test_crash_khi_sinh_thuc_don_duoc_ghi_vao_last_error(self, client, db_session, dietitian, profile_id):
+        import src.api.routes.meal_plans as mp
+        from src.db.models import MealPlan
+
+        _, dt_headers = dietitian
+
+        def no_bung(*_args, **_kwargs):
+            raise RuntimeError("kho món hỏng — mô phỏng sự cố hạ tầng")
+
+        goc = mp.load_dish_food_repository
+        mp.load_dish_food_repository = no_bung
+        try:
+            r = client.post(
+                "/api/v1/meal-plans", json={"patient_id": profile_id, "plan_date": "2026-09-02"}, headers=dt_headers
+            )
+            assert r.status_code == 202, r.text
+            plan_id = r.json()["plan_id"]
+        finally:
+            mp.load_dish_food_repository = goc
+
+        db_session.expire_all()
+        plan = db_session.get(MealPlan, plan_id)
+        assert plan is not None
+        assert plan.status == "failed"
+        assert plan.last_error is not None, "crash mà last_error vẫn NULL — đúng lỗ hổng đang vá"
+        assert plan.last_error["type"] == "RuntimeError"
+        assert "kho món hỏng" in plan.last_error["message"]
+        assert "Traceback" in plan.last_error["traceback"]
+
+    def test_thuc_don_sinh_thanh_cong_khong_ghi_last_error(self, client, db_session, dietitian, profile_id):
+        from src.db.models import MealPlan
+
+        _, dt_headers = dietitian
+        r = client.post(
+            "/api/v1/meal-plans", json={"patient_id": profile_id, "plan_date": "2026-09-03"}, headers=dt_headers
+        )
+        assert r.status_code == 202, r.text
+        plan = db_session.get(MealPlan, r.json()["plan_id"])
+        assert plan is not None
+        assert plan.status != "failed"
+        assert plan.last_error is None

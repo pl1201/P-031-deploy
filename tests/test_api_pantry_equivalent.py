@@ -3,11 +3,16 @@
 from __future__ import annotations
 
 import pytest
+from conftest import _create_user_directly
 
 from src.config import get_settings
 
 
 def _register_and_login(client, email, role, password="matkhau123"):
+    if role != "patient":
+        user_id = _create_user_directly(client, email, role, password)
+        login = client.post("/api/v1/auth/login", json={"email": email, "password": password})
+        return user_id, {"Authorization": f"Bearer {login.json()['access_token']}"}
     reg = client.post(
         "/api/v1/auth/register",
         json={"email": email, "password": password, "role": role, "full_name": "Test User"},
@@ -62,7 +67,13 @@ def approved_plan_id(client, dietitian, profile_id):
         "/api/v1/meal-plans", json={"patient_id": profile_id, "plan_date": "2026-08-10"}, headers=dt_headers
     )
     plan_id = create.json()["plan_id"]
-    approve = client.post(f"/api/v1/reviews/{plan_id}/approve", json={}, headers=dt_headers)
+    # Ngưỡng CKD/T2DM hiện chưa `verified` -> mọi lần duyệt đều dính P1 "unverified
+    # rule", buộc phải ghi lý do override mới qua được (đúng thiết kế fail-safe).
+    approve = client.post(
+        f"/api/v1/reviews/{plan_id}/approve",
+        json={"notes": "Test fixture: chấp nhận rule chưa xác minh để dựng dữ liệu cho test"},
+        headers=dt_headers,
+    )
     assert approve.status_code == 200, approve.text
     return plan_id
 

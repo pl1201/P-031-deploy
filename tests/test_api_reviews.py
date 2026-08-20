@@ -3,12 +3,17 @@
 from __future__ import annotations
 
 import pytest
+from conftest import _create_user_directly
 
 from src.config import get_settings
 from src.db.models import AuditLog, MealPlanReviewEvent
 
 
 def _register_and_login(client, email, role, password="matkhau123"):
+    if role != "patient":
+        user_id = _create_user_directly(client, email, role, password)
+        login = client.post("/api/v1/auth/login", json={"email": email, "password": password})
+        return user_id, {"Authorization": f"Bearer {login.json()['access_token']}"}
     reg = client.post(
         "/api/v1/auth/register",
         json={"email": email, "password": password, "role": role, "full_name": "Test User"},

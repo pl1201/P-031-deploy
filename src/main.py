@@ -10,6 +10,7 @@ from src.api.routes import router
 from src.config import get_settings
 from src.db.base import get_engine
 
+logging.basicConfig(level=getattr(logging, get_settings().log_level), format="%(levelname)s:%(name)s:%(message)s")
 logger = logging.getLogger(__name__)
 
 

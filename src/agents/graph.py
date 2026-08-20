@@ -33,6 +33,7 @@ from src.agents.nodes.core import (
     make_build_safety_constraints,
     make_compute_nutrition,
     make_compute_targets,
+    make_culinary_validate,
     make_fallback,
     make_generate_menu,
     make_load_profile,
@@ -48,6 +49,7 @@ from src.agents.nodes.core import (
     to_review,
 )
 from src.agents.state import AuditEvent, NutriState
+from src.clinical.models import DishCandidate
 from src.clinical.nutrition import FoodRepository
 from src.clinical.rules import ClinicalRule
 
@@ -83,6 +85,7 @@ def build_graph(
     generator: MenuGenerator,
     fallback_provider: FallbackMenuProvider,
     rules: list[ClinicalRule] | None = None,
+    dishes: list[DishCandidate] | None = None,
     checkpointer=None,
     interrupt_for_hitl: bool = True,
 ):
@@ -103,6 +106,7 @@ def build_graph(
     builder.add_node("generate_menu", _instrument("generate_menu", make_generate_menu(generator, foods)))
     builder.add_node("compute_nutrition", _instrument("compute_nutrition", make_compute_nutrition(foods)))
     builder.add_node("safety_validate", _instrument("safety_validate", make_validate(foods, rules)))
+    builder.add_node("culinary_validate", _instrument("culinary_validate", make_culinary_validate(dishes, foods)))
     builder.add_node("build_feedback", _instrument("build_feedback", build_feedback_node))
     builder.add_node("fallback_template", _instrument("fallback_template", make_fallback(fallback_provider, foods)))
     builder.add_node("risk_triage", _instrument("risk_triage", risk_triage))
@@ -128,7 +132,8 @@ def build_graph(
     builder.add_edge("build_safety_constraints", "generate_menu")
     builder.add_edge("generate_menu", "compute_nutrition")
     builder.add_edge("compute_nutrition", "safety_validate")
-    builder.add_edge("safety_validate", "risk_triage")
+    builder.add_edge("safety_validate", "culinary_validate")
+    builder.add_edge("culinary_validate", "risk_triage")
 
     builder.add_conditional_edges(
         "risk_triage",
@@ -162,7 +167,12 @@ def build_graph_with_memory(**kwargs):
     return build_graph(checkpointer=MemorySaver(), **kwargs)
 
 
-def build_review_recompute_graph(*, foods: FoodRepository, rules: list[ClinicalRule] | None = None):
+def build_review_recompute_graph(
+    *,
+    foods: FoodRepository,
+    rules: list[ClinicalRule] | None = None,
+    dishes: list[DishCandidate] | None = None,
+):
     """Downstream-only graph used after a reviewer edits menu grams.
 
     It deliberately contains no retrieval, optimizer, fallback or LLM generation
@@ -171,12 +181,14 @@ def build_review_recompute_graph(*, foods: FoodRepository, rules: list[ClinicalR
     builder = StateGraph(NutriState)
     builder.add_node("compute_nutrition", _instrument("compute_nutrition", make_compute_nutrition(foods)))
     builder.add_node("safety_validate", _instrument("safety_validate", make_validate(foods, rules)))
+    builder.add_node("culinary_validate", _instrument("culinary_validate", make_culinary_validate(dishes, foods)))
     builder.add_node("risk_triage", _instrument("risk_triage", risk_triage))
     builder.add_node("explain_with_citations", _instrument("explain_with_citations", explain_with_citations))
     builder.add_node("prepare_review_packet", _instrument("prepare_review_packet", prepare_review_packet))
     builder.add_edge(START, "compute_nutrition")
     builder.add_edge("compute_nutrition", "safety_validate")
-    builder.add_edge("safety_validate", "risk_triage")
+    builder.add_edge("safety_validate", "culinary_validate")
+    builder.add_edge("culinary_validate", "risk_triage")
     builder.add_edge("risk_triage", "explain_with_citations")
     builder.add_edge("explain_with_citations", "prepare_review_packet")
     builder.add_edge("prepare_review_packet", END)

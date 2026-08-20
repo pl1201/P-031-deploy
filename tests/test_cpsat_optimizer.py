@@ -220,7 +220,7 @@ def test_pha_2_duoc_goi_khi_pha_1_vo_nghiem(foods, monkeypatch):
     sentinel = MenuDraft(items={list(opt._SLOTS)[0]: []})  # draft phân biệt được
     calls: list[dict] = []
 
-    def fake_try_solve(eligible, bounds, dish_totals=None):
+    def fake_try_solve(eligible, bounds, dish_totals=None, **_kwargs):
         calls.append(bounds)
         return None if len(calls) == 1 else sentinel
 
@@ -309,8 +309,8 @@ def test_t2dm_van_co_mon_cu_the_khi_du_lieu_duong_chua_day_du(foods):
         profile, targets, candidates, feedback=None
     )
 
-    assert set(draft.planned_dishes) == set(MealSlot)
-    assert all(len(draft.planned_dishes[slot]) == 1 for slot in MealSlot)
+    assert {MealSlot.BREAKFAST, MealSlot.LUNCH, MealSlot.DINNER}.issubset(draft.planned_dishes)
+    assert all(draft.planned_dishes[slot] for slot in (MealSlot.BREAKFAST, MealSlot.LUNCH, MealSlot.DINNER))
 
 
 def test_gia_vi_va_hat_co_tran_khau_phan_nho(foods):

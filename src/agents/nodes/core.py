@@ -43,14 +43,28 @@ from src.agents.state import (
     TargetConflict,
     TokenUsage,
 )
+from src.agents.vietnamese_cuisine import (
+    allowed_component_in_slot,
+    allowed_in_slot,
+    is_primary_dish,
+    is_rice_dish,
+    is_rice_food,
+    is_simple_snack_food,
+    is_water_dish,
+    raw_food_allowed_in_slot,
+)
+from src.clinical.dish_roles import DishRole
 from src.clinical.integrity import hash_menu, hash_nutrition
 from src.clinical.interactions import (
     advisories_for,
     check_drug_food_interactions,
     load_drug_food_rules,
 )
+from src.clinical.medical_nutrition import is_eligible_candidate
 from src.clinical.models import (
     ClinicalTargets,
+    DishCandidate,
+    MealSlot,
     MenuDraft,
     PatientProfile,
 )
@@ -255,7 +269,12 @@ def _top_k_candidates(candidates: list, limit: int = RETRIEVAL_TOP_K) -> list:
     """Deterministic multi-objective shortlist that preserves food diversity."""
     if len(candidates) <= limit:
         return candidates
-    selected: dict[int, object] = {}
+    # Reserve patient-displayable building blocks before nutrient ranking. This
+    # prevents the top-K clinical shortlist from accidentally dropping cooked
+    # rice or fruit, which would make a normal Vietnamese meal infeasible.
+    snack_foods = sorted((item for item in candidates if is_simple_snack_food(item)), key=lambda item: item.id)[:12]
+    rice_foods = sorted((item for item in candidates if is_rice_food(item)), key=lambda item: item.id)[:3]
+    selected: dict[int, object] = {food.id: food for food in [*snack_foods, *rice_foods]}
     quota = max(12, limit // 7)
     rankings = (
         lambda food: (not (food.source == "NIN" and food.id >= USDA_BULK_ID_THRESHOLD), -food.kcal_100g, food.id),
@@ -288,6 +307,11 @@ def make_retrieve_context(foods: FoodRepository):
     Lọc sẵn danh sách ứng viên theo dị ứng và bệnh lý, để LLM không bao giờ
     nhìn thấy thực phẩm cấm. Chặn ở đầu vào rẻ hơn chặn ở đầu ra. Đồng thời
     loại khối USDA bulk khỏi ứng viên — xem ghi chú ở trên.
+
+    Cũng loại thực phẩm y tế đặc biệt (sữa dinh dưỡng y tế) mà bệnh nhân KHÔNG
+    khai đang dùng: dữ liệu hợp lệ nhưng tự ý đưa vào thực đơn là kê một sản
+    phẩm thương mại họ không có, và tiến gần tới chỉ định (CLAUDE.md §3). Chi
+    tiết ở `src/clinical/medical_nutrition.py`.
     """
 
     def retrieve_context(state: NutriState) -> dict:
@@ -297,6 +321,7 @@ def make_retrieve_context(foods: FoodRepository):
             f
             for f in all_items
             if not _la_khoi_usda_bulk(f)
+            and is_eligible_candidate(f, profile.medical_nutrition)
             and not any(a in profile.allergies for a in map(str.lower, f.contains_allergens))
             and f.name_vi.lower() not in profile.dislikes
         ]
@@ -553,12 +578,178 @@ def make_validate(foods: FoodRepository, rules: list[ClinicalRule] | None = None
     return validate_node
 
 
+def make_culinary_validate(
+    dishes: list[DishCandidate] | None = None,
+    foods: FoodRepository | None = None,
+):
+    """Validate Vietnamese meal structure after clinical validation.
+
+    This is intentionally a separate deterministic gate: it must never modify
+    clinical targets or manufacture nutrition values.  Passing ``None`` keeps
+    small unit tests and legacy ingredient-only integrations backward
+    compatible; the patient-facing DB route always supplies its dish catalog.
+    """
+    by_id = {dish.dish_id: dish for dish in dishes or []}
+
+    def culinary_validate(state: NutriState) -> dict:
+        if not by_id:
+            return {}
+
+        findings = [finding for finding in state.get("safety_findings", []) if finding.category != "culinary"]
+        draft = state.get("draft_menu")
+        if draft is None:
+            return {"safety_findings": findings}
+
+        for slot in (MealSlot.BREAKFAST, MealSlot.LUNCH, MealSlot.DINNER):
+            planned = draft.planned_dishes.get(slot, [])
+            if not planned:
+                findings.append(
+                    SafetyFinding(
+                        code="CULINARY_MISSING_MAIN_DISH",
+                        risk_level=RiskSeverity.P0,
+                        category="culinary",
+                        message_vi=f"{slot.value} chưa có món hoàn chỉnh phù hợp để hiển thị cho bệnh nhân.",
+                    )
+                )
+                continue
+            for item in planned:
+                dish = by_id.get(item.dish_id)
+                if dish is None:
+                    findings.append(
+                        SafetyFinding(
+                            code="CULINARY_UNKNOWN_DISH",
+                            risk_level=RiskSeverity.P0,
+                            category="culinary",
+                            message_vi=f"Không tìm thấy món {item.dish_id} trong catalog đã duyệt.",
+                        )
+                    )
+                elif not (allowed_in_slot(dish, slot) or allowed_component_in_slot(dish, slot)):
+                    findings.append(
+                        SafetyFinding(
+                            code="CULINARY_SLOT_MISMATCH",
+                            risk_level=RiskSeverity.P0,
+                            category="culinary",
+                            message_vi=f"{dish.name_vi} không phù hợp làm {slot.value} theo cấu trúc bữa Việt.",
+                        )
+                    )
+
+            # Ingredients inside a chosen recipe are expected. Any excess raw
+            # food is a solver residual and must not be shown as a standalone
+            # main-meal dish (for example "củ cải trắng khô 175 g").
+            recipe_grams: dict[int, float] = {}
+            for item in planned:
+                dish = by_id.get(item.dish_id)
+                if dish is None:
+                    continue
+                base_grams = sum(ingredient.grams for ingredient in dish.ingredients)
+                if base_grams <= 0:
+                    continue
+                scale = item.serving_grams / base_grams
+                for ingredient in dish.ingredients:
+                    recipe_grams[ingredient.food_id] = (
+                        recipe_grams.get(ingredient.food_id, 0.0) + ingredient.grams * scale
+                    )
+            residuals = [
+                item for item in draft.items.get(slot, []) if item.grams > recipe_grams.get(item.food_id, 0.0) + 0.1
+            ]
+            unexpected_residuals = [
+                item
+                for item in residuals
+                if foods is None
+                or (food := foods.get(item.food_id)) is None
+                or not raw_food_allowed_in_slot(food, slot)
+            ]
+            if unexpected_residuals:
+                findings.append(
+                    SafetyFinding(
+                        code="CULINARY_RAW_MAIN_FOOD",
+                        risk_level=RiskSeverity.P0,
+                        category="culinary",
+                        message_vi=f"{slot.value} chứa nguyên liệu rời không thuộc cấu trúc bữa Việt đã duyệt.",
+                    )
+                )
+
+            if slot in {MealSlot.LUNCH, MealSlot.DINNER}:
+                selected = [by_id[item.dish_id] for item in planned if item.dish_id in by_id]
+                has_protein = any(DishRole.PROTEIN in dish.roles for dish in selected)
+                has_vegetable_or_soup = any(
+                    DishRole.VEGETABLE in dish.roles or DishRole.SOUP in dish.roles for dish in selected
+                )
+                has_rice = any(
+                    foods is not None
+                    and (food := foods.get(item.food_id)) is not None
+                    and raw_food_allowed_in_slot(food, slot)
+                    for item in residuals
+                )
+                if not (has_protein and has_vegetable_or_soup and has_rice):
+                    findings.append(
+                        SafetyFinding(
+                            code="CULINARY_INCOMPLETE_RICE_PLATE",
+                            risk_level=RiskSeverity.P0,
+                            category="culinary",
+                            message_vi=f"{slot.value} phải có cơm, một món đạm và rau hoặc canh.",
+                        )
+                    )
+
+        chosen = [
+            by_id[item.dish_id]
+            for slot in (MealSlot.BREAKFAST, MealSlot.LUNCH, MealSlot.DINNER)
+            for item in draft.planned_dishes.get(slot, [])
+            if item.dish_id in by_id
+        ]
+        repeated = sorted(
+            {dish.dish_id for dish in chosen if sum(other.dish_id == dish.dish_id for other in chosen) > 1}
+        )
+        if repeated:
+            findings.append(
+                SafetyFinding(
+                    code="CULINARY_REPEATED_DISH",
+                    risk_level=RiskSeverity.P2,
+                    category="culinary",
+                    message_vi=f"Không lặp món trong các bữa chính: {', '.join(repeated)}.",
+                )
+            )
+        if sum(is_water_dish(dish) for dish in chosen) > 1:
+            findings.append(
+                SafetyFinding(
+                    code="CULINARY_WATER_DISH_OVERUSE",
+                    risk_level=RiskSeverity.P0,
+                    category="culinary",
+                    message_vi="Không dùng món nước ở quá một bữa chính trong cùng ngày.",
+                )
+            )
+
+        for item in draft.planned_dishes.get(MealSlot.DINNER, []):
+            dish = by_id.get(item.dish_id)
+            if dish is not None and is_primary_dish(dish) and not is_rice_dish(dish):
+                findings.append(
+                    SafetyFinding(
+                        code="CULINARY_DINNER_NOT_RICE_PRIORITY",
+                        risk_level=RiskSeverity.P2,
+                        category="culinary",
+                        message_vi=f"Bữa tối hằng ngày phải dùng món cơm; phương án hiện tại là {dish.name_vi}.",
+                    )
+                )
+        return {"safety_findings": findings}
+
+    return culinary_validate
+
+
 def build_feedback_node(state: NutriState) -> dict:
     """Node: build_feedback — LLM: NO."""
     nutrition = state.get("computed_nutrition")
+    culinary = [
+        finding.message_vi
+        for finding in state.get("safety_findings", [])
+        if finding.category == "culinary" and finding.risk_level is RiskSeverity.P0
+    ]
     if nutrition is None:
-        return {"feedback": state.get("feedback") or "Thực đơn không hợp lệ, hãy chọn lại món."}
-    return {"feedback": build_feedback(state["violations"], nutrition)}
+        base = state.get("feedback") or "Thực đơn không hợp lệ, hãy chọn lại món."
+    else:
+        base = build_feedback(state["violations"], nutrition)
+    if culinary:
+        base = "\n".join([base, *culinary])
+    return {"feedback": base}
 
 
 def make_fallback(provider: FallbackMenuProvider, foods: FoodRepository):
